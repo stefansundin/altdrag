@@ -1,0 +1,12 @@
+AltDrag
+http://altdrag.googlecode.com/
+recover89@gmail.com
+
+Drag windows with the mouse when pressing the alt key.
+
+You can use -hide as a parameter to hide the tray icon.
+
+Changelog
+---------
+0.1:
+Initial release.
