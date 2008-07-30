@@ -38,6 +38,10 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			}
 			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				alt=0;
+				//Prevent keyup from propagating if we're moving a window
+				if (move) {
+					return 1;
+				}
 			}
 		}
 	}
