@@ -25,6 +25,7 @@ static int alt=0;
 static int move=0;
 static HWND hwnd=NULL;
 static POINT offset;
+static int preventkeyup=0;
 
 static char msg[100];
 
@@ -39,7 +40,8 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				alt=0;
 				//Prevent keyup from propagating if we're moving a window
-				if (move) {
+				if (move || preventkeyup) {
+					preventkeyup=0;
 					return 1;
 				}
 			}
@@ -60,71 +62,87 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 			
 			//Alt is still being pressed
 			if (alt) {
-				//Get hwnd
+				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
 					sprintf(msg,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
 					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
-				//Restore the window if it's maximized
-				if (IsZoomed(hwnd)) {
-					//Restore window
-					WINDOWPLACEMENT wndpl;
-					wndpl.length=sizeof(WINDOWPLACEMENT);
-					GetWindowPlacement(hwnd,&wndpl);
-					wndpl.showCmd=SW_RESTORE;
-					SetWindowPlacement(hwnd,&wndpl);
-					
-					//Get hwnd pos and size
-					RECT rect;
-					if (GetWindowRect(hwnd,&rect) == 0) {
-						sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-						MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					}
-					
-					//Set offset
-					offset.x=(rect.right-rect.left)/2;
-					offset.y=(rect.bottom-rect.top)/2;
-					
-					//Move
-					if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,rect.right-rect.left,rect.bottom-rect.top,TRUE) == 0) {
-						sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-						MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					}
+				
+				//Get window and desktop size
+				RECT window;
+				if (GetWindowRect(hwnd,&window) == 0) {
+					sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 				}
-				else {
-					//Get hwnd pos and size
-					RECT rect;
-					if (GetWindowRect(hwnd,&rect) == 0) {
-						sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-						MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					}
-					//Set offset
-					offset.x=pt.x-rect.left;
-					offset.y=pt.y-rect.top;
+				RECT desktop;
+				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+					sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 				}
-				//Ready to move hwnd
-				move=1;
-				//Prevent mousepress from propagating
-				return 1;
+				
+				//Don't move the window if it's fullscreen
+				if (window.left != desktop.left && window.top != desktop.top && window.right != desktop.right && window.bottom != desktop.bottom) {
+					//Restore the window if it's maximized
+					if (IsZoomed(hwnd)) {
+						//Restore window
+						WINDOWPLACEMENT wndpl;
+						wndpl.length=sizeof(WINDOWPLACEMENT);
+						GetWindowPlacement(hwnd,&wndpl);
+						wndpl.showCmd=SW_RESTORE;
+						SetWindowPlacement(hwnd,&wndpl);
+						
+						//Get new pos and size
+						RECT newwindow;
+						if (GetWindowRect(hwnd,&newwindow) == 0) {
+							sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+							MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+						}
+						
+						//Set offset
+						offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
+						offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
+						
+						//Move
+						if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,newwindow.right-newwindow.left,newwindow.bottom-newwindow.top,TRUE) == 0) {
+							sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+							MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+						}
+					}
+					else {
+						//Set offset
+						offset.x=pt.x-window.left;
+						offset.y=pt.y-window.top;
+					}
+					//Ready to move window
+					move=1;
+					//Prevent mousedown from propagating
+					return 1;
+				}
 			}
 		}
 		else if (wParam == WM_LBUTTONUP && move) {
 			move=0;
 			hwnd=NULL;
+			//Prevent the alt key's keyup from propagating when it's released
+			if (alt) {
+				preventkeyup=1;
+			}
+			//Prevent mouseup from propagating
+			return 1;
 		}
 		
 		//Move window
 		if (wParam == WM_MOUSEMOVE && move) {
-			//Get hwnd pos and size
-			RECT rect;
-			if (GetWindowRect(hwnd,&rect) == 0) {
+			//Get window size
+			RECT window;
+			if (GetWindowRect(hwnd,&window) == 0) {
 				sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 				MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 			}
 			
 			//Move
-			if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,rect.right-rect.left,rect.bottom-rect.top,TRUE) == 0) {
+			if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,window.right-window.left,window.bottom-window.top,TRUE) == 0) {
 				sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 				MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 			}
