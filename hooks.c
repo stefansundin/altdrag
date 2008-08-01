@@ -16,9 +16,11 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+
+#define _WIN32_WINNT 0x0403
 #include <windows.h>
 
 static int alt=0;
@@ -39,8 +41,8 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			}
 			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				alt=0;
-				//Prevent keyup from propagating if we're moving a window
-				if (move || preventkeyup) {
+				//Prevent the keyup if this alt press was involved in dragging a window
+				if (preventkeyup) {
 					preventkeyup=0;
 					return 1;
 				}
@@ -116,6 +118,26 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 					}
 					//Ready to move window
 					move=1;
+					//Send the window a control and alt keyup. Then prevent it from receiving the real alt keyup, to prevent behavior like selecting the menu in the active window
+					KEYBDINPUT ki_control;
+					ki_control.wVk=VK_CONTROL;
+					ki_control.dwFlags=KEYEVENTF_KEYUP;
+					ki_control.time=0;
+					
+					KEYBDINPUT ki_alt;
+					ki_alt.wVk=VK_MENU;
+					ki_alt.dwFlags=KEYEVENTF_KEYUP;
+					ki_alt.time=0;
+					
+					INPUT keys[2];
+					keys[0].type=INPUT_KEYBOARD;
+					keys[0].ki=ki_control;
+					keys[1].type=INPUT_KEYBOARD;
+					keys[1].ki=ki_alt;
+					
+					SendInput(2, keys, sizeof(INPUT));
+					
+					preventkeyup=1;
 					//Prevent mousedown from propagating
 					return 1;
 				}
@@ -124,10 +146,6 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 		else if (wParam == WM_LBUTTONUP && move) {
 			move=0;
 			hwnd=NULL;
-			//Prevent the alt key's keyup from propagating when it's released
-			if (alt) {
-				preventkeyup=1;
-			}
 			//Prevent mouseup from propagating
 			return 1;
 		}
