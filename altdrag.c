@@ -393,7 +393,7 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			SetAutostart(1,0);
 		}
 		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, "AltDrag - 0.1\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, "AltDrag - 0.2\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hWnd);

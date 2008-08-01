@@ -27,7 +27,6 @@ static int alt=0;
 static int move=0;
 static HWND hwnd=NULL;
 static POINT offset;
-static int preventkeyup=0;
 
 static char msg[100];
 
@@ -41,11 +40,6 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			}
 			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				alt=0;
-				//Prevent the keyup if this alt press was involved in dragging a window
-				if (preventkeyup) {
-					preventkeyup=0;
-					return 1;
-				}
 			}
 		}
 	}
@@ -118,26 +112,6 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 					}
 					//Ready to move window
 					move=1;
-					//Send the window a control and alt keyup. Then prevent it from receiving the real alt keyup, to prevent behavior like selecting the menu in the active window
-					KEYBDINPUT ki_control;
-					ki_control.wVk=VK_CONTROL;
-					ki_control.dwFlags=KEYEVENTF_KEYUP;
-					ki_control.time=0;
-					
-					KEYBDINPUT ki_alt;
-					ki_alt.wVk=VK_MENU;
-					ki_alt.dwFlags=KEYEVENTF_KEYUP;
-					ki_alt.time=0;
-					
-					INPUT keys[2];
-					keys[0].type=INPUT_KEYBOARD;
-					keys[0].ki=ki_control;
-					keys[1].type=INPUT_KEYBOARD;
-					keys[1].ki=ki_alt;
-					
-					SendInput(2, keys, sizeof(INPUT));
-					
-					preventkeyup=1;
 					//Prevent mousedown from propagating
 					return 1;
 				}
