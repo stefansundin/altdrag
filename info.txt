@@ -3,11 +3,16 @@ http://altdrag.googlecode.com/
 recover89@gmail.com
 
 Drag windows with the mouse when pressing the alt key.
+Fullscreen windows, such as games, will not be dragged.
 
 You can use -hide as a parameter to hide the tray icon.
 
 Changelog
 ---------
+0.3:
+Fixed a bug that made AltDrag ignore all windows which were at the screen borders since it thought they were fullscreen windows.
+Improved performance by only installing the mouse hook when the alt key is pressed.
+
 0.2:
 You can no longer drag fullscreen windows.
 The window is better placed when it's restored from its maximized state.
