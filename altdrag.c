@@ -34,17 +34,15 @@
 //Stuff
 LRESULT CALLBACK MyWndProc(HWND, UINT, WPARAM, LPARAM);
 
-//Hook data
-static HINSTANCE hinstDLL;
-static HHOOK keyhook, mousehook;
-
-//Global info
 static HICON icon[2];
 static NOTIFYICONDATA traydata;
 static UINT WM_TASKBARCREATED;
 static int tray_added=0;
-static int hook_installed=0;
 static int hide=0;
+
+static HINSTANCE hinstDLL;
+static HHOOK keyhook;
+static int hook_installed=0;
 
 static char msg[100];
 
@@ -263,20 +261,6 @@ int InstallHook() {
 		return 1;
 	}
 	
-	//Get address to mouse hook (beware name mangling)
-	if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"MouseProc@12")) == NULL) {
-		sprintf(msg,"GetProcAddress() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		return 1;
-	}
-	
-	//Set up the mouse hook
-	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,procaddr,hinstDLL,0)) == NULL) {
-		sprintf(msg,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		return 1;
-	}
-	
 	//Success
 	hook_installed=1;
 	if (!hide) {
@@ -293,13 +277,6 @@ int RemoveHook() {
 	
 	//Remove keyboard hook
 	if (UnhookWindowsHookEx(keyhook) == 0) {
-		sprintf(msg,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		return 1;
-	}
-	
-	//Remove mouse hook
-	if (UnhookWindowsHookEx(mousehook) == 0) {
 		sprintf(msg,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
@@ -393,7 +370,7 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			SetAutostart(1,0);
 		}
 		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, "AltDrag - 0.2\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, "AltDrag - 0.3\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\nFullscreen windows, such as games, will not be dragged.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hWnd);

@@ -28,6 +28,10 @@ static int move=0;
 static HWND hwnd=NULL;
 static POINT offset;
 
+static HINSTANCE hinstDLL;
+static HHOOK mousehook;
+static int hook_installed=0;
+
 static char msg[100];
 
 _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -37,9 +41,13 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 		if (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU) {
 			if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 				alt=1;
+				InstallHook();
 			}
 			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				alt=0;
+				if (!move) {
+					RemoveHook();
+				}
 			}
 		}
 	}
@@ -54,6 +62,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 			//Double check that Alt is pressed
 			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt=0;
+				RemoveHook();
 			}
 			
 			//Alt is still being pressed
@@ -78,7 +87,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				}
 				
 				//Don't move the window if it's fullscreen
-				if (window.left != desktop.left && window.top != desktop.top && window.right != desktop.right && window.bottom != desktop.bottom) {
+				if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
 					//Restore the window if it's maximized
 					if (IsZoomed(hwnd)) {
 						//Restore window
@@ -120,23 +129,31 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 		else if (wParam == WM_LBUTTONUP && move) {
 			move=0;
 			hwnd=NULL;
+			RemoveHook();
 			//Prevent mouseup from propagating
 			return 1;
 		}
 		
 		//Move window
 		if (wParam == WM_MOUSEMOVE && move) {
-			//Get window size
-			RECT window;
-			if (GetWindowRect(hwnd,&window) == 0) {
-				sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-				MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			if (IsWindow(hwnd)) {
+				//Get window size
+				RECT window;
+				if (GetWindowRect(hwnd,&window) == 0) {
+					sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+				}
+				
+				//Move
+				if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,window.right-window.left,window.bottom-window.top,TRUE) == 0) {
+					sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+				}
 			}
-			
-			//Move
-			if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,window.right-window.left,window.bottom-window.top,TRUE) == 0) {
-				sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-				MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			else {
+				move=0;
+				hwnd=NULL;
+				RemoveHook();
 			}
 		}
 	}
@@ -144,6 +161,45 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 	return CallNextHookEx(NULL, nCode, wParam, lParam); 
 }
 
+int InstallHook() {
+	if (hook_installed) {
+		//Hook already installed
+		return 1;
+	}
+	
+	//Set up the mouse hook
+	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,MouseProc,hinstDLL,0)) == NULL) {
+		sprintf(msg,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		return 1;
+	}
+	
+	//Success
+	hook_installed=1;
+	return 0;
+}
+
+int RemoveHook() {
+	if (!hook_installed) {
+		//Hook not installed
+		return 1;
+	}
+	
+	//Remove mouse hook
+	if (UnhookWindowsHookEx(mousehook) == 0) {
+		sprintf(msg,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		return 1;
+	}
+	
+	//Success
+	hook_installed=0;
+	return 0;
+}
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
+	if (reason == DLL_PROCESS_ATTACH) {
+		hinstDLL=hInstance;
+	}
 	return TRUE;
 }
