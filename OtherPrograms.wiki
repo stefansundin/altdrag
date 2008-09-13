@@ -3,7 +3,7 @@
 
 = Introduction =
 
-* [http://virtuawin.sourceforge.net/ VirtuaWin], by using the module [http://virtuawin.sourceforge.net/modules.php Win32WM].
-* An AutoHotkey script [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/].
-* [http://www.softpedia.com/progDownload/WinMover-Download-31942.html WinMover]
-* [http://winxmove.sourceforge.net/ Win-X-Move]
+ * [http://virtuawin.sourceforge.net/ VirtuaWin], by using the module [http://virtuawin.sourceforge.net/modules.php Win32WM].
+ * An AutoHotkey script [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/].
+ * [http://www.softpedia.com/progDownload/WinMover-Download-31942.html WinMover]
+ * [http://winxmove.sourceforge.net/ Win-X-Move]
