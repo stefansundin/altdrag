@@ -370,7 +370,7 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			SetAutostart(1,0);
 		}
 		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, "AltDrag - 0.3\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\nFullscreen windows, such as games, will not be dragged.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, "AltDrag - 0.4\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\nAlso press the shift key to make the window stick to other windows.\nFullscreen windows, such as games, will not be dragged.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hWnd);
