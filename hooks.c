@@ -20,13 +20,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define _WIN32_WINNT 0x0403
 #include <windows.h>
 
 static int alt=0;
+static int shift=0;
 static int move=0;
 static HWND hwnd=NULL;
 static POINT offset;
+static HWND wnds[100];
+static int numwnds=0;
 
 static HINSTANCE hinstDLL;
 static HHOOK mousehook;
@@ -34,20 +36,128 @@ static int hook_installed=0;
 
 static char msg[100];
 
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
+		wnds[numwnds++]=hwnd;
+	}
+	if (IsZoomed(hwnd)) { //This window is covering all the other windows, so we don't want the windows below
+		wnds[numwnds++]=GetDesktopWindow(); //Since desktop is the last hwnd to be added, we need to add it now before returning
+		return FALSE;
+	}
+	if (numwnds < 100) {
+		return TRUE;
+	}
+}
+
+void MoveWnd(POINT pt) {
+	//Get window size
+	RECT wnd;
+	if (GetWindowRect(hwnd,&wnd) == 0) {
+		sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+	}
+	
+	int posx=pt.x-offset.x;
+	int posy=pt.y-offset.y;
+	int wndwidth=wnd.right-wnd.left;
+	int wndheight=wnd.bottom-wnd.top;
+	
+	//Check if window will stick anywhere
+	if (shift) {
+		numwnds=0;
+		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		int i, stuckx=0, stucky=0;
+		const int threshold=20;
+		//Loop windows
+		for (i=0; i < numwnds; i++) {
+			RECT stickywnd;
+			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
+				sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+				MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			}
+			
+			//Check if posx sticks
+			if (!stuckx
+			 && ((stickywnd.top-threshold < posy && posy < stickywnd.bottom+threshold)
+			 ||  (posy-threshold < stickywnd.top && stickywnd.top < posy+wndheight+threshold))) {
+				stuckx=1;
+				if (posx-threshold < stickywnd.right && stickywnd.right < posx+threshold) {
+					posx=stickywnd.right;
+				}
+				else if (posx+wndwidth-threshold < stickywnd.right && stickywnd.right < posx+wndwidth+threshold) {
+					posx=stickywnd.right-wndwidth;
+				}
+				else if (posx-threshold < stickywnd.left && stickywnd.left < posx+threshold) {
+					posx=stickywnd.left;
+				}
+				else if (posx+wndwidth-threshold < stickywnd.left && stickywnd.left < posx+wndwidth+threshold) {
+					posx=stickywnd.left-wndwidth;
+				}
+				else {
+					stuckx=0;
+				}
+			}
+			
+			//Check if posy sticks
+			if (!stucky
+			 && ((stickywnd.left-threshold < posx && posx < stickywnd.right+threshold)
+			 ||  (posx-threshold < stickywnd.left && stickywnd.left < posx+wndwidth+threshold))) {
+				stucky=1;
+				if (posy-threshold < stickywnd.bottom && stickywnd.bottom < posy+threshold) {
+					posy=stickywnd.bottom;
+				}
+				else if (posy+wndheight-threshold < stickywnd.bottom && stickywnd.bottom < posy+wndheight+threshold) {
+					posy=stickywnd.bottom-wndheight;
+				}
+				else if (posy-threshold < stickywnd.top && stickywnd.top < posy+threshold) {
+					posy=stickywnd.top;
+				}
+				else if (posy+wndheight-threshold < stickywnd.top && stickywnd.top < posy+wndheight+threshold) {
+					posy=stickywnd.top-wndheight;
+				}
+				else {
+					stucky=0;
+				}
+			}
+			
+			if (stuckx && stucky) {
+				break;
+			}
+		}
+	}
+	
+	//Move
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+		sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+	}
+}
+
 _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		int vkey=((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
-		if (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU) {
-			if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+			if (!alt && (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU)) {
 				alt=1;
 				InstallHook();
 			}
-			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+			else if (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
+				shift=1;
+			}
+			else if (move && (vkey == VK_CONTROL || vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
+				SetForegroundWindow(hwnd);
+			}
+		}
+		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+			if (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU) {
 				alt=0;
 				if (!move) {
 					RemoveHook();
 				}
+			}
+			else if (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
+				shift=0;
 			}
 		}
 	}
@@ -109,10 +219,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 						offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
 						
 						//Move
-						if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,newwindow.right-newwindow.left,newwindow.bottom-newwindow.top,TRUE) == 0) {
-							sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-							MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-						}
+						MoveWnd(pt);
 					}
 					else {
 						//Set offset
@@ -128,8 +235,9 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 		}
 		else if (wParam == WM_LBUTTONUP && move) {
 			move=0;
-			hwnd=NULL;
-			RemoveHook();
+			if (!alt) {
+				RemoveHook();
+			}
 			//Prevent mouseup from propagating
 			return 1;
 		}
@@ -137,22 +245,11 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 		//Move window
 		if (wParam == WM_MOUSEMOVE && move) {
 			if (IsWindow(hwnd)) {
-				//Get window size
-				RECT window;
-				if (GetWindowRect(hwnd,&window) == 0) {
-					sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-				}
-				
 				//Move
-				if (MoveWindow(hwnd,pt.x-offset.x,pt.y-offset.y,window.right-window.left,window.bottom-window.top,TRUE) == 0) {
-					sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-				}
+				MoveWnd(pt);
 			}
 			else {
 				move=0;
-				hwnd=NULL;
 				RemoveHook();
 			}
 		}
