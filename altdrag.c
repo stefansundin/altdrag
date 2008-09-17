@@ -20,8 +20,9 @@
 #include <stdlib.h>
 #include <windows.h>
 
-//Tray messages
+//Messages
 #define WM_ICONTRAY            WM_USER+1
+#define WM_ADDTRAY             WM_USER+2
 #define SWM_TOGGLE             WM_APP+1
 #define SWM_HIDE               WM_APP+2
 #define SWM_AUTOSTART_ON       WM_APP+3
@@ -47,6 +48,13 @@ static int hook_installed=0;
 static char msg[100];
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+	//Look for previous instance
+	HWND previnst;
+	if ((previnst=FindWindow("AltDrag",NULL)) != NULL) {
+		SendMessage(previnst,WM_ADDTRAY,0,0);
+		return 0;
+	}
+
 	//Check command line
 	if (!strcmp(szCmdLine,"-hide")) {
 		hide=1;
@@ -75,8 +83,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Create window
 	HWND hWnd;
 	hWnd=CreateWindow(wnd.lpszClassName, wnd.lpszClassName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
-	//ShowWindow(hWnd, iCmdShow); //Show
-	//UpdateWindow(hWnd); //Update
 
 	//Register TaskbarCreated so we can readd the tray icon if explorer.exe crashes
 	if ((WM_TASKBARCREATED=RegisterWindowMessage("TaskbarCreated")) == 0) {
@@ -208,7 +214,7 @@ int UpdateTray() {
 	
 	if (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
 		sprintf(msg,"Shell_NotifyIcon() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "ShutdownGuard Warning", MB_ICONWARNING|MB_OK);
+		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
@@ -399,6 +405,10 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 		PostQuitMessage(0);
 		return 0;
+	}
+	else if (msg == WM_ADDTRAY && hide) {
+		hide=0;
+		UpdateTray();
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

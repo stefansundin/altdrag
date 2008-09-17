@@ -49,13 +49,23 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	}
 }
 
-void MoveWnd(POINT pt) {
+void MoveWnd() {
+	//Check if window still exists
+	if (!IsWindow(hwnd)) {
+		move=0;
+		RemoveHook();
+		return;
+	}
+	
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
 		sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
+	
+	POINT pt;
+	GetCursorPos(&pt);
 	
 	int posx=pt.x-offset.x;
 	int posy=pt.y-offset.y;
@@ -144,6 +154,9 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			}
 			else if (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift=1;
+				if (move) {
+					MoveWnd();
+				}
 			}
 			else if (move && (vkey == VK_CONTROL || vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
 				SetForegroundWindow(hwnd);
@@ -158,6 +171,9 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			}
 			else if (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift=0;
+				if (move) {
+					MoveWnd();
+				}
 			}
 		}
 	}
@@ -167,16 +183,21 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 
 _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
-		POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-		if (!move && wParam == WM_LBUTTONDOWN && alt) {
+		if (wParam == WM_LBUTTONDOWN && alt && !move) {
 			//Double check that Alt is pressed
 			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt=0;
 				RemoveHook();
 			}
+			//Double check if Shift is pressed
+			if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+				shift=0;
+			}
 			
 			//Alt is still being pressed
 			if (alt) {
+				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
 					sprintf(msg,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
@@ -219,7 +240,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 						offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
 						
 						//Move
-						MoveWnd(pt);
+						MoveWnd();
 					}
 					else {
 						//Set offset
@@ -241,17 +262,9 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		
-		//Move window
-		if (wParam == WM_MOUSEMOVE && move) {
-			if (IsWindow(hwnd)) {
-				//Move
-				MoveWnd(pt);
-			}
-			else {
-				move=0;
-				RemoveHook();
-			}
+		else if (wParam == WM_MOUSEMOVE && move) {
+			//Move window
+			MoveWnd();
 		}
 	}
 	
