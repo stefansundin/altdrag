@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+	<id>urn:uuid:d7e43e4b-8da4-4214-a13d-c6c2a489f6cd</id>
+	<title>AltDrag</title>
+	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
+	<link href="http://code.google.com/p/altdrag/" />
+	<updated>2008-09-24T14:30:00Z</updated>
+	<author>
+		<name>Stefan Sundin</name>
+		<email>recover89@gmail.com</email>
+	</author>
+
+	<entry>
+		<id>urn:uuid:d6721de7-7e4d-42df-9bcc-4722751b2620</id>
+		<title>This feed</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2008-09-24T14:30:00Z</updated>
+		<content type="html">
+Hi everyone.&lt;br/>
+This feed will let you know when there's any update to AltDrag.&lt;br/>
+There's also another feed available &lt;a href="http://superf4.googlecode.com/svn/wiki/all.xml">here&lt;/a> which will let you know if there's an update to any of programs.&lt;br/>
+You can take a look at all my programs &lt;a href="http://code.google.com/u/recover89/">here&lt;/a>.
+		</content>
+	</entry>
+</feed>
