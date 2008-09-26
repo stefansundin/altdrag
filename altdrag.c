@@ -406,7 +406,7 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		PostQuitMessage(0);
 		return 0;
 	}
-	else if (msg == WM_ADDTRAY && hide) {
+	else if (msg == WM_ADDTRAY) {
 		hide=0;
 		UpdateTray();
 	}
