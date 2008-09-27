@@ -76,8 +76,8 @@ void MoveWnd() {
 	if (shift) {
 		numwnds=0;
 		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
-		int i, stuckx=0, stucky=0;
-		const int threshold=20;
+		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
+		int i, thresholdx=20, thresholdy=20, stuckx=0, stucky=0, stickx=0, sticky=0;
 		//Loop windows
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
@@ -87,52 +87,70 @@ void MoveWnd() {
 			}
 			
 			//Check if posx sticks
-			if (!stuckx
-			 && ((stickywnd.top-threshold < posy && posy < stickywnd.bottom+threshold)
-			 ||  (posy-threshold < stickywnd.top && stickywnd.top < posy+wndheight+threshold))) {
-				stuckx=1;
-				if (posx-threshold < stickywnd.right && stickywnd.right < posx+threshold) {
-					posx=stickywnd.right;
+			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
+			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
+				if (posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
+					//The left edge of the dragged window will stick to this window's right edge
+					stuckx=1;
+					stickx=stickywnd.right;
+					thresholdx=stickywnd.right-posx;
 				}
-				else if (posx+wndwidth-threshold < stickywnd.right && stickywnd.right < posx+wndwidth+threshold) {
-					posx=stickywnd.right-wndwidth;
+				else if (posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
+					//The right edge of the dragged window will stick to this window's right edge
+					stuckx=1;
+					stickx=stickywnd.right-wndwidth;
+					thresholdx=stickywnd.right-(posx+wndwidth);
 				}
-				else if (posx-threshold < stickywnd.left && stickywnd.left < posx+threshold) {
-					posx=stickywnd.left;
+				else if (posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
+					//The left edge of the dragged window will stick to this window's left edge
+					stuckx=1;
+					stickx=stickywnd.left;
+					thresholdx=stickywnd.left-posx;
 				}
-				else if (posx+wndwidth-threshold < stickywnd.left && stickywnd.left < posx+wndwidth+threshold) {
-					posx=stickywnd.left-wndwidth;
-				}
-				else {
-					stuckx=0;
+				else if (posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdx) {
+					//The right edge of the dragged window will stick to this window's left edge
+					stuckx=1;
+					stickx=stickywnd.left-wndwidth;
+					thresholdx=stickywnd.left-(posx+wndwidth);
 				}
 			}
 			
 			//Check if posy sticks
-			if (!stucky
-			 && ((stickywnd.left-threshold < posx && posx < stickywnd.right+threshold)
-			 ||  (posx-threshold < stickywnd.left && stickywnd.left < posx+wndwidth+threshold))) {
-				stucky=1;
-				if (posy-threshold < stickywnd.bottom && stickywnd.bottom < posy+threshold) {
-					posy=stickywnd.bottom;
+			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
+			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
+				if (posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
+					//The top edge of the dragged window will stick to this window's bottom edge
+					stucky=1;
+					sticky=stickywnd.bottom;
+					thresholdy=stickywnd.bottom-posy;
 				}
-				else if (posy+wndheight-threshold < stickywnd.bottom && stickywnd.bottom < posy+wndheight+threshold) {
-					posy=stickywnd.bottom-wndheight;
+				else if (posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
+					//The bottom edge of the dragged window will stick to this window's bottom edge
+					stucky=1;
+					sticky=stickywnd.bottom-wndheight;
+					thresholdy=stickywnd.bottom-(posy+wndheight);
 				}
-				else if (posy-threshold < stickywnd.top && stickywnd.top < posy+threshold) {
-					posy=stickywnd.top;
+				else if (posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
+					//The top edge of the dragged window will stick to this window's top edge
+					stucky=1;
+					sticky=stickywnd.top;
+					thresholdy=stickywnd.top-posy;
 				}
-				else if (posy+wndheight-threshold < stickywnd.top && stickywnd.top < posy+wndheight+threshold) {
-					posy=stickywnd.top-wndheight;
-				}
-				else {
-					stucky=0;
+				else if (posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < posy+wndheight+thresholdy) {
+					//The bottom edge of the dragged window will stick to this window's top edge
+					stucky=1;
+					sticky=stickywnd.top-wndheight;
+					thresholdy=stickywnd.top-(posy+wndheight);
 				}
 			}
-			
-			if (stuckx && stucky) {
-				break;
-			}
+		}
+		
+		//Did we stick somewhere?
+		if (stuckx) {
+			posx=stickx;
+		}
+		if (stucky) {
+			posy=sticky;
 		}
 	}
 	
