@@ -19,22 +19,25 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <windows.h>
 
+//#define DEBUG
+
+//shift, move and hwnd are shared since CallWndProc is called in the context of another thread
 static int alt=0;
-static int shift=0;
-static int move=0;
-static HWND hwnd=NULL;
+static int shift __attribute__((section ("shared"), shared)) = 0;
+static int move __attribute__((section ("shared"), shared)) = 0;
+static HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
 static POINT offset;
-static HWND wnds[100];
+static HWND *wnds=NULL;
 static int numwnds=0;
+static int maxwnds=0;
 
 static HINSTANCE hinstDLL;
 static HHOOK mousehook;
 static int hook_installed=0;
 
-static char msg[100];
+static char txt[100];
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
@@ -44,9 +47,17 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 		wnds[numwnds++]=GetDesktopWindow(); //Since desktop is the last hwnd to be added, we need to add it now before returning
 		return FALSE;
 	}
-	if (numwnds < 100) {
-		return TRUE;
+	if (numwnds == maxwnds) {
+		if ((wnds=realloc(wnds,(maxwnds+100)*sizeof(HWND))) == NULL) {
+			#ifdef DEBUG
+			sprintf(txt,"realloc() failed in file %s, line %d.",__FILE__,__LINE__);
+			MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			#endif
+			return FALSE;
+		}
+		maxwnds+=100;
 	}
+	return TRUE;
 }
 
 void MoveWnd() {
@@ -60,13 +71,15 @@ void MoveWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#ifdef DEBUG
+		sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#endif
 	}
 	
+	//Get new position for window
 	POINT pt;
 	GetCursorPos(&pt);
-	
 	int posx=pt.x-offset.x;
 	int posy=pt.y-offset.y;
 	int wndwidth=wnd.right-wnd.left;
@@ -82,8 +95,10 @@ void MoveWnd() {
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-				MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+				#ifdef DEBUG
+				sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+				MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+				#endif
 			}
 			
 			//Check if posx sticks
@@ -156,9 +171,15 @@ void MoveWnd() {
 	
 	//Move
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		sprintf(msg,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#ifdef DEBUG
+		sprintf(txt,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#endif
 	}
+	
+	/*FILE *f=fopen("move.log","ab");
+	fprintf(f,"Moving window to %d,%d\n",posx,posy);
+	fclose(f);*/
 }
 
 _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -170,7 +191,7 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 				alt=1;
 				InstallHook();
 			}
-			else if (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
+			else if (!shift && (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
 				shift=1;
 				if (move) {
 					MoveWnd();
@@ -196,7 +217,7 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 		}
 	}
 	
-    return CallNextHookEx(NULL, nCode, wParam, lParam); 
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -218,21 +239,27 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					sprintf(msg,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
-					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#ifdef DEBUG
+					sprintf(txt,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
+					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#endif
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
 				//Get window and desktop size
 				RECT window;
 				if (GetWindowRect(hwnd,&window) == 0) {
-					sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#ifdef DEBUG
+					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#endif
 				}
 				RECT desktop;
 				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-					sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#ifdef DEBUG
+					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#endif
 				}
 				
 				//Don't move the window if it's fullscreen
@@ -249,8 +276,10 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 						//Get new pos and size
 						RECT newwindow;
 						if (GetWindowRect(hwnd,&newwindow) == 0) {
-							sprintf(msg,"GetClientRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-							MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+							#ifdef DEBUG
+							sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+							MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+							#endif
 						}
 						
 						//Set offset
@@ -286,7 +315,36 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 		}
 	}
 	
-	return CallNextHookEx(NULL, nCode, wParam, lParam); 
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+//CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
+//Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move and hwnd)
+_declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode == HC_ACTION && !move) {
+		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
+		
+		/*if (shift) {
+			FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
+			fprintf(f,"message: %d\n",msg->message);
+			fclose(f);
+		}*/
+		
+		if (msg->message == WM_WINDOWPOSCHANGED && shift && IsWindowVisible(msg->hwnd)) {
+			//Set offset
+			POINT pt;
+			GetCursorPos(&pt);
+			WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
+			offset.x=pt.x-wndpos->x;
+			offset.y=pt.y-wndpos->y;
+			//Set hwnd
+			hwnd=msg->hwnd;
+			//Move window
+			MoveWnd();
+		}
+	}
+	
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 int InstallHook() {
@@ -297,8 +355,10 @@ int InstallHook() {
 	
 	//Set up the mouse hook
 	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,MouseProc,hinstDLL,0)) == NULL) {
-		sprintf(msg,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#ifdef DEBUG
+		sprintf(txt,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#endif
 		return 1;
 	}
 	
@@ -315,8 +375,10 @@ int RemoveHook() {
 	
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		sprintf(msg,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#ifdef DEBUG
+		sprintf(txt,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#endif
 		return 1;
 	}
 	
@@ -328,6 +390,9 @@ int RemoveHook() {
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
+	}
+	else if (reason == DLL_PROCESS_DETACH) {
+		free(wnds);
 	}
 	return TRUE;
 }
