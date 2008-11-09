@@ -22,7 +22,7 @@
 
 //Messages
 #define WM_ICONTRAY            WM_USER+1
-#define WM_ADDTRAY             WM_USER+2
+#define WM_ADDTRAY             WM_USER+2 //This value has to remain constant through versions
 #define SWM_TOGGLE             WM_APP+1
 #define SWM_HIDE               WM_APP+2
 #define SWM_AUTOSTART_ON       WM_APP+3
@@ -43,9 +43,10 @@ static int hide=0;
 
 static HINSTANCE hinstDLL;
 static HHOOK keyhook;
+static HHOOK messagehook;
 static int hook_installed=0;
 
-static char msg[100];
+static char txt[100];
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	//Look for previous instance
@@ -75,30 +76,29 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	
 	//Register class
 	if (RegisterClass(&wnd) == 0) {
-		sprintf(msg,"RegisterClass() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Error", MB_ICONERROR|MB_OK);
+		sprintf(txt,"RegisterClass() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Error", MB_ICONERROR|MB_OK);
 		return 1;
 	}
 	
 	//Create window
-	HWND hWnd;
-	hWnd=CreateWindow(wnd.lpszClassName, wnd.lpszClassName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	HWND hwnd=CreateWindow(wnd.lpszClassName, wnd.lpszClassName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
 
-	//Register TaskbarCreated so we can readd the tray icon if explorer.exe crashes
+	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
 	if ((WM_TASKBARCREATED=RegisterWindowMessage("TaskbarCreated")) == 0) {
-		sprintf(msg,"RegisterWindowMessage() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"RegisterWindowMessage() failed (error code: %d) in file %s, line %d.\nThis means the tray icon won't be added if (or should I say when) explorer.exe crashes.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	
 	//Load tray icons
 	if ((icon[0] = LoadImage(hInst, "tray-disabled", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR)) == NULL) {
-		sprintf(msg,"LoadImage() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Error", MB_ICONERROR|MB_OK);
+		sprintf(txt,"LoadImage() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Error", MB_ICONERROR|MB_OK);
 		PostQuitMessage(1);
 	}
 	if ((icon[1] = LoadImage(hInst, "tray-enabled", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR)) == NULL) {
-		sprintf(msg,"LoadImage() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Error", MB_ICONERROR|MB_OK);
+		sprintf(txt,"LoadImage() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Error", MB_ICONERROR|MB_OK);
 		PostQuitMessage(1);
 	}
 	
@@ -106,19 +106,19 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	traydata.cbSize=sizeof(NOTIFYICONDATA);
 	traydata.uID=0;
 	traydata.uFlags=NIF_MESSAGE|NIF_ICON|NIF_TIP;
-	traydata.hWnd=hWnd;
+	traydata.hWnd=hwnd;
 	traydata.uCallbackMessage=WM_ICONTRAY;
 	
-	//Add tray icon
-	if (!hide) {
-		UpdateTray();
-	}
+	//Update tray icon
+	UpdateTray();
 	
 	//Install hook
 	InstallHook();
 	
+	//Add tray if hook failed, even though -hide was supplied
 	if (!hook_installed && hide) {
-		PostQuitMessage(1);
+		hide=0;
+		UpdateTray();
 	}
 	
 	//Message loop
@@ -130,18 +130,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	return msg.wParam;
 }
 
-void ShowContextMenu(HWND hWnd) {
+void ShowContextMenu(HWND hwnd) {
 	POINT pt;
 	GetCursorPos(&pt);
 	HMENU hMenu, hAutostartMenu;
 	if ((hMenu = CreatePopupMenu()) == NULL) {
-		sprintf(msg,"CreatePopupMenu() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"CreatePopupMenu() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	
 	//Toggle
 	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_TOGGLE, (hook_installed?"Disable":"Enable"));
-	//InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, SWM_ABOUT, "");
 	
 	//Hide
 	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, "Hide tray");
@@ -152,27 +151,27 @@ void ShowContextMenu(HWND hWnd) {
 	//Open key
 	HKEY key;
 	if (RegOpenKeyEx(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&key) != ERROR_SUCCESS) {
-		sprintf(msg,"RegOpenKeyEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"RegOpenKeyEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	//Read value
 	char autostart_value[MAX_PATH+10];
 	DWORD len=sizeof(autostart_value);
 	DWORD res=RegQueryValueEx(key,"AltDrag",NULL,NULL,(LPBYTE)autostart_value,&len);
 	if (res != ERROR_FILE_NOT_FOUND && res != ERROR_SUCCESS) {
-		sprintf(msg,"RegQueryValueEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"RegQueryValueEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	//Close key
 	if (RegCloseKey(key) != ERROR_SUCCESS) {
-		sprintf(msg,"RegCloseKey() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"RegCloseKey() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	//Get path
 	char path[MAX_PATH];
 	if (GetModuleFileName(NULL,path,sizeof(path)) == 0) {
-		sprintf(msg,"GetModuleFileName() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"GetModuleFileName() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	//Compare
 	char pathcmp[MAX_PATH+10];
@@ -187,13 +186,13 @@ void ShowContextMenu(HWND hWnd) {
 	}
 	
 	if ((hAutostartMenu = CreatePopupMenu()) == NULL) {
-		sprintf(msg,"CreatePopupMenu() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"CreatePopupMenu() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 	}
 	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), "Autostart");
 	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), "Hide tray");
 	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT)hAutostartMenu, "Autostart");
-	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, SWM_ABOUT, "");
+	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	
 	//About
 	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, "About");
@@ -202,9 +201,9 @@ void ShowContextMenu(HWND hWnd) {
 	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, "Exit");
 
 	//Must set window to the foreground, or else the menu won't disappear when clicking outside it
-	SetForegroundWindow(hWnd);
+	SetForegroundWindow(hwnd);
 
-	TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL );
+	TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL );
 	DestroyMenu(hMenu);
 }
 
@@ -212,14 +211,17 @@ int UpdateTray() {
 	strncpy(traydata.szTip,(hook_installed?"AltDrag (enabled)":"AltDrag (disabled)"),sizeof(traydata.szTip));
 	traydata.hIcon=icon[hook_installed];
 	
-	if (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
-		sprintf(msg,"Shell_NotifyIcon() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		return 1;
+	//Only add or modify if not hidden
+	if (!hide) {
+		if (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
+			sprintf(txt,"Failed to add tray icon.\n\nShell_NotifyIcon() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+			MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			return 1;
+		}
+		
+		//Success
+		tray_added=1;
 	}
-	
-	//Success
-	tray_added=1;
 	return 0;
 }
 
@@ -230,13 +232,14 @@ int RemoveTray() {
 	}
 	
 	if (Shell_NotifyIcon(NIM_DELETE,&traydata) == FALSE) {
-		sprintf(msg,"Shell_NotifyIcon() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"Failed to remove tray icon.\n\nShell_NotifyIcon() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
 	//Success
 	tray_added=0;
+	return 0;
 }
 
 int InstallHook() {
@@ -247,23 +250,35 @@ int InstallHook() {
 	
 	//Load dll
 	if ((hinstDLL=LoadLibrary((LPCTSTR)"hooks.dll")) == NULL) {
-		sprintf(msg,"LoadLibrary() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"Failed to load hooks.dll.\nThis probably means that the file is missing.\nYou can try to download AltDrag again from the website.\n\nError message:\nLoadLibrary() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
 	//Get address to keyboard hook (beware name mangling)
 	HOOKPROC procaddr;
 	if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"KeyboardProc@12")) == NULL) {
-		sprintf(msg,"GetProcAddress() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"GetProcAddress() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		return 1;
+	}
+	//Set up the keyboard hook
+	if ((keyhook=SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0)) == NULL) {
+		sprintf(txt,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
-	//Set up the keyboard hook
-	if ((keyhook=SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0)) == NULL) {
-		sprintf(msg,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+	//Get address to message hook (beware name mangling)
+	if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc@12")) == NULL) {
+		sprintf(txt,"GetProcAddress() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		return 1;
+	}
+	//Set up the message hook
+	if ((messagehook=SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0)) == NULL) {
+		sprintf(txt,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
@@ -283,15 +298,22 @@ int RemoveHook() {
 	
 	//Remove keyboard hook
 	if (UnhookWindowsHookEx(keyhook) == 0) {
-		sprintf(msg,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		return 1;
+	}
+	
+	//Remove message hook
+	if (UnhookWindowsHookEx(messagehook) == 0) {
+		sprintf(txt,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
 	//Unload dll
 	if (FreeLibrary(hinstDLL) == 0) {
-		sprintf(msg,"FreeLibrary() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"FreeLibrary() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
 	}
 	
@@ -316,44 +338,44 @@ void SetAutostart(int on, int hide) {
 	//Open key
 	HKEY key;
 	if (RegOpenKeyEx(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_SET_VALUE,&key) != ERROR_SUCCESS) {
-		sprintf(msg,"RegOpenKeyEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"RegOpenKeyEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return;
 	}
 	if (on) {
 		//Get path
 		char path[MAX_PATH];
 		if (GetModuleFileName(NULL,path,sizeof(path)) == 0) {
-			sprintf(msg,"GetModuleFileName() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-			MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			sprintf(txt,"GetModuleFileName() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+			MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 			return;
 		}
 		//Add
 		char value[MAX_PATH+10];
 		sprintf(value,(hide?"\"%s\" -hide":"\"%s\""),path);
 		if (RegSetValueEx(key,"AltDrag",0,REG_SZ,value,strlen(value)+1) != ERROR_SUCCESS) {
-			sprintf(msg,"RegSetValueEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-			MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			sprintf(txt,"RegSetValueEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+			MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 			return;
 		}
 	}
 	else {
 		//Remove
 		if (RegDeleteValue(key,"AltDrag") != ERROR_SUCCESS) {
-			sprintf(msg,"RegDeleteValue() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-			MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+			sprintf(txt,"RegDeleteValue() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+			MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 			return;
 		}
 	}
 	//Close key
 	if (RegCloseKey(key) != ERROR_SUCCESS) {
-		sprintf(msg,"RegCloseKey() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, msg, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		sprintf(txt,"RegCloseKey() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return;
 	}
 }
 
-LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_COMMAND) {
 		int wmId=LOWORD(wParam), wmEvent=HIWORD(wParam);
 		if (wmId == SWM_TOGGLE) {
@@ -376,10 +398,20 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			SetAutostart(1,0);
 		}
 		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, "AltDrag - 0.4\nhttp://altdrag.googlecode.com/\nrecover89@gmail.com\n\nDrag windows with the mouse when pressing the alt key.\nAlso press the shift key to make the window stick to other windows.\nFullscreen windows, such as games, will not be dragged.\n\nYou can use -hide as a parameter to hide the tray icon.\n\nSend feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, "AltDrag - 0.5\n\
+http://altdrag.googlecode.com/\n\
+recover89@gmail.com\n\
+\n\
+Drag windows with the mouse when pressing the alt key.\n\
+Also press the shift key to make the window stick to other windows.\n\
+Fullscreen windows, such as games, will not be dragged.\n\
+\n\
+You can use -hide as a parameter to hide the tray icon.\n\
+\n\
+Send feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK);
 		}
 		else if (wmId == SWM_EXIT) {
-			DestroyWindow(hWnd);
+			DestroyWindow(hwnd);
 		}
 	}
 	else if (msg == WM_ICONTRAY) {
@@ -387,7 +419,7 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			ToggleHook();
 		}
 		else if (lParam == WM_RBUTTONDOWN) {
-			ShowContextMenu(hWnd);
+			ShowContextMenu(hwnd);
 		}
 	}
 	else if (msg == WM_TASKBARCREATED) {
@@ -410,5 +442,5 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		hide=0;
 		UpdateTray();
 	}
-	return DefWindowProc(hWnd, msg, wParam, lParam);
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }

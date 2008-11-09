@@ -11,4 +11,4 @@ strip AltDrag.exe
 strip hooks.dll
 
 upx --best -qq AltDrag.exe
-upx --best -qq hooks.dll
+:: upx --best -qq hooks.dll
