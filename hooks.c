@@ -16,7 +16,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -40,13 +39,7 @@ static int hook_installed=0;
 static char txt[100];
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
-	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
-		wnds[numwnds++]=hwnd;
-	}
-	if (IsZoomed(hwnd)) { //This window is covering all the other windows, so we don't want the windows below
-		wnds[numwnds++]=GetDesktopWindow(); //Since desktop is the last hwnd to be added, we need to add it now before returning
-		return FALSE;
-	}
+	//Make sure we have enough space allocated
 	if (numwnds == maxwnds) {
 		if ((wnds=realloc(wnds,(maxwnds+100)*sizeof(HWND))) == NULL) {
 			#ifdef DEBUG
@@ -56,6 +49,15 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 			return FALSE;
 		}
 		maxwnds+=100;
+	}
+	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
+	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
+		wnds[numwnds++]=hwnd;
+	}
+	//If this window is maximized we don't want to stick to any windows that might be under it
+	if (IsZoomed(hwnd)) {
+		wnds[numwnds++]=GetDesktopWindow(); //Since desktop is the last hwnd to be added, we need to add it now before returning
+		return FALSE;
 	}
 	return TRUE;
 }
@@ -85,10 +87,32 @@ void MoveWnd() {
 	int wndwidth=wnd.right-wnd.left;
 	int wndheight=wnd.bottom-wnd.top;
 	
+	//Double check if any of the shift keys are being pressed
+	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+		shift=0;
+	}
+	
 	//Check if window will stick anywhere
 	if (shift) {
 		numwnds=0;
 		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		/*
+		//Use this to print the windows in wnds
+		FILE *f=fopen("C:\\altdrag-log.txt","wb");
+		fprintf(f,"numwnds: %d\n",numwnds);
+		char title[100];
+		char classname[100];
+		int j;
+		for (j=0; j < numwnds; j++) {
+			GetWindowText(wnds[j],title,100);
+			GetClassName(wnds[j],classname,100);
+			RECT wndsize;
+			GetWindowRect(wnds[j],&wndsize);
+			fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
+		}
+		fclose(f);
+		*/
+		
 		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
 		int i, thresholdx=20, thresholdy=20, stuckx=0, stucky=0, stickx=0, sticky=0;
 		//Loop windows
@@ -177,8 +201,11 @@ void MoveWnd() {
 		#endif
 	}
 	
-	/*FILE *f=fopen("move.log","ab");
-	fprintf(f,"Moving window to %d,%d\n",posx,posy);
+	/*FILE *f=fopen("C:\\altdrag-log.txt","ab");
+	char title[100], classname[100];
+	GetWindowText(hwnd,title,100);
+	GetClassName(hwnd,classname,100);
+	fprintf(f,"Moving window %s [%s] to (%d,%d)\n",title,classname,posx,posy);
 	fclose(f);*/
 }
 
@@ -223,18 +250,13 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && alt && !move) {
-			//Double check that Alt is pressed
+			//Double check if the left alt key is being pressed
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
 				RemoveHook();
 			}
-			//Double check if Shift is pressed
-			if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-				shift=0;
-			}
-			
-			//Alt is still being pressed
-			if (alt) {
+			else {
+				//Alt key is still being pressed
 				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 				
 				//Get window
@@ -246,58 +268,76 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
-				//Get window and desktop size
-				RECT window;
-				if (GetWindowRect(hwnd,&window) == 0) {
-					#ifdef DEBUG
-					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					#endif
-				}
-				RECT desktop;
-				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-					#ifdef DEBUG
-					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					#endif
+				//Check if this is a blacklisted window (ClassName)
+				int blacklisted=0;
+				char *blacklist[]={"TaskSwitcherWnd", "TaskSwitcherOverlayWnd", '\0'};
+				char classname[100]; //classname must be at least as long as the longest member in the list blacklist
+				GetClassName(hwnd,classname,sizeof(classname));
+				int i=0;
+				while (blacklist[i] != '\0') {
+					if (!strcmp(classname,blacklist[i])) {
+						//This window is blacklisted
+						blacklisted=1;
+						break;
+					}
+					i++;
 				}
 				
-				//Don't move the window if it's fullscreen
-				if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
-					//Restore the window if it's maximized
-					if (IsZoomed(hwnd)) {
-						//Restore window
-						WINDOWPLACEMENT wndpl;
-						wndpl.length=sizeof(WINDOWPLACEMENT);
-						GetWindowPlacement(hwnd,&wndpl);
-						wndpl.showCmd=SW_RESTORE;
-						SetWindowPlacement(hwnd,&wndpl);
-						
-						//Get new pos and size
-						RECT newwindow;
-						if (GetWindowRect(hwnd,&newwindow) == 0) {
-							#ifdef DEBUG
-							sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-							MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-							#endif
+				//Only continue if window is not blacklisted
+				if (!blacklisted) {
+					//Get window and desktop size
+					RECT window;
+					if (GetWindowRect(hwnd,&window) == 0) {
+						#ifdef DEBUG
+						sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+						MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+						#endif
+					}
+					RECT desktop;
+					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+						#ifdef DEBUG
+						sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+						MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+						#endif
+					}
+					
+					//Don't move the window if it's fullscreen
+					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
+						//Restore the window if it's maximized
+						if (IsZoomed(hwnd)) {
+							//Restore window
+							WINDOWPLACEMENT wndpl;
+							wndpl.length=sizeof(WINDOWPLACEMENT);
+							GetWindowPlacement(hwnd,&wndpl);
+							wndpl.showCmd=SW_RESTORE;
+							SetWindowPlacement(hwnd,&wndpl);
+							
+							//Get new pos and size
+							RECT newwindow;
+							if (GetWindowRect(hwnd,&newwindow) == 0) {
+								#ifdef DEBUG
+								sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+								MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+								#endif
+							}
+							
+							//Set offset
+							offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
+							offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
+							
+							//Move
+							MoveWnd();
 						}
-						
-						//Set offset
-						offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
-						offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
-						
-						//Move
-						MoveWnd();
+						else {
+							//Set offset
+							offset.x=pt.x-window.left;
+							offset.y=pt.y-window.top;
+						}
+						//Ready to move window
+						move=1;
+						//Prevent mousedown from propagating
+						return 1;
 					}
-					else {
-						//Set offset
-						offset.x=pt.x-window.left;
-						offset.y=pt.y-window.top;
-					}
-					//Ready to move window
-					move=1;
-					//Prevent mousedown from propagating
-					return 1;
 				}
 			}
 		}

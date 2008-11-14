@@ -12,6 +12,7 @@ Changelog
 ---------
 0.5:
 You can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista.
+AltDrag will no longer drag the alt+tab window in Vista.
 
 0.4:
 You can now press the shift key to make the window stick to other windows.
