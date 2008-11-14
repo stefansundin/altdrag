@@ -187,28 +187,28 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 		int vkey=((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-			if (!alt && (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU)) {
+			if (!alt && vkey == VK_LMENU) {
 				alt=1;
 				InstallHook();
 			}
-			else if (!shift && (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
+			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
 				shift=1;
 				if (move) {
 					MoveWnd();
 				}
 			}
-			else if (move && (vkey == VK_CONTROL || vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
+			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
 				SetForegroundWindow(hwnd);
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
-			if (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU) {
+			if (vkey == VK_LMENU) {
 				alt=0;
 				if (!move) {
 					RemoveHook();
 				}
 			}
-			else if (vkey == VK_SHIFT || vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
+			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift=0;
 				if (move) {
 					MoveWnd();
@@ -224,7 +224,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && alt && !move) {
 			//Double check that Alt is pressed
-			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
+			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
 				RemoveHook();
 			}
