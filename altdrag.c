@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 
 //Messages
@@ -62,27 +64,34 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 
 	//Create window class
-	WNDCLASS wnd;
-	wnd.style=CS_HREDRAW | CS_VREDRAW;
+	WNDCLASSEX wnd;
+	wnd.cbSize=sizeof(WNDCLASSEX);
+	wnd.style=0;
 	wnd.lpfnWndProc=MyWndProc;
 	wnd.cbClsExtra=0;
 	wnd.cbWndExtra=0;
 	wnd.hInstance=hInst;
-	wnd.hIcon=LoadImage(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
-	wnd.hCursor=LoadImage(NULL, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
-	wnd.hbrBackground=(HBRUSH)(COLOR_BACKGROUND+1);
+	wnd.hIcon=NULL;
+	wnd.hIconSm=NULL;
+	wnd.hCursor=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+	wnd.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName=NULL;
 	wnd.lpszClassName="AltDrag";
 	
 	//Register class
-	if (RegisterClass(&wnd) == 0) {
-		sprintf(txt,"RegisterClass() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+	if (RegisterClassEx(&wnd) == 0) {
+		sprintf(txt,"RegisterClassEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 		MessageBox(NULL, txt, "AltDrag Error", MB_ICONERROR|MB_OK);
 		return 1;
 	}
 	
 	//Create window
-	HWND hwnd=CreateWindow(wnd.lpszClassName, wnd.lpszClassName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	HWND hwnd;
+	if ((hwnd=CreateWindowEx(/*WS_EX_LAYERED|*/WS_EX_TOOLWINDOW, wnd.lpszClassName, wnd.lpszClassName, WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL)) == NULL) {
+		sprintf(txt,"CreateWindowEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+	}
+	SetWindowPos(hwnd,HWND_TOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE); //Always on top
 
 	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
 	if ((WM_TASKBARCREATED=RegisterWindowMessage("TaskbarCreated")) == 0) {
@@ -249,7 +258,7 @@ int InstallHook() {
 	}
 	
 	//Load dll
-	if ((hinstDLL=LoadLibrary((LPCTSTR)"hooks.dll")) == NULL) {
+	if ((hinstDLL=LoadLibrary("hooks.dll")) == NULL) {
 		sprintf(txt,"Failed to load hooks.dll.\nThis probably means that the file is missing.\nYou can try to download AltDrag again from the website.\n\nError message:\nLoadLibrary() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
 		return 1;
@@ -284,9 +293,7 @@ int InstallHook() {
 	
 	//Success
 	hook_installed=1;
-	if (!hide) {
-		UpdateTray();
-	}
+	UpdateTray();
 	return 0;
 }
 
@@ -319,9 +326,7 @@ int RemoveHook() {
 	
 	//Success
 	hook_installed=0;
-	if (!hide) {
-		UpdateTray();
-	}
+	UpdateTray();
 	return 0;
 }
 
@@ -424,9 +429,7 @@ Send feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK
 	}
 	else if (msg == WM_TASKBARCREATED) {
 		tray_added=0;
-		if (!hide) {
-			UpdateTray();
-		}
+		UpdateTray();
 	}
 	else if (msg == WM_DESTROY) {
 		if (hook_installed) {
@@ -441,6 +444,11 @@ Send feedback to recover89@gmail.com", "About AltDrag", MB_ICONINFORMATION|MB_OK
 	else if (msg == WM_ADDTRAY) {
 		hide=0;
 		UpdateTray();
+	}
+	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
+		//Hide the window if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
+		ShowWindow(hwnd,SW_HIDE);
+		SetWindowLongPtr(hwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
