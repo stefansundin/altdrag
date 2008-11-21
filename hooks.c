@@ -22,16 +22,24 @@
 
 //#define DEBUG
 
-//shift, move and hwnd are shared since CallWndProc is called in the context of another thread
+//shift, move and hwnd must be shared since CallWndProc is called in the context of another thread
 static int alt=0;
 static int shift __attribute__((section ("shared"), shared)) = 0;
 static int move __attribute__((section ("shared"), shared)) = 0;
+static int resize __attribute__((section ("shared"), shared)) = 0;
 static HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
 static POINT offset;
+static POINT resize_offset;
 static HWND *wnds=NULL;
 static int numwnds=0;
 static int maxwnds=0;
 
+//Cursor data
+static HWND cursorwnd=NULL;
+static HCURSOR cursorhand=NULL;
+static HCURSOR cursorsize=NULL;
+
+//Mousehook data
 static HINSTANCE hinstDLL;
 static HHOOK mousehook;
 static int hook_installed=0;
@@ -52,7 +60,15 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	}
 	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
 	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
-		wnds[numwnds++]=hwnd;
+		//We don't want to add certain windows, such as the Vista start orb or cursorwnd
+		char title[100];
+		char classname[100]; //classname must be at least as long as the longest member in the list blacklist
+		GetWindowText(hwnd,title,sizeof(title));
+		GetClassName(hwnd,classname,sizeof(classname));
+		if (strcmp(title,"Start") && strcmp(classname,"Button") && hwnd != cursorwnd) {
+			//This window is not the Vista start orb
+			wnds[numwnds++]=hwnd;
+		}
 	}
 	//If this window is maximized we don't want to stick to any windows that might be under it
 	if (IsZoomed(hwnd)) {
@@ -96,8 +112,8 @@ void MoveWnd() {
 	if (shift) {
 		numwnds=0;
 		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
-		/*
-		//Use this to print the windows in wnds
+		
+		/*//Use this to print the windows in wnds
 		FILE *f=fopen("C:\\altdrag-log.txt","wb");
 		fprintf(f,"numwnds: %d\n",numwnds);
 		char title[100];
@@ -110,8 +126,7 @@ void MoveWnd() {
 			GetWindowRect(wnds[j],&wndsize);
 			fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
 		}
-		fclose(f);
-		*/
+		fclose(f);*/
 		
 		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
 		int i, thresholdx=20, thresholdy=20, stuckx=0, stucky=0, stickx=0, sticky=0;
@@ -194,7 +209,7 @@ void MoveWnd() {
 	}
 	
 	//Move
-	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,FALSE) == 0) {
 		#ifdef DEBUG
 		sprintf(txt,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
 		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
@@ -207,6 +222,45 @@ void MoveWnd() {
 	GetClassName(hwnd,classname,100);
 	fprintf(f,"Moving window %s [%s] to (%d,%d)\n",title,classname,posx,posy);
 	fclose(f);*/
+}
+
+void ResizeWnd() {
+	//Check if window still exists
+	if (!IsWindow(hwnd)) {
+		resize=0;
+		RemoveHook();
+		return;
+	}
+	
+	//Get window size
+	RECT wnd;
+	if (GetWindowRect(hwnd,&wnd) == 0) {
+		#ifdef DEBUG
+		sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#endif
+	}
+	
+	//Get new size for window
+	POINT pt;
+	GetCursorPos(&pt);
+	int posx=wnd.left;
+	int posy=wnd.top;
+	int wndwidth=pt.x-wnd.left+resize_offset.x;
+	int wndheight=pt.y-wnd.top+resize_offset.y;
+	
+	//Double check if any of the shift keys are being pressed
+	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+		shift=0;
+	}
+	
+	//Resize
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+		#ifdef DEBUG
+		sprintf(txt,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+		#endif
+	}
 }
 
 _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -231,7 +285,7 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 			if (vkey == VK_LMENU) {
 				alt=0;
-				if (!move) {
+				if (!move && !resize) {
 					RemoveHook();
 				}
 			}
@@ -259,6 +313,9 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				//Alt key is still being pressed
 				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 				
+				//Make sure cursorwnd isn't in the way
+				ShowWindow(cursorwnd,SW_HIDE);
+				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
 					#ifdef DEBUG
@@ -268,23 +325,12 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
-				//Check if this is a blacklisted window (ClassName)
-				int blacklisted=0;
-				char *blacklist[]={"TaskSwitcherWnd", "TaskSwitcherOverlayWnd", '\0'};
-				char classname[100]; //classname must be at least as long as the longest member in the list blacklist
+				//Get the classname so we can check if this window is the alt+tab window
+				char classname[100];
 				GetClassName(hwnd,classname,sizeof(classname));
-				int i=0;
-				while (blacklist[i] != '\0') {
-					if (!strcmp(classname,blacklist[i])) {
-						//This window is blacklisted
-						blacklisted=1;
-						break;
-					}
-					i++;
-				}
 				
-				//Only continue if window is not blacklisted
-				if (!blacklisted) {
+				//Only continue if this window is not the alt+tab window
+				if (strcmp(classname,"TaskSwitcherWnd") && strcmp(classname,"TaskSwitcherOverlayWnd")) {
 					//Get window and desktop size
 					RECT window;
 					if (GetWindowRect(hwnd,&window) == 0) {
@@ -333,6 +379,13 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 							offset.x=pt.x-window.left;
 							offset.y=pt.y-window.top;
 						}
+						//Show cursorwnd
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorhand);
+						if (!resize) {
+							MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
+							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+							ShowWindowAsync(cursorwnd,SW_SHOWNA);
+						}
 						//Ready to move window
 						move=1;
 						//Prevent mousedown from propagating
@@ -346,12 +399,122 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 			if (!alt) {
 				RemoveHook();
 			}
+			//Hide cursorwnd
+			if (resize) {
+				SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
+			}
+			else {
+				ShowWindowAsync(cursorwnd,SW_HIDE);
+				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			}
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if (wParam == WM_MOUSEMOVE && move) {
-			//Move window
-			MoveWnd();
+		else if (wParam == WM_MBUTTONDOWN && alt && !resize) {
+			//Double check if the left alt key is being pressed
+			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
+				alt=0;
+				RemoveHook();
+			}
+			else {
+				//Alt key is still being pressed
+				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+				
+				//Make sure cursorwnd isn't in the way
+				ShowWindow(cursorwnd,SW_HIDE);
+				
+				//Get window
+				if ((hwnd=WindowFromPoint(pt)) == NULL) {
+					#ifdef DEBUG
+					sprintf(txt,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
+					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#endif
+				}
+				hwnd=GetAncestor(hwnd,GA_ROOT);
+				
+				//Get window and desktop size
+				RECT window;
+				if (GetWindowRect(hwnd,&window) == 0) {
+					#ifdef DEBUG
+					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#endif
+				}
+				RECT desktop;
+				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+					#ifdef DEBUG
+					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
+					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
+					#endif
+				}
+				
+				//Don't resize the window if it's fullscreen
+				if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
+					//Restore the window if it's maximized
+					if (IsZoomed(hwnd)) {
+						//Restore window
+						WINDOWPLACEMENT wndpl;
+						wndpl.length=sizeof(WINDOWPLACEMENT);
+						GetWindowPlacement(hwnd,&wndpl);
+						wndpl.showCmd=SW_RESTORE;
+						//New size
+						RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
+						//Compensate for taskbar
+						RECT taskbar;
+						if (GetWindowRect(FindWindow("Shell_TrayWnd",NULL),&taskbar)) {
+							if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
+								//Taskbar is on the bottom or top position, adjust height
+								normalpos.bottom-=taskbar.bottom-taskbar.top;
+							}
+							else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
+								//Taskbar is on the left or right position, adjust width
+								normalpos.right-=taskbar.right-taskbar.left;
+							}
+						}
+						wndpl.rcNormalPosition=normalpos;
+						SetWindowPlacement(hwnd,&wndpl);
+						//Update window size
+						GetWindowRect(hwnd,&window);
+					}
+					//Set offset
+					resize_offset.x=window.right-pt.x;
+					resize_offset.y=window.bottom-pt.y;
+					//Show cursorwnd
+					if (!move) {
+						MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
+					}
+					ShowWindowAsync(cursorwnd,SW_SHOWNA);
+					//Ready to resize window
+					resize=1;
+					//Prevent mousedown from propagating
+					return 1;
+				}
+			}
+		}
+		else if (wParam == WM_MBUTTONUP && resize) {
+			resize=0;
+			if (!alt) {
+				RemoveHook();
+			}
+			//Hide cursorwnd
+			if (!move) {
+				ShowWindowAsync(cursorwnd,SW_HIDE);
+				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			}
+			//Prevent mouseup from propagating
+			return 1;
+		}
+		else if (wParam == WM_MOUSEMOVE) {
+			if (move) {
+				//Move window
+				MoveWnd();
+			}
+			else if (resize) {
+				//Resize window
+				ResizeWnd();
+			}
 		}
 	}
 	
@@ -430,6 +593,9 @@ int RemoveHook() {
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
+		cursorwnd=FindWindow("AltDrag",NULL);
+		cursorhand=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+		cursorsize=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
 		free(wnds);
