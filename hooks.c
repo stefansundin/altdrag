@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <windows.h>
 
-//#define DEBUG
+#define DEBUG
 
 //shift, move and hwnd must be shared since CallWndProc is called in the context of another thread
 static int alt=0;
@@ -46,14 +46,44 @@ static int hook_installed=0;
 
 static char txt[100];
 
+//Error message handling
+LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode == HCBT_ACTIVATE) {
+		//Edit the caption of the buttons
+		SetDlgItemText((HWND)wParam,IDYES,"Copy message");
+		SetDlgItemText((HWND)wParam,IDNO,"OK");
+	}
+	return 0;
+}
+
+void Error(char *func, char *info, int errorcode, int line) {
+	#ifdef DEBUG
+	//Format message
+	char errormsg[100];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,errormsg,sizeof(errormsg),NULL);
+	errormsg[strlen(errormsg)-2]='\0'; //Remove that damn newline at the end of the formatted error message
+	sprintf(txt,"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, TEXT(__FILE__), line, errormsg, errorcode, info);
+	//Display message
+	HHOOK hhk=SetWindowsHookEx(WH_CBT, &ErrorMsgProc, 0, GetCurrentThreadId());
+	int response=MessageBox(NULL, txt, "AltDrag Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
+	UnhookWindowsHookEx(hhk);
+	if (response == IDYES) {
+		//Copy message to clipboard
+		OpenClipboard(NULL);
+		EmptyClipboard();
+		char *data=LocalAlloc(LMEM_FIXED,strlen(txt)+1);
+		memcpy(data,txt,strlen(txt)+1);
+		SetClipboardData(CF_TEXT,data);
+		CloseClipboard();
+	}
+	#endif
+}
+
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == maxwnds) {
 		if ((wnds=realloc(wnds,(maxwnds+100)*sizeof(HWND))) == NULL) {
-			#ifdef DEBUG
-			sprintf(txt,"realloc() failed in file %s, line %d.",__FILE__,__LINE__);
-			MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-			#endif
+			Error("realloc(wnds)","Out of memory?",0,__LINE__);
 			return FALSE;
 		}
 		maxwnds+=100;
@@ -89,10 +119,7 @@ void MoveWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		#ifdef DEBUG
-		sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		#endif
+		Error("GetWindowRect()","MoveWnd()",GetLastError(),__LINE__);
 	}
 	
 	//Get new position for window
@@ -134,10 +161,7 @@ void MoveWnd() {
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				#ifdef DEBUG
-				sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-				MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-				#endif
+				Error("GetWindowRect()","MoveWnd()",GetLastError(),__LINE__);
 			}
 			
 			//Check if posx sticks
@@ -209,11 +233,8 @@ void MoveWnd() {
 	}
 	
 	//Move
-	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,FALSE) == 0) {
-		#ifdef DEBUG
-		sprintf(txt,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		#endif
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+		Error("MoveWindow()","MoveWnd()",GetLastError(),__LINE__);
 	}
 	
 	/*FILE *f=fopen("C:\\altdrag-log.txt","ab");
@@ -235,10 +256,7 @@ void ResizeWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		#ifdef DEBUG
-		sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		#endif
+		Error("GetWindowRect()","ResizeWnd()",GetLastError(),__LINE__);
 	}
 	
 	//Get new size for window
@@ -256,10 +274,7 @@ void ResizeWnd() {
 	
 	//Resize
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		#ifdef DEBUG
-		sprintf(txt,"MoveWindow() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		#endif
+		Error("MoveWindow()","ResizeWnd()",GetLastError(),__LINE__);
 	}
 }
 
@@ -318,10 +333,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					#ifdef DEBUG
-					sprintf(txt,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
-					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					#endif
+					Error("WindowFromPoint()","MouseProc()",GetLastError(),__LINE__);
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
@@ -334,17 +346,11 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 					//Get window and desktop size
 					RECT window;
 					if (GetWindowRect(hwnd,&window) == 0) {
-						#ifdef DEBUG
-						sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-						MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-						#endif
+						Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
 					}
 					RECT desktop;
 					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-						#ifdef DEBUG
-						sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-						MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-						#endif
+						Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
 					}
 					
 					//Don't move the window if it's fullscreen
@@ -361,10 +367,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 							//Get new pos and size
 							RECT newwindow;
 							if (GetWindowRect(hwnd,&newwindow) == 0) {
-								#ifdef DEBUG
-								sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-								MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-								#endif
+								Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
 							}
 							
 							//Set offset
@@ -381,11 +384,11 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 						}
 						//Show cursorwnd
 						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorhand);
+						MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
 						if (!resize) {
-							MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
 							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-							ShowWindowAsync(cursorwnd,SW_SHOWNA);
 						}
+						ShowWindowAsync(cursorwnd,SW_SHOWNA);
 						//Ready to move window
 						move=1;
 						//Prevent mousedown from propagating
@@ -425,27 +428,18 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					#ifdef DEBUG
-					sprintf(txt,"WindowFromPoint() failed in file %s, line %d.",__FILE__,__LINE__);
-					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					#endif
+					Error("WindowFromPoint()","MouseProc()",GetLastError(),__LINE__);
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
 				//Get window and desktop size
 				RECT window;
 				if (GetWindowRect(hwnd,&window) == 0) {
-					#ifdef DEBUG
-					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					#endif
+					Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
 				}
 				RECT desktop;
 				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-					#ifdef DEBUG
-					sprintf(txt,"GetWindowRect() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-					MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-					#endif
+					Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
 				}
 				
 				//Don't resize the window if it's fullscreen
@@ -480,10 +474,10 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 					resize_offset.x=window.right-pt.x;
 					resize_offset.y=window.bottom-pt.y;
 					//Show cursorwnd
+					MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
 					if (!move) {
-						MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
-						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 					}
 					ShowWindowAsync(cursorwnd,SW_SHOWNA);
 					//Ready to resize window
@@ -533,7 +527,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			fclose(f);
 		}*/
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && shift && IsWindowVisible(msg->hwnd)) {
+		if (msg->message == WM_WINDOWPOSCHANGED && shift && IsWindowVisible(msg->hwnd) && !IsIconic(hwnd) && !IsZoomed(msg->hwnd)) {
 			//Set offset
 			POINT pt;
 			GetCursorPos(&pt);
@@ -558,10 +552,7 @@ int InstallHook() {
 	
 	//Set up the mouse hook
 	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,MouseProc,hinstDLL,0)) == NULL) {
-		#ifdef DEBUG
-		sprintf(txt,"SetWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		#endif
+		Error("SetWindowsHookEx(WH_MOUSE_LL)","",GetLastError(),__LINE__);
 		return 1;
 	}
 	
@@ -578,10 +569,7 @@ int RemoveHook() {
 	
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		#ifdef DEBUG
-		sprintf(txt,"UnhookWindowsHookEx() failed (error code: %d) in file %s, line %d.",GetLastError(),__FILE__,__LINE__);
-		MessageBox(NULL, txt, "AltDrag Warning", MB_ICONWARNING|MB_OK);
-		#endif
+		Error("UnhookWindowsHookEx(mousehook)","",GetLastError(),__LINE__);
 		return 1;
 	}
 	
