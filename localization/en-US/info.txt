@@ -1,15 +1,17 @@
 AltDrag
-http://altdrag.googlecode.com/
-recover89@gmail.com
+Made by Stefan Sundin
 
 Drag windows with the mouse when pressing the alt key.
 You can use the middle mouse button to resize windows.
 If you press the shift key when you move or resize, the window will stick to other windows.
-You can use the shift key when moving or resizing windows normally as well.
+You can use the shift key when normally moving and resizing windows as well.
 
 Fullscreen windows, such as games, will not be dragged or resized.
 
 You can use -hide as a parameter to hide the tray icon.
+
+Check for updates at http://altdrag.googlecode.com/
+Send feedback to recover89@gmail.com
 
 Changelog
 ---------
@@ -20,16 +22,16 @@ AltDrag will no longer drag the alt+tab window in Vista.
 Windows will no longer stick to the Vista start menu orb.
 The mouse cursor will now change when you move and resize windows.
 
-0.4:
+0.4 - 2008-09-14:
 You can now press the shift key to make the window stick to other windows.
 
-0.3:
+0.3 - 2008-08-03:
 Fixed a bug that made AltDrag ignore all windows which were at the screen borders since it thought they were fullscreen windows.
 Improved performance by only installing the mouse hook when the alt key is pressed.
 
-0.2:
+0.2 - 2008-08-01:
 You can no longer drag fullscreen windows.
 The window is better placed when it's restored from its maximized state.
 
-0.1:
+0.1 - 2008-06-05:
 Initial release.
