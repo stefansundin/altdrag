@@ -1,0 +1,17 @@
+#summary Directly from info.txt
+
+Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt can contain changes for upcoming versions.
+
+*0.4* - 2008-09-14:
+  * You can now press the shift key to make the window stick to other windows.
+
+*0.3* - 2008-08-03:
+  * Fixed a bug that made AltDrag ignore all windows which were at the screen borders since it thought they were fullscreen windows.
+  * Improved performance by only installing the mouse hook when the alt key is pressed.
+
+*0.2* - 2008-08-01:
+  * You can no longer drag fullscreen windows.
+  * The window is better placed when it's restored from its maximized state.
+
+*0.1* - 2008-06-05:
+  * Initial release.
