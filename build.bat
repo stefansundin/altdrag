@@ -6,6 +6,9 @@ if not exist build (
 	mkdir build
 )
 
+gcc -o build/unhook.exe unhook.c
+"build/unhook.exe"
+
 windres -o build/resources.o resources.rc
 
 if "%1" == "all" (
@@ -17,7 +20,7 @@ if "%1" == "all" (
 		if not exist "build/%%f/AltDrag" (
 			mkdir "build\%%f\AltDrag"
 		)
-		copy "localization/%%f/info.txt" "build/%%f/AltDrag/info.txt"
+		copy "localization\%%f\info.txt" "build/%%f/AltDrag/info.txt"
 		
 		gcc -o "build/%%f/AltDrag/AltDrag.exe" altdrag.c build/resources.o -mwindows -lshlwapi -DL10N_FILE=\"localization/%%f/strings.h\"
 		if exist "build/%%f/AltDrag/AltDrag.exe" (
