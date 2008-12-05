@@ -18,6 +18,7 @@ Changelog
 0.5:
 You can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista.
 You can now resize windows with the middle mouse button.
+You can now press the middle mouse button while moving a window to maximize it.
 AltDrag will no longer drag the alt+tab window in Vista.
 Windows will no longer stick to the Vista start menu orb.
 The mouse cursor will now change when you move and resize windows.
