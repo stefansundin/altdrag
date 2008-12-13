@@ -6,14 +6,6 @@
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -21,14 +13,14 @@
 
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
+#include <shlwapi.h>
 
+//Localization
 #define L10N_NAME    "AltDrag"
 #define L10N_VERSION "0.5"
-//Localization
 #ifndef L10N_FILE
 #define L10N_FILE "localization/en-US/strings.h"
 #endif
-//Include strings and output error if they are out of date
 #include L10N_FILE
 #if L10N_FILE_VERSION != 1
 #error Localization not up to date!
@@ -46,21 +38,19 @@
 #define SWM_ABOUT              WM_APP+7
 #define SWM_EXIT               WM_APP+8
 
-//Stuff
-LRESULT CALLBACK MyWndProc(HWND, UINT, WPARAM, LPARAM);
-
+//Boring stuff
+LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 static HICON icon[2];
 static NOTIFYICONDATA traydata;
-static UINT WM_TASKBARCREATED;
+static UINT WM_TASKBARCREATED=0;
 static int tray_added=0;
 static int hide=0;
-
-static HINSTANCE hinstDLL;
-static HHOOK keyhook;
-static HHOOK messagehook;
-static int hook_installed=0;
-
 static char txt[100];
+
+//Cool stuff
+static HINSTANCE hinstDLL=NULL;
+static HHOOK keyhook=NULL;
+static HHOOK msghook=NULL;
 
 //Error message handling
 static int showerror=1;
@@ -68,7 +58,7 @@ static int showerror=1;
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
 		//Edit the caption of the buttons
-		SetDlgItemText((HWND)wParam,IDYES,"Copy message");
+		SetDlgItemText((HWND)wParam,IDYES,"Copy error");
 		SetDlgItemText((HWND)wParam,IDNO,"OK");
 	}
 	return 0;
@@ -105,7 +95,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		SendMessage(previnst,WM_ADDTRAY,0,0);
 		return 0;
 	}
-
+	
+	//Change working directory
+	char path[MAX_PATH];
+	if (GetModuleFileName(NULL, path, sizeof(path))) {
+		PathRemoveFileSpec(path);
+		SetCurrentDirectory(path);
+	}
+	
 	//Check command line
 	if (!strcmp(szCmdLine,"-hide")) {
 		hide=1;
@@ -115,7 +112,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	WNDCLASSEX wnd;
 	wnd.cbSize=sizeof(WNDCLASSEX);
 	wnd.style=0;
-	wnd.lpfnWndProc=MyWndProc;
+	wnd.lpfnWndProc=WindowProc;
 	wnd.cbClsExtra=0;
 	wnd.cbWndExtra=0;
 	wnd.hInstance=hInst;
@@ -158,11 +155,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Update tray icon
 	UpdateTray();
 	
-	//Install hook
-	InstallHook();
+	//Hook system
+	HookSystem();
 	
 	//Add tray if hook failed, even though -hide was supplied
-	if (!hook_installed && hide) {
+	if (hide && (!keyhook || !msghook)) {
 		hide=0;
 		UpdateTray();
 	}
@@ -182,7 +179,7 @@ void ShowContextMenu(HWND hwnd) {
 	HMENU hMenu=CreatePopupMenu();
 	
 	//Toggle
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_TOGGLE, (hook_installed?L10N_MENU_DISABLE:L10N_MENU_ENABLE));
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_TOGGLE, (keyhook||msghook?L10N_MENU_DISABLE:L10N_MENU_ENABLE));
 	
 	//Hide
 	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, L10N_MENU_HIDE);
@@ -234,8 +231,8 @@ void ShowContextMenu(HWND hwnd) {
 }
 
 int UpdateTray() {
-	strncpy(traydata.szTip,(hook_installed?L10N_TRAY_ENABLED:L10N_TRAY_DISABLED),sizeof(traydata.szTip));
-	traydata.hIcon=icon[hook_installed];
+	strncpy(traydata.szTip,(keyhook||msghook?L10N_TRAY_ENABLED:L10N_TRAY_DISABLED),sizeof(traydata.szTip));
+	traydata.hIcon=icon[keyhook||msghook?1:0];
 	
 	//Only add or modify if not hidden
 	if (!hide) {
@@ -269,8 +266,8 @@ int RemoveTray() {
 void SetAutostart(int on, int hide) {
 	//Open key
 	HKEY key;
-	int error=RegOpenKeyEx(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_SET_VALUE,&key);
-	if (error != ERROR_SUCCESS) {
+	int error;
+	if ((error=RegOpenKeyEx(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_SET_VALUE,&key)) != ERROR_SUCCESS) {
 		Error("RegOpenKeyEx(HKEY_CURRENT_USER,'Software\\Microsoft\\Windows\\CurrentVersion\\Run')","Error opening the registry.",error,__LINE__);
 		return;
 	}
@@ -284,16 +281,14 @@ void SetAutostart(int on, int hide) {
 		//Add
 		char value[MAX_PATH+10];
 		sprintf(value,(hide?"\"%s\" -hide":"\"%s\""),path);
-		error=RegSetValueEx(key,L10N_NAME,0,REG_SZ,(LPBYTE)value,strlen(value)+1);
-		if (error != ERROR_SUCCESS) {
+		if ((error=RegSetValueEx(key,L10N_NAME,0,REG_SZ,(LPBYTE)value,strlen(value)+1)) != ERROR_SUCCESS) {
 			Error("RegSetValueEx('"L10N_NAME"')","",error,__LINE__);
 			return;
 		}
 	}
 	else {
 		//Remove
-		error=RegDeleteValue(key,L10N_NAME);
-		if (error != ERROR_SUCCESS) {
+		if ((error=RegDeleteValue(key,L10N_NAME)) != ERROR_SUCCESS) {
 			Error("RegDeleteValue('"L10N_NAME"')","",error,__LINE__);
 			return;
 		}
@@ -302,90 +297,103 @@ void SetAutostart(int on, int hide) {
 	RegCloseKey(key);
 }
 
-int InstallHook() {
-	if (hook_installed) {
-		//Hook already installed
+int HookSystem() {
+	if (keyhook && msghook) {
+		//System already hooked
 		return 1;
 	}
 	
-	//Load dll
-	if ((hinstDLL=LoadLibraryEx("hooks.dll",NULL,0)) == NULL) {
-		Error("LoadLibraryEx('hooks.dll')","This probably means that the file hooks.dll is missing.\nYou can try to download AltDrag again from the website.",GetLastError(),__LINE__);
-		return 1;
+	//Load library
+	if (!hinstDLL) {
+		if ((hinstDLL=LoadLibraryEx("hooks.dll",NULL,0)) == NULL) {
+			Error("LoadLibraryEx('hooks.dll')","This probably means that the file hooks.dll is missing.\nYou can try to download "L10N_NAME" again from the website.",GetLastError(),__LINE__);
+			return 1;
+		}
 	}
 	
-	//Get address to keyboard hook (beware name mangling)
 	HOOKPROC procaddr;
-	if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"KeyboardProc@12")) == NULL) {
-		Error("GetProcAddress('KeyboardProc@12')","This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download AltDrag again from the website.",GetLastError(),__LINE__);
-		return 1;
-	}
-	//Set up the keyboard hook
-	if ((keyhook=SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0)) == NULL) {
-		Error("SetWindowsHookEx(WH_KEYBOARD_LL)","Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
-		return 1;
+	if (!keyhook) {
+		//Get address to keyboard hook (beware name mangling)
+		if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"LowLevelKeyboardProc@12")) == NULL) {
+			Error("GetProcAddress('LowLevelKeyboardProc@12')","This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "L10N_NAME" again from the website.",GetLastError(),__LINE__);
+			return 1;
+		}
+		//Set up the keyboard hook
+		if ((keyhook=SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0)) == NULL) {
+			Error("SetWindowsHookEx(WH_KEYBOARD_LL)","Check the "L10N_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
+			return 1;
+		}
 	}
 	
-	//Get address to message hook (beware name mangling)
-	if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc@12")) == NULL) {
-		Error("GetProcAddress('CallWndProc@12')","This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download AltDrag again from the website.",GetLastError(),__LINE__);
-		return 1;
-	}
-	//Set up the message hook
-	if ((messagehook=SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0)) == NULL) {
-		Error("SetWindowsHookEx(WH_CALLWNDPROC)","Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
-		return 1;
+	if (!msghook) {
+		//Get address to message hook (beware name mangling)
+		if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc@12")) == NULL) {
+			Error("GetProcAddress('CallWndProc@12')","This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "L10N_NAME" again from the website.",GetLastError(),__LINE__);
+			return 1;
+		}
+		//Set up the message hook
+		if ((msghook=SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0)) == NULL) {
+			Error("SetWindowsHookEx(WH_CALLWNDPROC)","Check the "L10N_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
+			return 1;
+		}
 	}
 	
 	//Success
-	hook_installed=1;
 	UpdateTray();
 	return 0;
 }
 
-int RemoveHook() {
-	if (!hook_installed) {
-		//Hook not installed
+int UnhookSystem() {
+	if (!keyhook && !msghook) {
+		//System not hooked
 		return 1;
 	}
 	
-	//Remove keyboard hook
-	if (UnhookWindowsHookEx(keyhook) == 0) {
-		Error("UnhookWindowsHookEx(keyhook)","Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
-		return 1;
+	if (keyhook) {
+		//Remove keyboard hook
+		if (UnhookWindowsHookEx(keyhook) == 0) {
+			Error("UnhookWindowsHookEx(keyhook)","Check the "L10N_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
+			return 1;
+		}
+		keyhook=NULL;
 	}
 	
-	//Remove message hook
-	if (UnhookWindowsHookEx(messagehook) == 0) {
-		Error("UnhookWindowsHookEx(messagehook)","Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
-		return 1;
+	if (msghook) {
+		//Remove message hook
+		if (UnhookWindowsHookEx(msghook) == 0) {
+			Error("UnhookWindowsHookEx(msghook)","Check the "L10N_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
+			return 1;
+		}
+		msghook=NULL;
 	}
 	
-	//Unload dll
-	if (FreeLibrary(hinstDLL) == 0) {
-		Error("FreeLibrary()","Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
-		return 1;
+	if (hinstDLL) {
+		//Unload library
+		if (FreeLibrary(hinstDLL) == 0) {
+			Error("FreeLibrary()","Check the "L10N_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
+			return 1;
+		}
+		hinstDLL=NULL;
 	}
 	
 	//Success
-	hook_installed=0;
 	UpdateTray();
 	return 0;
 }
 
-void ToggleHook() {
-	if (hook_installed) {
-		RemoveHook();
+void ToggleState() {
+	if (keyhook || msghook) {
+		UnhookSystem();
 	}
 	else {
-		InstallHook();
+		HookSystem();
 	}
 }
 
-LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_ICONTRAY) {
 		if (lParam == WM_LBUTTONDOWN) {
-			ToggleHook();
+			ToggleState();
 		}
 		else if (lParam == WM_RBUTTONDOWN) {
 			ShowContextMenu(hwnd);
@@ -402,7 +410,7 @@ LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_COMMAND) {
 		int wmId=LOWORD(wParam), wmEvent=HIWORD(wParam);
 		if (wmId == SWM_TOGGLE) {
-			ToggleHook();
+			ToggleState();
 		}
 		else if (wmId == SWM_HIDE) {
 			hide=1;
@@ -429,12 +437,8 @@ LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	else if (msg == WM_DESTROY) {
 		showerror=0;
-		if (hook_installed) {
-			RemoveHook();
-		}
-		if (tray_added) {
-			RemoveTray();
-		}
+		UnhookSystem();
+		RemoveTray();
 		PostQuitMessage(0);
 		return 0;
 	}
