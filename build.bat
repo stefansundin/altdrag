@@ -27,9 +27,9 @@ if "%1" == "all" (
 			strip "build/%%f/AltDrag/AltDrag.exe"
 			upx --best -qq "build/%%f/AltDrag/AltDrag.exe"
 		)
-						
+		
 		gcc -c -o "build/%%f/hooks.o" hooks.c
-		if exist "build/%%f/AltDrag/hooks.o" (
+		if exist "build/%%f/hooks.o" (
 			gcc -shared -o "build/%%f/AltDrag/hooks.dll" "build/%%f/hooks.o"
 			strip "build/%%f/AltDrag/hooks.dll"
 			rem upx --best -qq "build/%%f/AltDrag/hooks.dll"

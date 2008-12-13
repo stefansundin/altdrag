@@ -6,23 +6,18 @@
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <windows.h>
 
 #define DEBUG
 
-//shift, move and hwnd must be shared since CallWndProc is called in the context of another thread
+static char txt[100];
+
+//shift, move, resize and hwnd must be shared since CallWndProc is called in the context of another thread
 static int alt=0;
 static int shift __attribute__((section ("shared"), shared)) = 0;
 static int move __attribute__((section ("shared"), shared)) = 0;
@@ -30,6 +25,7 @@ static int resize __attribute__((section ("shared"), shared)) = 0;
 static HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
 static POINT offset;
 static POINT resize_offset;
+static time_t clicktime=0;
 static HWND *wnds=NULL;
 static int numwnds=0;
 static int maxwnds=0;
@@ -40,17 +36,14 @@ static HCURSOR cursorhand=NULL;
 static HCURSOR cursorsize=NULL;
 
 //Mousehook data
-static HINSTANCE hinstDLL;
-static HHOOK mousehook;
-static int hook_installed=0;
-
-static char txt[100];
+static HINSTANCE hinstDLL=NULL;
+static HHOOK mousehook=NULL;
 
 //Error message handling
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
 		//Edit the caption of the buttons
-		SetDlgItemText((HWND)wParam,IDYES,"Copy message");
+		SetDlgItemText((HWND)wParam,IDYES,"Copy error");
 		SetDlgItemText((HWND)wParam,IDNO,"OK");
 	}
 	return 0;
@@ -112,7 +105,7 @@ void MoveWnd() {
 	//Check if window still exists
 	if (!IsWindow(hwnd)) {
 		move=0;
-		RemoveHook();
+		UnhookMouse();
 		return;
 	}
 	
@@ -132,6 +125,9 @@ void MoveWnd() {
 		fprintf(f,"wnd #%03d:%s %s [%s] (%dx%d@%dx%d)\n",j,(hwnd==wnds[j]?"***":""),title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
 	}
 	fclose(f);*/
+	
+	//Reset double-click time
+	clicktime=0;
 	
 	//Get window size
 	RECT wnd;
@@ -266,7 +262,7 @@ void ResizeWnd() {
 	//Check if window still exists
 	if (!IsWindow(hwnd)) {
 		resize=0;
-		RemoveHook();
+		UnhookMouse();
 		return;
 	}
 	
@@ -295,14 +291,14 @@ void ResizeWnd() {
 	}
 }
 
-_declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+_declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		int vkey=((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 			if (!alt && vkey == VK_LMENU) {
 				alt=1;
-				InstallHook();
+				HookMouse();
 			}
 			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
 				shift=1;
@@ -318,7 +314,7 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
 			if (vkey == VK_LMENU) {
 				alt=0;
 				if (!move && !resize) {
-					RemoveHook();
+					UnhookMouse();
 				}
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
@@ -333,13 +329,13 @@ _declspec(dllexport) LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPA
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-_declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+_declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && alt && !move) {
 			//Double check if the left alt key is being pressed
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
-				RemoveHook();
+				UnhookMouse();
 			}
 			else {
 				//Alt key is still being pressed
@@ -350,8 +346,9 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					Error("WindowFromPoint()","MouseProc()",GetLastError(),__LINE__);
+					Error("WindowFromPoint()","LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
+				
 				/*//Use this to print the title and classname of the child you press
 				FILE *f=fopen("C:\\altdrag-log.txt","wb");
 				char title[100], classname[100];
@@ -359,64 +356,92 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 				GetClassName(hwnd,classname,100);
 				fprintf(f,"Pressed %s [%s]\n",title,classname);
 				fclose(f);*/
+				
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
 				//Get the classname so we can check if this window is the alt+tab window
 				char classname[100];
 				GetClassName(hwnd,classname,sizeof(classname));
 				
-				//Only continue if this window is not the alt+tab window
+				//Only continue if this window is not blacklisted
 				if (strcmp(classname,"TaskSwitcherWnd") && strcmp(classname,"TaskSwitcherOverlayWnd")) {
 					//Get window and desktop size
 					RECT window;
 					if (GetWindowRect(hwnd,&window) == 0) {
-						Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
+						Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					RECT desktop;
 					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-						Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
+						Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					
-					//Don't move the window if it's fullscreen
+					//Don't proceed if the window is fullscreen
 					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
-						//Restore the window if it's maximized
-						if (IsZoomed(hwnd)) {
-							//Restore window
+						//Check if this is a double-click
+						if (difftime(time(NULL),clicktime) <= GetDoubleClickTime()/1000) {
+							//Alt+double-clicking a window maxmizes it
+							//Reset double-click time
+							clicktime=0;
+							//Maximize window
 							WINDOWPLACEMENT wndpl;
 							wndpl.length=sizeof(WINDOWPLACEMENT);
 							GetWindowPlacement(hwnd,&wndpl);
-							wndpl.showCmd=SW_RESTORE;
+							wndpl.showCmd=SW_MAXIMIZE;
 							SetWindowPlacement(hwnd,&wndpl);
-							
-							//Get new pos and size
-							RECT newwindow;
-							if (GetWindowRect(hwnd,&newwindow) == 0) {
-								Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
+							//Stop move action
+							move=0;
+							if (!alt) {
+								UnhookMouse();
 							}
-							
-							//Set offset
-							offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
-							offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
-							
-							//Move
-							MoveWnd();
+							ShowWindowAsync(cursorwnd,SW_HIDE);
+							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+							//Maybe show IDC_SIZEALL cursor here really quick somehow?
+							//Prevent mousedown from propagating
+							return 1;
 						}
 						else {
-							//Set offset
-							offset.x=pt.x-window.left;
-							offset.y=pt.y-window.top;
+							//Restore the window if it's maximized
+							if (IsZoomed(hwnd)) {
+								//Restore window
+								WINDOWPLACEMENT wndpl;
+								wndpl.length=sizeof(WINDOWPLACEMENT);
+								GetWindowPlacement(hwnd,&wndpl);
+								wndpl.showCmd=SW_RESTORE;
+								SetWindowPlacement(hwnd,&wndpl);
+								
+								//Get new pos and size
+								RECT newwindow;
+								if (GetWindowRect(hwnd,&newwindow) == 0) {
+									Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+								}
+								
+								//Set offset
+								offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
+								offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
+								
+								//Move
+								MoveWnd();
+							}
+							else {
+								//Remember time of this click so we can check for double-click
+								clicktime=time(NULL);
+								
+								//Set offset
+								offset.x=pt.x-window.left;
+								offset.y=pt.y-window.top;
+							}
+							//Show cursorwnd
+							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorhand);
+							MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
+							if (!resize) {
+								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+							}
+							ShowWindowAsync(cursorwnd,SW_SHOWNA);
+							//Ready to move window
+							move=1;
+							//Prevent mousedown from propagating
+							return 1;
 						}
-						//Show cursorwnd
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorhand);
-						MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
-						if (!resize) {
-							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-						}
-						ShowWindowAsync(cursorwnd,SW_SHOWNA);
-						//Ready to move window
-						move=1;
-						//Prevent mousedown from propagating
-						return 1;
 					}
 				}
 			}
@@ -424,7 +449,7 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 		else if (wParam == WM_LBUTTONUP && move) {
 			move=0;
 			if (!alt) {
-				RemoveHook();
+				UnhookMouse();
 			}
 			//Hide cursorwnd
 			if (resize) {
@@ -441,99 +466,80 @@ _declspec(dllexport) LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM
 			//Double check if the left alt key is being pressed
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
-				RemoveHook();
+				UnhookMouse();
 			}
 			else {
-				if (move) {
-					//Pressing middle mouse button while moving a window toggles that window's maximize/minimize state
-					WINDOWPLACEMENT wndpl;
-					wndpl.length=sizeof(WINDOWPLACEMENT);
-					GetWindowPlacement(hwnd,&wndpl);
-					wndpl.showCmd=(IsZoomed(hwnd)?SW_RESTORE:SW_MAXIMIZE);
-					SetWindowPlacement(hwnd,&wndpl);
-					//Stop move action
-					move=0;
-					if (!alt) {
-						RemoveHook();
+				//Alt key is still being pressed
+				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+				
+				//Make sure cursorwnd isn't in the way
+				ShowWindow(cursorwnd,SW_HIDE);
+				
+				//Get window
+				if ((hwnd=WindowFromPoint(pt)) == NULL) {
+					Error("WindowFromPoint()","LowLevelMouseProc()",GetLastError(),__LINE__);
+				}
+				hwnd=GetAncestor(hwnd,GA_ROOT);
+				
+				//Get window and desktop size
+				RECT window;
+				if (GetWindowRect(hwnd,&window) == 0) {
+					Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+				}
+				RECT desktop;
+				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+					Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+				}
+				
+				//Don't resize the window if it's fullscreen
+				if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
+					//Restore the window if it's maximized
+					if (IsZoomed(hwnd)) {
+						//Restore window
+						WINDOWPLACEMENT wndpl;
+						wndpl.length=sizeof(WINDOWPLACEMENT);
+						GetWindowPlacement(hwnd,&wndpl);
+						wndpl.showCmd=SW_RESTORE;
+						//New size
+						RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
+						//Compensate for taskbar
+						RECT taskbar;
+						if (GetWindowRect(FindWindow("Shell_TrayWnd",NULL),&taskbar)) {
+							if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
+								//Taskbar is on the bottom or top position, adjust height
+								normalpos.bottom-=taskbar.bottom-taskbar.top;
+							}
+							else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
+								//Taskbar is on the left or right position, adjust width
+								normalpos.right-=taskbar.right-taskbar.left;
+							}
+						}
+						wndpl.rcNormalPosition=normalpos;
+						SetWindowPlacement(hwnd,&wndpl);
+						//Update window size
+						GetWindowRect(hwnd,&window);
 					}
-					ShowWindowAsync(cursorwnd,SW_HIDE);
-					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+					//Set offset
+					resize_offset.x=window.right-pt.x;
+					resize_offset.y=window.bottom-pt.y;
+					//Show cursorwnd
+					MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
+					if (!move) {
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+					}
+					ShowWindowAsync(cursorwnd,SW_SHOWNA);
+					//Ready to resize window
+					resize=1;
 					//Prevent mousedown from propagating
 					return 1;
-				}
-				else {
-					//Alt key is still being pressed
-					POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-					
-					//Make sure cursorwnd isn't in the way
-					ShowWindow(cursorwnd,SW_HIDE);
-					
-					//Get window
-					if ((hwnd=WindowFromPoint(pt)) == NULL) {
-						Error("WindowFromPoint()","MouseProc()",GetLastError(),__LINE__);
-					}
-					hwnd=GetAncestor(hwnd,GA_ROOT);
-					
-					//Get window and desktop size
-					RECT window;
-					if (GetWindowRect(hwnd,&window) == 0) {
-						Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
-					}
-					RECT desktop;
-					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-						Error("GetWindowRect()","MouseProc()",GetLastError(),__LINE__);
-					}
-					
-					//Don't resize the window if it's fullscreen
-					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
-						//Restore the window if it's maximized
-						if (IsZoomed(hwnd)) {
-							//Restore window
-							WINDOWPLACEMENT wndpl;
-							wndpl.length=sizeof(WINDOWPLACEMENT);
-							GetWindowPlacement(hwnd,&wndpl);
-							wndpl.showCmd=SW_RESTORE;
-							//New size
-							RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
-							//Compensate for taskbar
-							RECT taskbar;
-							if (GetWindowRect(FindWindow("Shell_TrayWnd",NULL),&taskbar)) {
-								if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
-									//Taskbar is on the bottom or top position, adjust height
-									normalpos.bottom-=taskbar.bottom-taskbar.top;
-								}
-								else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
-									//Taskbar is on the left or right position, adjust width
-									normalpos.right-=taskbar.right-taskbar.left;
-								}
-							}
-							wndpl.rcNormalPosition=normalpos;
-							SetWindowPlacement(hwnd,&wndpl);
-							//Update window size
-							GetWindowRect(hwnd,&window);
-						}
-						//Set offset
-						resize_offset.x=window.right-pt.x;
-						resize_offset.y=window.bottom-pt.y;
-						//Show cursorwnd
-						MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
-						if (!move) {
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
-							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-						}
-						ShowWindowAsync(cursorwnd,SW_SHOWNA);
-						//Ready to resize window
-						resize=1;
-						//Prevent mousedown from propagating
-						return 1;
-					}
 				}
 			}
 		}
 		else if (wParam == WM_MBUTTONUP && resize) {
 			resize=0;
 			if (!alt) {
-				RemoveHook();
+				UnhookMouse();
 			}
 			//Hide cursorwnd
 			if (!move) {
@@ -587,26 +593,25 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-int InstallHook() {
-	if (hook_installed) {
-		//Hook already installed
+int HookMouse() {
+	if (mousehook) {
+		//Mouse already hooked
 		return 1;
 	}
 	
 	//Set up the mouse hook
-	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,MouseProc,hinstDLL,0)) == NULL) {
+	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,LowLevelMouseProc,hinstDLL,0)) == NULL) {
 		Error("SetWindowsHookEx(WH_MOUSE_LL)","",GetLastError(),__LINE__);
 		return 1;
 	}
 	
 	//Success
-	hook_installed=1;
 	return 0;
 }
 
-int RemoveHook() {
-	if (!hook_installed) {
-		//Hook not installed
+int UnhookMouse() {
+	if (!mousehook) {
+		//Mouse not hooked
 		return 1;
 	}
 	
@@ -617,7 +622,7 @@ int RemoveHook() {
 	}
 	
 	//Success
-	hook_installed=0;
+	mousehook=NULL;
 	return 0;
 }
 

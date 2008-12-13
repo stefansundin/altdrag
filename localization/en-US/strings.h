@@ -9,14 +9,6 @@
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 //This will be updated when the strings in the program changes
@@ -39,6 +31,7 @@ Drag windows with the mouse when pressing the alt key.\n\
 You can use the middle mouse button to resize windows.\n\
 If you press the shift key when you move or resize, the window will stick to other windows.\n\
 You can use the shift key when normally moving and resizing windows as well.\n\
+Double-click a window to maximize it.\n\
 \n\
 Fullscreen windows, such as games, will not be dragged or resized.\n\
 \n\
