@@ -10,7 +10,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include <shlwapi.h>
@@ -127,7 +126,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	RegisterClassEx(&wnd);
 	
 	//Create window
-	HWND hwnd=CreateWindowEx(/*WS_EX_LAYERED|*/WS_EX_TOOLWINDOW, wnd.lpszClassName, wnd.lpszClassName, WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	HWND hwnd=CreateWindowEx(/*WS_EX_LAYERED|*/WS_EX_TOOLWINDOW, wnd.lpszClassName, wnd.lpszClassName, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
 	SetWindowPos(hwnd,HWND_TOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE); //Always on top
 
 	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
