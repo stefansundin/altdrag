@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 
 #define DEBUG
@@ -393,7 +394,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 							if (!alt) {
 								UnhookMouse();
 							}
-							ShowWindowAsync(cursorwnd,SW_HIDE);
+							ShowWindow(cursorwnd,SW_HIDE);
 							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 							//Maybe show IDC_SIZEALL cursor here really quick somehow?
 							//Prevent mousedown from propagating
@@ -435,6 +436,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 							MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
 							if (!resize) {
 								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+								SetLayeredWindowAttributes(cursorwnd, 0, 1, LWA_ALPHA); //Almost transparent (XP fix)
 							}
 							ShowWindowAsync(cursorwnd,SW_SHOWNA);
 							//Ready to move window
@@ -456,7 +458,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
 			}
 			else {
-				ShowWindowAsync(cursorwnd,SW_HIDE);
+				ShowWindow(cursorwnd,SW_HIDE);
 				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			}
 			//Prevent mouseup from propagating
@@ -527,6 +529,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					if (!move) {
 						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
 						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+						SetLayeredWindowAttributes(cursorwnd, 0, 1, LWA_ALPHA); //Almost transparent (XP fix)
 					}
 					ShowWindowAsync(cursorwnd,SW_SHOWNA);
 					//Ready to resize window
@@ -543,7 +546,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			}
 			//Hide cursorwnd
 			if (!move) {
-				ShowWindowAsync(cursorwnd,SW_HIDE);
+				ShowWindow(cursorwnd,SW_HIDE);
 				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			}
 			//Prevent mouseup from propagating
