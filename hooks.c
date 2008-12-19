@@ -8,6 +8,9 @@
 	(at your option) any later version.
 */
 
+#define UNICODE
+#define _UNICODE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -16,7 +19,7 @@
 
 #define DEBUG
 
-static char txt[100];
+static wchar_t txt[100];
 
 //shift, move, resize and hwnd must be shared since CallWndProc is called in the context of another thread
 static int alt=0;
@@ -44,30 +47,30 @@ static HHOOK mousehook=NULL;
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
 		//Edit the caption of the buttons
-		SetDlgItemText((HWND)wParam,IDYES,"Copy error");
-		SetDlgItemText((HWND)wParam,IDNO,"OK");
+		SetDlgItemText((HWND)wParam,IDYES,L"Copy error");
+		SetDlgItemText((HWND)wParam,IDNO,L"OK");
 	}
 	return 0;
 }
 
-void Error(char *func, char *info, int errorcode, int line) {
+void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
 	#ifdef DEBUG
 	//Format message
-	char errormsg[100];
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,errormsg,sizeof(errormsg),NULL);
-	errormsg[strlen(errormsg)-2]='\0'; //Remove that damn newline at the end of the formatted error message
-	sprintf(txt,"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, TEXT(__FILE__), line, errormsg, errorcode, info);
+	wchar_t errormsg[100];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,errormsg,sizeof(errormsg)/sizeof(wchar_t),NULL);
+	errormsg[wcslen(errormsg)-2]='\0'; //Remove that damn newline at the end of the formatted error message
+	swprintf(txt,L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, TEXT(__FILE__), line, errormsg, errorcode, info);
 	//Display message
 	HHOOK hhk=SetWindowsHookEx(WH_CBT, &ErrorMsgProc, 0, GetCurrentThreadId());
-	int response=MessageBox(NULL, txt, "AltDrag Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
+	int response=MessageBox(NULL, txt, L"AltDrag hooks Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
 		OpenClipboard(NULL);
 		EmptyClipboard();
-		char *data=LocalAlloc(LMEM_FIXED,strlen(txt)+1);
-		memcpy(data,txt,strlen(txt)+1);
-		SetClipboardData(CF_TEXT,data);
+		wchar_t *data=LocalAlloc(LMEM_FIXED,(wcslen(txt)+1)*sizeof(wchar_t));
+		memcpy(data,txt,(wcslen(txt)+1)*sizeof(wchar_t));
+		SetClipboardData(CF_UNICODETEXT,data);
 		CloseClipboard();
 	}
 	#endif
@@ -77,7 +80,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == maxwnds) {
 		if ((wnds=realloc(wnds,(maxwnds+100)*sizeof(HWND))) == NULL) {
-			Error("realloc(wnds)","Out of memory?",0,__LINE__);
+			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			return FALSE;
 		}
 		maxwnds+=100;
@@ -85,11 +88,11 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
 	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
 		//We don't want to add certain windows, such as the Vista start orb or cursorwnd
-		char title[100];
-		char classname[100]; //classname must be at least as long as the longest member in the list blacklist
+		wchar_t title[100];
+		wchar_t classname[100]; //classname must be at least as long as the longest member in the list blacklist
 		GetWindowText(hwnd,title,sizeof(title));
 		GetClassName(hwnd,classname,sizeof(classname));
-		if (strcmp(title,"Start") && strcmp(classname,"Button") && strcmp(classname,"Chrome_ContainerWin_0") && hwnd != cursorwnd) {
+		if (wcscmp(title,L"Start") && wcscmp(classname,L"Button") && wcscmp(classname,L"Chrome_ContainerWin_0") && hwnd != cursorwnd) {
 			//This window is not the Vista start orb
 			wnds[numwnds++]=hwnd;
 		}
@@ -133,7 +136,7 @@ void MoveWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		Error("GetWindowRect()","MoveWnd()",GetLastError(),__LINE__);
+		Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
 	}
 	
 	//Get new position for window
@@ -175,7 +178,7 @@ void MoveWnd() {
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				Error("GetWindowRect()","MoveWnd()",GetLastError(),__LINE__);
+				Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
 			}
 			
 			//Check if posx sticks
@@ -248,7 +251,7 @@ void MoveWnd() {
 	
 	//Move
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		Error("MoveWindow()","MoveWnd()",GetLastError(),__LINE__);
+		Error(L"MoveWindow()",L"MoveWnd()",GetLastError(),__LINE__);
 	}
 	
 	/*FILE *f=fopen("C:\\altdrag-log.txt","ab");
@@ -270,7 +273,7 @@ void ResizeWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		Error("GetWindowRect()","ResizeWnd()",GetLastError(),__LINE__);
+		Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
 	}
 	
 	//Get new size for window
@@ -288,7 +291,7 @@ void ResizeWnd() {
 	
 	//Resize
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		Error("MoveWindow()","ResizeWnd()",GetLastError(),__LINE__);
+		Error(L"MoveWindow()",L"ResizeWnd()",GetLastError(),__LINE__);
 	}
 }
 
@@ -347,7 +350,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					Error("WindowFromPoint()","LowLevelMouseProc()",GetLastError(),__LINE__);
+					Error(L"WindowFromPoint()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
 				
 				/*//Use this to print the title and classname of the child you press
@@ -361,19 +364,19 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
 				//Get the classname so we can check if this window is the alt+tab window
-				char classname[100];
+				wchar_t classname[100];
 				GetClassName(hwnd,classname,sizeof(classname));
 				
 				//Only continue if this window is not blacklisted
-				if (strcmp(classname,"TaskSwitcherWnd") && strcmp(classname,"TaskSwitcherOverlayWnd")) {
+				if (wcscmp(classname,L"TaskSwitcherWnd") && wcscmp(classname,L"TaskSwitcherOverlayWnd")) {
 					//Get window and desktop size
 					RECT window;
 					if (GetWindowRect(hwnd,&window) == 0) {
-						Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					RECT desktop;
 					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-						Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					
 					//Don't proceed if the window is fullscreen
@@ -413,7 +416,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 								//Get new pos and size
 								RECT newwindow;
 								if (GetWindowRect(hwnd,&newwindow) == 0) {
-									Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+									Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 								}
 								
 								//Set offset
@@ -479,18 +482,18 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					Error("WindowFromPoint()","LowLevelMouseProc()",GetLastError(),__LINE__);
+					Error(L"WindowFromPoint()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
 				//Get window and desktop size
 				RECT window;
 				if (GetWindowRect(hwnd,&window) == 0) {
-					Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+					Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
 				RECT desktop;
 				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-					Error("GetWindowRect()","LowLevelMouseProc()",GetLastError(),__LINE__);
+					Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
 				
 				//Don't resize the window if it's fullscreen
@@ -506,7 +509,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 						RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
 						//Compensate for taskbar
 						RECT taskbar;
-						if (GetWindowRect(FindWindow("Shell_TrayWnd",NULL),&taskbar)) {
+						if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
 							if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
 								//Taskbar is on the bottom or top position, adjust height
 								normalpos.bottom-=taskbar.bottom-taskbar.top;
@@ -604,7 +607,7 @@ int HookMouse() {
 	
 	//Set up the mouse hook
 	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,LowLevelMouseProc,hinstDLL,0)) == NULL) {
-		Error("SetWindowsHookEx(WH_MOUSE_LL)","",GetLastError(),__LINE__);
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)",L"",GetLastError(),__LINE__);
 		return 1;
 	}
 	
@@ -620,7 +623,7 @@ int UnhookMouse() {
 	
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		Error("UnhookWindowsHookEx(mousehook)","",GetLastError(),__LINE__);
+		Error(L"UnhookWindowsHookEx(mousehook)",L"",GetLastError(),__LINE__);
 		return 1;
 	}
 	
@@ -632,7 +635,7 @@ int UnhookMouse() {
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
-		cursorwnd=FindWindow("AltDrag",NULL);
+		cursorwnd=FindWindow(L"AltDrag",NULL);
 		cursorhand=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 		cursorsize=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 	}
