@@ -20,9 +20,10 @@ if "%1" == "all" (
 		if not exist "build/%%f/AltDrag" (
 			mkdir "build\%%f\AltDrag"
 		)
-		copy "localization\%%f\info.txt" "build/%%f/AltDrag/info.txt"
+		copy "localization\%%f\info.txt" "build/%%f/AltDrag"
+		copy "AltDrag.ini" "build/%%f/AltDrag"
 		
-		gcc -o "build/%%f/AltDrag/AltDrag.exe" altdrag.c build/resources.o -mwindows -lshlwapi -DL10N_FILE=\"localization/%%f/strings.h\"
+		gcc -o "build/%%f/AltDrag/AltDrag.exe" altdrag.c build/resources.o -mwindows -lshlwapi -lwininet -DL10N_FILE=\"localization/%%f/strings.h\"
 		if exist "build/%%f/AltDrag/AltDrag.exe" (
 			strip "build/%%f/AltDrag/AltDrag.exe"
 			upx --best -qq "build/%%f/AltDrag/AltDrag.exe"
@@ -35,12 +36,19 @@ if "%1" == "all" (
 			rem upx --best -qq "build/%%f/AltDrag/hooks.dll"
 		)
 	)
+	
+	@echo.
+	echo Building installer
+	makensis /V2 installer.nsi
 ) else (
-	gcc -o AltDrag.exe altdrag.c build/resources.o -mwindows -lshlwapi
+	gcc -o AltDrag.exe altdrag.c build/resources.o -mwindows -lshlwapi -lwininet
 	gcc -c -o "build/hooks.o" hooks.c
 	gcc -shared -o "hooks.dll" "build/hooks.o"
 	
 	if "%1" == "run" (
 		start AltDrag.exe
+	)
+	if "%1" == "hide" (
+		start AltDrag.exe -hide
 	)
 )
