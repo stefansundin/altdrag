@@ -2,11 +2,12 @@ AltDrag
 Made by Stefan Sundin
 
 Drag windows with the mouse when pressing the alt key.
-You can use the middle mouse button to resize windows.
-If you press the shift key when you move or resize, the window will stick to other windows.
-You can use the shift key when normally moving and resizing windows as well.
-
+You can use the middle or right mouse button to resize windows.
+If you press the shift key while you drag, the window will stick to other windows (doesn't work on resize yet).
+You can enable experimental features to be able to use the shift key when normally moving windows.
 Fullscreen windows, such as games, will not be dragged or resized.
+
+If you experience lag when you move and resize windows, try disabling the mouse cursor switch in AltDrag.ini.
 
 AltDrag will automatically check for updates.
 You can disable this in AltDrag.ini.
@@ -16,16 +17,20 @@ You can use -hide as a parameter to hide the tray icon.
 Visit the website at http://altdrag.googlecode.com/
 Send feedback to recover89@gmail.com
 
+If you feel this program is useful, please consider donating money.
+You can find out how to donate on the website.
+
 Changelog
 ---------
 0.5:
-You can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista.
-You can now resize windows with the middle mouse button.
-You can now press alt and double-click a window to maximize it.
+You can now resize windows with the middle or right mouse button.
+You can now double-click a window to maximize it.
+You can now blacklist certain windows from being dragged and certain windows from being sticked to.
+Blacklisted by default: the alt+tab window in Vista.
+Sticky-blacklisted by default: the Vista start menu orb.
 The mouse cursor will now change when you move and resize windows.
 Only one instance of AltDrag can now be run. Starting AltDrag again will make the first copy add its tray icon.
-AltDrag will no longer drag the alt+tab window in Vista.
-Windows will no longer stick to the Vista start menu orb.
+Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista.
 
 0.4 - 2008-09-14:
 You can now press the shift key to make the window stick to other windows.

@@ -16,10 +16,14 @@
 #include <time.h>
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
+#include <shlwapi.h>
 
 #define DEBUG
 
-static wchar_t txt[100];
+static wchar_t txt[1000];
+struct {
+	int Cursor;
+} settings={0};
 
 //shift, move, resize and hwnd must be shared since CallWndProc is called in the context of another thread
 static int alt=0;
@@ -27,17 +31,24 @@ static int shift __attribute__((section ("shared"), shared)) = 0;
 static int move __attribute__((section ("shared"), shared)) = 0;
 static int resize __attribute__((section ("shared"), shared)) = 0;
 static HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
+static time_t clicktime=0;
 static POINT offset;
 static POINT resize_offset;
-static time_t clicktime=0;
+enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} static resize_edge_x, resize_edge_y;
 static HWND *wnds=NULL;
 static int numwnds=0;
-static int maxwnds=0;
+static int winxp=0;
+struct blacklistitem {
+	wchar_t *title;
+	wchar_t *classname;
+} *blacklist=NULL, *blacklist_sticky=NULL;
+static int numblacklist=0;
+static int numblacklist_sticky=0;
 
 //Cursor data
 static HWND cursorwnd=NULL;
-static HCURSOR cursorhand=NULL;
-static HCURSOR cursorsize=NULL;
+enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
+static HCURSOR cursor[6];
 
 //Mousehook data
 static HINSTANCE hinstDLL=NULL;
@@ -76,24 +87,33 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
 	#endif
 }
 
+static int wnds_alloc=0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
-	if (numwnds == maxwnds) {
-		if ((wnds=realloc(wnds,(maxwnds+100)*sizeof(HWND))) == NULL) {
+	if (numwnds == wnds_alloc) {
+		wnds_alloc+=100;
+		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
 			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			return FALSE;
 		}
-		maxwnds+=100;
 	}
 	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
 	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
-		//We don't want to add certain windows, such as the Vista start orb or cursorwnd
-		wchar_t title[100];
-		wchar_t classname[100]; //classname must be at least as long as the longest member in the list blacklist
-		GetWindowText(hwnd,title,sizeof(title));
-		GetClassName(hwnd,classname,sizeof(classname));
-		if (wcscmp(title,L"Start") && wcscmp(classname,L"Button") && wcscmp(classname,L"Chrome_ContainerWin_0") && hwnd != cursorwnd) {
-			//This window is not the Vista start orb
+		//Check if window is blacklisted
+		wchar_t title[256];
+		wchar_t classname[256];
+		GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+		GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+		int i,blacklisted=0;
+		for (i=0; i < numblacklist_sticky; i++) {
+			if ((blacklist_sticky[i].title == NULL && !wcscmp(classname,blacklist_sticky[i].classname))
+			 || (blacklist_sticky[i].classname == NULL && !wcscmp(title,blacklist_sticky[i].title))
+			 || (blacklist_sticky[i].title != NULL && blacklist_sticky[i].classname != NULL && !wcscmp(title,blacklist_sticky[i].title) && !wcscmp(classname,blacklist[i].classname))) {
+				blacklisted=1;
+			}
+		}
+		//Add window to wnds
+		if (!blacklisted) {
 			wnds[numwnds++]=hwnd;
 		}
 	}
@@ -276,17 +296,43 @@ void ResizeWnd() {
 		Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
 	}
 	
-	//Get new size for window
+	//Get new pos and size for window
 	POINT pt;
 	GetCursorPos(&pt);
-	int posx=wnd.left;
-	int posy=wnd.top;
-	int wndwidth=pt.x-wnd.left+resize_offset.x;
-	int wndheight=pt.y-wnd.top+resize_offset.y;
-	
-	//Double check if any of the shift keys are being pressed
-	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-		shift=0;
+	int posx,posy,wndwidth,wndheight;
+	if (resize_edge_x == CENTER && resize_edge_y == CENTER) {
+		posx=wnd.left-(pt.x-resize_offset.x);
+		posy=wnd.top-(pt.y-resize_offset.y);
+		wndwidth=wnd.right-wnd.left+2*(pt.x-resize_offset.x);
+		wndheight=wnd.bottom-wnd.top+2*(pt.y-resize_offset.y);
+		resize_offset.x=pt.x;
+		resize_offset.y=pt.y;
+	}
+	else {
+		if (resize_edge_y == TOP) {
+			posy=pt.y-resize_offset.y;
+			wndheight=wnd.bottom-pt.y+resize_offset.y;
+		}
+		else if (resize_edge_y == CENTER) {
+			posy=wnd.top;
+			wndheight=wnd.bottom-wnd.top;
+		}
+		else if (resize_edge_y == BOTTOM) {
+			posy=wnd.top;
+			wndheight=pt.y-wnd.top+resize_offset.y;
+		}
+		if (resize_edge_x == LEFT) {
+			posx=pt.x-resize_offset.x;
+			wndwidth=wnd.right-pt.x+resize_offset.x;
+		}
+		else if (resize_edge_x == CENTER) {
+			posx=wnd.left;
+			wndwidth=wnd.right-wnd.left;
+		}
+		else if (resize_edge_x == RIGHT) {
+			posx=wnd.left;
+			wndwidth=pt.x-wnd.left+resize_offset.x;
+		}
 	}
 	
 	//Resize
@@ -308,9 +354,14 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 				shift=1;
 				if (move) {
 					MoveWnd();
+					if (winxp) {
+						//Block key to prevent XP from changing keyboard layout
+						return 1;
+					}
 				}
 			}
 			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
+				//This doesn't always work since the menu is activated by the alt keypress, read msdn
 				SetForegroundWindow(hwnd);
 			}
 		}
@@ -346,7 +397,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 				
 				//Make sure cursorwnd isn't in the way
-				ShowWindow(cursorwnd,SW_HIDE);
+				if (settings.Cursor) {
+					ShowWindow(cursorwnd,SW_HIDE);
+				}
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
@@ -363,12 +416,24 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				
 				hwnd=GetAncestor(hwnd,GA_ROOT);
 				
-				//Get the classname so we can check if this window is the alt+tab window
-				wchar_t classname[100];
-				GetClassName(hwnd,classname,sizeof(classname));
+				//Check if window is blacklisted
+				wchar_t title[256];
+				wchar_t classname[256];
+				GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+				int i,blacklisted=0;
+				for (i=0; i < numblacklist; i++) {
+					//swprintf(txt,L"if (%s == NULL && %s == %s)\n || (%s == NULL && %s == %s)\n || (%s == %s && %s == %s)",blacklist[i].title,classname,blacklist[i].classname,blacklist[i].classname,title,blacklist[i].title,title,blacklist[i].title,classname,blacklist[i].classname);
+					//MessageBox(NULL, txt, L"Debug message", MB_ICONINFORMATION|MB_OK);
+					if ((blacklist[i].title == NULL && !wcscmp(classname,blacklist[i].classname))
+					 || (blacklist[i].classname == NULL && !wcscmp(title,blacklist[i].title))
+					 || (blacklist[i].title != NULL && blacklist[i].classname != NULL && !wcscmp(title,blacklist[i].title) && !wcscmp(classname,blacklist[i].classname))) {
+						blacklisted=1;
+					}
+				}
 				
 				//Only continue if this window is not blacklisted
-				if (wcscmp(classname,L"TaskSwitcherWnd") && wcscmp(classname,L"TaskSwitcherOverlayWnd")) {
+				if (!blacklisted) {
 					//Get window and desktop size
 					RECT window;
 					if (GetWindowRect(hwnd,&window) == 0) {
@@ -379,7 +444,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					
-					//Don't proceed if the window is fullscreen
+					//Only move if the window is not fullscreen
 					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
 						//Check if this is a double-click
 						if (difftime(time(NULL),clicktime) <= GetDoubleClickTime()/1000) {
@@ -397,9 +462,12 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 							if (!alt) {
 								UnhookMouse();
 							}
-							ShowWindow(cursorwnd,SW_HIDE);
-							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-							//Maybe show IDC_SIZEALL cursor here really quick somehow?
+							//Hide cursorwnd
+							if (settings.Cursor) {
+								ShowWindow(cursorwnd,SW_HIDE);
+								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+								//Maybe show IDC_SIZEALL cursor here really quick somehow?
+							}
 							//Prevent mousedown from propagating
 							return 1;
 						}
@@ -435,13 +503,17 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 								offset.y=pt.y-window.top;
 							}
 							//Show cursorwnd
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorhand);
-							MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
-							if (!resize) {
-								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-								SetLayeredWindowAttributes(cursorwnd, 0, 1, LWA_ALPHA); //Almost transparent (XP fix)
+							if (settings.Cursor) {
+								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[HAND]);
+								if (!resize) {
+									MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
+									SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+									if (winxp) {
+										SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent (XP fix)
+									}
+								}
+								ShowWindowAsync(cursorwnd,SW_SHOWNA);
 							}
-							ShowWindowAsync(cursorwnd,SW_SHOWNA);
 							//Ready to move window
 							move=1;
 							//Prevent mousedown from propagating
@@ -457,17 +529,19 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				UnhookMouse();
 			}
 			//Hide cursorwnd
-			if (resize) {
-				SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
-			}
-			else {
-				ShowWindow(cursorwnd,SW_HIDE);
-				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			if (settings.Cursor) {
+				if (resize) {
+					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+				}
+				else {
+					ShowWindow(cursorwnd,SW_HIDE);
+					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+				}
 			}
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if (wParam == WM_MBUTTONDOWN && alt && !resize) {
+		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt && !resize) {
 			//Double check if the left alt key is being pressed
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
@@ -478,7 +552,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 				
 				//Make sure cursorwnd isn't in the way
-				ShowWindow(cursorwnd,SW_HIDE);
+				if (settings.Cursor) {
+					ShowWindow(cursorwnd,SW_HIDE);
+				}
 				
 				//Get window
 				if ((hwnd=WindowFromPoint(pt)) == NULL) {
@@ -496,7 +572,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
 				
-				//Don't resize the window if it's fullscreen
+				//Only resize if the window is not fullscreen
 				if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
 					//Restore the window if it's maximized
 					if (IsZoomed(hwnd)) {
@@ -524,17 +600,61 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 						//Update window size
 						GetWindowRect(hwnd,&window);
 					}
-					//Set offset
-					resize_offset.x=window.right-pt.x;
-					resize_offset.y=window.bottom-pt.y;
-					//Show cursorwnd
-					MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
-					if (!move) {
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursorsize);
-						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-						SetLayeredWindowAttributes(cursorwnd, 0, 1, LWA_ALPHA); //Almost transparent (XP fix)
+					//Set edge and offset
+					if (pt.y-window.top < (window.bottom-window.top)/3) {
+						resize_edge_y=TOP;
+						resize_offset.y=pt.y-window.top;
 					}
-					ShowWindowAsync(cursorwnd,SW_SHOWNA);
+					else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
+						resize_edge_y=CENTER;
+						resize_offset.y=pt.y; //Used only if both x and y are CENTER
+					}
+					else {
+						resize_edge_y=BOTTOM;
+						resize_offset.y=window.bottom-pt.y;
+					}
+					if (pt.x-window.left < (window.right-window.left)/3) {
+						resize_edge_x=LEFT;
+						resize_offset.x=pt.x-window.left;
+					}
+					else if (pt.x-window.left < (window.right-window.left)*2/3) {
+						resize_edge_x=CENTER;
+						resize_offset.x=pt.x; //Used only if both x and y are CENTER
+					}
+					else {
+						resize_edge_x=RIGHT;
+						resize_offset.x=window.right-pt.x;
+					}
+					//Show cursorwnd
+					if (settings.Cursor) {
+						if (!move) {
+							MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
+							if ((resize_edge_y == TOP && resize_edge_x == LEFT)
+							 || (resize_edge_y == BOTTOM && resize_edge_x == RIGHT)) {
+								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
+							}
+							else if ((resize_edge_y == TOP && resize_edge_x == RIGHT)
+							 || (resize_edge_y == BOTTOM && resize_edge_x == LEFT)) {
+								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
+							}
+							else if ((resize_edge_y == TOP && resize_edge_x == CENTER)
+							 || (resize_edge_y == BOTTOM && resize_edge_x == CENTER)) {
+								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
+							}
+							else if ((resize_edge_y == CENTER && resize_edge_x == LEFT)
+							 || (resize_edge_y == CENTER && resize_edge_x == RIGHT)) {
+								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
+							}
+							else {
+								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+							}
+							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+							if (winxp) {
+								SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent (XP fix)
+							}
+						}
+						ShowWindowAsync(cursorwnd,SW_SHOWNA);
+					}
 					//Ready to resize window
 					resize=1;
 					//Prevent mousedown from propagating
@@ -542,20 +662,27 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				}
 			}
 		}
-		else if (wParam == WM_MBUTTONUP && resize) {
+		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && resize) {
 			resize=0;
 			if (!alt) {
 				UnhookMouse();
 			}
 			//Hide cursorwnd
-			if (!move) {
+			if (settings.Cursor && !move) {
 				ShowWindow(cursorwnd,SW_HIDE);
 				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			}
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if (wParam == WM_MOUSEMOVE) {
+		else if (wParam == WM_MOUSEMOVE && (move || resize)) {
+			//Move cursorwnd
+			if (settings.Cursor) {
+				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+				MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,TRUE);
+				//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+			}
+			//Move or resize
 			if (move) {
 				//Move window
 				MoveWnd();
@@ -635,11 +762,93 @@ int UnhookMouse() {
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
-		cursorwnd=FindWindow(L"AltDrag",NULL);
-		cursorhand=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-		cursorsize=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+		//Load settings
+		wchar_t path[MAX_PATH];
+		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
+		PathRenameExtension(path,L".ini");
+		GetPrivateProfileString(L"AltDrag",L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+		swscanf(txt,L"%d",&settings.Cursor);
+		//Blacklist
+		GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
+		int *add_numblacklist=&numblacklist, blacklist_alloc=0;
+		wchar_t *pos=txt, title[256], classname[256];
+		struct blacklistitem **add_blacklist=&blacklist;
+		while (pos != NULL) {
+			wchar_t *title=pos;
+			wchar_t *classname=wcsstr(pos,L"|");
+			pos=wcsstr(pos,L",");
+			if (pos != NULL) {
+				*pos='\0';
+				pos++;
+			}
+			if (classname != NULL) {
+				*classname='\0';
+				classname++;
+			}
+			//Make sure we have enough space
+			if (*add_numblacklist == blacklist_alloc) {
+				blacklist_alloc+=10;
+				*add_blacklist=realloc(*add_blacklist,blacklist_alloc*sizeof(struct blacklistitem));
+			}
+			//Allocate memory for title and classname
+			wchar_t *item_title, *item_classname;
+			if (wcslen(title) > 0) {
+				item_title=malloc((wcslen(title)+1)*sizeof(wchar_t));
+				wcscpy(item_title,title);
+			}
+			else {
+				item_title=NULL;
+			}
+			if (classname != NULL && wcslen(classname) > 0) {
+				item_classname=malloc((wcslen(classname)+1)*sizeof(wchar_t));
+				wcscpy(item_classname,classname);
+			}
+			else {
+				item_classname=NULL;
+			}
+			//Only store item if it's not empty
+			if (item_title != NULL || item_classname != NULL) {
+				(*add_blacklist)[*add_numblacklist].title=item_title;
+				(*add_blacklist)[*add_numblacklist].classname=item_classname;
+				(*add_numblacklist)++;
+			}
+			//Switch gears to blacklist_sticky?
+			if (pos == NULL && *add_blacklist == blacklist) {
+				add_blacklist=&blacklist_sticky;
+				add_numblacklist=&numblacklist_sticky;
+				blacklist_alloc=0;
+				GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
+				pos=txt;
+			}
+		}
+		//Check if OS is WinXP/Server 2003
+		OSVERSIONINFO vi;
+		vi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+		GetVersionEx(&vi);
+		if (vi.dwMajorVersion == 5 && vi.dwMinorVersion >= 1) {
+			//Now we will block the shift key if it is pressed while moving a window, this is to prevent XP from switching keyboard layout
+			//We will also set cursorwnd to 99% transparent to make it work in XP
+			winxp=1;
+		}
+		//Cursor
+		if (settings.Cursor) {
+			cursorwnd=FindWindow(L"AltDrag",NULL);
+			cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+			cursor[SIZENWSE]=LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+			cursor[SIZENESW]=LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+			cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+			cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+			cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
+		int i;
+		for (i=0; i < numblacklist; i++) {
+			free(blacklist[i].title);
+			free(blacklist[i].classname);
+		}
+		numblacklist=0;
+		free(blacklist);
 		free(wnds);
 	}
 	return TRUE;
