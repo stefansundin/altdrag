@@ -31,7 +31,7 @@ if "%1" == "all" (
 		
 		gcc -c -o "build/%%f/hooks.o" hooks.c
 		if exist "build/%%f/hooks.o" (
-			gcc -shared -o "build/%%f/AltDrag/hooks.dll" "build/%%f/hooks.o"
+			gcc -shared -o "build/%%f/AltDrag/hooks.dll" "build/%%f/hooks.o" -lshlwapi
 			strip "build/%%f/AltDrag/hooks.dll"
 			rem upx --best -qq "build/%%f/AltDrag/hooks.dll"
 		)
@@ -43,7 +43,7 @@ if "%1" == "all" (
 ) else (
 	gcc -o AltDrag.exe altdrag.c build/resources.o -mwindows -lshlwapi -lwininet
 	gcc -c -o "build/hooks.o" hooks.c
-	gcc -shared -o "hooks.dll" "build/hooks.o"
+	gcc -shared -o "hooks.dll" "build/hooks.o" -lshlwapi
 	
 	if "%1" == "run" (
 		start AltDrag.exe

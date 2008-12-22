@@ -58,15 +58,16 @@
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 static HICON icon[2];
 static NOTIFYICONDATA traydata;
-static unsigned int WM_TASKBARCREATED=0;
-static unsigned int WM_ADDTRAY=0;
+static UINT WM_TASKBARCREATED=0;
+static UINT WM_ADDTRAY=0;
 static int tray_added=0;
 static int hide=0;
 static int update=0;
 struct {
 	int CheckForUpdate;
-} settings={0};
-static wchar_t txt[100];
+	int ExperimentalFeatures;
+} settings={0,0};
+static wchar_t txt[1000];
 
 //Cool stuff
 static HINSTANCE hinstDLL=NULL;
@@ -240,7 +241,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	
 	//Load settings
 	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path));
+	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
 	PathRenameExtension(path,L".ini");
 	GetPrivateProfileString(L"Update",L"CheckForUpdate",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
 	swscanf(txt,L"%d",&settings.CheckForUpdate);
@@ -395,10 +396,19 @@ int HookSystem() {
 		return 1;
 	}
 	
+	//Load settings
+	wchar_t path[MAX_PATH];
+	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
+	PathRenameExtension(path,L".ini");
+	GetPrivateProfileString(L"AltDrag",L"ExperimentalFeatures",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+	swscanf(txt,L"%d",&settings.ExperimentalFeatures);
+	
 	//Load library
 	if (!hinstDLL) {
-		if ((hinstDLL=LoadLibraryEx(L"hooks.dll",NULL,0)) == NULL) {
-			Error(L"LoadLibraryEx('hooks.dll')",L"This probably means that the file hooks.dll is missing.\nYou can try to download "APP_NAME" again from the website.",GetLastError(),__LINE__);
+		PathRemoveFileSpec(path);
+		wcscat(path,L"\\hooks.dll");
+		if ((hinstDLL=LoadLibrary(path)) == NULL) {
+			Error(L"LoadLibrary()",L"This probably means that the file hooks.dll is missing.\nYou can try to download "APP_NAME" again from the website.",GetLastError(),__LINE__);
 			return 1;
 		}
 	}
@@ -417,7 +427,7 @@ int HookSystem() {
 		}
 	}
 	
-	if (!msghook) {
+	if (!msghook && settings.ExperimentalFeatures) {
 		//Get address to message hook (beware name mangling)
 		if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc@12")) == NULL) {
 			Error(L"GetProcAddress('CallWndProc@12')",L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.",GetLastError(),__LINE__);
