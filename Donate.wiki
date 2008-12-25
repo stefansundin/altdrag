@@ -7,7 +7,7 @@ While you don't have to donate, donations are a great motivation for me to keep 
 If you don't want to donate money to me, consider donating to charity instead.
 
 = Who have contributed =
-I have done all of the work, but I expect some translators to pop up here soon. :)
+I have done all of the work, I expect some translators to pop up here soon. :)
 
 Also thanks to everyone who have reported bugs.
 
