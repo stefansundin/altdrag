@@ -1,0 +1,22 @@
+#summary If you feel this program is useful, please consider donating money.
+#labels Featured
+
+= Introduction =
+I, Stefan Sundin, am a student in Sweden, programming my tools in my free time. My programs will always remain free and open source, even if I receive no donations.
+While you don't have to donate, donations are a great motivation for me to keep updating my programs. They are perfect to get my attention if you want me to add some special feature etc. :) But you should probably [mailto:recover89@gmail.com send me an email] first and ask if I can do it at all.
+If you don't want to donate money to me, consider donating to charity instead.
+
+= Who have contributed =
+I have done all of the work, but I expect some translators to pop up here soon. :)
+
+Also thanks to everyone who have reported bugs.
+
+= How to donate =
+The easiest way to donate to me is by [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom sending money with Paypal to recover89@gmail.com]. Note that Paypal will take a processing fee if you don't have a Paypal account. If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details.
+
+[https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom http://shutdownguard.googlecode.com/svn/wiki/donate.png]
+
+= Donations received =
+Donations received so far: 0$
+
+Note: This sum includes donations I've received towards all my tools: SuperF4, KillKeys, TrayCD, ShutdownGuard and AltDrag.
