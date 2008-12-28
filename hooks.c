@@ -18,7 +18,7 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-#define DEBUG
+//#define DEBUG
 
 static wchar_t txt[1000];
 struct {

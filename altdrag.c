@@ -329,9 +329,13 @@ int UpdateTray() {
 	
 	//Only add or modify if not hidden or if balloon will be displayed
 	if (!hide || traydata.uFlags&NIF_INFO) {
-		if (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
-			Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)",L"Failed to add tray icon.",GetLastError(),__LINE__);
-			return 1;
+		int tries=0; //If trying to add, try at least five times (required on some slow systems when the program is on autostart since explorer hasn't initialized the tray area)
+		while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
+			tries++;
+			if (tray_added || tries >= 5) {
+				Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)",L"Failed to update tray icon.",GetLastError(),__LINE__);
+				return 1;
+			}
 		}
 		
 		//Success
