@@ -1,0 +1,46 @@
+AltDrag
+Por Stefan Sundin
+Traducido por Fabrizio Ferri (algernon@gmail.com)
+
+Arrastra ventanas con el ratón al pulsar la tecla Alt.
+Puedes usar el botón central o derecho para redimensionar las ventanas.
+Si pulsas mayúsculas mientras arrastras, la ventana se pegará a otras (no funciona todavía con el cambio de tamaño).
+Puedes habilitar características experimentales para poder usar la tecla Mayúsculas al mover ventanas.
+Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
+
+Si hay retraso al mover y cambiar de tamaño a las ventanas, prueba a desabilitar el switch del cursor del ratón en AltDrag.ini
+
+AltDrag comprobará automáticamente si hay actualizacionas. Puedes desactivar esto en el AltDrag.ini.
+
+Puedes usar el parámetro -hide para ocultar el icono del área de notificación.
+
+Visita la página web en http://altdrag.googlecode.com/
+Envía comentarios a recover89@gmail.com
+
+Si opinas que este programa es útil, por favor, toma en consideración realizar un donativo. 
+Encontrarás las instrucciones en la página web.
+
+Historial de cambios
+--------------------
+0.5:
+Con el botón central o derecho se puede cambiar el tamaño de las ventanas.
+Puedes hacer doble-clic a una ventana para maximizarla.
+Puedes crear una lista negra de ventanas para que no sean arrastradas o pegadas.
+En la lista negra, por defecto, están la ventana de Alt+Tab y el botón de Inicio de Vista.
+El cursor del ratón cambia cuando arrastres o redimensiones ventanas.
+Sólo una instancia de AltDrag puede ser ejecutada ahora. Ejecutarlo una segunda vez hará que aparezca el icono de tarea.
+Característica experimental desactivada por defecto: se pueden pegar ventanas entre elllas manteniendo pulsada la tecla Mayúsculas. No funciona con todas las ventanas en Vista.
+
+0.4 - 2008-09-14:
+Usando la tecla Shift se pueden pegar ventanas entre ellas.
+
+0.3 - 2008-08-03:
+Arreglado un fallo que hacía que AltDrag ignorase las ventanas cercanas al borde por creer que estaban maximizadas.
+Mejorado el rendimiento al invocar el código del ratón sólo cuando se pulsa la tecla Alt.
+
+0.2 - 2008-08-01:
+Ya no se pueden arrastrar ventanas maximizadas
+La ventana puede ser colocada más fácilmente tras ser restaurada.
+
+0.1 - 2008-06-05:
+Primera versión.

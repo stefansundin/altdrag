@@ -95,9 +95,13 @@ Section "${APP_NAME} (${APP_VERSION})"
 	WriteRegStr HKCU "Software\${APP_NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${APP_NAME}" "Version" "${APP_VERSION}"
 
-	IntCmp $LANGUAGE ${LANG_ENGLISH} english
-	english:
+	IntCmp $LANGUAGE ${LANG_ENGLISH} en-US
+	IntCmp $LANGUAGE ${LANG_SPANISH} es-ES
+	en-US:
 		File "build\en-US\${APP_NAME}\*"
+		Goto files_installed
+	es-ES:
+		File "build\es-ES\${APP_NAME}\*"
 		Goto files_installed
 
 	files_installed:
