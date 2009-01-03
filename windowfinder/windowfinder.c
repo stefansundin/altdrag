@@ -38,10 +38,11 @@
 //Messages
 #define WM_ICONTRAY            WM_USER+1
 #define SWM_FIND               WM_APP+1
-#define SWM_FIND2              WM_APP+2
-#define SWM_UPDATE             WM_APP+3
-#define SWM_ABOUT              WM_APP+4
-#define SWM_EXIT               WM_APP+5
+#define SWM_FINDDELAY          WM_APP+2
+#define SWM_FINDALL            WM_APP+3
+#define SWM_UPDATE             WM_APP+4
+#define SWM_ABOUT              WM_APP+5
+#define SWM_EXIT               WM_APP+6
 
 //Balloon stuff missing in MinGW
 #define NIIF_USER 4
@@ -67,10 +68,8 @@ static HINSTANCE hinstDLL=NULL;
 static HHOOK mousehook=NULL;
 static HWND cursorwnd=NULL;
 static int winxp=0;
-struct blacklistitem {
-	wchar_t title[256];
-	wchar_t classname[256];
-};
+static HWND *wnds=NULL;
+static int numwnds=0;
 
 //Error message handling
 static int showerror=1;
@@ -243,7 +242,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 	
 	//Hook mouse
-	if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+	if ((GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 		HookMouse();
 	}
 	
@@ -263,7 +262,8 @@ void ShowContextMenu(HWND hwnd) {
 	
 	//Find
 	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FIND, L10N_MENU_FIND);
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FIND2, L10N_MENU_FIND2);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDDELAY, L10N_MENU_FINDDELAY);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDALL, L10N_MENU_FINDALL);
 	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	
 	//Update
@@ -380,6 +380,52 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	}
 	
 	free(arg);
+}
+
+static int wnds_alloc=0;
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+	//Make sure we have enough space allocated
+	if (numwnds == wnds_alloc) {
+		wnds_alloc+=100;
+		wnds=realloc(wnds,wnds_alloc*sizeof(HWND));
+	}
+	//Store window if it's visible
+	if (IsWindowVisible(hwnd)) {
+		wnds[numwnds++]=hwnd;
+	}
+	return TRUE;
+}
+
+void FindAllWnds() {
+	//Enumerate windows
+	numwnds=0;
+	EnumWindows(EnumWindowsProc,0);
+	wchar_t title[256];
+	wchar_t classname[256];
+	int i;
+	swprintf(txt,L"");
+	for (i=0; i < numwnds; i++) {
+		GetWindowText(wnds[i],title,sizeof(title)/sizeof(wchar_t));
+		GetClassName(wnds[i],classname,sizeof(classname)/sizeof(wchar_t));
+		swprintf(txt,L"%s%s|%s",txt,title,classname);
+		if (i+1 < numwnds) {
+			wcscat(txt,L"\n");
+		}
+	}
+	
+	//Show message
+	HHOOK hhk=SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
+	int response=MessageBox(NULL, txt, L10N_ALLWNDS, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
+	UnhookWindowsHookEx(hhk);
+	if (response == IDYES) {
+		//Copy message to clipboard
+		OpenClipboard(NULL);
+		EmptyClipboard();
+		wchar_t *data=LocalAlloc(LMEM_FIXED,(wcslen(txt)+1)*sizeof(wchar_t));
+		memcpy(data,txt,(wcslen(txt)+1)*sizeof(wchar_t));
+		SetClipboardData(CF_UNICODETEXT,data);
+		CloseClipboard();
+	}
 }
 
 //Hooks
@@ -504,9 +550,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		if (wmId == SWM_FIND) {
 			HookMouse();
 		}
-		else if (wmId == SWM_FIND2) {
+		else if (wmId == SWM_FINDDELAY) {
 			Sleep(3000);
 			HookMouse();
+		}
+		else if (wmId == SWM_FINDALL) {
+			FindAllWnds();
 		}
 		else if (wmId == SWM_UPDATE) {
 			if (MessageBox(NULL, L10N_UPDATE_DIALOG, APP_NAME, MB_ICONINFORMATION|MB_YESNO) == IDYES) {

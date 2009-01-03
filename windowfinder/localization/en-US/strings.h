@@ -16,13 +16,15 @@
 
 //Strings
 #define L10N_MENU_FIND         L"Find"
-#define L10N_MENU_FIND2        L"Find in 3 seconds"
+#define L10N_MENU_FINDDELAY    L"Find in 3 seconds"
+#define L10N_MENU_FINDALL      L"Enumerate all windows"
 #define L10N_MENU_UPDATE       L"Update available"
 #define L10N_MENU_ABOUT        L"About"
 #define L10N_MENU_EXIT         L"Exit"
 #define L10N_UPDATE_BALLOON    L"New version found!"
 #define L10N_UPDATE_DIALOG     L"A new version is available.\nGo to website?"
 #define L10N_WNDDETAILS        L"Window details"
+#define L10N_ALLWNDS           L"Visible windows"
 #define L10N_ABOUT_TITLE       L"About " APP_NAME
 #define L10N_ABOUT             APP_NAME " - " APP_VERSION "\n\
 Made by Stefan Sundin\n\
