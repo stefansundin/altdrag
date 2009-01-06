@@ -24,7 +24,6 @@
 #define APP_VERSION   "0.5"
 #define APP_URL       L"http://altdrag.googlecode.com/"
 #define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
-//#define DEBUG
 
 //Localization
 #ifndef L10N_FILE

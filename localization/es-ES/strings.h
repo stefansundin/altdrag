@@ -33,8 +33,7 @@ Traducido por Fabrizio Ferri (algernon@gmail.com)\n\
 \n\
 Arrastra ventanas con el ratón al pulsar la tecla Alt.\n\
 Puedes usar el botón central o derecho para redimensionar las ventanas.\n\
-Si pulsas Mayúsculas mientras arrastras o redimensionas, la ventaja se hará pegajosa.\n\
-Puedes usar Mayúsculas también cuando mueves o redimensionas con el método tradicional.\n\
+Si pulsas mayúsculas mientras arrastras, la ventana se pegará a otras (no funciona todavía con el cambio de tamaño).\n\
 Hacer doble-clic en una ventana la maximizará.\n\
 \n\
 Ventanas a pantalla completa, como los juegos, no pueden moverse o redimensionarse.\n\

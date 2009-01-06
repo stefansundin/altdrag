@@ -18,8 +18,6 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-//#define DEBUG
-
 static wchar_t txt[1000];
 struct {
 	int Cursor;
@@ -423,8 +421,6 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 				int i,blacklisted=0;
 				for (i=0; i < numblacklist; i++) {
-					//swprintf(txt,L"if (%s == NULL && %s == %s)\n || (%s == NULL && %s == %s)\n || (%s == %s && %s == %s)",blacklist[i].title,classname,blacklist[i].classname,blacklist[i].classname,title,blacklist[i].title,title,blacklist[i].title,classname,blacklist[i].classname);
-					//MessageBox(NULL, txt, L"Debug message", MB_ICONINFORMATION|MB_OK);
 					if ((blacklist[i].title == NULL && !wcscmp(classname,blacklist[i].classname))
 					 || (blacklist[i].classname == NULL && !wcscmp(title,blacklist[i].title))
 					 || (blacklist[i].title != NULL && blacklist[i].classname != NULL && !wcscmp(title,blacklist[i].title) && !wcscmp(classname,blacklist[i].classname))) {
@@ -561,104 +557,121 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					Error(L"WindowFromPoint()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 				}
 				hwnd=GetAncestor(hwnd,GA_ROOT);
-				
-				//Get window and desktop size
-				RECT window;
-				if (GetWindowRect(hwnd,&window) == 0) {
-					Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+
+				//Check if window is blacklisted
+				wchar_t title[256];
+				wchar_t classname[256];
+				GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+				int i,blacklisted=0;
+				for (i=0; i < numblacklist; i++) {
+					if ((blacklist[i].title == NULL && !wcscmp(classname,blacklist[i].classname))
+					 || (blacklist[i].classname == NULL && !wcscmp(title,blacklist[i].title))
+					 || (blacklist[i].title != NULL && blacklist[i].classname != NULL && !wcscmp(title,blacklist[i].title) && !wcscmp(classname,blacklist[i].classname))) {
+						blacklisted=1;
+					}
 				}
-				RECT desktop;
-				if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-					Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-				}
 				
-				//Only resize if the window is not fullscreen
-				if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
-					//Restore the window if it's maximized
-					if (IsZoomed(hwnd)) {
-						//Restore window
-						WINDOWPLACEMENT wndpl;
-						wndpl.length=sizeof(WINDOWPLACEMENT);
-						GetWindowPlacement(hwnd,&wndpl);
-						wndpl.showCmd=SW_RESTORE;
-						//New size
-						RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
-						//Compensate for taskbar
-						RECT taskbar;
-						if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
-							if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
-								//Taskbar is on the bottom or top position, adjust height
-								normalpos.bottom-=taskbar.bottom-taskbar.top;
+				//Only continue if this window is not blacklisted
+				if (!blacklisted) {
+					//Get window and desktop size
+					RECT window;
+					if (GetWindowRect(hwnd,&window) == 0) {
+						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+					}
+					RECT desktop;
+					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+					}
+					
+					//Only resize if the window is not fullscreen
+					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
+						//Restore the window if it's maximized
+						if (IsZoomed(hwnd)) {
+							//Restore window
+							WINDOWPLACEMENT wndpl;
+							wndpl.length=sizeof(WINDOWPLACEMENT);
+							GetWindowPlacement(hwnd,&wndpl);
+							wndpl.showCmd=SW_RESTORE;
+							//New size
+							RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
+							//Compensate for taskbar
+							RECT taskbar;
+							if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
+								if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
+									//Taskbar is on the bottom or top position, adjust height
+									normalpos.bottom-=taskbar.bottom-taskbar.top;
+								}
+								else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
+									//Taskbar is on the left or right position, adjust width
+									normalpos.right-=taskbar.right-taskbar.left;
+								}
 							}
-							else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
-								//Taskbar is on the left or right position, adjust width
-								normalpos.right-=taskbar.right-taskbar.left;
-							}
+							wndpl.rcNormalPosition=normalpos;
+							SetWindowPlacement(hwnd,&wndpl);
+							//Update window size
+							GetWindowRect(hwnd,&window);
 						}
-						wndpl.rcNormalPosition=normalpos;
-						SetWindowPlacement(hwnd,&wndpl);
-						//Update window size
-						GetWindowRect(hwnd,&window);
-					}
-					//Set edge and offset
-					if (pt.y-window.top < (window.bottom-window.top)/3) {
-						resize_edge_y=TOP;
-						resize_offset.y=pt.y-window.top;
-					}
-					else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
-						resize_edge_y=CENTER;
-						resize_offset.y=pt.y; //Used only if both x and y are CENTER
-					}
-					else {
-						resize_edge_y=BOTTOM;
-						resize_offset.y=window.bottom-pt.y;
-					}
-					if (pt.x-window.left < (window.right-window.left)/3) {
-						resize_edge_x=LEFT;
-						resize_offset.x=pt.x-window.left;
-					}
-					else if (pt.x-window.left < (window.right-window.left)*2/3) {
-						resize_edge_x=CENTER;
-						resize_offset.x=pt.x; //Used only if both x and y are CENTER
-					}
-					else {
-						resize_edge_x=RIGHT;
-						resize_offset.x=window.right-pt.x;
-					}
-					//Show cursorwnd
-					if (settings.Cursor) {
-						if (!move) {
-							MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
-							if ((resize_edge_y == TOP && resize_edge_x == LEFT)
-							 || (resize_edge_y == BOTTOM && resize_edge_x == RIGHT)) {
-								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
-							}
-							else if ((resize_edge_y == TOP && resize_edge_x == RIGHT)
-							 || (resize_edge_y == BOTTOM && resize_edge_x == LEFT)) {
-								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
-							}
-							else if ((resize_edge_y == TOP && resize_edge_x == CENTER)
-							 || (resize_edge_y == BOTTOM && resize_edge_x == CENTER)) {
-								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
-							}
-							else if ((resize_edge_y == CENTER && resize_edge_x == LEFT)
-							 || (resize_edge_y == CENTER && resize_edge_x == RIGHT)) {
-								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
-							}
-							else {
-								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
-							}
-							SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-							if (winxp) {
-								SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent (XP fix)
-							}
+						//Set edge and offset
+						if (pt.y-window.top < (window.bottom-window.top)/3) {
+							resize_edge_y=TOP;
+							resize_offset.y=pt.y-window.top;
 						}
-						ShowWindowAsync(cursorwnd,SW_SHOWNA);
+						else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
+							resize_edge_y=CENTER;
+							resize_offset.y=pt.y; //Used only if both x and y are CENTER
+						}
+						else {
+							resize_edge_y=BOTTOM;
+							resize_offset.y=window.bottom-pt.y;
+						}
+						if (pt.x-window.left < (window.right-window.left)/3) {
+							resize_edge_x=LEFT;
+							resize_offset.x=pt.x-window.left;
+						}
+						else if (pt.x-window.left < (window.right-window.left)*2/3) {
+							resize_edge_x=CENTER;
+							resize_offset.x=pt.x; //Used only if both x and y are CENTER
+						}
+						else {
+							resize_edge_x=RIGHT;
+							resize_offset.x=window.right-pt.x;
+						}
+						//Show cursorwnd
+						if (settings.Cursor) {
+							if (!move) {
+								MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
+								if ((resize_edge_y == TOP && resize_edge_x == LEFT)
+								 || (resize_edge_y == BOTTOM && resize_edge_x == RIGHT)) {
+									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
+								}
+								else if ((resize_edge_y == TOP && resize_edge_x == RIGHT)
+								 || (resize_edge_y == BOTTOM && resize_edge_x == LEFT)) {
+									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
+								}
+								else if ((resize_edge_y == TOP && resize_edge_x == CENTER)
+								 || (resize_edge_y == BOTTOM && resize_edge_x == CENTER)) {
+									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
+								}
+								else if ((resize_edge_y == CENTER && resize_edge_x == LEFT)
+								 || (resize_edge_y == CENTER && resize_edge_x == RIGHT)) {
+									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
+								}
+								else {
+									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+								}
+								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+								if (winxp) {
+									SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent (XP fix)
+								}
+							}
+							ShowWindowAsync(cursorwnd,SW_SHOWNA);
+						}
+						//Ready to resize window
+						resize=1;
+						//Prevent mousedown from propagating
+						return 1;
 					}
-					//Ready to resize window
-					resize=1;
-					//Prevent mousedown from propagating
-					return 1;
 				}
 			}
 		}
