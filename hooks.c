@@ -18,11 +18,6 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-static wchar_t txt[1000];
-struct {
-	int Cursor;
-} settings={0};
-
 //shift, move, resize and hwnd must be shared since CallWndProc is called in the context of another thread
 static int alt=0;
 static int shift __attribute__((section ("shared"), shared)) = 0;
@@ -39,9 +34,15 @@ static int winxp=0;
 struct blacklistitem {
 	wchar_t *title;
 	wchar_t *classname;
-} *blacklist=NULL, *blacklist_sticky=NULL;
+};
 static int numblacklist=0;
 static int numblacklist_sticky=0;
+struct {
+	int Cursor;
+	struct blacklistitem *Blacklist;
+	struct blacklistitem *Blacklist_Sticky;
+} settings={0,NULL,NULL};
+static wchar_t txt[1000];
 
 //Cursor data
 static HWND cursorwnd=NULL;
@@ -104,9 +105,9 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 		GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 		int i,blacklisted=0;
 		for (i=0; i < numblacklist_sticky; i++) {
-			if ((blacklist_sticky[i].title == NULL && !wcscmp(classname,blacklist_sticky[i].classname))
-			 || (blacklist_sticky[i].classname == NULL && !wcscmp(title,blacklist_sticky[i].title))
-			 || (blacklist_sticky[i].title != NULL && blacklist_sticky[i].classname != NULL && !wcscmp(title,blacklist_sticky[i].title) && !wcscmp(classname,blacklist[i].classname))) {
+			if ((settings.Blacklist_Sticky[i].title == NULL && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))
+			 || (settings.Blacklist_Sticky[i].classname == NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title))
+			 || (settings.Blacklist_Sticky[i].title != NULL && settings.Blacklist_Sticky[i].classname != NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title) && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))) {
 				blacklisted=1;
 			}
 		}
@@ -421,9 +422,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 				int i,blacklisted=0;
 				for (i=0; i < numblacklist; i++) {
-					if ((blacklist[i].title == NULL && !wcscmp(classname,blacklist[i].classname))
-					 || (blacklist[i].classname == NULL && !wcscmp(title,blacklist[i].title))
-					 || (blacklist[i].title != NULL && blacklist[i].classname != NULL && !wcscmp(title,blacklist[i].title) && !wcscmp(classname,blacklist[i].classname))) {
+					if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+					 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+					 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
 						blacklisted=1;
 					}
 				}
@@ -565,9 +566,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 				int i,blacklisted=0;
 				for (i=0; i < numblacklist; i++) {
-					if ((blacklist[i].title == NULL && !wcscmp(classname,blacklist[i].classname))
-					 || (blacklist[i].classname == NULL && !wcscmp(title,blacklist[i].title))
-					 || (blacklist[i].title != NULL && blacklist[i].classname != NULL && !wcscmp(title,blacklist[i].title) && !wcscmp(classname,blacklist[i].classname))) {
+					if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+					 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+					 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
 						blacklisted=1;
 					}
 				}
@@ -784,8 +785,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		//Blacklist
 		GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
 		int *add_numblacklist=&numblacklist, blacklist_alloc=0;
-		wchar_t *pos=txt, title[256], classname[256];
-		struct blacklistitem **add_blacklist=&blacklist;
+		wchar_t *pos=txt;
+		struct blacklistitem **add_blacklist=&settings.Blacklist;
 		while (pos != NULL) {
 			wchar_t *title=pos;
 			wchar_t *classname=wcsstr(pos,L"|");
@@ -826,8 +827,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				(*add_numblacklist)++;
 			}
 			//Switch gears to blacklist_sticky?
-			if (pos == NULL && *add_blacklist == blacklist) {
-				add_blacklist=&blacklist_sticky;
+			if (pos == NULL && *add_blacklist == settings.Blacklist) {
+				add_blacklist=&settings.Blacklist_Sticky;
 				add_numblacklist=&numblacklist_sticky;
 				blacklist_alloc=0;
 				GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
@@ -857,11 +858,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	else if (reason == DLL_PROCESS_DETACH) {
 		int i;
 		for (i=0; i < numblacklist; i++) {
-			free(blacklist[i].title);
-			free(blacklist[i].classname);
+			free(settings.Blacklist[i].title);
+			free(settings.Blacklist[i].classname);
+		}
+		for (i=0; i < numblacklist_sticky; i++) {
+			free(settings.Blacklist_Sticky[i].title);
+			free(settings.Blacklist_Sticky[i].classname);
 		}
 		numblacklist=0;
-		free(blacklist);
+		numblacklist_sticky=0;
+		free(settings.Blacklist);
+		free(settings.Blacklist_Sticky);
 		free(wnds);
 	}
 	return TRUE;
