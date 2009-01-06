@@ -41,8 +41,8 @@ if "%1" == "all" (
 	echo Building installer
 	makensis /V2 installer.nsi
 ) else (
-	gcc -o AltDrag.exe altdrag.c build/resources.o -mwindows -lshlwapi -lwininet
-	gcc -c -o "build/hooks.o" hooks.c
+	gcc -o AltDrag.exe altdrag.c build/resources.o -mwindows -lshlwapi -lwininet -DDEBUG
+	gcc -c -o "build/hooks.o" hooks.c -DDEBUG
 	gcc -shared -o "hooks.dll" "build/hooks.o" -lshlwapi
 	
 	if "%1" == "run" (

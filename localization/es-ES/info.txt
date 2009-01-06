@@ -6,6 +6,7 @@ Arrastra ventanas con el ratón al pulsar la tecla Alt.
 Puedes usar el botón central o derecho para redimensionar las ventanas.
 Si pulsas mayúsculas mientras arrastras, la ventana se pegará a otras (no funciona todavía con el cambio de tamaño).
 Puedes habilitar características experimentales para poder usar la tecla Mayúsculas al mover ventanas.
+Hacer doble-clic en una ventana la maximizará.
 Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
 
 Si hay retraso al mover y cambiar de tamaño a las ventanas, prueba a desabilitar el switch del cursor del ratón en AltDrag.ini
