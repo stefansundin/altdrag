@@ -1,8 +1,8 @@
 #summary A tool to help blacklist windows
 #labels Phase-Deploy
 
-=As !WindowFinder will premiere with AltDrag 0.5 (just a matter of days now), you are reading this in advance. So ssssh!=
-
 = Introduction =
 
 !WindowFinder is a tool I've made to help people blacklist windows. Since the blacklist can identify a window based the class name, which is used internally in Windows and normally not visible anywhere, it seemed appropriate to make a helper tool. With !WindowFinder you can just click the window you are interested in, and it will pop up with the class name of that window. If you pressed a child window or a component of the window, it will also give you information about them.
+
+Download: [http://altdrag.googlecode.com/files/WindowFinder-0.1.7z WindowFinder-0.1.7z]
