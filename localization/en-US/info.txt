@@ -23,7 +23,7 @@ You can find out how to donate on the website.
 
 Changelog
 ---------
-0.5:
+0.5 - 2009-01-12:
 You can now resize windows with the middle or right mouse button.
 You can now double-click a window to maximize it.
 You can now blacklist certain windows from being dragged and certain windows from being sticked to.

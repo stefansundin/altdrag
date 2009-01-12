@@ -23,7 +23,7 @@ Encontrarás las instrucciones en la página web.
 
 Historial de cambios
 --------------------
-0.5:
+0.5 - 2009-01-12:
 Con el botón central o derecho se puede cambiar el tamaño de las ventanas.
 Puedes hacer doble-clic a una ventana para maximizarla.
 Puedes crear una lista negra de ventanas para que no sean arrastradas o pegadas.
