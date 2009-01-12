@@ -1,7 +1,5 @@
 #summary Learn how the blacklist works
-#labels Phase-Deploy
-
-=As the blacklist will premiere with AltDrag 0.5 (just a matter of days now), you are reading this in advance. So ssssh!=
+#labels Phase-Deploy,Featured
 
 = Introduction =
 
