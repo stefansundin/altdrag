@@ -4,12 +4,25 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2008-09-24T14:30:00Z</updated>
+	<updated>2009-01-12T23:00:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<email>recover89@gmail.com</email>
 	</author>
-	<icon>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAB3RJTUUH2AkaFg4V6/j3zwAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAGFJREFUWMPt1rEKACAIBFD//6drCYIW0VLPOKGlxRcepAhr11iHgDIIHCAdAgtIg8ADwiFtABrEDW0HOBtdjwwWkPapwQG8jaz3eICosKoPLAe8Cpt7BO0A3K65UzIDf9QEtjrrFRqmTX8AAAAASUVORK5CYII=</icon>
+
+	<entry>
+		<id>urn:uuid:d92c3e9c-383a-4ae5-86bf-644261a043e8</id>
+		<title>AltDrag - 0.5</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2009-01-12T23:00:00Z</updated>
+		<content type="html">
+Released 0.5.&lt;br/>
+It's been a while since the last version, but I think you'll like it. The highlights are: resizing, double-click to maximize, &lt;a href="http://code.google.com/p/altdrag/wiki/Blacklist">blacklist windows&lt;/a>, changed mouse cursor during dragging/resizing. I hope those of you who have run into applications which have conflicts with AltDrag will help me create blacklist rules for them. AltDrag is now available in Spanish thanks to Fabrizio Ferri.&lt;br/>
+I have also opened &lt;a href="http://groups.google.com/group/recovers-tools"> a forum&lt;/a> which I hope you'll use to discuss AltDrag and my other tools, let me know what's good and what's bad.&lt;br/>
+I have also gotten some reports that my tools show up on some antivirus scanners, these are all false positives! I will try to report it to the antivirus vendors.&lt;br/>
+Finally, I would like to let you know that I have put donating details on the site, so if you feel this program is useful, please consider &lt;a href="http://code.google.com/p/altdrag/wiki/Donate">donating money&lt;/a>.
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:d6721de7-7e4d-42df-9bcc-4722751b2620</id>
