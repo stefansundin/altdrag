@@ -3,7 +3,7 @@ Made by Stefan Sundin
 
 Drag windows with the mouse when pressing the alt key.
 You can use the middle or right mouse button to resize windows.
-If you press the shift key while you drag, the window will stick to other windows (doesn't work on resize yet).
+If you press the shift key while you drag or resize, the window will stick to other windows.
 You can enable experimental features to be able to use the shift key when normally moving windows.
 You can also double-click a window to maximize it.
 Fullscreen windows, such as games, will not be dragged or resized.
@@ -23,6 +23,9 @@ You can find out how to donate on the website.
 
 Changelog
 ---------
+0.6:
+Sticky behavior now works with resize.
+
 0.5 - 2009-01-12:
 You can now resize windows with the middle or right mouse button.
 You can now double-click a window to maximize it.

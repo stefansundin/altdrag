@@ -334,6 +334,101 @@ void ResizeWnd() {
 		}
 	}
 	
+	//Double check if any of the shift keys are being pressed
+	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+		shift=0;
+	}
+	
+	//Check if window will stick anywhere
+	if (shift && (resize_edge_x != CENTER || resize_edge_y != CENTER)) {
+		numwnds=0;
+		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		
+		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
+		int i, thresholdx=20, thresholdy=20, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
+		//Loop windows
+		for (i=0; i < numwnds; i++) {
+			RECT stickywnd;
+			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
+				Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+			}
+			
+			//Check if posx sticks
+			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
+			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
+				if (resize_edge_x == LEFT && posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
+					//The left edge of the dragged window will stick to this window's right edge
+					stuckleft=1;
+					stickleft=stickywnd.right;
+					thresholdx=stickywnd.right-posx;
+				}
+				else if (resize_edge_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
+					//The right edge of the dragged window will stick to this window's right edge
+					stuckright=1;
+					stickright=stickywnd.right;
+					thresholdx=stickywnd.right-(posx+wndwidth);
+				}
+				else if (resize_edge_x == LEFT && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
+					//The left edge of the dragged window will stick to this window's left edge
+					stuckleft=1;
+					stickleft=stickywnd.left;
+					thresholdx=stickywnd.left-posx;
+				}
+				else if (resize_edge_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdx) {
+					//The right edge of the dragged window will stick to this window's left edge
+					stuckright=1;
+					stickright=stickywnd.left;
+					thresholdx=stickywnd.left-(posx+wndwidth);
+				}
+			}
+			
+			//Check if posy sticks
+			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
+			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
+				if (resize_edge_y == TOP && posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
+					//The top edge of the dragged window will stick to this window's bottom edge
+					stucktop=1;
+					sticktop=stickywnd.bottom;
+					thresholdy=stickywnd.bottom-posy;
+				}
+				else if (resize_edge_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
+					//The bottom edge of the dragged window will stick to this window's bottom edge
+					stuckbottom=1;
+					stickbottom=stickywnd.bottom;
+					thresholdy=stickywnd.bottom-(posy+wndheight);
+				}
+				else if (resize_edge_y == TOP && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
+					//The top edge of the dragged window will stick to this window's top edge
+					stucktop=1;
+					sticktop=stickywnd.top;
+					thresholdy=stickywnd.top-posy;
+				}
+				else if (resize_edge_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < posy+wndheight+thresholdy) {
+					//The bottom edge of the dragged window will stick to this window's top edge
+					stuckbottom=1;
+					stickbottom=stickywnd.top;
+					thresholdy=stickywnd.top-(posy+wndheight);
+				}
+			}
+		}
+		
+		//Did we stick somewhere?
+		if (stuckleft) {
+			wndwidth=wndwidth+posx-stickleft;
+			posx=stickleft;
+		}
+		if (stucktop) {
+			wndheight=wndheight+posy-sticktop;
+			posy=sticktop;
+		}
+		if (stuckright) {
+			wndwidth=stickright-posx;
+		}
+		if (stuckbottom) {
+			wndheight=stickbottom-posy;
+		}
+	}
+	
 	//Resize
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
 		Error(L"MoveWindow()",L"ResizeWnd()",GetLastError(),__LINE__);
@@ -358,6 +453,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 						return 1;
 					}
 				}
+				if (resize) {
+					ResizeWnd();
+				}
 			}
 			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
 				//This doesn't always work since the menu is activated by the alt keypress, read msdn
@@ -375,6 +473,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 				shift=0;
 				if (move) {
 					MoveWnd();
+				}
+				if (resize) {
+					ResizeWnd();
 				}
 			}
 		}
@@ -712,18 +813,24 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 }
 
 //CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
-//Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move and hwnd)
+//Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
 _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && !move) {
+	if (nCode == HC_ACTION && shift && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		/*if (shift) {
-			FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
-			fprintf(f,"message: %d\n",msg->message);
-			fclose(f);
-		}*/
+		//Double check if any of the shift keys are being pressed
+		if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+			shift=0;
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && shift && IsWindowVisible(msg->hwnd) && !IsIconic(hwnd) && !IsZoomed(msg->hwnd)) {
+		/*
+		FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
+		fprintf(f,"message: %d\n",msg->message);
+		fclose(f);
+		*/
+		
+		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)) {
 			//Set offset
 			POINT pt;
 			GetCursorPos(&pt);
