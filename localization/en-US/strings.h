@@ -32,7 +32,7 @@ Made by Stefan Sundin\n\
 \n\
 Drag windows with the mouse when pressing the alt key.\n\
 You can use the middle or right mouse button to resize windows.\n\
-If you press the shift key while you drag, the window will stick to other windows (doesn't work on resize yet).\n\
+If you press the shift key while you drag or resize, the window will stick to other windows.\n\
 You can also double-click a window to maximize it.\n\
 Fullscreen windows, such as games, will not be dragged or resized.\n\
 \n\
