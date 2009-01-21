@@ -9,7 +9,7 @@ By default, the Alt+Tab window is blacklisted, and the start button orb in Vista
 
 The Google Chrome container window seems to be a window that always follow the chrome window. Prior to 0.5 it was as though the Chrome window had a mind of its own when you tried to sticky drag it.
 
-I realized that the ability to customize the blacklists are important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, and is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries themselves are in the format `title|classname`. If you omit either the title or the class name, then it will not include it in the matching.
+I realized that the ability to customize the blacklists are important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, and is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries are in the format `title|classname`. If you omit either the title or the class name, then it will not be included it in the matching.
 
 = List of applications =
 
