@@ -18,9 +18,10 @@ The easiest way to donate to me is by [https://www.paypal.com/cgi-bin/webscr?cmd
 [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom http://shutdownguard.googlecode.com/svn/wiki/donate.png]
 
 = Donations received =
-Donations received so far: $10 USD
+Donations received so far: $20 USD
 
 List of donors:
   * Corvallis Technical
+  * Anonymous donor
 
 Note: This includes donations I've received towards all my tools: SuperF4, KillKeys, TrayCD, ShutdownGuard and AltDrag.
