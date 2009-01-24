@@ -11,13 +11,14 @@ The Google Chrome container window seems to be a window that always follow the c
 
 I realized that the ability to customize the blacklists are important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, and is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries are in the format `title|classname`. If you omit either the title or the class name, then it will not be included it in the matching.
 
-I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button. So, for example, when copying a layer in Photoshop, press the alt button after you press the mouse button, and you will not need to blacklist Photoshop.
+I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
 = List of applications =
 
 Here is a list of applications with their blacklist rule.
 
 || Application || Blacklist rule ||
+|| Photoshop   || `|Photoshop`   ||
 || PuTTY       || `|PuTTY`       ||
 
 If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
