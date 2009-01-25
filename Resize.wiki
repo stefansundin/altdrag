@@ -1,0 +1,8 @@
+#summary How the resize feature works
+#labels Featured,Phase-Support
+
+= Introduction =
+
+The resize feature also exists in Linux. Use the middle or right mouse button when you have the alt button depressed. Consider the window divided into nine regions, depending on where you press, you will resize it a bit differently. The feature works a little bit differently from the one in Linux. In AltDrag you can resize in all directions by pressing the middle of the window.
+
+http://altdrag.googlecode.com/svn/wiki/resize.png
