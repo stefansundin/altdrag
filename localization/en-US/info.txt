@@ -25,6 +25,8 @@ Changelog
 ---------
 0.6:
 Sticky behavior now works with resize.
+Fixed tray not being hidden by -hide.
+Language can now be changed in AltDrag.ini.
 
 0.5 - 2009-01-12:
 You can now resize windows with the middle or right mouse button.

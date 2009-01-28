@@ -25,7 +25,7 @@ BEGIN
 			VALUE "InternalName", "altdrag"
 			VALUE "OriginalFilename", "AltDrag.exe"
 			VALUE "CompanyName", "Stefan Sundin"
-			VALUE "LegalCopyright", "© Stefan Sundin 2008"
+			VALUE "LegalCopyright", "© Stefan Sundin 2009"
 		END
 	END
 	BLOCK "VarFileInfo"

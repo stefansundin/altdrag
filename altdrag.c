@@ -1,6 +1,6 @@
 /*
 	AltDrag - Drag windows with the mouse when pressing the alt key
-	Copyright (C) 2008  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -25,15 +25,6 @@
 #define APP_URL       L"http://altdrag.googlecode.com/"
 #define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 
-//Localization
-#ifndef L10N_FILE
-#define L10N_FILE "localization/en-US/strings.h"
-#endif
-#include L10N_FILE
-#if L10N_VERSION != 1
-#error Localization not up to date!
-#endif
-
 //Messages
 #define WM_ICONTRAY            WM_USER+1
 #define SWM_TOGGLE             WM_APP+1
@@ -53,28 +44,47 @@
 #define NIN_BALLOONTIMEOUT     WM_USER+4
 #define NIN_BALLOONUSERCLICK   WM_USER+5
 
+//Localization
+struct strings {
+	wchar_t *menu_enable;
+	wchar_t *menu_disable;
+	wchar_t *menu_hide;
+	wchar_t *menu_autostart;
+	wchar_t *menu_update;
+	wchar_t *menu_about;
+	wchar_t *menu_exit;
+	wchar_t *tray_enabled;
+	wchar_t *tray_disabled;
+	wchar_t *update_balloon;
+	wchar_t *update_dialog;
+	wchar_t *about_title;
+	wchar_t *about;
+};
+#include "localization/strings.h"
+struct strings *l10n=&en_US;
+
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-static HICON icon[2];
-static NOTIFYICONDATA traydata;
-static UINT WM_TASKBARCREATED=0;
-static UINT WM_ADDTRAY=0;
-static int tray_added=0;
-static int hide=0;
-static int update=0;
+HICON icon[2];
+NOTIFYICONDATA traydata;
+UINT WM_TASKBARCREATED=0;
+UINT WM_ADDTRAY=0;
+int tray_added=0;
+int hide=0;
+int update=0;
 struct {
 	int CheckForUpdate;
 	int ExperimentalFeatures;
 } settings={0,0};
-static wchar_t txt[1000];
+wchar_t txt[1000];
 
 //Cool stuff
-static HINSTANCE hinstDLL=NULL;
-static HHOOK keyhook=NULL;
-static HHOOK msghook=NULL;
+HINSTANCE hinstDLL=NULL;
+HHOOK keyhook=NULL;
+HHOOK msghook=NULL;
 
 //Error message handling
-static int showerror=1;
+int showerror=1;
 
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
@@ -154,6 +164,7 @@ DWORD WINAPI _CheckForUpdate() {
 	//New version available?
 	if (strcmp(data,APP_VERSION)) {
 		update=1;
+		wcsncpy(traydata.szInfo,l10n->update_balloon,sizeof(traydata.szInfo)/sizeof(wchar_t));
 		traydata.uFlags|=NIF_INFO;
 		UpdateTray();
 		traydata.uFlags^=NIF_INFO;
@@ -174,11 +185,25 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		return 0;
 	}
 	
+	//Load settings
+	wchar_t path[MAX_PATH];
+	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
+	PathRenameExtension(path,L".ini");
+	GetPrivateProfileString(L"Update",L"CheckForUpdate",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+	swscanf(txt,L"%d",&settings.CheckForUpdate);
+	GetPrivateProfileString(APP_NAME,L"Language",L"en-US",txt,sizeof(txt)/sizeof(wchar_t),path);
+	int i;
+	for (i=0; i < num_languages; i++) {
+		if (!wcscmp(txt,languages[i].code)) {
+			l10n=languages[i].strings;
+		}
+	}
+	
 	//Check command line
 	if (!strcmp(szCmdLine,"-hide")) {
 		hide=1;
 	}
-
+	
 	//Create window class
 	WNDCLASSEX wnd;
 	wnd.cbSize=sizeof(WNDCLASSEX);
@@ -219,7 +244,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Balloon tooltip
 	traydata.uTimeout=10000;
 	wcsncpy(traydata.szInfoTitle,APP_NAME,sizeof(traydata.szInfoTitle)/sizeof(wchar_t));
-	wcsncpy(traydata.szInfo,L10N_UPDATE_BALLOON,sizeof(traydata.szInfo)/sizeof(wchar_t));
 	traydata.dwInfoFlags=NIIF_USER;
 	
 	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
@@ -232,17 +256,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	HookSystem();
 	
 	//Add tray if hook failed, even though -hide was supplied
-	if (hide && (!keyhook || !msghook)) {
+	if (hide && (!keyhook || (settings.ExperimentalFeatures && !msghook))) {
 		hide=0;
 		UpdateTray();
 	}
-	
-	//Load settings
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
-	PathRenameExtension(path,L".ini");
-	GetPrivateProfileString(L"Update",L"CheckForUpdate",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-	swscanf(txt,L"%d",&settings.CheckForUpdate);
 	
 	//Check for update
 	if (settings.CheckForUpdate) {
@@ -264,10 +281,10 @@ void ShowContextMenu(HWND hwnd) {
 	HMENU hMenu=CreatePopupMenu();
 	
 	//Toggle
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_TOGGLE, (keyhook||msghook?L10N_MENU_DISABLE:L10N_MENU_ENABLE));
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_TOGGLE, (keyhook||msghook?l10n->menu_disable:l10n->menu_enable));
 	
 	//Hide
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, L10N_MENU_HIDE);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, l10n->menu_hide);
 	
 	//Check autostart
 	int autostart_enabled=0, autostart_hide=0;
@@ -298,22 +315,22 @@ void ShowContextMenu(HWND hwnd) {
 	}
 	//Autostart
 	HMENU hAutostartMenu=CreatePopupMenu();
-	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), L10N_MENU_AUTOSTART);
-	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), L10N_MENU_HIDE);
-	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT)hAutostartMenu, L10N_MENU_AUTOSTART);
+	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), l10n->menu_autostart);
+	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), l10n->menu_hide);
+	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT)hAutostartMenu, l10n->menu_autostart);
 	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	
 	//Update
 	if (update) {
-		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, L10N_MENU_UPDATE);
+		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
 		InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	}
 	
 	//About
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, L10N_MENU_ABOUT);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
 	
 	//Exit
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, L10N_MENU_EXIT);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
 
 	//Track menu
 	SetForegroundWindow(hwnd);
@@ -322,12 +339,12 @@ void ShowContextMenu(HWND hwnd) {
 }
 
 int UpdateTray() {
-	wcsncpy(traydata.szTip,(keyhook||msghook?L10N_TRAY_ENABLED:L10N_TRAY_DISABLED),sizeof(traydata.szTip)/sizeof(wchar_t));
+	wcsncpy(traydata.szTip,(keyhook||msghook?l10n->tray_enabled:l10n->tray_disabled),sizeof(traydata.szTip)/sizeof(wchar_t));
 	traydata.hIcon=icon[keyhook||msghook?1:0];
 	
 	//Only add or modify if not hidden or if balloon will be displayed
 	if (!hide || traydata.uFlags&NIF_INFO) {
-		int tries=0; //If trying to add, try at least five times (required on some slow systems when the program is on autostart since explorer hasn't initialized the tray area)
+		int tries=0; //Try at least five times (required on some slow systems when the program is on autostart since explorer hasn't initialized the tray area yet)
 		while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
 			tries++;
 			if (tray_added || tries >= 5) {
@@ -402,8 +419,15 @@ int HookSystem() {
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
 	PathRenameExtension(path,L".ini");
-	GetPrivateProfileString(L"AltDrag",L"ExperimentalFeatures",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+	GetPrivateProfileString(APP_NAME,L"ExperimentalFeatures",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
 	swscanf(txt,L"%d",&settings.ExperimentalFeatures);
+	GetPrivateProfileString(APP_NAME,L"Language",L"en-US",txt,sizeof(txt)/sizeof(wchar_t),path);
+	int i;
+	for (i=0; i < num_languages; i++) {
+		if (!wcscmp(txt,languages[i].code)) {
+			l10n=languages[i].strings;
+		}
+	}
 	
 	//Load library
 	if (!hinstDLL) {
@@ -496,7 +520,7 @@ void ToggleState() {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_ICONTRAY) {
-		if (lParam == WM_LBUTTONDOWN) {
+		if (lParam == WM_LBUTTONDOWN || lParam == WM_LBUTTONDBLCLK) {
 			ToggleState();
 		}
 		else if (lParam == WM_RBUTTONDOWN) {
@@ -542,12 +566,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			SetAutostart(1,0);
 		}
 		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL, L10N_UPDATE_DIALOG, APP_NAME, MB_ICONINFORMATION|MB_YESNO) == IDYES) {
+			if (MessageBox(NULL, l10n->update_dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO) == IDYES) {
 				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
 			}
 		}
 		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, L10N_ABOUT, L10N_ABOUT_TITLE, MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, l10n->about, l10n->about_title, MB_ICONINFORMATION|MB_OK);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hwnd);
