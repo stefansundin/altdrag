@@ -1,6 +1,6 @@
 /*
 	AltDrag - Drag windows with the mouse when pressing the alt key
-	Copyright (C) 2008  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -148,9 +148,6 @@ void MoveWnd() {
 		fprintf(f,"wnd #%03d:%s %s [%s] (%dx%d@%dx%d)\n",j,(hwnd==wnds[j]?"***":""),title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
 	}
 	fclose(f);*/
-	
-	//Reset double-click time
-	clicktime=0;
 	
 	//Get window size
 	RECT wnd;
@@ -442,6 +439,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 			if (!alt && vkey == VK_LMENU) {
 				alt=1;
+				clicktime=0; //Reset double-click time
 				HookMouse();
 			}
 			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
@@ -547,8 +545,6 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 						//Check if this is a double-click
 						if (difftime(time(NULL),clicktime) <= GetDoubleClickTime()/1000) {
 							//Alt+double-clicking a window maxmizes it
-							//Reset double-click time
-							clicktime=0;
 							//Maximize window
 							WINDOWPLACEMENT wndpl;
 							wndpl.length=sizeof(WINDOWPLACEMENT);
@@ -790,21 +786,25 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if (wParam == WM_MOUSEMOVE && (move || resize)) {
-			//Move cursorwnd
-			if (settings.Cursor) {
-				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-				MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,TRUE);
-				//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
-			}
-			//Move or resize
-			if (move) {
-				//Move window
-				MoveWnd();
-			}
-			else if (resize) {
-				//Resize window
-				ResizeWnd();
+		else if (wParam == WM_MOUSEMOVE) {
+			//Reset double-click time
+			clicktime=0;
+			if (move || resize) {
+				//Move cursorwnd
+				if (settings.Cursor) {
+					POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,TRUE);
+					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+				}
+				//Move or resize
+				if (move) {
+					//Move window
+					MoveWnd();
+				}
+				else if (resize) {
+					//Resize window
+					ResizeWnd();
+				}
 			}
 		}
 	}
@@ -877,6 +877,7 @@ int UnhookMouse() {
 	
 	//Success
 	mousehook=NULL;
+	clicktime=0;
 	return 0;
 }
 

@@ -12,29 +12,33 @@ gcc -o build/unhook.exe unhook.c
 windres -o build/resources.o resources.rc
 
 if "%1" == "all" (
-	echo Building all
+	@echo.
+	echo Building binaries
+	if not exist "build/en-US/AltDrag" (
+		mkdir "build\en-US\AltDrag"
+	)
+	gcc -o "build/en-US/AltDrag/AltDrag.exe" altdrag.c build/resources.o -mwindows -lshlwapi -lwininet
+	if exist "build/en-US/AltDrag/AltDrag.exe" (
+		strip "build/en-US/AltDrag/AltDrag.exe"
+	)
+	gcc -c -o "build/hooks.o" hooks.c
+	if exist "build/hooks.o" (
+		gcc -shared -o "build/en-US/AltDrag/hooks.dll" "build/hooks.o" -lshlwapi
+		strip "build/en-US/AltDrag/hooks.dll"
+	)
 	
 	for /D %%f in (localization/*) do (
 		@echo.
-		echo Building %%f
-		if not exist "build/%%f/AltDrag" (
-			mkdir "build\%%f\AltDrag"
+		echo Putting together %%f
+		if not %%f == en-US (
+			if not exist "build/%%f/AltDrag" (
+				mkdir "build\%%f\AltDrag"
+			)
+			copy "build\en-US\AltDrag\AltDrag.exe" "build/%%f/AltDrag"
+			copy "build\en-US\AltDrag\hooks.dll" "build/%%f/AltDrag"
 		)
 		copy "localization\%%f\info.txt" "build/%%f/AltDrag"
 		copy "AltDrag.ini" "build/%%f/AltDrag"
-		
-		gcc -o "build/%%f/AltDrag/AltDrag.exe" altdrag.c build/resources.o -mwindows -lshlwapi -lwininet -DL10N_FILE=\"localization/%%f/strings.h\"
-		if exist "build/%%f/AltDrag/AltDrag.exe" (
-			strip "build/%%f/AltDrag/AltDrag.exe"
-			upx --best -qq "build/%%f/AltDrag/AltDrag.exe"
-		)
-		
-		gcc -c -o "build/%%f/hooks.o" hooks.c
-		if exist "build/%%f/hooks.o" (
-			gcc -shared -o "build/%%f/AltDrag/hooks.dll" "build/%%f/hooks.o" -lshlwapi
-			strip "build/%%f/AltDrag/hooks.dll"
-			rem upx --best -qq "build/%%f/AltDrag/hooks.dll"
-		)
 	)
 	
 	@echo.
