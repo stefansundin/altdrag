@@ -1,6 +1,6 @@
 /*
 	WindowFinder - Get the title and classname of windows
-	Copyright (C) 2008  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -26,15 +26,6 @@
 #define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/windowfinder-latest-stable.txt"
 //#define DEBUG
 
-//Localization
-#ifndef L10N_FILE
-#define L10N_FILE "localization/en-US/strings.h"
-#endif
-#include L10N_FILE
-#if L10N_VERSION != 1
-#error Localization not up to date!
-#endif
-
 //Messages
 #define WM_ICONTRAY            WM_USER+1
 #define SWM_FIND               WM_APP+1
@@ -51,28 +42,46 @@
 #define NIN_BALLOONTIMEOUT     WM_USER+4
 #define NIN_BALLOONUSERCLICK   WM_USER+5
 
+//Localization
+struct strings {
+	wchar_t *menu_find;
+	wchar_t *menu_finddelay;
+	wchar_t *menu_findall;
+	wchar_t *menu_update;
+	wchar_t *menu_about;
+	wchar_t *menu_exit;
+	wchar_t *update_balloon;
+	wchar_t *update_dialog;
+	wchar_t *wnddetails;
+	wchar_t *allwnds;
+	wchar_t *about_title;
+	wchar_t *about;
+};
+#include "localization/strings.h"
+struct strings *l10n=&en_US;
+
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-static HICON icon;
-static NOTIFYICONDATA traydata;
-static UINT WM_TASKBARCREATED=0;
-static int tray_added=0;
-static int update=0;
+HICON icon;
+NOTIFYICONDATA traydata;
+UINT WM_TASKBARCREATED=0;
+int tray_added=0;
+int update=0;
 struct {
 	int CheckForUpdate;
 } settings={0};
-static wchar_t txt[1000];
+wchar_t txt[1000];
 
 //Cool stuff
-static HINSTANCE hinstDLL=NULL;
-static HHOOK mousehook=NULL;
-static HWND cursorwnd=NULL;
-static int winxp=0;
-static HWND *wnds=NULL;
-static int numwnds=0;
+HINSTANCE hinstDLL=NULL;
+HHOOK mousehook=NULL;
+HWND cursorwnd=NULL;
+int winxp=0;
+HWND *wnds=NULL;
+int numwnds=0;
 
 //Error message handling
-static int showerror=1;
+int showerror=1;
 
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
@@ -152,6 +161,7 @@ DWORD WINAPI _CheckForUpdate() {
 	//New version available?
 	if (strcmp(data,APP_VERSION)) {
 		update=1;
+		wcsncpy(traydata.szInfo,l10n->update_balloon,sizeof(traydata.szInfo)/sizeof(wchar_t));
 		traydata.uFlags|=NIF_INFO;
 		UpdateTray();
 		traydata.uFlags^=NIF_INFO;
@@ -170,6 +180,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		SendMessage(previnst,WM_COMMAND,SWM_FIND,0);
 		return 0;
 	}
+	
+	//Load settings
+	wchar_t path[MAX_PATH];
+	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
+	PathRenameExtension(path,L".ini");
+	GetPrivateProfileString(L"Update",L"CheckForUpdate",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+	swscanf(txt,L"%d",&settings.CheckForUpdate);
 	
 	//Create window class
 	WNDCLASSEX wnd;
@@ -210,7 +227,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Balloon tooltip
 	traydata.uTimeout=10000;
 	wcsncpy(traydata.szInfoTitle,APP_NAME,sizeof(traydata.szInfoTitle)/sizeof(wchar_t));
-	wcsncpy(traydata.szInfo,L10N_UPDATE_BALLOON,sizeof(traydata.szInfo)/sizeof(wchar_t));
 	traydata.dwInfoFlags=NIIF_USER;
 	
 	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
@@ -227,13 +243,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		//Now we will set cursorwnd to 99% transparent to make it work in XP
 		winxp=1;
 	}
-	
-	//Load settings
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
-	PathRenameExtension(path,L".ini");
-	GetPrivateProfileString(L"Update",L"CheckForUpdate",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-	swscanf(txt,L"%d",&settings.CheckForUpdate);
 	
 	//Check for update
 	if (settings.CheckForUpdate) {
@@ -260,22 +269,22 @@ void ShowContextMenu(HWND hwnd) {
 	HMENU hMenu=CreatePopupMenu();
 	
 	//Find
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FIND, L10N_MENU_FIND);
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDDELAY, L10N_MENU_FINDDELAY);
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDALL, L10N_MENU_FINDALL);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FIND, l10n->menu_find);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDDELAY, l10n->menu_finddelay);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDALL, l10n->menu_findall);
 	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	
 	//Update
 	if (update) {
-		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, L10N_MENU_UPDATE);
+		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
 		InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	}
 	
 	//About
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, L10N_MENU_ABOUT);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
 	
 	//Exit
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, L10N_MENU_EXIT);
+	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
 
 	//Track menu
 	SetForegroundWindow(hwnd);
@@ -284,9 +293,13 @@ void ShowContextMenu(HWND hwnd) {
 }
 
 int UpdateTray() {
-	if (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
-		Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)",L"Failed to add tray icon.",GetLastError(),__LINE__);
-		return 1;
+	int tries=0; //Try at least five times (required on some slow systems when the program is on autostart since explorer hasn't initialized the tray area yet)
+	while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
+		tries++;
+		if (tray_added || tries >= 5) {
+			Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)",L"Failed to update tray icon.",GetLastError(),__LINE__);
+			return 1;
+		}
 	}
 	
 	//Success
@@ -366,7 +379,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 		swprintf(txt,L"%s\n\nComponent:\n title: %s\n class: %s",txt,title_component,classname_component);
 	}
 	HHOOK hhk=SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
-	int response=MessageBox(NULL, txt, L10N_WNDDETAILS, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
+	int response=MessageBox(NULL, txt, l10n->wnddetails, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
@@ -381,7 +394,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	free(arg);
 }
 
-static int wnds_alloc=0;
+int wnds_alloc=0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
@@ -414,7 +427,7 @@ void FindAllWnds() {
 	
 	//Show message
 	HHOOK hhk=SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
-	int response=MessageBox(NULL, txt, L10N_ALLWNDS, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
+	int response=MessageBox(NULL, txt, l10n->allwnds, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
@@ -557,12 +570,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			FindAllWnds();
 		}
 		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL, L10N_UPDATE_DIALOG, APP_NAME, MB_ICONINFORMATION|MB_YESNO) == IDYES) {
+			if (MessageBox(NULL, l10n->update_dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO) == IDYES) {
 				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
 			}
 		}
 		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, L10N_ABOUT, L10N_ABOUT_TITLE, MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, l10n->about, l10n->about_title, MB_ICONINFORMATION|MB_OK);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hwnd);
