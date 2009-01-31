@@ -18,40 +18,39 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-//shift, move, resize and hwnd must be shared since CallWndProc is called in the context of another thread
-static int alt=0;
-static int shift __attribute__((section ("shared"), shared)) = 0;
-static int move __attribute__((section ("shared"), shared)) = 0;
-static int resize __attribute__((section ("shared"), shared)) = 0;
-static HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
-static time_t clicktime=0;
-static POINT offset;
-static POINT resize_offset;
-enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} static resize_edge_x, resize_edge_y;
-static HWND *wnds=NULL;
-static int numwnds=0;
-static int winxp=0;
+//shift, move, resize and hwnd must be shared so CallWndProc can access them
+int alt=0;
+int shift __attribute__((section ("shared"), shared)) = 0;
+int move __attribute__((section ("shared"), shared)) = 0;
+int resize __attribute__((section ("shared"), shared)) = 0;
+HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
+unsigned int clicktime=0;
+POINT offset;
+POINT resize_offset;
+enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
+HWND *wnds=NULL;
+int numwnds=0;
 struct blacklistitem {
 	wchar_t *title;
 	wchar_t *classname;
 };
-static int numblacklist=0;
-static int numblacklist_sticky=0;
+int numblacklist=0;
+int numblacklist_sticky=0;
 struct {
 	int Cursor;
 	struct blacklistitem *Blacklist;
 	struct blacklistitem *Blacklist_Sticky;
 } settings={0,NULL,NULL};
-static wchar_t txt[1000];
+wchar_t txt[1000];
 
 //Cursor data
-static HWND cursorwnd=NULL;
+HWND cursorwnd=NULL;
 enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
-static HCURSOR cursor[6];
+HCURSOR cursor[6];
 
 //Mousehook data
-static HINSTANCE hinstDLL=NULL;
-static HHOOK mousehook=NULL;
+HINSTANCE hinstDLL=NULL;
+HHOOK mousehook=NULL;
 
 //Error message handling
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
@@ -86,7 +85,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
 	#endif
 }
 
-static int wnds_alloc=0;
+int wnds_alloc=0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
@@ -98,23 +97,21 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	}
 	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
 	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
-		//Check if window is blacklisted
+		//Return if window is blacklisted
 		wchar_t title[256];
 		wchar_t classname[256];
 		GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
 		GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-		int i,blacklisted=0;
+		int i;
 		for (i=0; i < numblacklist_sticky; i++) {
 			if ((settings.Blacklist_Sticky[i].title == NULL && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))
 			 || (settings.Blacklist_Sticky[i].classname == NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title))
 			 || (settings.Blacklist_Sticky[i].title != NULL && settings.Blacklist_Sticky[i].classname != NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title) && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))) {
-				blacklisted=1;
+				return TRUE;
 			}
 		}
 		//Add window to wnds
-		if (!blacklisted) {
-			wnds[numwnds++]=hwnd;
-		}
+		wnds[numwnds++]=hwnd;
 	}
 	//If this window is maximized we don't want to stick to any windows that might be under it
 	if (IsZoomed(hwnd)) {
@@ -131,23 +128,6 @@ void MoveWnd() {
 		UnhookMouse();
 		return;
 	}
-	
-	/*//Use this to print all visible windows
-	numwnds=0;
-	EnumWindows(EnumWindowsProc,0);
-	FILE *f=fopen("C:\\altdrag-log.txt","wb");
-	fprintf(f,"numwnds: %d\n",numwnds);
-	char title[100];
-	char classname[100];
-	int j;
-	for (j=0; j < numwnds; j++) {
-		GetWindowText(wnds[j],title,100);
-		GetClassName(wnds[j],classname,100);
-		RECT wndsize;
-		GetWindowRect(wnds[j],&wndsize);
-		fprintf(f,"wnd #%03d:%s %s [%s] (%dx%d@%dx%d)\n",j,(hwnd==wnds[j]?"***":""),title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
-	}
-	fclose(f);*/
 	
 	//Get window size
 	RECT wnd;
@@ -269,13 +249,6 @@ void MoveWnd() {
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
 		Error(L"MoveWindow()",L"MoveWnd()",GetLastError(),__LINE__);
 	}
-	
-	/*FILE *f=fopen("C:\\altdrag-log.txt","ab");
-	char title[100], classname[100];
-	GetWindowText(hwnd,title,100);
-	GetClassName(hwnd,classname,100);
-	fprintf(f,"Moving window %s [%s] to (%d,%d)\n",title,classname,posx,posy);
-	fclose(f);*/
 }
 
 void ResizeWnd() {
@@ -296,7 +269,7 @@ void ResizeWnd() {
 	POINT pt;
 	GetCursorPos(&pt);
 	int posx,posy,wndwidth,wndheight;
-	if (resize_edge_x == CENTER && resize_edge_y == CENTER) {
+	if (resize_x == CENTER && resize_y == CENTER) {
 		posx=wnd.left-(pt.x-resize_offset.x);
 		posy=wnd.top-(pt.y-resize_offset.y);
 		wndwidth=wnd.right-wnd.left+2*(pt.x-resize_offset.x);
@@ -305,27 +278,27 @@ void ResizeWnd() {
 		resize_offset.y=pt.y;
 	}
 	else {
-		if (resize_edge_y == TOP) {
+		if (resize_y == TOP) {
 			posy=pt.y-resize_offset.y;
 			wndheight=wnd.bottom-pt.y+resize_offset.y;
 		}
-		else if (resize_edge_y == CENTER) {
+		else if (resize_y == CENTER) {
 			posy=wnd.top;
 			wndheight=wnd.bottom-wnd.top;
 		}
-		else if (resize_edge_y == BOTTOM) {
+		else if (resize_y == BOTTOM) {
 			posy=wnd.top;
 			wndheight=pt.y-wnd.top+resize_offset.y;
 		}
-		if (resize_edge_x == LEFT) {
+		if (resize_x == LEFT) {
 			posx=pt.x-resize_offset.x;
 			wndwidth=wnd.right-pt.x+resize_offset.x;
 		}
-		else if (resize_edge_x == CENTER) {
+		else if (resize_x == CENTER) {
 			posx=wnd.left;
 			wndwidth=wnd.right-wnd.left;
 		}
-		else if (resize_edge_x == RIGHT) {
+		else if (resize_x == RIGHT) {
 			posx=wnd.left;
 			wndwidth=pt.x-wnd.left+resize_offset.x;
 		}
@@ -337,7 +310,7 @@ void ResizeWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if (shift && (resize_edge_x != CENTER || resize_edge_y != CENTER)) {
+	if (shift && (resize_x != CENTER || resize_y != CENTER)) {
 		numwnds=0;
 		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
 		
@@ -353,25 +326,25 @@ void ResizeWnd() {
 			//Check if posx sticks
 			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
 			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
-				if (resize_edge_x == LEFT && posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
+				if (resize_x == LEFT && posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
 					//The left edge of the dragged window will stick to this window's right edge
 					stuckleft=1;
 					stickleft=stickywnd.right;
 					thresholdx=stickywnd.right-posx;
 				}
-				else if (resize_edge_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
+				else if (resize_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
 					//The right edge of the dragged window will stick to this window's right edge
 					stuckright=1;
 					stickright=stickywnd.right;
 					thresholdx=stickywnd.right-(posx+wndwidth);
 				}
-				else if (resize_edge_x == LEFT && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
+				else if (resize_x == LEFT && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
 					//The left edge of the dragged window will stick to this window's left edge
 					stuckleft=1;
 					stickleft=stickywnd.left;
 					thresholdx=stickywnd.left-posx;
 				}
-				else if (resize_edge_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdx) {
+				else if (resize_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdx) {
 					//The right edge of the dragged window will stick to this window's left edge
 					stuckright=1;
 					stickright=stickywnd.left;
@@ -382,25 +355,25 @@ void ResizeWnd() {
 			//Check if posy sticks
 			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
 			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
-				if (resize_edge_y == TOP && posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
+				if (resize_y == TOP && posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
 					//The top edge of the dragged window will stick to this window's bottom edge
 					stucktop=1;
 					sticktop=stickywnd.bottom;
 					thresholdy=stickywnd.bottom-posy;
 				}
-				else if (resize_edge_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
+				else if (resize_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
 					//The bottom edge of the dragged window will stick to this window's bottom edge
 					stuckbottom=1;
 					stickbottom=stickywnd.bottom;
 					thresholdy=stickywnd.bottom-(posy+wndheight);
 				}
-				else if (resize_edge_y == TOP && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
+				else if (resize_y == TOP && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
 					//The top edge of the dragged window will stick to this window's top edge
 					stucktop=1;
 					sticktop=stickywnd.top;
 					thresholdy=stickywnd.top-posy;
 				}
-				else if (resize_edge_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < posy+wndheight+thresholdy) {
+				else if (resize_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < posy+wndheight+thresholdy) {
 					//The bottom edge of the dragged window will stick to this window's top edge
 					stuckbottom=1;
 					stickbottom=stickywnd.top;
@@ -440,23 +413,29 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			if (!alt && vkey == VK_LMENU) {
 				alt=1;
 				clicktime=0; //Reset double-click time
+				//Get window and desktop size and return if the window is fullscreen
+				RECT window, desktop;
+				GetWindowRect(GetForegroundWindow(),&window);
+				GetWindowRect(GetDesktopWindow(),&desktop);
+				if (window.left == desktop.left && window.top == desktop.top && window.right == desktop.right && window.bottom == desktop.bottom) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				//Hook mouse
 				HookMouse();
 			}
 			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
 				shift=1;
 				if (move) {
 					MoveWnd();
-					if (winxp) {
-						//Block key to prevent XP from changing keyboard layout
-						return 1;
-					}
+					//Block key to prevent Windows from changing keyboard layout
+					return 1;
 				}
 				if (resize) {
 					ResizeWnd();
 				}
 			}
 			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
-				//This doesn't always work since the menu is activated by the alt keypress, read msdn
+				//This doesn't always work since the menu is activated by the alt keypress (read msdn)
 				SetForegroundWindow(hwnd);
 			}
 		}
@@ -489,132 +468,115 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
 				UnhookMouse();
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
-			else {
-				//Alt key is still being pressed
-				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-				
-				//Make sure cursorwnd isn't in the way
+			
+			//Alt key is still being pressed
+			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+			
+			//Make sure cursorwnd isn't in the way
+			if (settings.Cursor) {
+				ShowWindow(cursorwnd,SW_HIDE);
+			}
+			
+			//Get window
+			if ((hwnd=WindowFromPoint(pt)) == NULL) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			hwnd=GetAncestor(hwnd,GA_ROOT);
+			
+			//Return if window is blacklisted
+			wchar_t title[256];
+			wchar_t classname[256];
+			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+			int i;
+			for (i=0; i < numblacklist; i++) {
+				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			
+			//Get window and desktop size
+			RECT window, desktop;
+			if (GetWindowRect(hwnd,&window) == 0) {
+				Error(L"GetWindowRect(&window)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+			}
+			if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+				Error(L"GetWindowRect(&desktop)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+			}
+			//Return if the window is fullscreen
+			if (window.left == desktop.left && window.top == desktop.top && window.right == desktop.right && window.bottom == desktop.bottom) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Check if this is a double-click
+			if (GetTickCount()-clicktime <= GetDoubleClickTime()) {
+				//Alt+double-clicking a window maximizes it
+				//Maximize window
+				WINDOWPLACEMENT wndpl;
+				wndpl.length=sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(hwnd,&wndpl);
+				wndpl.showCmd=SW_MAXIMIZE;
+				SetWindowPlacement(hwnd,&wndpl);
+				//Stop move action
+				move=0;
+				//Hide cursorwnd
 				if (settings.Cursor) {
 					ShowWindow(cursorwnd,SW_HIDE);
+					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+					//Maybe show IDC_SIZEALL cursor here really quick somehow?
 				}
-				
-				//Get window
-				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					Error(L"WindowFromPoint()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-				}
-				
-				/*//Use this to print the title and classname of the child you press
-				FILE *f=fopen("C:\\altdrag-log.txt","wb");
-				char title[100], classname[100];
-				GetWindowText(hwnd,title,100);
-				GetClassName(hwnd,classname,100);
-				fprintf(f,"Pressed %s [%s]\n",title,classname);
-				fclose(f);*/
-				
-				hwnd=GetAncestor(hwnd,GA_ROOT);
-				
-				//Check if window is blacklisted
-				wchar_t title[256];
-				wchar_t classname[256];
-				GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-				int i,blacklisted=0;
-				for (i=0; i < numblacklist; i++) {
-					if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-					 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-					 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
-						blacklisted=1;
-					}
-				}
-				
-				//Only continue if this window is not blacklisted
-				if (!blacklisted) {
-					//Get window and desktop size
-					RECT window;
-					if (GetWindowRect(hwnd,&window) == 0) {
-						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-					}
-					RECT desktop;
-					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+				//Prevent mousedown from propagating
+				return 1;
+			}
+			else {
+				//Restore the window if it's maximized
+				if (IsZoomed(hwnd)) {
+					//Restore window
+					WINDOWPLACEMENT wndpl;
+					wndpl.length=sizeof(WINDOWPLACEMENT);
+					GetWindowPlacement(hwnd,&wndpl);
+					wndpl.showCmd=SW_RESTORE;
+					SetWindowPlacement(hwnd,&wndpl);
+					
+					//Get new pos and size
+					RECT newwindow;
+					if (GetWindowRect(hwnd,&newwindow) == 0) {
 						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					
-					//Only move if the window is not fullscreen
-					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
-						//Check if this is a double-click
-						if (difftime(time(NULL),clicktime) <= GetDoubleClickTime()/1000) {
-							//Alt+double-clicking a window maxmizes it
-							//Maximize window
-							WINDOWPLACEMENT wndpl;
-							wndpl.length=sizeof(WINDOWPLACEMENT);
-							GetWindowPlacement(hwnd,&wndpl);
-							wndpl.showCmd=SW_MAXIMIZE;
-							SetWindowPlacement(hwnd,&wndpl);
-							//Stop move action
-							move=0;
-							if (!alt) {
-								UnhookMouse();
-							}
-							//Hide cursorwnd
-							if (settings.Cursor) {
-								ShowWindow(cursorwnd,SW_HIDE);
-								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-								//Maybe show IDC_SIZEALL cursor here really quick somehow?
-							}
-							//Prevent mousedown from propagating
-							return 1;
-						}
-						else {
-							//Restore the window if it's maximized
-							if (IsZoomed(hwnd)) {
-								//Restore window
-								WINDOWPLACEMENT wndpl;
-								wndpl.length=sizeof(WINDOWPLACEMENT);
-								GetWindowPlacement(hwnd,&wndpl);
-								wndpl.showCmd=SW_RESTORE;
-								SetWindowPlacement(hwnd,&wndpl);
-								
-								//Get new pos and size
-								RECT newwindow;
-								if (GetWindowRect(hwnd,&newwindow) == 0) {
-									Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-								}
-								
-								//Set offset
-								offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
-								offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
-								
-								//Move
-								MoveWnd();
-							}
-							else {
-								//Remember time of this click so we can check for double-click
-								clicktime=time(NULL);
-								
-								//Set offset
-								offset.x=pt.x-window.left;
-								offset.y=pt.y-window.top;
-							}
-							//Show cursorwnd
-							if (settings.Cursor) {
-								SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[HAND]);
-								if (!resize) {
-									MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
-									SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-									if (winxp) {
-										SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent (XP fix)
-									}
-								}
-								ShowWindowAsync(cursorwnd,SW_SHOWNA);
-							}
-							//Ready to move window
-							move=1;
-							//Prevent mousedown from propagating
-							return 1;
-						}
-					}
+					//Set offset
+					offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
+					offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
+					
+					//Move
+					MoveWnd();
 				}
+				else {
+					//Remember time of this click so we can check for double-click
+					clicktime=GetTickCount();
+					
+					//Set offset
+					offset.x=pt.x-window.left;
+					offset.y=pt.y-window.top;
+				}
+				//Show cursorwnd
+				if (settings.Cursor) {
+					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[HAND]);
+					if (!resize) {
+						MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+						SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent
+					}
+					ShowWindowAsync(cursorwnd,SW_SHOWNA);
+				}
+				//Ready to move window
+				move=1;
+				//Prevent mousedown from propagating
+				return 1;
 			}
 		}
 		else if (wParam == WM_LBUTTONUP && move) {
@@ -640,138 +602,133 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
 				UnhookMouse();
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Alt key is still being pressed
+			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+			
+			//Make sure cursorwnd isn't in the way
+			if (settings.Cursor) {
+				ShowWindow(cursorwnd,SW_HIDE);
+			}
+			
+			//Get window
+			if ((hwnd=WindowFromPoint(pt)) == NULL) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			hwnd=GetAncestor(hwnd,GA_ROOT);
+
+			//Return if window is blacklisted
+			wchar_t title[256];
+			wchar_t classname[256];
+			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+			int i;
+			for (i=0; i < numblacklist; i++) {
+				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			
+			//Get window and desktop size
+			RECT window, desktop;
+			if (GetWindowRect(hwnd,&window) == 0) {
+				Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+			}
+			if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
+				Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+			}
+			//Return if the window is fullscreen
+			if (window.left == desktop.left && window.top == desktop.top && window.right == desktop.right && window.bottom == desktop.bottom) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Restore the window if it's maximized
+			if (IsZoomed(hwnd)) {
+				//Restore window
+				WINDOWPLACEMENT wndpl;
+				wndpl.length=sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(hwnd,&wndpl);
+				wndpl.showCmd=SW_RESTORE;
+				//New size
+				RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
+				//Compensate for taskbar
+				RECT taskbar;
+				if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
+					if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
+						//Taskbar is on the bottom or top position, adjust height
+						normalpos.bottom-=taskbar.bottom-taskbar.top;
+					}
+					else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
+						//Taskbar is on the left or right position, adjust width
+						normalpos.right-=taskbar.right-taskbar.left;
+					}
+				}
+				wndpl.rcNormalPosition=normalpos;
+				SetWindowPlacement(hwnd,&wndpl);
+				//Update window size
+				GetWindowRect(hwnd,&window);
+			}
+			//Set edge and offset
+			if (pt.y-window.top < (window.bottom-window.top)/3) {
+				resize_y=TOP;
+				resize_offset.y=pt.y-window.top;
+			}
+			else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
+				resize_y=CENTER;
+				resize_offset.y=pt.y; //Used only if both x and y are CENTER
 			}
 			else {
-				//Alt key is still being pressed
-				POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-				
-				//Make sure cursorwnd isn't in the way
-				if (settings.Cursor) {
-					ShowWindow(cursorwnd,SW_HIDE);
-				}
-				
-				//Get window
-				if ((hwnd=WindowFromPoint(pt)) == NULL) {
-					Error(L"WindowFromPoint()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-				}
-				hwnd=GetAncestor(hwnd,GA_ROOT);
-
-				//Check if window is blacklisted
-				wchar_t title[256];
-				wchar_t classname[256];
-				GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-				GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-				int i,blacklisted=0;
-				for (i=0; i < numblacklist; i++) {
-					if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-					 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-					 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
-						blacklisted=1;
-					}
-				}
-				
-				//Only continue if this window is not blacklisted
-				if (!blacklisted) {
-					//Get window and desktop size
-					RECT window;
-					if (GetWindowRect(hwnd,&window) == 0) {
-						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-					}
-					RECT desktop;
-					if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-					}
-					
-					//Only resize if the window is not fullscreen
-					if (window.left != desktop.left || window.top != desktop.top || window.right != desktop.right || window.bottom != desktop.bottom) {
-						//Restore the window if it's maximized
-						if (IsZoomed(hwnd)) {
-							//Restore window
-							WINDOWPLACEMENT wndpl;
-							wndpl.length=sizeof(WINDOWPLACEMENT);
-							GetWindowPlacement(hwnd,&wndpl);
-							wndpl.showCmd=SW_RESTORE;
-							//New size
-							RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
-							//Compensate for taskbar
-							RECT taskbar;
-							if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
-								if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
-									//Taskbar is on the bottom or top position, adjust height
-									normalpos.bottom-=taskbar.bottom-taskbar.top;
-								}
-								else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
-									//Taskbar is on the left or right position, adjust width
-									normalpos.right-=taskbar.right-taskbar.left;
-								}
-							}
-							wndpl.rcNormalPosition=normalpos;
-							SetWindowPlacement(hwnd,&wndpl);
-							//Update window size
-							GetWindowRect(hwnd,&window);
-						}
-						//Set edge and offset
-						if (pt.y-window.top < (window.bottom-window.top)/3) {
-							resize_edge_y=TOP;
-							resize_offset.y=pt.y-window.top;
-						}
-						else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
-							resize_edge_y=CENTER;
-							resize_offset.y=pt.y; //Used only if both x and y are CENTER
-						}
-						else {
-							resize_edge_y=BOTTOM;
-							resize_offset.y=window.bottom-pt.y;
-						}
-						if (pt.x-window.left < (window.right-window.left)/3) {
-							resize_edge_x=LEFT;
-							resize_offset.x=pt.x-window.left;
-						}
-						else if (pt.x-window.left < (window.right-window.left)*2/3) {
-							resize_edge_x=CENTER;
-							resize_offset.x=pt.x; //Used only if both x and y are CENTER
-						}
-						else {
-							resize_edge_x=RIGHT;
-							resize_offset.x=window.right-pt.x;
-						}
-						//Show cursorwnd
-						if (settings.Cursor) {
-							if (!move) {
-								MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
-								if ((resize_edge_y == TOP && resize_edge_x == LEFT)
-								 || (resize_edge_y == BOTTOM && resize_edge_x == RIGHT)) {
-									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
-								}
-								else if ((resize_edge_y == TOP && resize_edge_x == RIGHT)
-								 || (resize_edge_y == BOTTOM && resize_edge_x == LEFT)) {
-									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
-								}
-								else if ((resize_edge_y == TOP && resize_edge_x == CENTER)
-								 || (resize_edge_y == BOTTOM && resize_edge_x == CENTER)) {
-									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
-								}
-								else if ((resize_edge_y == CENTER && resize_edge_x == LEFT)
-								 || (resize_edge_y == CENTER && resize_edge_x == RIGHT)) {
-									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
-								}
-								else {
-									SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
-								}
-								SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-								if (winxp) {
-									SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent (XP fix)
-								}
-							}
-							ShowWindowAsync(cursorwnd,SW_SHOWNA);
-						}
-						//Ready to resize window
-						resize=1;
-						//Prevent mousedown from propagating
-						return 1;
-					}
-				}
+				resize_y=BOTTOM;
+				resize_offset.y=window.bottom-pt.y;
 			}
+			if (pt.x-window.left < (window.right-window.left)/3) {
+				resize_x=LEFT;
+				resize_offset.x=pt.x-window.left;
+			}
+			else if (pt.x-window.left < (window.right-window.left)*2/3) {
+				resize_x=CENTER;
+				resize_offset.x=pt.x; //Used only if both x and y are CENTER
+			}
+			else {
+				resize_x=RIGHT;
+				resize_offset.x=window.right-pt.x;
+			}
+			//Show cursorwnd
+			if (settings.Cursor) {
+				if (!move) {
+					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
+					if ((resize_y == TOP && resize_x == LEFT)
+					 || (resize_y == BOTTOM && resize_x == RIGHT)) {
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
+					}
+					else if ((resize_y == TOP && resize_x == RIGHT)
+					 || (resize_y == BOTTOM && resize_x == LEFT)) {
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
+					}
+					else if ((resize_y == TOP && resize_x == CENTER)
+					 || (resize_y == BOTTOM && resize_x == CENTER)) {
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
+					}
+					else if ((resize_y == CENTER && resize_x == LEFT)
+					 || (resize_y == CENTER && resize_x == RIGHT)) {
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
+					}
+					else {
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+					}
+					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+					SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent
+				}
+				ShowWindowAsync(cursorwnd,SW_SHOWNA);
+			}
+			//Ready to resize window
+			resize=1;
+			//Prevent mousedown from propagating
+			return 1;
 		}
 		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && resize) {
 			resize=0;
@@ -788,7 +745,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 		}
 		else if (wParam == WM_MOUSEMOVE) {
 			//Reset double-click time
-			clicktime=0;
+			clicktime=0; //This prevents me from double-clicking in Windows 7 (running virtualized). TODO: Fix in Windows 7 final.
 			if (move || resize) {
 				//Move cursorwnd
 				if (settings.Cursor) {
@@ -942,15 +899,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
 				pos=txt;
 			}
-		}
-		//Check if OS is WinXP/Server 2003
-		OSVERSIONINFO vi;
-		vi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-		GetVersionEx(&vi);
-		if (vi.dwMajorVersion == 5 && vi.dwMinorVersion >= 1) {
-			//Now we will block the shift key if it is pressed while moving a window, this is to prevent XP from switching keyboard layout
-			//We will also set cursorwnd to 99% transparent to make it work in XP
-			winxp=1;
 		}
 		//Cursor
 		if (settings.Cursor) {
