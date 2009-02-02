@@ -26,8 +26,7 @@ Changelog
 0.6:
 Sticky behavior now works with resize (except when resizing in all directions).
 Fixed tray not being hidden by -hide.
-Improved double-click.
-Fixed mouse cursor in Windows 7.
+Fixed mouse cursor not changing when Aero was disabled in Vista.
 Language can now be changed in AltDrag.ini.
 
 0.5 - 2009-01-12:

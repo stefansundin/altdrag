@@ -14,20 +14,22 @@
 #include <stdlib.h>
 #include <windows.h>
 
-static HWND *wnds=NULL;
-static int numwnds=0;
-static int maxwnds=0;
+HWND *wnds=NULL;
+int numwnds=0;
+int maxwnds=0;
 
-static char txt[100];
-
+int wnds_alloc=0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
-	if (numwnds == maxwnds) {
-		if ((wnds=realloc(wnds,(maxwnds+100)*sizeof(HWND))) == NULL) {
-			printf(txt,"realloc() failed in file %s, line %d.",__FILE__,__LINE__);
+	//Make sure we have enough space allocated
+	if (numwnds == wnds_alloc) {
+		wnds_alloc+=100;
+		//printf("realloc() - wnds_alloc: %d\n",wnds_alloc);
+		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+			printf("realloc() failed in file %s, line %d.\n",__FILE__,__LINE__);
 			return FALSE;
 		}
-		maxwnds+=100;
 	}
+	//Add window to wnds
 	wnds[numwnds++]=hwnd;
 	return TRUE;
 }
@@ -39,10 +41,12 @@ int main() {
 	char classname[100];
 	int i;
 	for (i=0; i < numwnds; i++) {
-		SendMessage(wnds[i],WM_PAINT,0,0);
+		/*
 		GetWindowText(wnds[i],title,100);
 		GetClassName(wnds[i],classname,100);
-		//printf("Sending WM_PAINT to window #%03d: %s [%s]\n",i,title,classname);
+		printf("Sending WM_PAINT to window #%03d: %s [%s]\n",i,title,classname);
+		*/
+		PostMessage(wnds[i],WM_PAINT,0,0);
 	}
 	
 	return 0;
