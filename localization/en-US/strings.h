@@ -22,7 +22,7 @@ struct strings en_US={
  /* tray_enabled */   APP_NAME " (enabled)",
  /* tray_disabled */  APP_NAME " (disabled)",
  /* update_balloon */ L"New version found!",
- /* update_dialog */  L"A new version is available.\nGo to website?",
+ /* update_dialog */  L"A new version is available.\nGo to website?\n\n(You can disable update checking in "APP_NAME".ini)",
  /* about_title */    L"About " APP_NAME,
  /* about */          APP_NAME " - " APP_VERSION "\n\
 Made by Stefan Sundin\n\

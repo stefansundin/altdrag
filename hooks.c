@@ -745,7 +745,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 		}
 		else if (wParam == WM_MOUSEMOVE) {
 			//Reset double-click time
-			clicktime=0; //This prevents me from double-clicking in Windows 7 (running virtualized). TODO: Fix in Windows 7 final.
+			clicktime=0; //This prevents me from double-clicking in Windows 7 (running virtualized). Apparently double-click still works on non-virtualized Windows 7.
 			if (move || resize) {
 				//Move cursorwnd
 				if (settings.Cursor) {
