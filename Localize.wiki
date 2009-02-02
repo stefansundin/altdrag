@@ -1,0 +1,54 @@
+#summary Help me localize AltDrag into more languages.
+#labels Phase-Implementation,Phase-QA
+
+= Introduction =
+
+Okay, so you've decided to translate my program. Great!
+It's pretty simple, all you have to do is download a zip file and translate three files.
+You can download the file here: [http://altdrag.googlecode.com/files/Localize-1.zip Localize-1.zip]. *Note: The file will be released when AltDrag 0.6 is released - in the meantime, email me if you want to translate.*
+
+If you have any problems during the process, just let me know either [mailto:recover89@gmail.com via email] or post a comment below. Even if you figure out the problem without my help, please let me know what was confusing so I can improve this page. If you have any technical problems, such as finding the language-territory codes below, I can fill in the blanks for you, just leave them unchanged.
+
+Once you have the file, you will have to extract it, use a program like [http://www.7-zip.org/ 7-zip] to do that.
+Then, rename the "_en-US_" directory to your language-territory codes.
+In "_en-US_", the "_en_" specify the language and the "_US_" specify the territory.
+For example, here in Sweden we have "_sv_" for _Svenska_ (the Swedish language) and "_SE_" for _Sweden_.
+You can find your language code [http://www.loc.gov/standards/iso639-2/php/code_list.php in this list] (the ISO 639-1 code) and your territory code [http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements in this list] (the ISO 3166-1 alpha-2 code).
+
+= Lets translate! =
+Open _strings.h_ with a text editor, Notepad will work fine.
+The first thing you see is a comment with license text.
+Update the second line, which have the text "_xx-XX localization by XXX (email)_", with your language-territory, your name and your email, if you want to be credited.
+After the license block, you will see the text `struct strings xx_XX={`. It will create a string structure and will contain your strings. Update `xx_XX` to your language-territory code.
+In the next lines you will see the strings that appear in the program. Before each string, there's a short comment about where the string will appear, e.g: `/* menu_enable */`, after it there's the actual string, e.g: `L"Enable"`. The `L` means that the string is in Unicode. Having strings in Unicode means that it should be possible to translate the program to virtually all languages.
+
+Just continue translating all the strings until you reach the bottom. You will probably see the text `APP_NAME`, `APP_VERSION`, and `APP_URL` in some places. These will be automatically replaced when I compile the program, so just leave them.
+Here's an explanation of the strings you'll see:
+|| `menu_xxx`      || These strings are the ones that appear in the tray menu. ||
+|| `tray_xxx`      || These strings are the tooltips for the tray icon. `APP_NAME` is used here, and will automatically replaced during compilation. ||
+|| `update_xxx`    || The update messages. ||
+|| `about_xxx`     || The about dialog. Update "_XXX (email)_" with your name and email if you want to be credited. ||
+
+Great, now you've translated the program, now it's time to translate _info.txt_.
+Just open up _info.txt_ with Notepad and start translating. Update "_XXX (email)_" as usual.
+You don't have to translate the changelog, but if you think it would be helpful, you are welcome to do so.
+
+The final thing you need to translate is the installer.
+Open up _installer.nsh_ with Notepad. Update "_xx-XX_" and "_XXX (email)_" as usual.
+Here's an explanation of the installer strings:
+|| `MUI_LANGUAGE`        || Replace `English` with your language in English (e.g. `Spanish`, not `Español`). ||
+|| `LANG`                || Replace `ENGLISH` with your language in English. ||
+|| `L10N_UPDATE_xxx`     || The update messages in the installer. ||
+|| `L10N_RUNNING_xxx`    || These messages will pop up if AltDrag is already running. ||
+|| `L10N_CLOSING`        || This is what gets into the log if the user chose to close AltDrag. ||
+|| `L10N_SHORTCUT`       || The option to put AltDrag on the start menu. ||
+|| `L10N_AUTOSTART`      || The option to put AltDrag on autostart. ||
+|| `L10N_AUTOSTART_HIDE` || The option to hide the tray icon if AltDrag is autostarted. ||
+
+Do not translate the text _Localization out of date!_, it is not used in the program.
+
+= You're done! =
+All you have to do now is zip the directory and email it to me at [mailto:recover89@gmail.com recover89@gmail.com].
+If you chose to translate the changelog, I will email you every time I release a new version, even though no other strings have changed.
+I will hopefully be able to release the translated version within a few days.
+You are welcome to translate my other programs as well, take a look at [http://code.google.com/p/shutdownguard/ ShutdownGuard].
