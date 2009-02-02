@@ -19,7 +19,7 @@ You can find your language code [http://www.loc.gov/standards/iso639-2/php/code_
 Open _strings.h_ with a text editor, Notepad will work fine.
 The first thing you see is a comment with license text.
 Update the second line, which have the text "_xx-XX localization by XXX (email)_", with your language-territory, your name and your email, if you want to be credited.
-After the license block, you will see the text `struct strings xx_XX={`. It will create a string structure and will contain your strings. Update `xx_XX` to your language-territory code.
+After the license block, you will see the text `struct strings en_US={`. It will create a string structure and will contain your strings. Update `en_US` to your language-territory code.
 In the next lines you will see the strings that appear in the program. Before each string, there's a short comment about where the string will appear, e.g: `/* menu_enable */`, after it there's the actual string, e.g: `L"Enable"`. The `L` means that the string is in Unicode. Having strings in Unicode means that it should be possible to translate the program to virtually all languages.
 
 Just continue translating all the strings until you reach the bottom. You will probably see the text `APP_NAME`, `APP_VERSION`, and `APP_URL` in some places. These will be automatically replaced when I compile the program, so just leave them.
