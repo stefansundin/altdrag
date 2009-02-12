@@ -4,11 +4,23 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2009-01-12T23:00:00Z</updated>
+	<updated>2009-02-12T16:30:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:fb421892-2db6-46db-89d8-dced59442005</id>
+		<title>AltDrag - 0.6</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2009-02-12T16:30:00Z</updated>
+		<content type="html">
+Released 0.6.&lt;br/>
+This version fixes some small bugs, most notably one which made AltDrag ignore the &lt;tt>-hide&lt;/tt> switch. It also adds the sticky behavior to resizing. There's a new language as well, Korean, thanks to 김장환 Jang-hwan Kim!&lt;br/>
+I hope you find that the update checker was useful, let me know if you have feedback or questions, either &lt;a href="mailto:recover89@gmail.com">via email&lt;/a> or post &lt;a href="http://groups.google.com/group/recovers-tools">in the forum&lt;/a> (no registration required)!
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:d92c3e9c-383a-4ae5-86bf-644261a043e8</id>
