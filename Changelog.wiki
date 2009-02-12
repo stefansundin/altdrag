@@ -1,6 +1,12 @@
 #summary Directly from info.txt
 
-Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt can contain changes for upcoming versions.
+Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt may contain changes for upcoming versions.
+
+*0.6* - 2009-02-12:
+  * Sticky behavior now works with resize (except when resizing in all directions).
+  * Fixed tray not being hidden by `-hide`.
+  * Fixed mouse cursor not changing when Aero was disabled in Vista.
+  * Language can now be changed in AltDrag.ini.
 
 *0.5* - 2009-01-12:
   * You can now resize windows with the middle or right mouse button.
