@@ -9,7 +9,7 @@ If you don't want to donate money to me, consider donating to charity instead.
 = Who have contributed =
 While I have done most of the work, here are some people who have contributed.
   * [mailto:algernon@gmail.com Fabrizio Ferri]: Spanish translation
-  * [mailto:janghwan@gmail.com 김장환 Kim, Jang-hwan]: Korean translation
+  * [mailto:janghwan@gmail.com 김장환 Jang-hwan Kim]: Korean translation
 
 Also thanks to everyone who have reported bugs.
 
@@ -24,6 +24,6 @@ Donations received so far: $30 USD
 List of donors:
   * Corvallis Technical
   * Anonymous donor
-  * 김장환 Kim, Jang-hwan
+  * 김장환 Jang-hwan Kim
 
 Note: This includes donations I've received towards all my tools: [http://code.google.com/p/superf4/ SuperF4], [http://code.google.com/p/killkeys/ KillKeys], [http://code.google.com/p/traycd/ TrayCD], [http://code.google.com/p/shutdownguard ShutdownGuard] and [http://code.google.com/p/altdrag AltDrag].
