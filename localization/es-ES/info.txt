@@ -23,7 +23,7 @@ Encontrarás las instrucciones en la página web.
 
 Historial de cambios
 --------------------
-0.6:
+0.6 - 2009-02-12:
 Ahora las ventanas pueden pegarse entre ellas también al cambiar de tamaño (excepto si se redimensiona en todas las direcciones)
 Arreglado el fallo por el cual el icono de notificación no se ocultaba al usar -hide
 Arreglado el fallo por el cual el puntero del ratón no cambiaba en Vista al estar Aero desactivado
