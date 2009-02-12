@@ -4,7 +4,7 @@ Traducido por Fabrizio Ferri (algernon@gmail.com)
 
 Arrastra ventanas con el ratón al pulsar la tecla Alt.
 Puedes usar el botón central o derecho para redimensionar las ventanas.
-Si pulsas mayúsculas mientras arrastras, la ventana se pegará a otras (no funciona todavía con el cambio de tamaño).
+Si pulsas mayúsculas mientras arrastras o cambias el tamaño, la ventana se pegará a otras.
 Puedes habilitar características experimentales para poder usar la tecla Mayúsculas al mover ventanas.
 Hacer doble-clic en una ventana la maximizará.
 Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
@@ -23,6 +23,12 @@ Encontrarás las instrucciones en la página web.
 
 Historial de cambios
 --------------------
+0.6:
+Ahora las ventanas pueden pegarse entre ellas también al cambiar de tamaño (excepto si se redimensiona en todas las direcciones)
+Arreglado el fallo por el cual el icono de notificación no se ocultaba al usar -hide
+Arreglado el fallo por el cual el puntero del ratón no cambiaba en Vista al estar Aero desactivado
+El idioma puede ahora cambiarse editando AltDrag.ini
+
 0.5 - 2009-01-12:
 Con el botón central o derecho se puede cambiar el tamaño de las ventanas.
 Puedes hacer doble-clic a una ventana para maximizarla.
