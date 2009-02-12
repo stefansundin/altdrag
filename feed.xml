@@ -18,7 +18,9 @@
 		<content type="html">
 Released 0.6.&lt;br/>
 This version fixes some small bugs, most notably one which made AltDrag ignore the &lt;tt>-hide&lt;/tt> switch. It also adds the sticky behavior to resizing. There's a new language as well, Korean, thanks to 김장환 Jang-hwan Kim!&lt;br/>
-I hope you find that the update checker was useful, let me know if you have feedback or questions, either &lt;a href="mailto:recover89@gmail.com">via email&lt;/a> or post &lt;a href="http://groups.google.com/group/recovers-tools">in the forum&lt;/a> (no registration required)!
+This version should no longer have any false positives on antivirus scanners since I no longer compress with upx.&lt;br/>
+I hope you find that the update checker was useful, let me know if you have feedback or questions, either &lt;a href="mailto:recover89@gmail.com">via email&lt;/a> or post &lt;a href="http://groups.google.com/group/recovers-tools">in the forum&lt;/a> (no registration required)!&lt;br/>
+You can use the installer to overwrite the old version, there is no need to uninstall the old version in advance.
 		</content>
 	</entry>
 
