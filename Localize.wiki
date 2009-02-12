@@ -5,7 +5,7 @@
 
 Okay, so you've decided to translate my program. Great!
 It's pretty simple, all you have to do is download a zip file and translate three files.
-You can download the file here: [http://altdrag.googlecode.com/files/Localize-1.zip Localize-1.zip]. *Note: The file will be released when AltDrag 0.6 is released - in the meantime, email me if you want to translate.*
+You can download the file here: [http://altdrag.googlecode.com/files/Localize-1.zip Localize-1.zip].
 
 If you have any problems during the process, just let me know either [mailto:recover89@gmail.com via email] or post a comment below. Even if you figure out the problem without my help, please let me know what was confusing so I can improve this page. If you have any technical problems, such as finding the language-territory codes below, I can fill in the blanks for you, just leave them unchanged.
 
