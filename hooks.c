@@ -121,7 +121,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	return TRUE;
 }
 
-void MoveWnd() {
+void MoveWnd(int stickyscreen) {
 	//Check if window still exists
 	if (!IsWindow(hwnd)) {
 		move=0;
@@ -149,9 +149,24 @@ void MoveWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if (shift) {
+	if (stickyscreen || shift) {
 		numwnds=0;
-		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		if (shift) {
+			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		}
+		else if (stickyscreen) {
+			if (numwnds == wnds_alloc) {
+				wnds_alloc+=100;
+				if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+					Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
+				}
+			}
+			wnds[numwnds++]=GetDesktopWindow();
+			HWND taskbar;
+			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
+				wnds[numwnds++]=taskbar;
+			}
+		}
 		
 		/*//Use this to print the windows in wnds
 		FILE *f=fopen("C:\\altdrag-log.txt","wb");
@@ -426,7 +441,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
 				shift=1;
 				if (move) {
-					MoveWnd();
+					MoveWnd(0);
 					//Block key to prevent Windows from changing keyboard layout
 					return 1;
 				}
@@ -449,7 +464,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift=0;
 				if (move) {
-					MoveWnd();
+					MoveWnd(0);
 				}
 				if (resize) {
 					ResizeWnd();
@@ -553,7 +568,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
 					
 					//Move
-					MoveWnd();
+					MoveWnd(0);
 				}
 				else {
 					//Remember time of this click so we can check for double-click
@@ -756,7 +771,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				//Move or resize
 				if (move) {
 					//Move window
-					MoveWnd();
+					MoveWnd(0);
 				}
 				else if (resize) {
 					//Resize window
@@ -772,32 +787,46 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 //CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
 _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && shift && !move && !resize) {
+	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		//Double check if any of the shift keys are being pressed
-		if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-			shift=0;
-			return CallNextHookEx(NULL, nCode, wParam, lParam);
-		}
-		
-		/*
-		FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
-		fprintf(f,"message: %d\n",msg->message);
-		fclose(f);
-		*/
-		
 		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)) {
-			//Set offset
-			POINT pt;
-			GetCursorPos(&pt);
-			WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
-			offset.x=pt.x-wndpos->x;
-			offset.y=pt.y-wndpos->y;
-			//Set hwnd
-			hwnd=msg->hwnd;
-			//Move window
-			MoveWnd();
+			if (shift) {
+				//Double check if any of the shift keys are being pressed
+				if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+					shift=0;
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				
+				/*
+				FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
+				fprintf(f,"message: %d\n",msg->message);
+				fclose(f);
+				*/
+				
+				//Set offset
+				POINT pt;
+				GetCursorPos(&pt);
+				WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
+				offset.x=pt.x-wndpos->x;
+				offset.y=pt.y-wndpos->y;
+				//Set hwnd
+				hwnd=msg->hwnd;
+				//Move window
+				MoveWnd(0);
+			}
+			else {
+				//Set offset
+				POINT pt;
+				GetCursorPos(&pt);
+				WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
+				offset.x=pt.x-wndpos->x;
+				offset.y=pt.y-wndpos->y;
+				//Set hwnd
+				hwnd=msg->hwnd;
+				//Move window
+				MoveWnd(1);
+			}
 		}
 	}
 	
