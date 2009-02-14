@@ -14,7 +14,7 @@ While I have done most of the work, here are some people who have contributed.
 Also thanks to everyone who have reported bugs.
 
 = How to donate =
-The easiest way to donate to me is by [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom sending money with Paypal to recover89@gmail.com]. While you can donate with Paypal using your credit card, note that Paypal will take a small processing fee if you don't have a Paypal account. If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details. If you want to remain anonymous and not have your name appear in the list below, please let me know.
+The easiest way to donate to me is by [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom sending money with Paypal to recover89@gmail.com]. You can donate with Paypal using your credit card, but note that Paypal will take a small processing fee if you don't have a Paypal account. If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details. If you want to remain anonymous and not have your name appear in the list below, please let me know.
 
 [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom http://shutdownguard.googlecode.com/svn/wiki/donate.png]
 
