@@ -790,7 +790,21 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)) {
+		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+			//Return if window is blacklisted
+			wchar_t title[256];
+			wchar_t classname[256];
+			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+			int i;
+			for (i=0; i < numblacklist; i++) {
+				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			//shift stickies to all windows, otherwise the window will stick to the screen and taskbar borders
 			if (shift) {
 				//Double check if any of the shift keys are being pressed
 				if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
