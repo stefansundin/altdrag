@@ -37,10 +37,11 @@ struct blacklistitem {
 int numblacklist=0;
 int numblacklist_sticky=0;
 struct {
-	int Cursor;
 	struct blacklistitem *Blacklist;
 	struct blacklistitem *Blacklist_Sticky;
-} settings={0,NULL,NULL};
+	int Cursor;
+	int StickyScreen;
+} settings={NULL,NULL,0,0};
 wchar_t txt[1000];
 
 //Cursor data
@@ -121,7 +122,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	return TRUE;
 }
 
-void MoveWnd(int stickyscreen) {
+void MoveWnd() {
 	//Check if window still exists
 	if (!IsWindow(hwnd)) {
 		move=0;
@@ -149,18 +150,12 @@ void MoveWnd(int stickyscreen) {
 	}
 	
 	//Check if window will stick anywhere
-	if (stickyscreen || shift) {
+	if (settings.StickyScreen || shift) {
 		numwnds=0;
 		if (shift) {
 			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
 		}
-		else if (stickyscreen) {
-			if (numwnds == wnds_alloc) {
-				wnds_alloc+=100;
-				if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
-					Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
-				}
-			}
+		else if (settings.StickyScreen) {
 			wnds[numwnds++]=GetDesktopWindow();
 			HWND taskbar;
 			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
@@ -441,7 +436,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
 				shift=1;
 				if (move) {
-					MoveWnd(0);
+					MoveWnd();
 					//Block key to prevent Windows from changing keyboard layout
 					return 1;
 				}
@@ -464,7 +459,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift=0;
 				if (move) {
-					MoveWnd(0);
+					MoveWnd();
 				}
 				if (resize) {
 					ResizeWnd();
@@ -568,7 +563,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
 					
 					//Move
-					MoveWnd(0);
+					MoveWnd();
 				}
 				else {
 					//Remember time of this click so we can check for double-click
@@ -771,7 +766,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				//Move or resize
 				if (move) {
 					//Move window
-					MoveWnd(0);
+					MoveWnd();
 				}
 				else if (resize) {
 					//Resize window
@@ -790,7 +785,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
 			//Return if window is blacklisted
 			wchar_t title[256];
 			wchar_t classname[256];
@@ -827,7 +822,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 				//Set hwnd
 				hwnd=msg->hwnd;
 				//Move window
-				MoveWnd(0);
+				MoveWnd();
 			}
 			else {
 				//Set offset
@@ -839,7 +834,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 				//Set hwnd
 				hwnd=msg->hwnd;
 				//Move window
-				MoveWnd(1);
+				MoveWnd();
 			}
 		}
 	}
@@ -888,8 +883,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
 		PathRenameExtension(path,L".ini");
-		GetPrivateProfileString(L"AltDrag",L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-		swscanf(txt,L"%d",&settings.Cursor);
 		//Blacklist
 		GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
 		int *add_numblacklist=&numblacklist, blacklist_alloc=0;
@@ -944,6 +937,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			}
 		}
 		//Cursor
+		GetPrivateProfileString(L"AltDrag",L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+		swscanf(txt,L"%d",&settings.Cursor);
 		if (settings.Cursor) {
 			cursorwnd=FindWindow(L"AltDrag",NULL);
 			cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
@@ -952,6 +947,16 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 			cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 			cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+		}
+		//StickyScreen
+		GetPrivateProfileString(L"AltDrag",L"StickyScreen",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+		swscanf(txt,L"%d",&settings.StickyScreen);
+		if (settings.StickyScreen) {
+			//Allocate room for the wnds needed when StickyScreen'ing
+			wnds_alloc+=5;
+			if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+				Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
+			}
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
