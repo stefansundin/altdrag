@@ -18,12 +18,14 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-//shift, move, resize and hwnd must be shared so CallWndProc can access them
+//Some variables must be shared so the CallWndProc hooks can access them
+#define shareattr __attribute__((section ("shared"), shared))
+
 int alt=0;
-int shift __attribute__((section ("shared"), shared)) = 0;
-int move __attribute__((section ("shared"), shared)) = 0;
-int resize __attribute__((section ("shared"), shared)) = 0;
-HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
+int shift shareattr=0;
+int move shareattr=0;
+int resize shareattr=0;
+HWND hwnd shareattr=NULL;
 unsigned int clicktime=0;
 POINT offset;
 POINT resize_offset;
@@ -34,14 +36,15 @@ struct blacklistitem {
 	wchar_t *title;
 	wchar_t *classname;
 };
-int numblacklist=0;
-int numblacklist_sticky=0;
+int numblacklist shareattr=0;
+int numblacklist_sticky shareattr=0;
 struct {
 	struct blacklistitem *Blacklist;
 	struct blacklistitem *Blacklist_Sticky;
 	int Cursor;
 	int StickyScreen;
-} settings={NULL,NULL,0,0};
+} settings shareattr={NULL,NULL,0,0};
+int settings_loaded shareattr=0;
 wchar_t txt[1000];
 
 //Cursor data
@@ -150,7 +153,7 @@ void MoveWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if (settings.StickyScreen || shift) {
+	if (shift || settings.StickyScreen) {
 		numwnds=0;
 		if (shift) {
 			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
@@ -170,8 +173,8 @@ void MoveWnd() {
 		char classname[100];
 		int j;
 		for (j=0; j < numwnds; j++) {
-			GetWindowText(wnds[j],title,100);
-			GetClassName(wnds[j],classname,100);
+			GetWindowTextA(wnds[j],title,100);
+			GetClassNameA(wnds[j],classname,100);
 			RECT wndsize;
 			GetWindowRect(wnds[j],&wndsize);
 			fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
@@ -785,7 +788,15 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+		if (msg->message == WM_WINDOWPOSCHANGED && (shift || settings.StickyScreen) && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+			//Double check if any of the shift keys are being pressed
+			if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+				shift=0;
+				if (!settings.StickyScreen) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			
 			//Return if window is blacklisted
 			wchar_t title[256];
 			wchar_t classname[256];
@@ -799,43 +810,23 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
-			//shift stickies to all windows, otherwise the window will stick to the screen and taskbar borders
-			if (shift) {
-				//Double check if any of the shift keys are being pressed
-				if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-					shift=0;
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-				
-				/*
-				FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
-				fprintf(f,"message: %d\n",msg->message);
-				fclose(f);
-				*/
-				
-				//Set offset
-				POINT pt;
-				GetCursorPos(&pt);
-				WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
-				offset.x=pt.x-wndpos->x;
-				offset.y=pt.y-wndpos->y;
-				//Set hwnd
-				hwnd=msg->hwnd;
-				//Move window
-				MoveWnd();
-			}
-			else {
-				//Set offset
-				POINT pt;
-				GetCursorPos(&pt);
-				WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
-				offset.x=pt.x-wndpos->x;
-				offset.y=pt.y-wndpos->y;
-				//Set hwnd
-				hwnd=msg->hwnd;
-				//Move window
-				MoveWnd();
-			}
+			
+			/*
+			FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
+			fprintf(f,"message: %d\n",msg->message);
+			fclose(f);
+			*/
+			
+			//Set offset
+			POINT pt;
+			GetCursorPos(&pt);
+			WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
+			offset.x=pt.x-wndpos->x;
+			offset.y=pt.y-wndpos->y;
+			//Set hwnd
+			hwnd=msg->hwnd;
+			//Move window
+			MoveWnd();
 		}
 	}
 	
@@ -879,80 +870,83 @@ int UnhookMouse() {
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
-		//Load settings
-		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
-		PathRenameExtension(path,L".ini");
-		//Blacklist
-		GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
-		int *add_numblacklist=&numblacklist, blacklist_alloc=0;
-		wchar_t *pos=txt;
-		struct blacklistitem **add_blacklist=&settings.Blacklist;
-		while (pos != NULL) {
-			wchar_t *title=pos;
-			wchar_t *classname=wcsstr(pos,L"|");
-			pos=wcsstr(pos,L",");
-			if (pos != NULL) {
-				*pos='\0';
-				pos++;
+		if (!settings_loaded) {
+			settings_loaded=1;
+			//Load settings
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
+			PathRenameExtension(path,L".ini");
+			//Blacklist
+			GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
+			int *add_numblacklist=&numblacklist, blacklist_alloc=0;
+			wchar_t *pos=txt;
+			struct blacklistitem **add_blacklist=&settings.Blacklist;
+			while (pos != NULL) {
+				wchar_t *title=pos;
+				wchar_t *classname=wcsstr(pos,L"|");
+				pos=wcsstr(pos,L",");
+				if (pos != NULL) {
+					*pos='\0';
+					pos++;
+				}
+				if (classname != NULL) {
+					*classname='\0';
+					classname++;
+				}
+				//Make sure we have enough space
+				if (*add_numblacklist == blacklist_alloc) {
+					blacklist_alloc+=10;
+					*add_blacklist=realloc(*add_blacklist,blacklist_alloc*sizeof(struct blacklistitem));
+				}
+				//Allocate memory for title and classname
+				wchar_t *item_title, *item_classname;
+				if (wcslen(title) > 0) {
+					item_title=malloc((wcslen(title)+1)*sizeof(wchar_t));
+					wcscpy(item_title,title);
+				}
+				else {
+					item_title=NULL;
+				}
+				if (classname != NULL && wcslen(classname) > 0) {
+					item_classname=malloc((wcslen(classname)+1)*sizeof(wchar_t));
+					wcscpy(item_classname,classname);
+				}
+				else {
+					item_classname=NULL;
+				}
+				//Only store item if it's not empty
+				if (item_title != NULL || item_classname != NULL) {
+					(*add_blacklist)[*add_numblacklist].title=item_title;
+					(*add_blacklist)[*add_numblacklist].classname=item_classname;
+					(*add_numblacklist)++;
+				}
+				//Switch gears to blacklist_sticky?
+				if (pos == NULL && *add_blacklist == settings.Blacklist) {
+					add_blacklist=&settings.Blacklist_Sticky;
+					add_numblacklist=&numblacklist_sticky;
+					blacklist_alloc=0;
+					GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
+					pos=txt;
+				}
 			}
-			if (classname != NULL) {
-				*classname='\0';
-				classname++;
+			//Cursor
+			GetPrivateProfileString(L"AltDrag",L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+			swscanf(txt,L"%d",&settings.Cursor);
+			if (settings.Cursor) {
+				cursorwnd=FindWindow(L"AltDrag",NULL);
+				cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENWSE]=LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENESW]=LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 			}
-			//Make sure we have enough space
-			if (*add_numblacklist == blacklist_alloc) {
-				blacklist_alloc+=10;
-				*add_blacklist=realloc(*add_blacklist,blacklist_alloc*sizeof(struct blacklistitem));
-			}
-			//Allocate memory for title and classname
-			wchar_t *item_title, *item_classname;
-			if (wcslen(title) > 0) {
-				item_title=malloc((wcslen(title)+1)*sizeof(wchar_t));
-				wcscpy(item_title,title);
-			}
-			else {
-				item_title=NULL;
-			}
-			if (classname != NULL && wcslen(classname) > 0) {
-				item_classname=malloc((wcslen(classname)+1)*sizeof(wchar_t));
-				wcscpy(item_classname,classname);
-			}
-			else {
-				item_classname=NULL;
-			}
-			//Only store item if it's not empty
-			if (item_title != NULL || item_classname != NULL) {
-				(*add_blacklist)[*add_numblacklist].title=item_title;
-				(*add_blacklist)[*add_numblacklist].classname=item_classname;
-				(*add_numblacklist)++;
-			}
-			//Switch gears to blacklist_sticky?
-			if (pos == NULL && *add_blacklist == settings.Blacklist) {
-				add_blacklist=&settings.Blacklist_Sticky;
-				add_numblacklist=&numblacklist_sticky;
-				blacklist_alloc=0;
-				GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
-				pos=txt;
-			}
+			//StickyScreen
+			GetPrivateProfileString(L"AltDrag",L"StickyScreen",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+			swscanf(txt,L"%d",&settings.StickyScreen);
 		}
-		//Cursor
-		GetPrivateProfileString(L"AltDrag",L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-		swscanf(txt,L"%d",&settings.Cursor);
-		if (settings.Cursor) {
-			cursorwnd=FindWindow(L"AltDrag",NULL);
-			cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZENWSE]=LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZENESW]=LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-		}
-		//StickyScreen
-		GetPrivateProfileString(L"AltDrag",L"StickyScreen",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-		swscanf(txt,L"%d",&settings.StickyScreen);
-		if (settings.StickyScreen) {
-			//Allocate room for the wnds needed when StickyScreen'ing
+		//Make sure there are room for StickyScreen
+		if (settings.StickyScreen && wnds_alloc == 0) {
 			wnds_alloc+=5;
 			if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
 				Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
@@ -960,19 +954,21 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
-		int i;
-		for (i=0; i < numblacklist; i++) {
-			free(settings.Blacklist[i].title);
-			free(settings.Blacklist[i].classname);
+		if (reserved == NULL) {
+			int i;
+			for (i=0; i < numblacklist; i++) {
+				free(settings.Blacklist[i].title);
+				free(settings.Blacklist[i].classname);
+			}
+			for (i=0; i < numblacklist_sticky; i++) {
+				free(settings.Blacklist_Sticky[i].title);
+				free(settings.Blacklist_Sticky[i].classname);
+			}
+			numblacklist=0;
+			numblacklist_sticky=0;
+			free(settings.Blacklist);
+			free(settings.Blacklist_Sticky);
 		}
-		for (i=0; i < numblacklist_sticky; i++) {
-			free(settings.Blacklist_Sticky[i].title);
-			free(settings.Blacklist_Sticky[i].classname);
-		}
-		numblacklist=0;
-		numblacklist_sticky=0;
-		free(settings.Blacklist);
-		free(settings.Blacklist_Sticky);
 		free(wnds);
 	}
 	return TRUE;
