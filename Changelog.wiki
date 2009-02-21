@@ -16,7 +16,7 @@ Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.
   * Sticky-blacklisted by default: the Vista start menu orb.
   * The mouse cursor will now change when you move and resize windows.
   * Only one instance of AltDrag can now be run. Starting AltDrag again will make the first copy add its tray icon.
-  * Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista.
+  * Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. ~~Doesn't work on all windows in Vista.~~ Doesn't work with 64-bit processes.
 
 *0.4* - 2008-09-14:
   * You can now press the shift key to make the window stick to other windows.
