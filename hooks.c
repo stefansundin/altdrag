@@ -30,20 +30,20 @@ unsigned int clicktime=0;
 POINT offset;
 POINT resize_offset;
 enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
-HWND *wnds=NULL;
+HWND wnds[100];
 int numwnds=0;
 struct blacklistitem {
-	wchar_t *title;
-	wchar_t *classname;
+	wchar_t title[100];
+	wchar_t classname[100];
 };
 int numblacklist shareattr=0;
 int numblacklist_sticky shareattr=0;
 struct {
-	struct blacklistitem *Blacklist;
-	struct blacklistitem *Blacklist_Sticky;
+	struct blacklistitem Blacklist[20];
+	struct blacklistitem Blacklist_Sticky[20];
 	int Cursor;
 	int StickyScreen;
-} settings shareattr={NULL,NULL,0,0};
+} settings shareattr={{},{},0,0};
 int settings_loaded shareattr=0;
 wchar_t txt[1000];
 
@@ -89,15 +89,16 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
 	#endif
 }
 
-int wnds_alloc=0;
+int wnds_alloc=100;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
-		wnds_alloc+=100;
+		return FALSE;
+		/*wnds_alloc+=100;
 		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
 			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			return FALSE;
-		}
+		}*/
 	}
 	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
 	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
@@ -108,9 +109,9 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 		GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 		int i;
 		for (i=0; i < numblacklist_sticky; i++) {
-			if ((settings.Blacklist_Sticky[i].title == NULL && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))
-			 || (settings.Blacklist_Sticky[i].classname == NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title))
-			 || (settings.Blacklist_Sticky[i].title != NULL && settings.Blacklist_Sticky[i].classname != NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title) && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))) {
+			if ((!wcscmp(L"",settings.Blacklist_Sticky[i].title) && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))
+			 || (!wcscmp(L"",settings.Blacklist_Sticky[i].classname) && !wcscmp(title,settings.Blacklist_Sticky[i].title))
+			 || (!wcscmp(title,settings.Blacklist_Sticky[i].title) && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))) {
 				return TRUE;
 			}
 		}
@@ -505,9 +506,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 			int i;
 			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+				if ((!wcscmp(L"",settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (!wcscmp(L"",settings.Blacklist[i].classname) && !wcscmp(title,settings.Blacklist[i].title))
+				 || (!wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -639,9 +640,9 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 			int i;
 			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+				if ((!wcscmp(L"",settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (!wcscmp(L"",settings.Blacklist[i].classname) && !wcscmp(title,settings.Blacklist[i].title))
+				 || (!wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -804,9 +805,9 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
 			int i;
 			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+				if ((!wcscmp(L"",settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (!wcscmp(L"",settings.Blacklist[i].classname) && !wcscmp(title,settings.Blacklist[i].title))
+				 || (!wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -878,9 +879,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			PathRenameExtension(path,L".ini");
 			//Blacklist
 			GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
-			int *add_numblacklist=&numblacklist, blacklist_alloc=0;
+			int *add_numblacklist=&numblacklist, blacklist_alloc=20;
 			wchar_t *pos=txt;
-			struct blacklistitem **add_blacklist=&settings.Blacklist;
+			struct blacklistitem *add_blacklist=settings.Blacklist;
 			while (pos != NULL) {
 				wchar_t *title=pos;
 				wchar_t *classname=wcsstr(pos,L"|");
@@ -895,11 +896,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				}
 				//Make sure we have enough space
 				if (*add_numblacklist == blacklist_alloc) {
-					blacklist_alloc+=10;
-					*add_blacklist=realloc(*add_blacklist,blacklist_alloc*sizeof(struct blacklistitem));
+					break;
+					/*blacklist_alloc+=10;
+					*add_blacklist=realloc(*add_blacklist,blacklist_alloc*sizeof(struct blacklistitem));*/
 				}
 				//Allocate memory for title and classname
-				wchar_t *item_title, *item_classname;
+				/*wchar_t *item_title, *item_classname;
 				if (wcslen(title) > 0) {
 					item_title=malloc((wcslen(title)+1)*sizeof(wchar_t));
 					wcscpy(item_title,title);
@@ -913,18 +915,33 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				}
 				else {
 					item_classname=NULL;
+				}*/
+				if (wcslen(title) > 0 || (classname != NULL && wcslen(classname) > 0)) {
+					if (wcslen(title) > 0) {
+						wcscpy(add_blacklist[*add_numblacklist].title,title);
+					}
+					else {
+						wcscpy(add_blacklist[*add_numblacklist].title,L"");
+					}
+					if (classname != NULL && wcslen(classname) > 0) {
+						wcscpy(add_blacklist[*add_numblacklist].classname,classname);
+					}
+					else {
+						wcscpy(add_blacklist[*add_numblacklist].classname,L"");
+					}
+					(*add_numblacklist)++;
 				}
 				//Only store item if it's not empty
-				if (item_title != NULL || item_classname != NULL) {
+				/*if (item_title != NULL || item_classname != NULL) {
 					(*add_blacklist)[*add_numblacklist].title=item_title;
 					(*add_blacklist)[*add_numblacklist].classname=item_classname;
 					(*add_numblacklist)++;
-				}
+				}*/
 				//Switch gears to blacklist_sticky?
-				if (pos == NULL && *add_blacklist == settings.Blacklist) {
-					add_blacklist=&settings.Blacklist_Sticky;
+				if (pos == NULL && add_blacklist == settings.Blacklist) {
+					add_blacklist=settings.Blacklist_Sticky;
 					add_numblacklist=&numblacklist_sticky;
-					blacklist_alloc=0;
+					//blacklist_alloc=0;
 					GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
 					pos=txt;
 				}
@@ -946,14 +963,14 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			swscanf(txt,L"%d",&settings.StickyScreen);
 		}
 		//Make sure there are room for StickyScreen
-		if (settings.StickyScreen && wnds_alloc == 0) {
+		/*if (settings.StickyScreen && wnds_alloc == 0) {
 			wnds_alloc+=5;
 			if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
 				Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			}
-		}
+		}*/
 	}
-	else if (reason == DLL_PROCESS_DETACH) {
+	/*else if (reason == DLL_PROCESS_DETACH) {
 		if (reserved == NULL) {
 			int i;
 			for (i=0; i < numblacklist; i++) {
@@ -970,6 +987,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			free(settings.Blacklist_Sticky);
 		}
 		free(wnds);
-	}
+	}*/
 	return TRUE;
 }
