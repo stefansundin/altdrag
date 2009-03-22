@@ -12,5 +12,6 @@
   * [http://taekwindow.sourceforge.net/ Taekwindow]
   * ComfortResize in [http://www.heise.de/ct/activaid/default_en.shtml ac'tivAid]
   * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows]
+  * [http://www.hmmn.org/FreeShade/ FreeShade] (Only does rollups)
 
 Feel free to add more programs in the comments below.
