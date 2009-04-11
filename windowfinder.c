@@ -555,7 +555,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			HookMouse();
 		}
 		else if (wmId == SWM_FINDALL) {
-			Sleep(3000);
 			FindAllWnds();
 		}
 		else if (wmId == SWM_UPDATE) {
