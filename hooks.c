@@ -18,18 +18,32 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-//shift, move, resize and hwnd must be shared so CallWndProc can access them
+//App
+#define APP_NAME      L"AltDrag"
+
+//Some variables must be shared so the CallWndProc hooks can access them
+#define shareattr __attribute__((section ("shared"), shared))
+
 int alt=0;
-int shift __attribute__((section ("shared"), shared)) = 0;
-int move __attribute__((section ("shared"), shared)) = 0;
-int resize __attribute__((section ("shared"), shared)) = 0;
-HWND hwnd __attribute__((section ("shared"), shared)) = NULL;
+int shift shareattr=0;
+int move shareattr=0;
+int resize shareattr=0;
+HWND hwnd shareattr=NULL;
 unsigned int clicktime=0;
 POINT offset;
 POINT resize_offset;
 enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
 HWND *wnds=NULL;
 int numwnds=0;
+struct {
+	int Cursor;
+	int StickyScreen;
+} sharedsettings shareattr={0,0};
+int sharedsettings_loaded shareattr=0;
+wchar_t inipath[MAX_PATH] shareattr;
+wchar_t txt[1000];
+
+//Blacklist
 struct blacklistitem {
 	wchar_t *title;
 	wchar_t *classname;
@@ -37,11 +51,9 @@ struct blacklistitem {
 int numblacklist=0;
 int numblacklist_sticky=0;
 struct {
-	int Cursor;
 	struct blacklistitem *Blacklist;
 	struct blacklistitem *Blacklist_Sticky;
-} settings={0,NULL,NULL};
-wchar_t txt[1000];
+} settings={NULL,NULL};
 
 //Cursor data
 HWND cursorwnd=NULL;
@@ -71,7 +83,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
 	swprintf(txt,L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, TEXT(__FILE__), line, errormsg, errorcode, info);
 	//Display message
 	HHOOK hhk=SetWindowsHookEx(WH_CBT, &ErrorMsgProc, 0, GetCurrentThreadId());
-	int response=MessageBox(NULL, txt, L"AltDrag hooks Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
+	int response=MessageBox(NULL, txt, APP_NAME L" hook error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
@@ -89,7 +101,7 @@ int wnds_alloc=0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
-		wnds_alloc+=100;
+		wnds_alloc+=20;
 		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
 			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			return FALSE;
@@ -149,9 +161,18 @@ void MoveWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if (shift) {
+	if (shift || sharedsettings.StickyScreen) {
 		numwnds=0;
-		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		if (shift) {
+			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		}
+		else if (sharedsettings.StickyScreen) {
+			wnds[numwnds++]=GetDesktopWindow();
+			HWND taskbar;
+			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
+				wnds[numwnds++]=taskbar;
+			}
+		}
 		
 		/*//Use this to print the windows in wnds
 		FILE *f=fopen("C:\\altdrag-log.txt","wb");
@@ -160,8 +181,8 @@ void MoveWnd() {
 		char classname[100];
 		int j;
 		for (j=0; j < numwnds; j++) {
-			GetWindowText(wnds[j],title,100);
-			GetClassName(wnds[j],classname,100);
+			GetWindowTextA(wnds[j],title,100);
+			GetClassNameA(wnds[j],classname,100);
 			RECT wndsize;
 			GetWindowRect(wnds[j],&wndsize);
 			fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
@@ -475,7 +496,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 			
 			//Make sure cursorwnd isn't in the way
-			if (settings.Cursor) {
+			if (sharedsettings.Cursor) {
 				ShowWindow(cursorwnd,SW_HIDE);
 			}
 			
@@ -524,7 +545,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				//Stop move action
 				move=0;
 				//Hide cursorwnd
-				if (settings.Cursor) {
+				if (sharedsettings.Cursor) {
 					ShowWindow(cursorwnd,SW_HIDE);
 					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 					//Maybe show IDC_SIZEALL cursor here really quick somehow?
@@ -564,7 +585,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					offset.y=pt.y-window.top;
 				}
 				//Show cursorwnd
-				if (settings.Cursor) {
+				if (sharedsettings.Cursor) {
 					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[HAND]);
 					if (!resize) {
 						MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
@@ -585,7 +606,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				UnhookMouse();
 			}
 			//Hide cursorwnd
-			if (settings.Cursor) {
+			if (sharedsettings.Cursor) {
 				if (resize) {
 					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
 				}
@@ -609,7 +630,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 			
 			//Make sure cursorwnd isn't in the way
-			if (settings.Cursor) {
+			if (sharedsettings.Cursor) {
 				ShowWindow(cursorwnd,SW_HIDE);
 			}
 			
@@ -698,7 +719,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				resize_offset.x=window.right-pt.x;
 			}
 			//Show cursorwnd
-			if (settings.Cursor) {
+			if (sharedsettings.Cursor) {
 				if (!move) {
 					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
 					if ((resize_y == TOP && resize_x == LEFT)
@@ -736,7 +757,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				UnhookMouse();
 			}
 			//Hide cursorwnd
-			if (settings.Cursor && !move) {
+			if (sharedsettings.Cursor && !move) {
 				ShowWindow(cursorwnd,SW_HIDE);
 				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			}
@@ -748,7 +769,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			clicktime=0; //This prevents me from double-clicking in Windows 7 (running virtualized). Apparently double-click still works on non-virtualized Windows 7.
 			if (move || resize) {
 				//Move cursorwnd
-				if (settings.Cursor) {
+				if (sharedsettings.Cursor) {
 					POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,TRUE);
 					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
@@ -772,22 +793,38 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 //CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
 _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && shift && !move && !resize) {
+	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		//Double check if any of the shift keys are being pressed
-		if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-			shift=0;
-			return CallNextHookEx(NULL, nCode, wParam, lParam);
-		}
-		
-		/*
-		FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
-		fprintf(f,"message: %d\n",msg->message);
-		fclose(f);
-		*/
-		
-		if (msg->message == WM_WINDOWPOSCHANGED && IsWindowVisible(msg->hwnd) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)) {
+		if (msg->message == WM_WINDOWPOSCHANGED && (shift || sharedsettings.StickyScreen) && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+			//Double check if any of the shift keys are being pressed
+			if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+				shift=0;
+				if (!sharedsettings.StickyScreen) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			
+			//Return if window is blacklisted
+			wchar_t title[256];
+			wchar_t classname[256];
+			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+			int i;
+			for (i=0; i < numblacklist; i++) {
+				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			
+			/*
+			FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
+			fprintf(f,"message: %d\n",msg->message);
+			fclose(f);
+			*/
+			
 			//Set offset
 			POINT pt;
 			GetCursorPos(&pt);
@@ -842,13 +879,30 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
 		//Load settings
-		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
-		PathRenameExtension(path,L".ini");
-		GetPrivateProfileString(L"AltDrag",L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-		swscanf(txt,L"%d",&settings.Cursor);
+		//Settings shared with CallWndProc hook
+		if (!sharedsettings_loaded) {
+			sharedsettings_loaded=1;
+			//Have to store path to ini file at initial load
+			GetModuleFileName(NULL,inipath,sizeof(inipath)/sizeof(wchar_t));
+			PathRenameExtension(inipath,L".ini");
+			//Cursor
+			GetPrivateProfileString(APP_NAME,L"Cursor",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
+			swscanf(txt,L"%d",&sharedsettings.Cursor);
+			if (sharedsettings.Cursor) {
+				cursorwnd=FindWindow(APP_NAME,NULL);
+				cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENWSE]=LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENESW]=LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+			}
+			//StickyScreen
+			GetPrivateProfileString(APP_NAME,L"StickyScreen",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
+			swscanf(txt,L"%d",&sharedsettings.StickyScreen);
+		}
 		//Blacklist
-		GetPrivateProfileString(L"AltDrag",L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
+		GetPrivateProfileString(APP_NAME,L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),inipath);
 		int *add_numblacklist=&numblacklist, blacklist_alloc=0;
 		wchar_t *pos=txt;
 		struct blacklistitem **add_blacklist=&settings.Blacklist;
@@ -896,19 +950,19 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				add_blacklist=&settings.Blacklist_Sticky;
 				add_numblacklist=&numblacklist_sticky;
 				blacklist_alloc=0;
-				GetPrivateProfileString(L"AltDrag",L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),path);
+				GetPrivateProfileString(APP_NAME,L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),inipath);
 				pos=txt;
 			}
 		}
-		//Cursor
-		if (settings.Cursor) {
-			cursorwnd=FindWindow(L"AltDrag",NULL);
-			cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZENWSE]=LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZENESW]=LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-			cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+		//Allocate space for StickyScreen
+		if (sharedsettings.StickyScreen) {
+			if (numwnds == wnds_alloc) {
+				wnds_alloc+=20;
+				if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+					Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
+					return FALSE;
+				}
+			}
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
