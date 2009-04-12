@@ -5,10 +5,11 @@ Drag windows with the mouse when pressing the alt key.
 You can use the middle or right mouse button to resize windows.
 If you press the shift key while you drag or resize, the window will stick to other windows.
 You can enable experimental features to be able to use the shift key when normally moving windows.
-You can also double-click a window to maximize it.
+You can double-click a window to maximize it.
+You can double-click with the middle or right mouse button to roll-up windows.
 Fullscreen windows, such as games, will not be dragged or resized.
 
-If you experience lag when you move and resize windows, try disabling the mouse cursor switch in AltDrag.ini.
+If you experience lag when you move or resize windows, try disabling the mouse cursor switch in AltDrag.ini.
 
 AltDrag will automatically check for updates.
 You can disable this in AltDrag.ini.

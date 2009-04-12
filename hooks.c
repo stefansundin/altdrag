@@ -55,6 +55,16 @@ struct {
 	struct blacklistitem *Blacklist_Sticky;
 } settings={NULL,NULL};
 
+//Roll-up data
+#define NUMROLLUP 5
+struct rollupdata {
+	HWND hwnd;
+	int width;
+	int height;
+};
+struct rollupdata rollup[NUMROLLUP];
+int rolluppos=0;
+
 //Cursor data
 HWND cursorwnd=NULL;
 enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
@@ -331,9 +341,18 @@ void ResizeWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if (shift && (resize_x != CENTER || resize_y != CENTER)) {
+	if ((shift || sharedsettings.StickyScreen) && (resize_x != CENTER || resize_y != CENTER)) {
 		numwnds=0;
-		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		if (shift) {
+			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		}
+		else if (sharedsettings.StickyScreen) {
+			wnds[numwnds++]=GetDesktopWindow();
+			HWND taskbar;
+			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
+				wnds[numwnds++]=taskbar;
+			}
+		}
 		
 		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
 		int i, thresholdx=20, thresholdy=20, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
@@ -618,7 +637,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt && !resize) {
+		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt) {
 			//Double check if the left alt key is being pressed
 			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
 				alt=0;
@@ -667,89 +686,143 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
-			//Restore the window if it's maximized
-			if (IsZoomed(hwnd)) {
-				//Restore window
-				WINDOWPLACEMENT wndpl;
-				wndpl.length=sizeof(WINDOWPLACEMENT);
-				GetWindowPlacement(hwnd,&wndpl);
-				wndpl.showCmd=SW_RESTORE;
-				//New size
-				RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
-				//Compensate for taskbar
-				RECT taskbar;
-				if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
-					if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
-						//Taskbar is on the bottom or top position, adjust height
-						normalpos.bottom-=taskbar.bottom-taskbar.top;
+			//Roll-down the window if it's in the roll-up database
+			for (i=0; i < NUMROLLUP; i++) {
+				if (rollup[i].hwnd == hwnd) {
+					//Roll-down window
+					if (MoveWindow(hwnd, window.left, window.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
+						Error(L"MoveWindow()",L"ResizeWnd()",GetLastError(),__LINE__);
 					}
-					else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
-						//Taskbar is on the left or right position, adjust width
-						normalpos.right-=taskbar.right-taskbar.left;
-					}
+					//Remove window from database
+					rollup[i].hwnd=NULL;
+					//Prevent mousedown from propagating
+					return 1;
 				}
-				wndpl.rcNormalPosition=normalpos;
-				SetWindowPlacement(hwnd,&wndpl);
-				//Update window size
-				GetWindowRect(hwnd,&window);
 			}
-			//Set edge and offset
-			if (pt.y-window.top < (window.bottom-window.top)/3) {
-				resize_y=TOP;
-				resize_offset.y=pt.y-window.top;
-			}
-			else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
-				resize_y=CENTER;
-				resize_offset.y=pt.y; //Used only if both x and y are CENTER
-			}
-			else {
-				resize_y=BOTTOM;
-				resize_offset.y=window.bottom-pt.y;
-			}
-			if (pt.x-window.left < (window.right-window.left)/3) {
-				resize_x=LEFT;
-				resize_offset.x=pt.x-window.left;
-			}
-			else if (pt.x-window.left < (window.right-window.left)*2/3) {
-				resize_x=CENTER;
-				resize_offset.x=pt.x; //Used only if both x and y are CENTER
+			
+			//Check if this is a double-click (or if both middle and right mouse button is pressed)
+			if (GetTickCount()-clicktime <= GetDoubleClickTime() || resize) {
+				//Alt+middle-double-clicking a window makes it roll-up
+				//Store window size
+				rollup[rolluppos].hwnd=hwnd;
+				rollup[rolluppos].width=window.right-window.left;
+				rollup[rolluppos].height=window.bottom-window.top;
+				rolluppos=(rolluppos+1)%NUMROLLUP;
+				//Roll-up window
+				if (MoveWindow(hwnd, window.left, window.top, window.right-window.left, 30, TRUE) == 0) {
+					Error(L"MoveWindow()",L"ResizeWnd()",GetLastError(),__LINE__);
+				}
+				//Stop resize action
+				resize=0;
+				//Hide cursorwnd
+				if (sharedsettings.Cursor) {
+					ShowWindow(cursorwnd,SW_HIDE);
+					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+				}
+				//Prevent mousedown from propagating
+				return 1;
 			}
 			else {
-				resize_x=RIGHT;
-				resize_offset.x=window.right-pt.x;
-			}
-			//Show cursorwnd
-			if (sharedsettings.Cursor) {
-				if (!move) {
-					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
-					if ((resize_y == TOP && resize_x == LEFT)
-					 || (resize_y == BOTTOM && resize_x == RIGHT)) {
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
+				//Restore the window if it's maximized
+				if (IsZoomed(hwnd)) {
+					//Restore window
+					WINDOWPLACEMENT wndpl;
+					wndpl.length=sizeof(WINDOWPLACEMENT);
+					GetWindowPlacement(hwnd,&wndpl);
+					wndpl.showCmd=SW_RESTORE;
+					//New size
+					RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
+					//Compensate for taskbar
+					RECT taskbar;
+					if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
+						if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
+							//Taskbar is on the bottom or top position, adjust height
+							normalpos.bottom-=taskbar.bottom-taskbar.top;
+						}
+						else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
+							//Taskbar is on the left or right position, adjust width
+							normalpos.right-=taskbar.right-taskbar.left;
+						}
 					}
-					else if ((resize_y == TOP && resize_x == RIGHT)
-					 || (resize_y == BOTTOM && resize_x == LEFT)) {
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
-					}
-					else if ((resize_y == TOP && resize_x == CENTER)
-					 || (resize_y == BOTTOM && resize_x == CENTER)) {
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
-					}
-					else if ((resize_y == CENTER && resize_x == LEFT)
-					 || (resize_y == CENTER && resize_x == RIGHT)) {
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
+					wndpl.rcNormalPosition=normalpos;
+					SetWindowPlacement(hwnd,&wndpl);
+					//Get new window size
+					GetWindowRect(hwnd,&window);
+				}
+				//Set edge and offset
+				if (window.bottom-window.top < 60) {
+					resize_y=BOTTOM;
+					resize_offset.y=window.bottom-pt.y;
+					if (pt.x-window.left < (window.right-window.left)/3) {
+						resize_x=LEFT;
+						resize_offset.x=pt.x-window.left;
 					}
 					else {
-						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+						resize_x=RIGHT;
+						resize_offset.x=window.right-pt.x;
 					}
-					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-					SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent
 				}
-				ShowWindowAsync(cursorwnd,SW_SHOWNA);
+				else {
+					if (pt.y-window.top < (window.bottom-window.top)/3) {
+						resize_y=TOP;
+						resize_offset.y=pt.y-window.top;
+					}
+					else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
+						resize_y=CENTER;
+						resize_offset.y=pt.y; //Used only if both x and y are CENTER
+					}
+					else {
+						resize_y=BOTTOM;
+						resize_offset.y=window.bottom-pt.y;
+					}
+					if (pt.x-window.left < (window.right-window.left)/3) {
+						resize_x=LEFT;
+						resize_offset.x=pt.x-window.left;
+					}
+					else if (pt.x-window.left < (window.right-window.left)*2/3) {
+						resize_x=CENTER;
+						resize_offset.x=pt.x; //Used only if both x and y are CENTER
+					}
+					else {
+						resize_x=RIGHT;
+						resize_offset.x=window.right-pt.x;
+					}
+				}
+				//Show cursorwnd
+				if (sharedsettings.Cursor) {
+					if (!move) {
+						MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
+						if ((resize_y == TOP && resize_x == LEFT)
+						 || (resize_y == BOTTOM && resize_x == RIGHT)) {
+							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
+						}
+						else if ((resize_y == TOP && resize_x == RIGHT)
+						 || (resize_y == BOTTOM && resize_x == LEFT)) {
+							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
+						}
+						else if ((resize_y == TOP && resize_x == CENTER)
+						 || (resize_y == BOTTOM && resize_x == CENTER)) {
+							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
+						}
+						else if ((resize_y == CENTER && resize_x == LEFT)
+						 || (resize_y == CENTER && resize_x == RIGHT)) {
+							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
+						}
+						else {
+							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+						}
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+						SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent
+					}
+					ShowWindowAsync(cursorwnd,SW_SHOWNA);
+				}
+				//Remember time of this click so we can check for double-click
+				clicktime=GetTickCount();
+				//Ready to resize window
+				resize=1;
+				//Prevent mousedown from propagating
+				return 1;
 			}
-			//Ready to resize window
-			resize=1;
-			//Prevent mousedown from propagating
-			return 1;
 		}
 		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && resize) {
 			resize=0;
@@ -900,6 +973,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			//StickyScreen
 			GetPrivateProfileString(APP_NAME,L"StickyScreen",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
 			swscanf(txt,L"%d",&sharedsettings.StickyScreen);
+			//Zero-out roll-up hwnds
+			int i;
+			for (i=0; i < NUMROLLUP; i++) {
+				rollup[i].hwnd=NULL;
+			}
 		}
 		//Blacklist
 		GetPrivateProfileString(APP_NAME,L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),inipath);
