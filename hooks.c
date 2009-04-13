@@ -56,7 +56,7 @@ struct {
 } settings={NULL,NULL};
 
 //Roll-up data
-#define NUMROLLUP 5
+#define NUMROLLUP 8
 struct rollupdata {
 	HWND hwnd;
 	int width;
@@ -132,6 +132,12 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 				return TRUE;
 			}
 		}
+		//Return if the window is in the roll-up database (I want to get used to the roll-ups before deciding if I want this)
+		/*for (i=0; i < NUMROLLUP; i++) {
+			if (rollup[i].hwnd == hwnd) {
+				return TRUE;
+			}
+		}*/
 		//Add window to wnds
 		wnds[numwnds++]=hwnd;
 	}
@@ -560,6 +566,16 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				wndpl.length=sizeof(WINDOWPLACEMENT);
 				GetWindowPlacement(hwnd,&wndpl);
 				wndpl.showCmd=SW_MAXIMIZE;
+				//Also roll-down the window if it's in the roll-up database
+				for (i=0; i < NUMROLLUP; i++) {
+					if (rollup[i].hwnd == hwnd) {
+						//Roll-down window
+						RECT normalpos={window.left, window.top, window.left+rollup[i].width, window.top+rollup[i].height};
+						wndpl.rcNormalPosition=normalpos;
+						//Remove window from database
+						rollup[i].hwnd=NULL;
+					}
+				}
 				SetWindowPlacement(hwnd,&wndpl);
 				//Stop move action
 				move=0;
@@ -691,7 +707,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				if (rollup[i].hwnd == hwnd) {
 					//Roll-down window
 					if (MoveWindow(hwnd, window.left, window.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
-						Error(L"MoveWindow()",L"ResizeWnd()",GetLastError(),__LINE__);
+						Error(L"MoveWindow()",L"When rolling down window",GetLastError(),__LINE__);
 					}
 					//Remove window from database
 					rollup[i].hwnd=NULL;
@@ -751,6 +767,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				}
 				//Set edge and offset
 				if (window.bottom-window.top < 60) {
+					//This is a very thin window
 					resize_y=BOTTOM;
 					resize_offset.y=window.bottom-pt.y;
 					if (pt.x-window.left < (window.right-window.left)/3) {
@@ -763,6 +780,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					}
 				}
 				else {
+					//Think of the window as nine boxes
 					if (pt.y-window.top < (window.bottom-window.top)/3) {
 						resize_y=TOP;
 						resize_offset.y=pt.y-window.top;

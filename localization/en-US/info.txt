@@ -4,15 +4,16 @@ Made by Stefan Sundin
 Drag windows with the mouse when pressing the alt key.
 You can use the middle or right mouse button to resize windows.
 If you press the shift key while you drag or resize, the window will stick to other windows.
-You can enable experimental features to be able to use the shift key when normally moving windows.
 You can double-click a window to maximize it.
-You can double-click with the middle or right mouse button to roll-up windows.
+You can double-click with the middle button to roll-up windows.
+
+You can edit more settings in AltDrag.ini:
+* enable experimental features to be able to use the shift key when normally moving windows.
+* enable StickyScreen to make windows always sticky to the screen borders and the taskbar when dragging or resizing (no need to press shift).
+
 Fullscreen windows, such as games, will not be dragged or resized.
-
 If you experience lag when you move or resize windows, try disabling the mouse cursor switch in AltDrag.ini.
-
-AltDrag will automatically check for updates.
-You can disable this in AltDrag.ini.
+AltDrag will automatically check for updates. You can disable this in AltDrag.ini.
 
 You can use -hide as a parameter to hide the tray icon.
 
@@ -24,6 +25,12 @@ You can find out how to donate on the website.
 
 Changelog
 ---------
+0.7:
+Added StickyScreen which makes windows automatically stick to the screen borders without needing shift (off by default).
+Added the ability to roll-up windows by double-clicking with the middle mouse button.
+Fixed some bugs in ExperimentalFeatures, it's working pretty well now so give it a try.
+Fixed an annoying error message that sometimes popped up when AltDrag was on autostart.
+
 0.6 - 2009-02-12:
 Sticky behavior now works with resize (except when resizing in all directions).
 Fixed tray not being hidden by -hide.
@@ -38,7 +45,7 @@ Blacklisted by default: the alt+tab window in Vista.
 Sticky-blacklisted by default: the Vista start menu orb.
 The mouse cursor will now change when you move and resize windows.
 Only one instance of AltDrag can now be run. Starting AltDrag again will make the first copy add its tray icon.
-Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista.
+Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work with 64-bit processes.
 
 0.4 - 2008-09-14:
 You can now press the shift key to make the window stick to other windows.
