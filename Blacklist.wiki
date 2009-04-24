@@ -3,22 +3,31 @@
 
 = Introduction =
 
-The blacklist is a new feature in AltDrag 0.5. There are two blacklists in AltDrag, the first determines which windows should be ignored when you attempt to drag them, and the other one determines which windows should be ignored by the sticky behavior (referred to as the "sticky blacklist").
+There are two blacklists in AltDrag. In them you can list windows which AltDrag should ignore. The first list specifies windows which shouldn't be dragged, the second list specify windows which shouldn't be stuck to with the shift button. So if you don't want to be able to alt-drag a specific window, you can add it to the first blacklist and AltDrag will ignore it.
 
-By default, the Alt+Tab window is blacklisted, and the start button orb in Vista and a container window in Google Chrome is sticky blacklisted.
-
-The Google Chrome container window seems to be a window that always follow the chrome window. Prior to 0.5 it was as though the Chrome window had a mind of its own when you tried to sticky drag it.
-
-I realized that the ability to customize the blacklists are important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, and is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries are in the format `title|classname`. If you omit either the title or the class name, then it will not be included it in the matching.
+I realized that the ability to customize the blacklists are important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, so it is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries are in the format `title|classname`. If you omit either the title or the class name, then it will not be included it in the matching. Note that the matching is case-sensitive and you can't use wildcards.
 
 I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
+= Applications blacklisted by default =
+
+Here is an explanation of the default entries:
+
+|| *Blacklist rule*          || *Explanation* ||
+|| `|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista. ||
+|| `|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista. ||
+|| *Blacklist_Sticky rule*   || *Explanation* ||
+|| `|AltDrag`                || This is the AltDrag cursor overlay window. Since an application must own the window the cursor is currently hovering to be able to change the mouse cursor, AltDrag puts a small invisible window over the cursor to change it. ||
+|| `Start|Button`            || This is the Windows Vista start menu orb. ||
+|| `|Chrome_ContainerWin_0`  || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. ||
+|| `|SpotifyShadow`          || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
+
 = List of applications =
 
-Here is a list of applications with their blacklist rule.
+Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it. Add the rule to `Blacklist_Sticky` if you don't want to be able to stick to it with other windows.
 
-|| Application || Blacklist rule ||
-|| Photoshop   || `|Photoshop`   ||
-|| PuTTY       || `|PuTTY`       ||
+|| *Application* || *Blacklist rule* ||
+|| Photoshop     || `|Photoshop`   ||
+|| PuTTY         || `|PuTTY`       ||
 
 If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
