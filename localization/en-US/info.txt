@@ -5,11 +5,11 @@ Drag windows with the mouse when pressing the alt key.
 You can use the middle or right mouse button to resize windows.
 If you press the shift key while you drag or resize, the window will stick to other windows.
 You can double-click a window to maximize it.
-You can double-click with the middle button to roll-up windows.
+You can double-click with the middle mouse button to roll-up windows.
 
 You can edit more settings in AltDrag.ini:
-* enable experimental features to be able to use the shift key when normally moving windows.
-* enable StickyScreen to make windows always sticky to the screen borders and the taskbar when dragging or resizing (no need to press shift).
+* Enable experimental features to be able to use the shift key when normally moving windows.
+* Enable StickyScreen to make windows always sticky to the screen borders and the taskbar when dragging or resizing (no need to press shift).
 
 Fullscreen windows, such as games, will not be dragged or resized.
 If you experience lag when you move or resize windows, try disabling the mouse cursor switch in AltDrag.ini.
@@ -25,7 +25,7 @@ You can find out how to donate on the website.
 
 Changelog
 ---------
-0.7:
+0.7 - 2009-04-24:
 Added StickyScreen which makes windows automatically stick to the screen borders without needing shift (off by default).
 Added the ability to roll-up windows by double-clicking with the middle mouse button.
 Fixed some bugs in ExperimentalFeatures, it's working pretty well now so give it a try.
