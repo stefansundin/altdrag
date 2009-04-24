@@ -2,6 +2,12 @@
 
 Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt may contain changes for upcoming versions.
 
+*0.7* - 2009-04-24:
+  * Added `StickyScreen` which makes windows automatically stick to the screen borders without needing shift (off by default).
+  * Added the ability to roll-up windows by double-clicking with the middle mouse button.
+  * Fixed some bugs in `ExperimentalFeatures`, it's working pretty well now so give it a try.
+  * Fixed an annoying error message that sometimes popped up when AltDrag was on autostart.
+
 *0.6* - 2009-02-12:
   * Sticky behavior now works with resize (except when resizing in all directions).
   * Fixed tray not being hidden by `-hide`.
