@@ -9,7 +9,7 @@ I realized that the ability to customize the blacklists are important since we a
 
 I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
-= Applications blacklisted by default =
+= Windows blacklisted by default =
 
 Here is an explanation of the default entries:
 
@@ -21,6 +21,8 @@ Here is an explanation of the default entries:
 || `Start|Button`            || This is the Windows Vista start menu orb. ||
 || `|Chrome_ContainerWin_0`  || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. ||
 || `|SpotifyShadow`          || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
+
+You shouldn't need to edit or remove any of these entries.
 
 = List of applications =
 
