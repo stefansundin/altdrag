@@ -5,12 +5,15 @@ Traducido por Fabrizio Ferri (algernon@gmail.com)
 Arrastra ventanas con el ratón al pulsar la tecla Alt.
 Puedes usar el botón central o derecho para redimensionar las ventanas.
 Si pulsas mayúsculas mientras arrastras o cambias el tamaño, la ventana se pegará a otras.
-Puedes habilitar características experimentales para poder usar la tecla Mayúsculas al mover ventanas.
 Hacer doble-clic en una ventana la maximizará.
+Puedes enrollar ventanas haciendo doble-clic con el botón central del ratón.
+
+Puedes editar más opciones en AltDrag.ini:
+* Habilitar funciones experimentales para usar la tecla Mayus. mientras mueves ventanas.
+* Habilitar StickyScreen para hacer que las ventanas siempre se peguen los bordes de la pantalla y a la barra de tareas cuando arrastres o redimensiones la ventana (no hace falta pulsar Mayus.).
+
 Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
-
 Si hay retraso al mover y cambiar de tamaño a las ventanas, prueba a desabilitar el switch del cursor del ratón en AltDrag.ini
-
 AltDrag comprobará automáticamente si hay actualizacionas. Puedes desactivar esto en el AltDrag.ini.
 
 Puedes usar el parámetro -hide para ocultar el icono del área de notificación.
@@ -23,6 +26,12 @@ Encontrarás las instrucciones en la página web.
 
 Historial de cambios
 --------------------
+0.7 - 2009-04-24:
+Añadida función StickyScreen para hacer que las ventanas se peguen automáticamente a los bordes de pantalla sin mantener pulsado Mayus. (apagada por defecto).
+Añadida la habilidad de enrollar ventanas con un doble-clic usando el botón central del ratón.
+Arreglados algunos fallos en ExperimentalFeatures: ahora funciona correctamente y puede probarse.
+Arreglado un mensaje de error que aparecía a veces cuando AltDrag se ejecutaba al iniciar el sistema.
+
 0.6 - 2009-02-12:
 Ahora las ventanas pueden pegarse entre ellas también al cambiar de tamaño (excepto si se redimensiona en todas las direcciones)
 Arreglado el fallo por el cual el icono de notificación no se ocultaba al usar -hide
@@ -36,7 +45,7 @@ Puedes crear una lista negra de ventanas para que no sean arrastradas o pegadas.
 En la lista negra, por defecto, están la ventana de Alt+Tab y el botón de Inicio de Vista.
 El cursor del ratón cambia cuando arrastres o redimensiones ventanas.
 Sólo una instancia de AltDrag puede ser ejecutada ahora. Ejecutarlo una segunda vez hará que aparezca el icono de tarea.
-Característica experimental desactivada por defecto: se pueden pegar ventanas entre elllas manteniendo pulsada la tecla Mayúsculas. No funciona con todas las ventanas en Vista.
+Característica experimental desactivada por defecto: se pueden pegar ventanas entre elllas manteniendo pulsada la tecla Mayúsculas. No funciona con procesos de 64 bits.
 
 0.4 - 2008-09-14:
 Usando la tecla Shift se pueden pegar ventanas entre ellas.
