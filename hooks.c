@@ -37,11 +37,11 @@ HWND *wnds=NULL;
 int numwnds=0;
 struct {
 	int Cursor;
-	int StickyScreen;
+	int AutoStick;
 } sharedsettings shareattr={0,0};
 int sharedsettings_loaded shareattr=0;
 wchar_t inipath[MAX_PATH] shareattr;
-wchar_t txt[1000];
+wchar_t txt[1000] shareattr;
 
 //Blacklist
 struct blacklistitem {
@@ -66,9 +66,9 @@ struct rollupdata rollup[NUMROLLUP];
 int rolluppos=0;
 
 //Cursor data
-HWND cursorwnd=NULL;
+HWND cursorwnd shareattr=NULL;
+HCURSOR cursor[6] shareattr;
 enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
-HCURSOR cursor[6];
 
 //Mousehook data
 HINSTANCE hinstDLL=NULL;
@@ -143,7 +143,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	}
 	//If this window is maximized we don't want to stick to any windows that might be under it
 	if (IsZoomed(hwnd)) {
-		wnds[numwnds++]=GetDesktopWindow(); //Since desktop is the last hwnd to be added, we need to add it now before returning
 		return FALSE;
 	}
 	return TRUE;
@@ -177,13 +176,19 @@ void MoveWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if (shift || sharedsettings.StickyScreen) {
+	if (shift || sharedsettings.AutoStick) {
+		//Reset wnds
 		numwnds=0;
-		if (shift) {
+		HWND progman;
+		if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
+			wnds[numwnds++]=progman;
+		}
+		//HWND desk=GetDesktopWindow();
+		//Populate wnds
+		if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
 			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
 		}
-		else if (sharedsettings.StickyScreen) {
-			wnds[numwnds++]=GetDesktopWindow();
+		else if (sharedsettings.AutoStick == 1) {
 			HWND taskbar;
 			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
 				wnds[numwnds++]=taskbar;
@@ -211,25 +216,38 @@ void MoveWnd() {
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
+				//I get some error here sometime when alt+tabbing quickly, not sure what's wrong
+				/*wchar_t t[100];
+				wchar_t title[256];
+				wchar_t classname[256];
+				GetWindowText(wnds[i],title,sizeof(title)/sizeof(wchar_t));
+				GetClassName(wnds[i],classname,sizeof(classname)/sizeof(wchar_t));
+				swprintf(t,L"MoveWnd()\nwnds[i]: %d\ni: %d\ntitle: %s\nclassname: %s",wnds[i],i,title,classname);
+				Error(L"GetWindowRect()",t,GetLastError(),__LINE__);*/
 				Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+				continue;
 			}
+			
+			//Decide if this window should stick inside
+			int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
 			
 			//Check if posx sticks
 			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
 			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
+				int stickinsidecond=(stickinside || posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < posy+thresholdx);
 				if (posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
 					//The left edge of the dragged window will stick to this window's right edge
 					stuckx=1;
 					stickx=stickywnd.right;
 					thresholdx=stickywnd.right-posx;
 				}
-				else if (posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
+				else if (stickinsidecond && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
 					//The right edge of the dragged window will stick to this window's right edge
 					stuckx=1;
 					stickx=stickywnd.right-wndwidth;
 					thresholdx=stickywnd.right-(posx+wndwidth);
 				}
-				else if (posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
+				else if (stickinsidecond && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
 					//The left edge of the dragged window will stick to this window's left edge
 					stuckx=1;
 					stickx=stickywnd.left;
@@ -246,19 +264,20 @@ void MoveWnd() {
 			//Check if posy sticks
 			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
 			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
+				int stickinsidecond=(stickinside || posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < posx+thresholdy);
 				if (posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
 					//The top edge of the dragged window will stick to this window's bottom edge
 					stucky=1;
 					sticky=stickywnd.bottom;
 					thresholdy=stickywnd.bottom-posy;
 				}
-				else if (posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
+				else if (stickinsidecond && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
 					//The bottom edge of the dragged window will stick to this window's bottom edge
 					stucky=1;
 					sticky=stickywnd.bottom-wndheight;
 					thresholdy=stickywnd.bottom-(posy+wndheight);
 				}
-				else if (posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
+				else if (stickinsidecond && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
 					//The top edge of the dragged window will stick to this window's top edge
 					stucky=1;
 					sticky=stickywnd.top;
@@ -347,13 +366,20 @@ void ResizeWnd() {
 	}
 	
 	//Check if window will stick anywhere
-	if ((shift || sharedsettings.StickyScreen) && (resize_x != CENTER || resize_y != CENTER)) {
+	if ((shift || sharedsettings.AutoStick) && (resize_x != CENTER || resize_y != CENTER)) {
+		//Reset wnds
 		numwnds=0;
-		if (shift) {
+		HWND progman;
+		if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
+			wnds[numwnds++]=progman;
+		}
+		//HWND desk=GetDesktopWindow();
+		//wnds[numwnds++]=desk;
+		//Populate wnds
+		if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
 			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
 		}
-		else if (sharedsettings.StickyScreen) {
-			wnds[numwnds++]=GetDesktopWindow();
+		else if (sharedsettings.AutoStick == 1) {
 			HWND taskbar;
 			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
 				wnds[numwnds++]=taskbar;
@@ -362,29 +388,36 @@ void ResizeWnd() {
 		
 		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
 		int i, thresholdx=20, thresholdy=20, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
+		//How should the windows stick?
+		int stickinside=(shift || sharedsettings.AutoStick != 2);
 		//Loop windows
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
 				Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+				continue;
 			}
+			
+			//Decide if this window should stick inside
+			int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
 			
 			//Check if posx sticks
 			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
 			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
+				int stickinsidecond=(stickinside || posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < posy+thresholdx);
 				if (resize_x == LEFT && posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
 					//The left edge of the dragged window will stick to this window's right edge
 					stuckleft=1;
 					stickleft=stickywnd.right;
 					thresholdx=stickywnd.right-posx;
 				}
-				else if (resize_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
+				else if (stickinsidecond && resize_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
 					//The right edge of the dragged window will stick to this window's right edge
 					stuckright=1;
 					stickright=stickywnd.right;
 					thresholdx=stickywnd.right-(posx+wndwidth);
 				}
-				else if (resize_x == LEFT && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
+				else if (stickinsidecond && resize_x == LEFT && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
 					//The left edge of the dragged window will stick to this window's left edge
 					stuckleft=1;
 					stickleft=stickywnd.left;
@@ -401,19 +434,20 @@ void ResizeWnd() {
 			//Check if posy sticks
 			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
 			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
+				int stickinsidecond=(stickinside || posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < posx+thresholdy);
 				if (resize_y == TOP && posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
 					//The top edge of the dragged window will stick to this window's bottom edge
 					stucktop=1;
 					sticktop=stickywnd.bottom;
 					thresholdy=stickywnd.bottom-posy;
 				}
-				else if (resize_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
+				else if (stickinsidecond && resize_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
 					//The bottom edge of the dragged window will stick to this window's bottom edge
 					stuckbottom=1;
 					stickbottom=stickywnd.bottom;
 					thresholdy=stickywnd.bottom-(posy+wndheight);
 				}
-				else if (resize_y == TOP && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
+				else if (stickinsidecond && resize_y == TOP && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
 					//The top edge of the dragged window will stick to this window's top edge
 					stucktop=1;
 					sticktop=stickywnd.top;
@@ -456,15 +490,19 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 		int vkey=((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-			if (!alt && vkey == VK_LMENU) {
+			if (!alt && (vkey == VK_LMENU || vkey == VK_RMENU)) {
 				alt=1;
 				clicktime=0; //Reset double-click time
-				//Get window and desktop size and return if the window is fullscreen
-				RECT window, desktop;
-				GetWindowRect(GetForegroundWindow(),&window);
-				GetWindowRect(GetDesktopWindow(),&desktop);
-				if (window.left == desktop.left && window.top == desktop.top && window.right == desktop.right && window.bottom == desktop.bottom) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				//Get window and desktop size and return if the window is fullscreen, if the window is not the desktop itself
+				HWND window=GetForegroundWindow();
+				HWND progman;
+				if ((progman=FindWindow(L"Progman",L"Program Manager")) == NULL || window != progman) {
+					RECT win, desk;
+					GetWindowRect(window,&win);
+					GetWindowRect(GetDesktopWindow(),&desk);
+					if (win.left == desk.left && win.top == desk.top && win.right == desk.right && win.bottom == desk.bottom) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
 				}
 				//Hook mouse
 				HookMouse();
@@ -486,7 +524,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
-			if (vkey == VK_LMENU) {
+			if ((vkey == VK_LMENU || vkey == VK_RMENU) && !(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt=0;
 				if (!move && !resize) {
 					UnhookMouse();
@@ -511,7 +549,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && alt && !move) {
 			//Double check if the left alt key is being pressed
-			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
+			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt=0;
 				UnhookMouse();
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -655,7 +693,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 		}
 		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt) {
 			//Double check if the left alt key is being pressed
-			if (!(GetAsyncKeyState(VK_LMENU)&0x8000)) {
+			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt=0;
 				UnhookMouse();
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -887,11 +925,11 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && (shift || sharedsettings.StickyScreen) && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+		if (msg->message == WM_WINDOWPOSCHANGED && (shift || sharedsettings.AutoStick) && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
 			//Double check if any of the shift keys are being pressed
 			if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 				shift=0;
-				if (!sharedsettings.StickyScreen) {
+				if (!sharedsettings.AutoStick) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -966,6 +1004,10 @@ int UnhookMouse() {
 	return 0;
 }
 
+_declspec(dllexport) void ClearSharedSettingsLoaded() {
+	sharedsettings_loaded=0;
+}
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL=hInstance;
@@ -973,7 +1015,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		//Settings shared with CallWndProc hook
 		if (!sharedsettings_loaded) {
 			sharedsettings_loaded=1;
-			//Have to store path to ini file at initial load
+			//Have to store path to ini file at initial load so CallWndProc hooks can find it
 			GetModuleFileName(NULL,inipath,sizeof(inipath)/sizeof(wchar_t));
 			PathRenameExtension(inipath,L".ini");
 			//Cursor
@@ -981,16 +1023,16 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			swscanf(txt,L"%d",&sharedsettings.Cursor);
 			if (sharedsettings.Cursor) {
 				cursorwnd=FindWindow(APP_NAME,NULL);
-				cursor[HAND]=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[HAND]=    LoadImage(NULL, IDC_HAND,     IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				cursor[SIZENWSE]=LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				cursor[SIZENESW]=LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-				cursor[SIZENS]=LoadImage(NULL, IDC_SIZENS, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-				cursor[SIZEWE]=LoadImage(NULL, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-				cursor[SIZEALL]=LoadImage(NULL, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZENS]=  LoadImage(NULL, IDC_SIZENS,   IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZEWE]=  LoadImage(NULL, IDC_SIZEWE,   IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+				cursor[SIZEALL]= LoadImage(NULL, IDC_SIZEALL,  IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 			}
-			//StickyScreen
-			GetPrivateProfileString(APP_NAME,L"StickyScreen",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
-			swscanf(txt,L"%d",&sharedsettings.StickyScreen);
+			//AutoStick
+			GetPrivateProfileString(APP_NAME,L"AutoStick",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
+			swscanf(txt,L"%d",&sharedsettings.AutoStick);
 			//Zero-out roll-up hwnds
 			int i;
 			for (i=0; i < NUMROLLUP; i++) {
@@ -1050,15 +1092,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				pos=txt;
 			}
 		}
-		//Allocate space for StickyScreen
-		if (sharedsettings.StickyScreen) {
-			if (numwnds == wnds_alloc) {
-				wnds_alloc+=20;
-				if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
-					Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
-					return FALSE;
-				}
-			}
+		//Allocate space for wnds
+		wnds_alloc+=5;
+		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
+			return FALSE;
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
