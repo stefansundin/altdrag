@@ -38,6 +38,7 @@ int numwnds=0;
 struct {
 	int Cursor;
 	int AutoStick;
+	int RMBMinimize;
 } sharedsettings shareattr={0,0};
 int sharedsettings_loaded shareattr=0;
 wchar_t inipath[MAX_PATH] shareattr;
@@ -691,6 +692,56 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			//Prevent mouseup from propagating
 			return 1;
 		}
+		else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONDOWN && alt) {
+			//Double check if the left alt key is being pressed
+			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
+				alt=0;
+				UnhookMouse();
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Alt key is still being pressed
+			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+			
+			//Make sure cursorwnd isn't in the way
+			if (sharedsettings.Cursor) {
+				ShowWindow(cursorwnd,SW_HIDE);
+			}
+			
+			//Get window
+			if ((hwnd=WindowFromPoint(pt)) == NULL) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			hwnd=GetAncestor(hwnd,GA_ROOT);
+
+			//Return if window is blacklisted
+			wchar_t title[256];
+			wchar_t classname[256];
+			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+			int i;
+			for (i=0; i < numblacklist; i++) {
+				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
+				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
+				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			
+			//Minimize window
+			WINDOWPLACEMENT wndpl;
+			wndpl.length=sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(hwnd,&wndpl);
+			wndpl.showCmd=SW_MINIMIZE;
+			SetWindowPlacement(hwnd,&wndpl);
+			
+			//Prevent mousedown from propagating
+			return 1;
+		}
+		else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONUP && alt) {
+			//Prevent mousedown from propagating
+			return 1;
+		}
 		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt) {
 			//Double check if the left alt key is being pressed
 			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
@@ -1033,6 +1084,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			//AutoStick
 			GetPrivateProfileString(APP_NAME,L"AutoStick",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
 			swscanf(txt,L"%d",&sharedsettings.AutoStick);
+			//RMBMinimize
+			GetPrivateProfileString(APP_NAME,L"RMBMinimize",L"0",txt,sizeof(txt)/sizeof(wchar_t),inipath);
+			swscanf(txt,L"%d",&sharedsettings.RMBMinimize);
 			//Zero-out roll-up hwnds
 			int i;
 			for (i=0; i < NUMROLLUP; i++) {
