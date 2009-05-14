@@ -69,7 +69,7 @@ int rolluppos=0;
 //Cursor data
 HWND cursorwnd shareattr=NULL;
 HCURSOR cursor[6] shareattr;
-enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
+enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL} resizecursor;
 
 //Mousehook data
 HINSTANCE hinstDLL=NULL;
@@ -184,7 +184,6 @@ void MoveWnd() {
 		if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
 			wnds[numwnds++]=progman;
 		}
-		//HWND desk=GetDesktopWindow();
 		//Populate wnds
 		if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
 			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
@@ -217,15 +216,7 @@ void MoveWnd() {
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				//I get some error here sometime when alt+tabbing quickly, not sure what's wrong
-				/*wchar_t t[100];
-				wchar_t title[256];
-				wchar_t classname[256];
-				GetWindowText(wnds[i],title,sizeof(title)/sizeof(wchar_t));
-				GetClassName(wnds[i],classname,sizeof(classname)/sizeof(wchar_t));
-				swprintf(t,L"MoveWnd()\nwnds[i]: %d\ni: %d\ntitle: %s\nclassname: %s",wnds[i],i,title,classname);
-				Error(L"GetWindowRect()",t,GetLastError(),__LINE__);*/
-				Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+				//Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
 				continue;
 			}
 			
@@ -374,8 +365,6 @@ void ResizeWnd() {
 		if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
 			wnds[numwnds++]=progman;
 		}
-		//HWND desk=GetDesktopWindow();
-		//wnds[numwnds++]=desk;
 		//Populate wnds
 		if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
 			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
@@ -395,7 +384,7 @@ void ResizeWnd() {
 		for (i=0; i < numwnds; i++) {
 			RECT stickywnd;
 			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+				//Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
 				continue;
 			}
 			
@@ -682,7 +671,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			//Hide cursorwnd
 			if (sharedsettings.Cursor) {
 				if (resize) {
-					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
+					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[resizecursor]);
 				}
 				else {
 					ShowWindow(cursorwnd,SW_HIDE);
@@ -897,27 +886,30 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				}
 				//Show cursorwnd
 				if (sharedsettings.Cursor) {
+					//Determine shape of cursor
+					if ((resize_y == TOP && resize_x == LEFT)
+					 || (resize_y == BOTTOM && resize_x == RIGHT)) {
+						resizecursor=SIZENWSE;
+					}
+					else if ((resize_y == TOP && resize_x == RIGHT)
+					 || (resize_y == BOTTOM && resize_x == LEFT)) {
+						resizecursor=SIZENESW;
+					}
+					else if ((resize_y == TOP && resize_x == CENTER)
+					 || (resize_y == BOTTOM && resize_x == CENTER)) {
+						resizecursor=SIZENS;
+					}
+					else if ((resize_y == CENTER && resize_x == LEFT)
+					 || (resize_y == CENTER && resize_x == RIGHT)) {
+						resizecursor=SIZEWE;
+					}
+					else {
+						resizecursor=SIZEALL;
+					}
+					//Change cursor
 					if (!move) {
 						MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,FALSE);
-						if ((resize_y == TOP && resize_x == LEFT)
-						 || (resize_y == BOTTOM && resize_x == RIGHT)) {
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENWSE]);
-						}
-						else if ((resize_y == TOP && resize_x == RIGHT)
-						 || (resize_y == BOTTOM && resize_x == LEFT)) {
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENESW]);
-						}
-						else if ((resize_y == TOP && resize_x == CENTER)
-						 || (resize_y == BOTTOM && resize_x == CENTER)) {
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZENS]);
-						}
-						else if ((resize_y == CENTER && resize_x == LEFT)
-						 || (resize_y == CENTER && resize_x == RIGHT)) {
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEWE]);
-						}
-						else {
-							SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[SIZEALL]);
-						}
+						SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[resizecursor]);
 						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 						SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent
 					}
