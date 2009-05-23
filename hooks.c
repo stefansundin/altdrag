@@ -17,9 +17,11 @@
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include <shlwapi.h>
+//#include <windowsx.h>
 
 //App
-#define APP_NAME      L"AltDrag"
+#define APP_NAME L"AltDrag"
+#define STICKY_THRESHOLD 20
 
 //Some variables must be shared so the CallWndProc hooks can access them
 #define shareattr __attribute__((section ("shared"), shared))
@@ -28,7 +30,7 @@ int alt=0;
 int shift shareattr=0;
 int move shareattr=0;
 int resize shareattr=0;
-HWND hwnd shareattr=NULL;
+HWND hwnd=NULL;
 unsigned int clicktime=0;
 POINT offset;
 POINT resize_offset;
@@ -69,11 +71,15 @@ int rolluppos=0;
 //Cursor data
 HWND cursorwnd shareattr=NULL;
 HCURSOR cursor[6] shareattr;
-enum cursornames {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL} resizecursor;
+enum {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL} resizecursor;
 
 //Mousehook data
 HINSTANCE hinstDLL=NULL;
 HHOOK mousehook=NULL;
+
+//msghook
+WNDPROC oldwndproc=NULL;
+enum {MOVE, RESIZE, NONE} msgaction=NONE;
 
 //Error message handling
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
@@ -149,6 +155,126 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	return TRUE;
 }
 
+int MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
+	//Reset wnds
+	numwnds=0;
+	HWND progman;
+	if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
+		wnds[numwnds++]=progman;
+	}
+	//Populate wnds
+	if (shift || sharedsettings.AutoStick >= 2) {
+		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+	}
+	else if (sharedsettings.AutoStick == 1) {
+		HWND taskbar;
+		if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
+			wnds[numwnds++]=taskbar;
+		}
+	}
+	
+	/*//Use this to print the windows in wnds
+	FILE *f=fopen("C:\\altdrag-log.txt","wb");
+	fprintf(f,"numwnds: %d\n",numwnds);
+	char title[100];
+	char classname[100];
+	int j;
+	for (j=0; j < numwnds; j++) {
+		GetWindowTextA(wnds[j],title,100);
+		GetClassNameA(wnds[j],classname,100);
+		RECT wndsize;
+		GetWindowRect(wnds[j],&wndsize);
+		fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
+	}
+	fclose(f);*/
+	
+	//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
+	int i, thresholdx, thresholdy, stuckx=0, stucky=0, stickx=0, sticky=0;
+	thresholdx=thresholdy=STICKY_THRESHOLD;
+	//Loop windows
+	for (i=0; i < numwnds; i++) {
+		RECT stickywnd;
+		if (GetWindowRect(wnds[i],&stickywnd) == 0) {
+			//Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+			continue;
+		}
+		
+		//Decide if this window should stick inside
+		int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
+		
+		//Check if posx sticks
+		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
+		 || (*posy-thresholdx < stickywnd.top && stickywnd.top < *posy+wndheight+thresholdx)) {
+			int stickinsidecond=(stickinside || *posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
+			if (*posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
+				//The left edge of the dragged window will stick to this window's right edge
+				stuckx=1;
+				stickx=stickywnd.right;
+				thresholdx=stickywnd.right-*posx;
+			}
+			else if (stickinsidecond && *posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+wndwidth+thresholdx) {
+				//The right edge of the dragged window will stick to this window's right edge
+				stuckx=1;
+				stickx=stickywnd.right-wndwidth;
+				thresholdx=stickywnd.right-(*posx+wndwidth);
+			}
+			else if (stickinsidecond && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
+				//The left edge of the dragged window will stick to this window's left edge
+				stuckx=1;
+				stickx=stickywnd.left;
+				thresholdx=stickywnd.left-*posx;
+			}
+			else if (*posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < *posx+wndwidth+thresholdx) {
+				//The right edge of the dragged window will stick to this window's left edge
+				stuckx=1;
+				stickx=stickywnd.left-wndwidth;
+				thresholdx=stickywnd.left-(*posx+wndwidth);
+			}
+		}
+		
+		//Check if posy sticks
+		if ((stickywnd.left-thresholdy < *posx && *posx < stickywnd.right+thresholdy)
+		 || (*posx-thresholdy < stickywnd.left && stickywnd.left < *posx+wndwidth+thresholdy)) {
+			int stickinsidecond=(stickinside || *posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
+			if (*posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
+				//The top edge of the dragged window will stick to this window's bottom edge
+				stucky=1;
+				sticky=stickywnd.bottom;
+				thresholdy=stickywnd.bottom-*posy;
+			}
+			else if (stickinsidecond && *posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+wndheight+thresholdy) {
+				//The bottom edge of the dragged window will stick to this window's bottom edge
+				stucky=1;
+				sticky=stickywnd.bottom-wndheight;
+				thresholdy=stickywnd.bottom-(*posy+wndheight);
+			}
+			else if (stickinsidecond && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
+				//The top edge of the dragged window will stick to this window's top edge
+				stucky=1;
+				sticky=stickywnd.top;
+				thresholdy=stickywnd.top-*posy;
+			}
+			else if (*posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < *posy+wndheight+thresholdy) {
+				//The bottom edge of the dragged window will stick to this window's top edge
+				stucky=1;
+				sticky=stickywnd.top-wndheight;
+				thresholdy=stickywnd.top-(*posy+wndheight);
+			}
+		}
+	}
+	
+	//Update posx and posy
+	if (stuckx) {
+		*posx=stickx;
+	}
+	if (stucky) {
+		*posy=sticky;
+	}
+	
+	//Return
+	return (stuckx || stucky);
+}
+
 void MoveWnd() {
 	//Check if window still exists
 	if (!IsWindow(hwnd)) {
@@ -178,125 +304,128 @@ void MoveWnd() {
 	
 	//Check if window will stick anywhere
 	if (shift || sharedsettings.AutoStick) {
-		//Reset wnds
-		numwnds=0;
-		HWND progman;
-		if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
-			wnds[numwnds++]=progman;
-		}
-		//Populate wnds
-		if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
-			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
-		}
-		else if (sharedsettings.AutoStick == 1) {
-			HWND taskbar;
-			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
-				wnds[numwnds++]=taskbar;
-			}
-		}
-		
-		/*//Use this to print the windows in wnds
-		FILE *f=fopen("C:\\altdrag-log.txt","wb");
-		fprintf(f,"numwnds: %d\n",numwnds);
-		char title[100];
-		char classname[100];
-		int j;
-		for (j=0; j < numwnds; j++) {
-			GetWindowTextA(wnds[j],title,100);
-			GetClassNameA(wnds[j],classname,100);
-			RECT wndsize;
-			GetWindowRect(wnds[j],&wndsize);
-			fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
-		}
-		fclose(f);*/
-		
-		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
-		int i, thresholdx=20, thresholdy=20, stuckx=0, stucky=0, stickx=0, sticky=0;
-		//Loop windows
-		for (i=0; i < numwnds; i++) {
-			RECT stickywnd;
-			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				//Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
-				continue;
-			}
-			
-			//Decide if this window should stick inside
-			int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
-			
-			//Check if posx sticks
-			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
-			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
-				int stickinsidecond=(stickinside || posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < posy+thresholdx);
-				if (posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
-					//The left edge of the dragged window will stick to this window's right edge
-					stuckx=1;
-					stickx=stickywnd.right;
-					thresholdx=stickywnd.right-posx;
-				}
-				else if (stickinsidecond && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
-					//The right edge of the dragged window will stick to this window's right edge
-					stuckx=1;
-					stickx=stickywnd.right-wndwidth;
-					thresholdx=stickywnd.right-(posx+wndwidth);
-				}
-				else if (stickinsidecond && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
-					//The left edge of the dragged window will stick to this window's left edge
-					stuckx=1;
-					stickx=stickywnd.left;
-					thresholdx=stickywnd.left-posx;
-				}
-				else if (posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdx) {
-					//The right edge of the dragged window will stick to this window's left edge
-					stuckx=1;
-					stickx=stickywnd.left-wndwidth;
-					thresholdx=stickywnd.left-(posx+wndwidth);
-				}
-			}
-			
-			//Check if posy sticks
-			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
-			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
-				int stickinsidecond=(stickinside || posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < posx+thresholdy);
-				if (posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
-					//The top edge of the dragged window will stick to this window's bottom edge
-					stucky=1;
-					sticky=stickywnd.bottom;
-					thresholdy=stickywnd.bottom-posy;
-				}
-				else if (stickinsidecond && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
-					//The bottom edge of the dragged window will stick to this window's bottom edge
-					stucky=1;
-					sticky=stickywnd.bottom-wndheight;
-					thresholdy=stickywnd.bottom-(posy+wndheight);
-				}
-				else if (stickinsidecond && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
-					//The top edge of the dragged window will stick to this window's top edge
-					stucky=1;
-					sticky=stickywnd.top;
-					thresholdy=stickywnd.top-posy;
-				}
-				else if (posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < posy+wndheight+thresholdy) {
-					//The bottom edge of the dragged window will stick to this window's top edge
-					stucky=1;
-					sticky=stickywnd.top-wndheight;
-					thresholdy=stickywnd.top-(posy+wndheight);
-				}
-			}
-		}
-		
-		//Did we stick somewhere?
-		if (stuckx) {
-			posx=stickx;
-		}
-		if (stucky) {
-			posy=sticky;
-		}
+		MoveStick(&posx, &posy, wndwidth, wndheight);
 	}
 	
 	//Move
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
 		Error(L"MoveWindow()",L"MoveWnd()",GetLastError(),__LINE__);
 	}
+}
+
+int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
+	//Reset wnds
+	numwnds=0;
+	HWND progman;
+	if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
+		wnds[numwnds++]=progman;
+	}
+	//Populate wnds
+	if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
+		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+	}
+	else if (sharedsettings.AutoStick == 1) {
+		HWND taskbar;
+		if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
+			wnds[numwnds++]=taskbar;
+		}
+	}
+	
+	//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
+	int i, thresholdx, thresholdy, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
+	thresholdx=thresholdy=STICKY_THRESHOLD;
+	//How should the windows stick?
+	int stickinside=(shift || sharedsettings.AutoStick != 2);
+	//Loop windows
+	for (i=0; i < numwnds; i++) {
+		RECT stickywnd;
+		if (GetWindowRect(wnds[i],&stickywnd) == 0) {
+			//Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
+			continue;
+		}
+		
+		//Decide if this window should stick inside
+		int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
+		
+		//Check if posx sticks
+		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
+		 || (*posy-thresholdx < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdx)) {
+			int stickinsidecond=(stickinside || *posy+*wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
+			if (resize_x == LEFT && *posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
+				//The left edge of the dragged window will stick to this window's right edge
+				stuckleft=1;
+				stickleft=stickywnd.right;
+				thresholdx=stickywnd.right-*posx;
+			}
+			else if (stickinsidecond && resize_x == RIGHT && *posx+*wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+*wndwidth+thresholdx) {
+				//The right edge of the dragged window will stick to this window's right edge
+				stuckright=1;
+				stickright=stickywnd.right;
+				thresholdx=stickywnd.right-(*posx+*wndwidth);
+			}
+			else if (stickinsidecond && resize_x == LEFT && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
+				//The left edge of the dragged window will stick to this window's left edge
+				stuckleft=1;
+				stickleft=stickywnd.left;
+				thresholdx=stickywnd.left-*posx;
+			}
+			else if (resize_x == RIGHT && *posx+*wndwidth-thresholdx < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdx) {
+				//The right edge of the dragged window will stick to this window's left edge
+				stuckright=1;
+				stickright=stickywnd.left;
+				thresholdx=stickywnd.left-(*posx+*wndwidth);
+			}
+		}
+		
+		//Check if posy sticks
+		if ((stickywnd.left-thresholdy < *posx && *posx < stickywnd.right+thresholdy)
+		 || (*posx-thresholdy < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdy)) {
+			int stickinsidecond=(stickinside || *posx+*wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
+			if (resize_y == TOP && *posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
+				//The top edge of the dragged window will stick to this window's bottom edge
+				stucktop=1;
+				sticktop=stickywnd.bottom;
+				thresholdy=stickywnd.bottom-*posy;
+			}
+			else if (stickinsidecond && resize_y == BOTTOM && *posy+*wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+*wndheight+thresholdy) {
+				//The bottom edge of the dragged window will stick to this window's bottom edge
+				stuckbottom=1;
+				stickbottom=stickywnd.bottom;
+				thresholdy=stickywnd.bottom-(*posy+*wndheight);
+			}
+			else if (stickinsidecond && resize_y == TOP && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
+				//The top edge of the dragged window will stick to this window's top edge
+				stucktop=1;
+				sticktop=stickywnd.top;
+				thresholdy=stickywnd.top-*posy;
+			}
+			else if (resize_y == BOTTOM && *posy+*wndheight-thresholdy < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdy) {
+				//The bottom edge of the dragged window will stick to this window's top edge
+				stuckbottom=1;
+				stickbottom=stickywnd.top;
+				thresholdy=stickywnd.top-(*posy+*wndheight);
+			}
+		}
+	}
+	
+	//Update pos, posy, wndwidth and widthheight
+	if (stuckleft) {
+		*wndwidth=*wndwidth+*posx-stickleft;
+		*posx=stickleft;
+	}
+	if (stucktop) {
+		*wndheight=*wndheight+*posy-sticktop;
+		*posy=sticktop;
+	}
+	if (stuckright) {
+		*wndwidth=stickright-*posx;
+	}
+	if (stuckbottom) {
+		*wndheight=stickbottom-*posy;
+	}
+	
+	//Return
+	return (stuckleft || stucktop || stuckright || stuckbottom);
 }
 
 void ResizeWnd() {
@@ -359,114 +488,7 @@ void ResizeWnd() {
 	
 	//Check if window will stick anywhere
 	if ((shift || sharedsettings.AutoStick) && (resize_x != CENTER || resize_y != CENTER)) {
-		//Reset wnds
-		numwnds=0;
-		HWND progman;
-		if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
-			wnds[numwnds++]=progman;
-		}
-		//Populate wnds
-		if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
-			EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
-		}
-		else if (sharedsettings.AutoStick == 1) {
-			HWND taskbar;
-			if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
-				wnds[numwnds++]=taskbar;
-			}
-		}
-		
-		//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
-		int i, thresholdx=20, thresholdy=20, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
-		//How should the windows stick?
-		int stickinside=(shift || sharedsettings.AutoStick != 2);
-		//Loop windows
-		for (i=0; i < numwnds; i++) {
-			RECT stickywnd;
-			if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-				//Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
-				continue;
-			}
-			
-			//Decide if this window should stick inside
-			int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
-			
-			//Check if posx sticks
-			if ((stickywnd.top-thresholdx < posy && posy < stickywnd.bottom+thresholdx)
-			 || (posy-thresholdx < stickywnd.top && stickywnd.top < posy+wndheight+thresholdx)) {
-				int stickinsidecond=(stickinside || posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < posy+thresholdx);
-				if (resize_x == LEFT && posx-thresholdx < stickywnd.right && stickywnd.right < posx+thresholdx) {
-					//The left edge of the dragged window will stick to this window's right edge
-					stuckleft=1;
-					stickleft=stickywnd.right;
-					thresholdx=stickywnd.right-posx;
-				}
-				else if (stickinsidecond && resize_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < posx+wndwidth+thresholdx) {
-					//The right edge of the dragged window will stick to this window's right edge
-					stuckright=1;
-					stickright=stickywnd.right;
-					thresholdx=stickywnd.right-(posx+wndwidth);
-				}
-				else if (stickinsidecond && resize_x == LEFT && posx-thresholdx < stickywnd.left && stickywnd.left < posx+thresholdx) {
-					//The left edge of the dragged window will stick to this window's left edge
-					stuckleft=1;
-					stickleft=stickywnd.left;
-					thresholdx=stickywnd.left-posx;
-				}
-				else if (resize_x == RIGHT && posx+wndwidth-thresholdx < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdx) {
-					//The right edge of the dragged window will stick to this window's left edge
-					stuckright=1;
-					stickright=stickywnd.left;
-					thresholdx=stickywnd.left-(posx+wndwidth);
-				}
-			}
-			
-			//Check if posy sticks
-			if ((stickywnd.left-thresholdy < posx && posx < stickywnd.right+thresholdy)
-			 || (posx-thresholdy < stickywnd.left && stickywnd.left < posx+wndwidth+thresholdy)) {
-				int stickinsidecond=(stickinside || posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < posx+thresholdy);
-				if (resize_y == TOP && posy-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+thresholdy) {
-					//The top edge of the dragged window will stick to this window's bottom edge
-					stucktop=1;
-					sticktop=stickywnd.bottom;
-					thresholdy=stickywnd.bottom-posy;
-				}
-				else if (stickinsidecond && resize_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < posy+wndheight+thresholdy) {
-					//The bottom edge of the dragged window will stick to this window's bottom edge
-					stuckbottom=1;
-					stickbottom=stickywnd.bottom;
-					thresholdy=stickywnd.bottom-(posy+wndheight);
-				}
-				else if (stickinsidecond && resize_y == TOP && posy-thresholdy < stickywnd.top && stickywnd.top < posy+thresholdy) {
-					//The top edge of the dragged window will stick to this window's top edge
-					stucktop=1;
-					sticktop=stickywnd.top;
-					thresholdy=stickywnd.top-posy;
-				}
-				else if (resize_y == BOTTOM && posy+wndheight-thresholdy < stickywnd.top && stickywnd.top < posy+wndheight+thresholdy) {
-					//The bottom edge of the dragged window will stick to this window's top edge
-					stuckbottom=1;
-					stickbottom=stickywnd.top;
-					thresholdy=stickywnd.top-(posy+wndheight);
-				}
-			}
-		}
-		
-		//Did we stick somewhere?
-		if (stuckleft) {
-			wndwidth=wndwidth+posx-stickleft;
-			posx=stickleft;
-		}
-		if (stucktop) {
-			wndheight=wndheight+posy-sticktop;
-			posy=sticktop;
-		}
-		if (stuckright) {
-			wndwidth=stickright-posx;
-		}
-		if (stuckbottom) {
-			wndheight=stickbottom-posy;
-		}
+		ResizeStick(&posx, &posy, &wndwidth, &wndheight);
 	}
 	
 	//Resize
@@ -497,15 +519,19 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 				//Hook mouse
 				HookMouse();
 			}
-			else if (!shift && (vkey == VK_LSHIFT || vkey == VK_RSHIFT)) {
-				shift=1;
-				if (move) {
-					MoveWnd();
-					//Block key to prevent Windows from changing keyboard layout
-					return 1;
+			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
+				if (!shift) {
+					shift=1;
+					if (move) {
+						MoveWnd();
+					}
+					if (resize) {
+						ResizeWnd();
+					}
 				}
-				if (resize) {
-					ResizeWnd();
+				if (move) {
+					//Block keypress to prevent Windows from changing keyboard layout
+					return 1;
 				}
 			}
 			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
@@ -804,7 +830,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				rolluppos=(rolluppos+1)%NUMROLLUP;
 				//Roll-up window
 				if (MoveWindow(hwnd, window.left, window.top, window.right-window.left, 30, TRUE) == 0) {
-					Error(L"MoveWindow()",L"ResizeWnd()",GetLastError(),__LINE__);
+					Error(L"MoveWindow()",L"Roll-up",GetLastError(),__LINE__);
 				}
 				//Stop resize action
 				resize=0;
@@ -962,15 +988,54 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
+_declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_WINDOWPOSCHANGING && (shift || sharedsettings.AutoStick)) {
+		WINDOWPOS *wndpos=(WINDOWPOS*)lParam;
+		if (msgaction == MOVE && !(wndpos->flags&SWP_NOMOVE)) {
+			MoveStick(&wndpos->x, &wndpos->y, wndpos->cx, wndpos->cy);
+		}
+		else if (msgaction == RESIZE && !(wndpos->flags&SWP_NOSIZE)) {
+			ResizeStick(&wndpos->x, &wndpos->y, &wndpos->cx, &wndpos->cy);
+		}
+	}
+	
+	/* //Fun code to trap window on screen
+	if (msg == WM_WINDOWPOSCHANGING) {
+		WINDOWPOS *wndpos=(WINDOWPOS*)lParam;
+		if (wndpos->x < 0) {
+			wndpos->x=0;
+		}
+		if (wndpos->y < 0) {
+			wndpos->y=0;
+		}
+		if (wndpos->x+wndpos->cx > 1920) {
+			wndpos->x=1920-wndpos->cx;
+		}
+		if (wndpos->y+wndpos->cy > 1140) {
+			wndpos->y=1140-wndpos->cy;
+		}
+	}
+	*/
+	
+	return CallWindowProc(oldwndproc, hwnd, msg, wParam, lParam);
+}
+
 //CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
 _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		if (msg->message == WM_WINDOWPOSCHANGED && (shift || sharedsettings.AutoStick) && IsWindowVisible(msg->hwnd) && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW) && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd) && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
+		if (hwnd == NULL && oldwndproc == NULL
+		 && !move && !resize
+		 && (msg->message == WM_ENTERSIZEMOVE || msg->message == WM_WINDOWPOSCHANGING)
+		 && (shift || sharedsettings.AutoStick)
+		 && IsWindowVisible(msg->hwnd)
+		 && !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW)
+		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
+		 && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
 			//Double check if any of the shift keys are being pressed
-			if (!(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+			if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 				shift=0;
 				if (!sharedsettings.AutoStick) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -991,22 +1056,61 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 				}
 			}
 			
-			/*
-			FILE *f=fopen("C:\\callwndproc.log","ab"); //Important to specify the full path here since CallWndProc is called in the context of another thread.
-			fprintf(f,"message: %d\n",msg->message);
-			fclose(f);
-			*/
-			
-			//Set offset
-			POINT pt;
-			GetCursorPos(&pt);
-			WINDOWPOS *wndpos=(WINDOWPOS*)msg->lParam;
-			offset.x=pt.x-wndpos->x;
-			offset.y=pt.y-wndpos->y;
 			//Set hwnd
 			hwnd=msg->hwnd;
-			//Move window
-			MoveWnd();
+			//Subclass window
+			if ((oldwndproc=(WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)CustomWndProc)) == 0) {
+				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, CustomWndProc)",L"Failed to subclass window.",GetLastError(),__LINE__);
+			}
+		}
+		
+		if (msg->message == WM_SYSCOMMAND) {
+			WPARAM action=msg->wParam&0xFFF0;
+			if (action == SC_MOVE) {
+				msgaction=MOVE;
+			}
+			else if (action == SC_SIZE) {
+				msgaction=RESIZE;
+				int edge=msg->wParam&0x000F; //These are the undocumented bits
+				enum {LEFTEDGE=1, RIGHTEDGE=2, TOPEDGE=3, TOPLEFT=4, TOPRIGHT=5, BOTTOMEDGE=6, BOTTOMLEFT=7, BOTTOMRIGHT=8}; //LEFT/RIGHT/TOP/BOTTOM have EDGE appended to avoid conflict with resize_x/resize_y enums
+				//Get info
+				/*POINT pt;
+				pt.x=GET_X_LPARAM(msg->lParam);
+				pt.y=GET_Y_LPARAM(msg->lParam);*/
+				//Set offset
+				//resize_x
+				if (edge == TOPEDGE || edge == BOTTOMEDGE) {
+					resize_x=CENTER;
+				}
+				if (edge == LEFTEDGE || edge == TOPLEFT || edge == BOTTOMLEFT) {
+					resize_x=LEFT;
+				}
+				else if (edge == RIGHTEDGE || edge == TOPRIGHT || edge == BOTTOMRIGHT) {
+					resize_x=RIGHT;
+				}
+				//resize_y
+				if (edge == LEFTEDGE || edge == RIGHTEDGE) {
+					resize_y=CENTER;
+				}
+				if (edge == TOPEDGE || edge == TOPLEFT || edge == TOPRIGHT) {
+					resize_y=TOP;
+				}
+				else if (edge == BOTTOMEDGE || edge == BOTTOMLEFT || edge == BOTTOMRIGHT) {
+					resize_y=BOTTOM;
+				}
+				resize_offset.x=0;
+				resize_offset.y=0;
+			}
+		}
+		
+		if (msg->message == WM_EXITSIZEMOVE && oldwndproc != NULL) {
+			//Remove subclassing
+			//if (SetWindowLongPtr(msg->hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
+			if (SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
+				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)",L"Failed to restore subclassed window to its old wndproc.",GetLastError(),__LINE__);
+			}
+			oldwndproc=NULL;
+			hwnd=NULL;
 		}
 	}
 	
@@ -1146,6 +1250,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
+		//Remove subclassing
+		if (oldwndproc != NULL) {
+			SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc);
+		}
+		//Free memory
 		int i;
 		for (i=0; i < numblacklist; i++) {
 			free(settings.Blacklist[i].title);
