@@ -17,7 +17,6 @@
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include <shlwapi.h>
-//#include <windowsx.h>
 
 //App
 #define APP_NAME L"AltDrag"
@@ -41,7 +40,7 @@ struct {
 	int Cursor;
 	int AutoStick;
 	int RMBMinimize;
-} sharedsettings shareattr={0,0};
+} sharedsettings shareattr={0,0,0};
 int sharedsettings_loaded shareattr=0;
 wchar_t inipath[MAX_PATH] shareattr;
 wchar_t txt[1000] shareattr;
@@ -51,12 +50,14 @@ struct blacklistitem {
 	wchar_t *title;
 	wchar_t *classname;
 };
-int numblacklist=0;
-int numblacklist_sticky=0;
+struct blacklist {
+	struct blacklistitem *items;
+	int numitems;
+};
 struct {
-	struct blacklistitem *Blacklist;
-	struct blacklistitem *Blacklist_Sticky;
-} settings={NULL,NULL};
+	struct blacklist Blacklist;
+	struct blacklist Blacklist_Sticky;
+} settings={{NULL,0},{NULL,0}};
 
 //Roll-up data
 #define NUMROLLUP 8
@@ -77,7 +78,7 @@ enum {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL} resizecursor;
 HINSTANCE hinstDLL=NULL;
 HHOOK mousehook=NULL;
 
-//msghook
+//Msghook data
 WNDPROC oldwndproc=NULL;
 enum {MOVE, RESIZE, NONE} msgaction=NONE;
 
@@ -114,6 +115,22 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
 	#endif
 }
 
+int blacklisted(HWND hwnd, struct blacklist *list) {
+	wchar_t title[256];
+	wchar_t classname[256];
+	GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
+	GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
+	int i;
+	for (i=0; i < list->numitems; i++) {
+		if ((list->items[i].title == NULL && !wcscmp(classname,list->items[i].classname))
+		 || (list->items[i].classname == NULL && !wcscmp(title,list->items[i].title))
+		 || (list->items[i].title != NULL && list->items[i].classname != NULL && !wcscmp(title,list->items[i].title) && !wcscmp(classname,list->items[i].classname))) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int wnds_alloc=0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
@@ -124,21 +141,9 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 			return FALSE;
 		}
 	}
-	//Only store window if it's visible, not minimized to taskbar, not maximized and not the window we are dragging
-	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd) && hwnd != (HWND)lParam) {
-		//Return if window is blacklisted
-		wchar_t title[256];
-		wchar_t classname[256];
-		GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-		GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-		int i;
-		for (i=0; i < numblacklist_sticky; i++) {
-			if ((settings.Blacklist_Sticky[i].title == NULL && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))
-			 || (settings.Blacklist_Sticky[i].classname == NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title))
-			 || (settings.Blacklist_Sticky[i].title != NULL && settings.Blacklist_Sticky[i].classname != NULL && !wcscmp(title,settings.Blacklist_Sticky[i].title) && !wcscmp(classname,settings.Blacklist_Sticky[i].classname))) {
-				return TRUE;
-			}
-		}
+	//Only store window if it's visible, not minimized to taskbar, not maximized, not the window we are dragging and not blacklisted
+	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd)
+	 && hwnd != (HWND)lParam && !blacklisted(hwnd,&settings.Blacklist_Sticky)) {
 		//Return if the window is in the roll-up database (I want to get used to the roll-ups before deciding if I want this)
 		/*for (i=0; i < NUMROLLUP; i++) {
 			if (rollup[i].hwnd == hwnd) {
@@ -195,7 +200,7 @@ int MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
 	for (i=0; i < numwnds; i++) {
 		RECT stickywnd;
 		if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-			//Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+			//Error(L"GetWindowRect()",L"MoveStick()",GetLastError(),__LINE__);
 			continue;
 		}
 		
@@ -321,7 +326,7 @@ int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 		wnds[numwnds++]=progman;
 	}
 	//Populate wnds
-	if (shift || sharedsettings.AutoStick == 2 || sharedsettings.AutoStick == 3) {
+	if (shift || sharedsettings.AutoStick >= 2) {
 		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
 	}
 	else if (sharedsettings.AutoStick == 1) {
@@ -340,7 +345,7 @@ int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 	for (i=0; i < numwnds; i++) {
 		RECT stickywnd;
 		if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-			//Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
+			//Error(L"GetWindowRect()",L"ResizeStick()",GetLastError(),__LINE__);
 			continue;
 		}
 		
@@ -586,17 +591,8 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			hwnd=GetAncestor(hwnd,GA_ROOT);
 			
 			//Return if window is blacklisted
-			wchar_t title[256];
-			wchar_t classname[256];
-			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-			int i;
-			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
+			if (blacklisted(hwnd,&settings.Blacklist)) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
 			//Get window and desktop size
@@ -621,6 +617,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				GetWindowPlacement(hwnd,&wndpl);
 				wndpl.showCmd=SW_MAXIMIZE;
 				//Also roll-down the window if it's in the roll-up database
+				int i;
 				for (i=0; i < NUMROLLUP; i++) {
 					if (rollup[i].hwnd == hwnd) {
 						//Roll-down window
@@ -730,17 +727,8 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			hwnd=GetAncestor(hwnd,GA_ROOT);
 
 			//Return if window is blacklisted
-			wchar_t title[256];
-			wchar_t classname[256];
-			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-			int i;
-			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
+			if (blacklisted(hwnd,&settings.Blacklist)) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
 			//Minimize window
@@ -754,7 +742,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			return 1;
 		}
 		else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONUP && alt) {
-			//Prevent mousedown from propagating
+			//Prevent mouseup from propagating
 			return 1;
 		}
 		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt) {
@@ -780,17 +768,8 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			hwnd=GetAncestor(hwnd,GA_ROOT);
 
 			//Return if window is blacklisted
-			wchar_t title[256];
-			wchar_t classname[256];
-			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-			int i;
-			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
+			if (blacklisted(hwnd,&settings.Blacklist)) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
 			//Get window and desktop size
@@ -807,6 +786,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			}
 			
 			//Roll-down the window if it's in the roll-up database
+			int i;
 			for (i=0; i < NUMROLLUP; i++) {
 				if (rollup[i].hwnd == hwnd) {
 					//Roll-down window
@@ -988,6 +968,41 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
+int HookMouse() {
+	if (mousehook) {
+		//Mouse already hooked
+		return 1;
+	}
+	
+	//Set up the mouse hook
+	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,LowLevelMouseProc,hinstDLL,0)) == NULL) {
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)",L"",GetLastError(),__LINE__);
+		return 1;
+	}
+	
+	//Success
+	return 0;
+}
+
+int UnhookMouse() {
+	if (!mousehook) {
+		//Mouse not hooked
+		return 1;
+	}
+	
+	//Remove mouse hook
+	if (UnhookWindowsHookEx(mousehook) == 0) {
+		Error(L"UnhookWindowsHookEx(mousehook)",L"",GetLastError(),__LINE__);
+		return 1;
+	}
+	
+	//Success
+	mousehook=NULL;
+	clicktime=0;
+	return 0;
+}
+
+//Msghook
 _declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_WINDOWPOSCHANGING && (shift || sharedsettings.AutoStick)) {
 		WINDOWPOS *wndpos=(WINDOWPOS*)lParam;
@@ -1043,17 +1058,8 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			}
 			
 			//Return if window is blacklisted
-			wchar_t title[256];
-			wchar_t classname[256];
-			GetWindowText(hwnd,title,sizeof(title)/sizeof(wchar_t));
-			GetClassName(hwnd,classname,sizeof(classname)/sizeof(wchar_t));
-			int i;
-			for (i=0; i < numblacklist; i++) {
-				if ((settings.Blacklist[i].title == NULL && !wcscmp(classname,settings.Blacklist[i].classname))
-				 || (settings.Blacklist[i].classname == NULL && !wcscmp(title,settings.Blacklist[i].title))
-				 || (settings.Blacklist[i].title != NULL && settings.Blacklist[i].classname != NULL && !wcscmp(title,settings.Blacklist[i].title) && !wcscmp(classname,settings.Blacklist[i].classname))) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
+			if (blacklisted(hwnd,&settings.Blacklist)) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
 			//Set hwnd
@@ -1071,31 +1077,26 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			}
 			else if (action == SC_SIZE) {
 				msgaction=RESIZE;
-				int edge=msg->wParam&0x000F; //These are the undocumented bits
-				enum {LEFTEDGE=1, RIGHTEDGE=2, TOPEDGE=3, TOPLEFT=4, TOPRIGHT=5, BOTTOMEDGE=6, BOTTOMLEFT=7, BOTTOMRIGHT=8}; //LEFT/RIGHT/TOP/BOTTOM have EDGE appended to avoid conflict with resize_x/resize_y enums
-				//Get info
-				/*POINT pt;
-				pt.x=GET_X_LPARAM(msg->lParam);
-				pt.y=GET_Y_LPARAM(msg->lParam);*/
+				int edge=msg->wParam&0x000F; //These are the undocumented bits (compatible with WMSZ_*)
 				//Set offset
 				//resize_x
-				if (edge == TOPEDGE || edge == BOTTOMEDGE) {
+				if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
 					resize_x=CENTER;
 				}
-				if (edge == LEFTEDGE || edge == TOPLEFT || edge == BOTTOMLEFT) {
+				if (edge == WMSZ_LEFT || edge == WMSZ_TOPLEFT || edge == WMSZ_BOTTOMLEFT) {
 					resize_x=LEFT;
 				}
-				else if (edge == RIGHTEDGE || edge == TOPRIGHT || edge == BOTTOMRIGHT) {
+				else if (edge == WMSZ_RIGHT || edge == WMSZ_TOPRIGHT || edge == WMSZ_BOTTOMRIGHT) {
 					resize_x=RIGHT;
 				}
 				//resize_y
-				if (edge == LEFTEDGE || edge == RIGHTEDGE) {
+				if (edge == WMSZ_LEFT || edge == WMSZ_RIGHT) {
 					resize_y=CENTER;
 				}
-				if (edge == TOPEDGE || edge == TOPLEFT || edge == TOPRIGHT) {
+				if (edge == WMSZ_TOP || edge == WMSZ_TOPLEFT || edge == WMSZ_TOPRIGHT) {
 					resize_y=TOP;
 				}
-				else if (edge == BOTTOMEDGE || edge == BOTTOMLEFT || edge == BOTTOMRIGHT) {
+				else if (edge == WMSZ_BOTTOM || edge == WMSZ_BOTTOMLEFT || edge == WMSZ_BOTTOMRIGHT) {
 					resize_y=BOTTOM;
 				}
 				resize_offset.x=0;
@@ -1104,8 +1105,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 		}
 		
 		if (msg->message == WM_EXITSIZEMOVE && oldwndproc != NULL) {
-			//Remove subclassing
-			//if (SetWindowLongPtr(msg->hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
+			//Restore old WndProc
 			if (SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
 				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)",L"Failed to restore subclassed window to its old wndproc.",GetLastError(),__LINE__);
 			}
@@ -1115,40 +1115,6 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	}
 	
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
-}
-
-int HookMouse() {
-	if (mousehook) {
-		//Mouse already hooked
-		return 1;
-	}
-	
-	//Set up the mouse hook
-	if ((mousehook=SetWindowsHookEx(WH_MOUSE_LL,LowLevelMouseProc,hinstDLL,0)) == NULL) {
-		Error(L"SetWindowsHookEx(WH_MOUSE_LL)",L"",GetLastError(),__LINE__);
-		return 1;
-	}
-	
-	//Success
-	return 0;
-}
-
-int UnhookMouse() {
-	if (!mousehook) {
-		//Mouse not hooked
-		return 1;
-	}
-	
-	//Remove mouse hook
-	if (UnhookWindowsHookEx(mousehook) == 0) {
-		Error(L"UnhookWindowsHookEx(mousehook)",L"",GetLastError(),__LINE__);
-		return 1;
-	}
-	
-	//Success
-	mousehook=NULL;
-	clicktime=0;
-	return 0;
 }
 
 _declspec(dllexport) void ClearSharedSettingsLoaded() {
@@ -1191,9 +1157,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 		//Blacklist
 		GetPrivateProfileString(APP_NAME,L"Blacklist",L"",txt,sizeof(txt)/sizeof(wchar_t),inipath);
-		int *add_numblacklist=&numblacklist, blacklist_alloc=0;
+		int blacklist_alloc=0;
 		wchar_t *pos=txt;
-		struct blacklistitem **add_blacklist=&settings.Blacklist;
+		struct blacklist *add_blacklist=&settings.Blacklist;
 		while (pos != NULL) {
 			wchar_t *title=pos;
 			wchar_t *classname=wcsstr(pos,L"|");
@@ -1207,9 +1173,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				classname++;
 			}
 			//Make sure we have enough space
-			if (*add_numblacklist == blacklist_alloc) {
+			if (add_blacklist->numitems == blacklist_alloc) {
 				blacklist_alloc+=10;
-				*add_blacklist=realloc(*add_blacklist,blacklist_alloc*sizeof(struct blacklistitem));
+				add_blacklist->items=realloc(add_blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
 			}
 			//Allocate memory for title and classname
 			wchar_t *item_title, *item_classname;
@@ -1229,14 +1195,13 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			}
 			//Only store item if it's not empty
 			if (item_title != NULL || item_classname != NULL) {
-				(*add_blacklist)[*add_numblacklist].title=item_title;
-				(*add_blacklist)[*add_numblacklist].classname=item_classname;
-				(*add_numblacklist)++;
+				add_blacklist->items[add_blacklist->numitems].title=item_title;
+				add_blacklist->items[add_blacklist->numitems].classname=item_classname;
+				add_blacklist->numitems++;
 			}
-			//Switch gears to blacklist_sticky?
-			if (pos == NULL && *add_blacklist == settings.Blacklist) {
+			//Switch gears to Blacklist_Sticky?
+			if (pos == NULL && add_blacklist == &settings.Blacklist) {
 				add_blacklist=&settings.Blacklist_Sticky;
-				add_numblacklist=&numblacklist_sticky;
 				blacklist_alloc=0;
 				GetPrivateProfileString(APP_NAME,L"Blacklist_Sticky",L"",txt,sizeof(txt)/sizeof(wchar_t),inipath);
 				pos=txt;
@@ -1250,24 +1215,24 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
-		//Remove subclassing
+		//Restore old WndProc
 		if (oldwndproc != NULL) {
 			SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc);
 		}
 		//Free memory
 		int i;
-		for (i=0; i < numblacklist; i++) {
-			free(settings.Blacklist[i].title);
-			free(settings.Blacklist[i].classname);
+		for (i=0; i < settings.Blacklist.numitems; i++) {
+			free(settings.Blacklist.items[i].title);
+			free(settings.Blacklist.items[i].classname);
 		}
-		for (i=0; i < numblacklist_sticky; i++) {
-			free(settings.Blacklist_Sticky[i].title);
-			free(settings.Blacklist_Sticky[i].classname);
+		settings.Blacklist.numitems=0;
+		free(settings.Blacklist.items);
+		for (i=0; i < settings.Blacklist_Sticky.numitems; i++) {
+			free(settings.Blacklist_Sticky.items[i].title);
+			free(settings.Blacklist_Sticky.items[i].classname);
 		}
-		numblacklist=0;
-		numblacklist_sticky=0;
-		free(settings.Blacklist);
-		free(settings.Blacklist_Sticky);
+		settings.Blacklist_Sticky.numitems=0;
+		free(settings.Blacklist_Sticky.items);
 		free(wnds);
 	}
 	return TRUE;

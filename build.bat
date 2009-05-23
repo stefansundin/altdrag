@@ -10,6 +10,7 @@ gcc -o build\unhook.exe unhook.c
 "build\unhook.exe"
 
 windres -o build\resources.o resources.rc
+windres -o build\resources_hooks.o hooks.rc
 
 if "%1" == "all" (
 	gcc -o build\ini.exe ini.c -lshlwapi
@@ -28,7 +29,7 @@ if "%1" == "all" (
 	if not exist "build\hooks.o" (
 		exit /b
 	)
-	gcc -shared -o "build\en-US\AltDrag\hooks.dll" "build\hooks.o" -lshlwapi
+	gcc -shared -o "build\en-US\AltDrag\hooks.dll" "build\hooks.o" "build\resources_hooks.o" -lshlwapi
 	strip "build\en-US\AltDrag\hooks.dll"
 	
 	for /D %%f in (localization/*) do (
@@ -52,7 +53,7 @@ if "%1" == "all" (
 ) else (
 	gcc -o AltDrag.exe altdrag.c build\resources.o -mwindows -lshlwapi -lwininet -DDEBUG
 	gcc -c -o "build\hooks.o" hooks.c -DDEBUG
-	gcc -shared -o "hooks.dll" "build\hooks.o" -lshlwapi
+	gcc -shared -o "hooks.dll" "build\hooks.o" "build\resources_hooks.o" -lshlwapi
 	
 	if "%1" == "run" (
 		start AltDrag.exe
