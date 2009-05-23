@@ -8,7 +8,7 @@ This is a list of features I want to implement. Feel free to add suggestions in 
 = Version 1.0 =
 I want to finish this before I release 1.0:
   * `ExperimentalFeatures`:
-    * support resizing
+    * ~~support resizing~~ - Done in time for version 0.8.
     * support 64-bit processes
   * Alt shouldn't focus the menu
 
