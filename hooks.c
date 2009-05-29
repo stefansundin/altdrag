@@ -1041,7 +1041,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg=(CWPSTRUCT*)lParam;
 		
-		if (hwnd == NULL && oldwndproc == NULL
+		if (hwnd != msg->hwnd
 		 && !move && !resize
 		 && (msg->message == WM_ENTERSIZEMOVE || msg->message == WM_WINDOWPOSCHANGING)
 		 && (shift || sharedsettings.AutoStick)
@@ -1058,8 +1058,16 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			}
 			
 			//Return if window is blacklisted
-			if (blacklisted(hwnd,&settings.Blacklist)) {
+			if (blacklisted(msg->hwnd,&settings.Blacklist)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Restore old WndProc if another window has already been subclassed
+			if (oldwndproc != NULL) {
+				if (SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
+					Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)",L"Failed to restore subclassed window to its old wndproc.",GetLastError(),__LINE__);
+				}
+				oldwndproc=NULL;
 			}
 			
 			//Set hwnd
@@ -1104,7 +1112,8 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			}
 		}
 		
-		if (msg->message == WM_EXITSIZEMOVE && oldwndproc != NULL) {
+		if ((msg->message == WM_EXITSIZEMOVE || msg->message == WM_DESTROY)
+		 && msg->hwnd == hwnd && oldwndproc != NULL) {
 			//Restore old WndProc
 			if (SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
 				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)",L"Failed to restore subclassed window to its old wndproc.",GetLastError(),__LINE__);
