@@ -25,6 +25,7 @@
 //Some variables must be shared so the CallWndProc hooks can access them
 #define shareattr __attribute__((section ("shared"), shared))
 
+//States
 int alt=0;
 int shift shareattr=0;
 int move shareattr=0;
@@ -34,8 +35,14 @@ unsigned int clicktime=0;
 POINT offset;
 POINT resize_offset;
 enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
-HWND *wnds=NULL;
+
+//Sticky
+RECT *monitors=NULL;
+int nummonitors=0;
+RECT *wnds=NULL;
 int numwnds=0;
+
+//Settings
 struct {
 	int Cursor;
 	int AutoStick;
@@ -131,81 +138,116 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 	return 0;
 }
 
+int monitors_alloc=0;
+BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	//Make sure we have enough space allocated
+	if (nummonitors == monitors_alloc) {
+		monitors_alloc++;
+		if ((monitors=realloc(monitors,monitors_alloc*sizeof(RECT))) == NULL) {
+			Error(L"realloc(monitors)",L"Out of memory?",0,__LINE__);
+			return FALSE;
+		}
+	}
+	//Add monitor
+	monitors[nummonitors++]=*lprcMonitor;
+	return TRUE;
+}
+
 int wnds_alloc=0;
-BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM progman) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
 		wnds_alloc+=20;
-		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+		if ((wnds=realloc(wnds,wnds_alloc*sizeof(RECT))) == NULL) {
 			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			return FALSE;
 		}
 	}
 	//Only store window if it's visible, not minimized to taskbar, not maximized, not the window we are dragging and not blacklisted
-	if (IsWindowVisible(hwnd) && !IsIconic(hwnd) && !IsZoomed(hwnd)
-	 && hwnd != (HWND)lParam && !blacklisted(hwnd,&settings.Blacklist_Sticky)) {
+	RECT wnd;
+	if (window != hwnd && window != (HWND)progman
+	 && IsWindowVisible(window) && !IsIconic(window) && !IsZoomed(window)
+	 && !blacklisted(window,&settings.Blacklist_Sticky)
+	 && GetWindowRect(window,&wnd) != 0
+	) {
 		//Return if the window is in the roll-up database (I want to get used to the roll-ups before deciding if I want this)
 		/*for (i=0; i < NUMROLLUP; i++) {
-			if (rollup[i].hwnd == hwnd) {
+			if (rollup[i].hwnd == window) {
 				return TRUE;
 			}
 		}*/
-		//Add window to wnds
-		wnds[numwnds++]=hwnd;
-	}
-	//If this window is maximized we don't want to stick to any windows that might be under it
-	if (IsZoomed(hwnd)) {
-		return FALSE;
+		//Return if this window is overlapped by another window
+		int i;
+		for (i=0; i < numwnds; i++) {
+			if (wnd.left >= wnds[i].left && wnd.top >= wnds[i].top && wnd.right <= wnds[i].right && wnd.bottom <= wnds[i].bottom) {
+				return TRUE;
+			}
+		}
+		//Add window
+		wnds[numwnds++]=wnd;
 	}
 	return TRUE;
 }
 
 int MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
-	//Reset wnds
+	//Enumerate monitors
+	nummonitors=0;
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+	
+	//Enumerate windows
 	numwnds=0;
-	HWND progman;
-	if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
-		wnds[numwnds++]=progman;
-	}
-	//Populate wnds
 	if (shift || sharedsettings.AutoStick >= 2) {
-		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		HWND progman=FindWindow(L"Progman",L"Program Manager");
+		EnumWindows(EnumWindowsProc, (LPARAM)progman);
 	}
 	else if (sharedsettings.AutoStick == 1) {
 		HWND taskbar;
-		if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
-			wnds[numwnds++]=taskbar;
+		RECT wnd;
+		if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL && GetWindowRect(taskbar,&wnd) != 0) {
+			wnds[numwnds++]=wnd;
 		}
 	}
 	
-	/*//Use this to print the windows in wnds
-	FILE *f=fopen("C:\\altdrag-log.txt","wb");
+	//Use this to print the monitors and windows
+	/*FILE *f=fopen("C:\\altdrag-log.txt","wb");
+	fprintf(f,"nummonitors: %d\n",nummonitors);
+	int k;
+	for (k=0; k < nummonitors; k++) {
+		fprintf(f,"mon #%02d: left %d, top %d, right %d, bottom %d\n",k, monitors[k].left, monitors[k].top, monitors[k].right, monitors[k].bottom);
+	}
+	fprintf(f,"\n");
 	fprintf(f,"numwnds: %d\n",numwnds);
 	char title[100];
 	char classname[100];
-	int j;
-	for (j=0; j < numwnds; j++) {
-		GetWindowTextA(wnds[j],title,100);
-		GetClassNameA(wnds[j],classname,100);
-		RECT wndsize;
-		GetWindowRect(wnds[j],&wndsize);
-		fprintf(f,"wnd #%03d: %s [%s] (%dx%d@%dx%d)\n",j,title,classname,wndsize.right-wndsize.left,wndsize.bottom-wndsize.top,wndsize.left,wndsize.top);
+	for (k=0; k < numwnds; k++) {
+		//GetWindowTextA(wnds[k],title,100);
+		//GetClassNameA(wnds[k],classname,100);
+		//RECT wnd;
+		//GetWindowRect(wnds[k],&wnd);
+		//fprintf(f,"wnd #%02d: %s [%s] (%dx%d @ %dx%d)\n",k,title,classname,wnd.right-wnd.left,wnd.bottom-wnd.top,wnd.left,wnd.top);
+		fprintf(f,"wnd #%02d: %dx%d @ %dx%d\n",k,wnds[k].right-wnds[k].left,wnds[k].bottom-wnds[k].top,wnds[k].left,wnds[k].top);
 	}
 	fclose(f);*/
 	
 	//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
-	int i, thresholdx, thresholdy, stuckx=0, stucky=0, stickx=0, sticky=0;
+	int i, j, thresholdx, thresholdy, stuckx=0, stucky=0, stickx=0, sticky=0;
 	thresholdx=thresholdy=STICKY_THRESHOLD;
-	//Loop windows
-	for (i=0; i < numwnds; i++) {
+	//Loop monitors and windows
+	for (i=0, j=0; i < nummonitors || j < numwnds; ) {
 		RECT stickywnd;
-		if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-			//Error(L"GetWindowRect()",L"MoveStick()",GetLastError(),__LINE__);
-			continue;
-		}
+		int stickinside;
 		
-		//Decide if this window should stick inside
-		int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
+		//Get stickywnd
+		if (i < nummonitors) {
+			stickywnd=monitors[i];
+			stickinside=1;
+			i++;
+		}
+		else if (j < numwnds) {
+			stickywnd=wnds[j];
+			stickinside=(shift || sharedsettings.AutoStick != 2);
+			j++;
+		}
 		
 		//Check if posx sticks
 		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
@@ -319,38 +361,43 @@ void MoveWnd() {
 }
 
 int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
-	//Reset wnds
+	//Enumerate monitors
+	nummonitors=0;
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+	
+	//Enumerate windows
 	numwnds=0;
-	HWND progman;
-	if ((progman=FindWindow(L"Progman",L"Program Manager")) != NULL) {
-		wnds[numwnds++]=progman;
-	}
-	//Populate wnds
 	if (shift || sharedsettings.AutoStick >= 2) {
-		EnumWindows(EnumWindowsProc,(LPARAM)hwnd);
+		HWND progman=FindWindow(L"Progman",L"Program Manager");
+		EnumWindows(EnumWindowsProc, (LPARAM)progman);
 	}
 	else if (sharedsettings.AutoStick == 1) {
 		HWND taskbar;
-		if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL) {
-			wnds[numwnds++]=taskbar;
+		RECT wnd;
+		if ((taskbar=FindWindow(L"Shell_TrayWnd",NULL)) != NULL && GetWindowRect(taskbar,&wnd) != 0) {
+			wnds[numwnds++]=wnd;
 		}
 	}
 	
 	//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
-	int i, thresholdx, thresholdy, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
+	int i, j, thresholdx, thresholdy, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
 	thresholdx=thresholdy=STICKY_THRESHOLD;
-	//How should the windows stick?
-	int stickinside=(shift || sharedsettings.AutoStick != 2);
-	//Loop windows
-	for (i=0; i < numwnds; i++) {
+	//Loop monitors and windows
+	for (i=0, j=0; i < nummonitors || j < numwnds; ) {
 		RECT stickywnd;
-		if (GetWindowRect(wnds[i],&stickywnd) == 0) {
-			//Error(L"GetWindowRect()",L"ResizeStick()",GetLastError(),__LINE__);
-			continue;
-		}
+		int stickinside;
 		
-		//Decide if this window should stick inside
-		int stickinside=(shift || sharedsettings.AutoStick != 2 || wnds[i] == progman);
+		//Get stickywnd
+		if (i < nummonitors) {
+			stickywnd=monitors[i];
+			stickinside=1;
+			i++;
+		}
+		else if (j < numwnds) {
+			stickywnd=wnds[j];
+			stickinside=(shift || sharedsettings.AutoStick != 2);
+			j++;
+		}
 		
 		//Check if posx sticks
 		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
@@ -510,16 +557,28 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			if (!alt && (vkey == VK_LMENU || vkey == VK_RMENU)) {
 				alt=1;
 				clicktime=0; //Reset double-click time
-				//Get window and desktop size and return if the window is fullscreen, if the window is not the desktop itself
+				//Return if the window is fullscreen
 				HWND window=GetForegroundWindow();
 				HWND progman;
-				if ((progman=FindWindow(L"Progman",L"Program Manager")) == NULL || window != progman) {
-					RECT win, desk;
-					GetWindowRect(window,&win);
-					GetWindowRect(GetDesktopWindow(),&desk);
-					if (win.left == desk.left && win.top == desk.top && win.right == desk.right && win.bottom == desk.bottom) {
-						return CallNextHookEx(NULL, nCode, wParam, lParam);
-					}
+				if (!(GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION)
+				 && ((progman=FindWindow(L"Progman",L"Program Manager")) == NULL || window != progman)) {
+					//Enumerate monitors
+					nummonitors=0;
+					EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+					//if (nummonitors == 1) {
+						//Get window size
+						RECT wnd;
+						if (GetWindowRect(window,&wnd) == 0) {
+							Error(L"GetWindowRect(&wnd)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+						}
+						//Return if the window is fullscreen
+						int i;
+						for (i=0; i < nummonitors; i++) {
+							if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
+								return CallNextHookEx(NULL, nCode, wParam, lParam);
+							}
+						}
+					//}
 				}
 				//Hook mouse
 				HookMouse();
@@ -595,17 +654,22 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
-			//Get window and desktop size
-			RECT window, desktop;
-			if (GetWindowRect(hwnd,&window) == 0) {
-				Error(L"GetWindowRect(&window)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+			//Get window size
+			RECT wnd;
+			if (GetWindowRect(hwnd,&wnd) == 0) {
+				Error(L"GetWindowRect(&wnd)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 			}
-			if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-				Error(L"GetWindowRect(&desktop)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-			}
+			//Enumerate monitors
+			nummonitors=0;
+			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
 			//Return if the window is fullscreen
-			if (window.left == desktop.left && window.top == desktop.top && window.right == desktop.right && window.bottom == desktop.bottom) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			int i;
+			if (!(GetWindowLongPtr(hwnd,GWL_STYLE)&WS_CAPTION)) {
+				for (i=0; i < nummonitors; i++) {
+					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+				}
 			}
 			
 			//Check if this is a double-click
@@ -617,11 +681,10 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				GetWindowPlacement(hwnd,&wndpl);
 				wndpl.showCmd=SW_MAXIMIZE;
 				//Also roll-down the window if it's in the roll-up database
-				int i;
 				for (i=0; i < NUMROLLUP; i++) {
 					if (rollup[i].hwnd == hwnd) {
 						//Roll-down window
-						RECT normalpos={window.left, window.top, window.left+rollup[i].width, window.top+rollup[i].height};
+						RECT normalpos={wnd.left, wnd.top, wnd.left+rollup[i].width, wnd.top+rollup[i].height};
 						wndpl.rcNormalPosition=normalpos;
 						//Remove window from database
 						rollup[i].hwnd=NULL;
@@ -650,14 +713,14 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					SetWindowPlacement(hwnd,&wndpl);
 					
 					//Get new pos and size
-					RECT newwindow;
-					if (GetWindowRect(hwnd,&newwindow) == 0) {
+					RECT newwnd;
+					if (GetWindowRect(hwnd,&newwnd) == 0) {
 						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
 					
 					//Set offset
-					offset.x=(float)(pt.x-window.left)/(window.right-window.left)*(newwindow.right-newwindow.left);
-					offset.y=(float)(pt.y-window.top)/(window.bottom-window.top)*(newwindow.bottom-newwindow.top);
+					offset.x=(float)(pt.x-wnd.left)/(wnd.right-wnd.left)*(newwnd.right-newwnd.left);
+					offset.y=(float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*(newwnd.bottom-newwnd.top);
 					
 					//Move
 					MoveWnd();
@@ -667,8 +730,8 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					clicktime=GetTickCount();
 					
 					//Set offset
-					offset.x=pt.x-window.left;
-					offset.y=pt.y-window.top;
+					offset.x=pt.x-wnd.left;
+					offset.y=pt.y-wnd.top;
 				}
 				//Show cursorwnd
 				if (sharedsettings.Cursor) {
@@ -772,25 +835,29 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
-			//Get window and desktop size
-			RECT window, desktop;
-			if (GetWindowRect(hwnd,&window) == 0) {
-				Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+			//Get window size
+			RECT wnd;
+			if (GetWindowRect(hwnd,&wnd) == 0) {
+				Error(L"GetWindowRect(&wnd)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 			}
-			if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-				Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-			}
+			//Enumerate monitors
+			nummonitors=0;
+			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
 			//Return if the window is fullscreen
-			if (window.left == desktop.left && window.top == desktop.top && window.right == desktop.right && window.bottom == desktop.bottom) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			int i;
+			if (!(GetWindowLongPtr(hwnd,GWL_STYLE)&WS_CAPTION)) {
+				for (i=0; i < nummonitors; i++) {
+					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+				}
 			}
 			
 			//Roll-down the window if it's in the roll-up database
-			int i;
 			for (i=0; i < NUMROLLUP; i++) {
 				if (rollup[i].hwnd == hwnd) {
 					//Roll-down window
-					if (MoveWindow(hwnd, window.left, window.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
+					if (MoveWindow(hwnd, wnd.left, wnd.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
 						Error(L"MoveWindow()",L"When rolling down window",GetLastError(),__LINE__);
 					}
 					//Remove window from database
@@ -805,15 +872,15 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				//Alt+middle-double-clicking a window makes it roll-up
 				//Store window size
 				rollup[rolluppos].hwnd=hwnd;
-				rollup[rolluppos].width=window.right-window.left;
-				rollup[rolluppos].height=window.bottom-window.top;
+				rollup[rolluppos].width=wnd.right-wnd.left;
+				rollup[rolluppos].height=wnd.bottom-wnd.top;
 				rolluppos=(rolluppos+1)%NUMROLLUP;
 				//Roll-up window
-				if (MoveWindow(hwnd, window.left, window.top, window.right-window.left, 30, TRUE) == 0) {
+				if (MoveWindow(hwnd, wnd.left, wnd.top, wnd.right-wnd.left, 30, TRUE) == 0) {
 					Error(L"MoveWindow()",L"Roll-up",GetLastError(),__LINE__);
 				}
 				//Stop resize action
-				resize=0;
+				resize=1;
 				//Hide cursorwnd
 				if (sharedsettings.Cursor) {
 					ShowWindow(cursorwnd,SW_HIDE);
@@ -830,64 +897,57 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					wndpl.length=sizeof(WINDOWPLACEMENT);
 					GetWindowPlacement(hwnd,&wndpl);
 					wndpl.showCmd=SW_RESTORE;
-					//New size
-					RECT normalpos={desktop.left,desktop.top,desktop.right,desktop.bottom};
-					//Compensate for taskbar
-					RECT taskbar;
-					if (GetWindowRect(FindWindow(L"Shell_TrayWnd",NULL),&taskbar)) {
-						if (taskbar.left == desktop.left && taskbar.right == desktop.right) {
-							//Taskbar is on the bottom or top position, adjust height
-							normalpos.bottom-=taskbar.bottom-taskbar.top;
-						}
-						else if (taskbar.top == desktop.top && taskbar.bottom == desktop.bottom) {
-							//Taskbar is on the left or right position, adjust width
-							normalpos.right-=taskbar.right-taskbar.left;
-						}
+					//Get new size
+					HMONITOR monitor=MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+					MONITORINFO monitorinfo;
+					monitorinfo.cbSize=sizeof(MONITORINFO);
+					if (GetMonitorInfo(monitor, &monitorinfo) == FALSE) {
+						Error(L"GetMonitorInfo(monitor)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
 					}
-					wndpl.rcNormalPosition=normalpos;
+					wndpl.rcNormalPosition=monitorinfo.rcWork;
+					//Update window
 					SetWindowPlacement(hwnd,&wndpl);
-					//Get new window size
-					GetWindowRect(hwnd,&window);
+					wnd=monitorinfo.rcWork;
 				}
 				//Set edge and offset
-				if (window.bottom-window.top < 60) {
+				if (wnd.bottom-wnd.top < 60) {
 					//This is a very thin window
 					resize_y=BOTTOM;
-					resize_offset.y=window.bottom-pt.y;
-					if (pt.x-window.left < (window.right-window.left)/3) {
+					resize_offset.y=wnd.bottom-pt.y;
+					if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
 						resize_x=LEFT;
-						resize_offset.x=pt.x-window.left;
+						resize_offset.x=pt.x-wnd.left;
 					}
 					else {
 						resize_x=RIGHT;
-						resize_offset.x=window.right-pt.x;
+						resize_offset.x=wnd.right-pt.x;
 					}
 				}
 				else {
 					//Think of the window as nine boxes
-					if (pt.y-window.top < (window.bottom-window.top)/3) {
+					if (pt.y-wnd.top < (wnd.bottom-wnd.top)/3) {
 						resize_y=TOP;
-						resize_offset.y=pt.y-window.top;
+						resize_offset.y=pt.y-wnd.top;
 					}
-					else if (pt.y-window.top < (window.bottom-window.top)*2/3) {
+					else if (pt.y-wnd.top < (wnd.bottom-wnd.top)*2/3) {
 						resize_y=CENTER;
 						resize_offset.y=pt.y; //Used only if both x and y are CENTER
 					}
 					else {
 						resize_y=BOTTOM;
-						resize_offset.y=window.bottom-pt.y;
+						resize_offset.y=wnd.bottom-pt.y;
 					}
-					if (pt.x-window.left < (window.right-window.left)/3) {
+					if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
 						resize_x=LEFT;
-						resize_offset.x=pt.x-window.left;
+						resize_offset.x=pt.x-wnd.left;
 					}
-					else if (pt.x-window.left < (window.right-window.left)*2/3) {
+					else if (pt.x-wnd.left < (wnd.right-wnd.left)*2/3) {
 						resize_x=CENTER;
 						resize_offset.x=pt.x; //Used only if both x and y are CENTER
 					}
 					else {
 						resize_x=RIGHT;
-						resize_offset.x=window.right-pt.x;
+						resize_offset.x=wnd.right-pt.x;
 					}
 				}
 				//Show cursorwnd
@@ -929,7 +989,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				return 1;
 			}
 		}
-		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && resize) {
+		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && (alt || resize)) {
 			resize=0;
 			if (!alt) {
 				UnhookMouse();
@@ -944,7 +1004,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 		}
 		else if (wParam == WM_MOUSEMOVE) {
 			//Reset double-click time
-			clicktime=0; //This prevents me from double-clicking in Windows 7 (running virtualized). Apparently double-click still works on non-virtualized Windows 7.
+			clicktime=0; //This prevents me from double-clicking when running Windows virtualized.
 			if (move || resize) {
 				//Move cursorwnd
 				if (sharedsettings.Cursor) {
@@ -1218,7 +1278,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 		//Allocate space for wnds
 		wnds_alloc+=5;
-		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
+		if ((wnds=realloc(wnds,wnds_alloc*sizeof(RECT))) == NULL) {
 			Error(L"realloc(wnds)",L"Out of memory?",0,__LINE__);
 			return FALSE;
 		}
