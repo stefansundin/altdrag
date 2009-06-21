@@ -70,7 +70,7 @@ int update=0;
 struct {
 	int CheckForUpdate;
 } settings={0};
-wchar_t txt[1000];
+wchar_t txt[2000];
 
 //Cool stuff
 HINSTANCE hinstDLL=NULL;
@@ -78,6 +78,7 @@ HHOOK mousehook=NULL;
 HWND cursorwnd=NULL;
 HWND *wnds=NULL;
 int numwnds=0;
+int find=0;
 
 //Error message handling
 int showerror=1;
@@ -85,8 +86,8 @@ int showerror=1;
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
 		//Edit the caption of the buttons
-		SetDlgItemText((HWND)wParam,IDYES,L"Copy error");
-		SetDlgItemText((HWND)wParam,IDNO,L"OK");
+		SetDlgItemText((HWND)wParam, IDYES, L"Copy error");
+		SetDlgItemText((HWND)wParam, IDNO,  L"OK");
 	}
 	return 0;
 }
@@ -283,13 +284,14 @@ void ShowContextMenu(HWND hwnd) {
 }
 
 int UpdateTray() {
-	int tries=0; //Try at least five times (required on some slow systems when the program is on autostart since explorer hasn't initialized the tray area yet)
+	int tries=0; //Try at least ten times, sleep 100 ms between
 	while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
 		tries++;
-		if (tray_added || tries >= 5) {
+		if (tries >= 10) {
 			Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)",L"Failed to update tray icon.",GetLastError(),__LINE__);
 			return 1;
 		}
+		Sleep(100);
 	}
 	
 	//Success
@@ -316,8 +318,8 @@ int RemoveTray() {
 LRESULT CALLBACK WndDetailsMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
 		//Edit the caption of the buttons
-		SetDlgItemText((HWND)wParam,IDYES,L"Copy");
-		SetDlgItemText((HWND)wParam,IDNO,L"OK");
+		SetDlgItemText((HWND)wParam, IDYES, L"Copy");
+		SetDlgItemText((HWND)wParam, IDNO,  L"OK");
 	}
 	return 0;
 }
@@ -328,7 +330,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	HWND hwnd_component, hwnd;
 	if ((hwnd_component=WindowFromPoint(pt)) == NULL) {
 		#ifdef DEBUG
-		Error(L"WindowFromPoint()",L"GetWindows()",GetLastError(),__LINE__);
+		Error(L"WindowFromPoint()",L"FindWnd()",GetLastError(),__LINE__);
 		#endif
 	}
 	hwnd=GetAncestor(hwnd_component,GA_ROOT);
@@ -337,7 +339,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
 		#ifdef DEBUG
-		Error(L"GetWindowRect()",L"MoveWnd()",GetLastError(),__LINE__);
+		Error(L"GetWindowRect()",L"FindWnd()",GetLastError(),__LINE__);
 		#endif
 	}
 	POINT pt_child;
@@ -346,7 +348,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	HWND hwnd_child;
 	if ((hwnd_child=ChildWindowFromPoint(hwnd,pt_child)) == NULL) {
 		#ifdef DEBUG
-		Error(L"ChildWindowFromPoint()",L"GetWindows()",GetLastError(),__LINE__);
+		Error(L"ChildWindowFromPoint()",L"FindWnd()",GetLastError(),__LINE__);
 		#endif
 	}
 	
@@ -360,7 +362,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	GetWindowText(hwnd_component,title_component,sizeof(title_component)/sizeof(wchar_t));
 	GetClassName(hwnd_component,classname_component,sizeof(classname_component)/sizeof(wchar_t));
 	
-	//Show message
+	//Assemble message
 	swprintf(txt,L"Window:\n title: %s\n class: %s",title,classname);
 	if (hwnd_child != hwnd) {
 		swprintf(txt,L"%s\n\nChild:\n title: %s\n class: %s",txt,title_child,classname_child);
@@ -368,8 +370,10 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	if (hwnd_component != hwnd_child && hwnd_component != hwnd) {
 		swprintf(txt,L"%s\n\nComponent:\n title: %s\n class: %s",txt,title_component,classname_component);
 	}
+	swprintf(txt,L"%s\n\nExample blacklist rule for window:\n%s|%s",txt,title,classname);
+	//Show message
 	HHOOK hhk=SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
-	int response=MessageBox(NULL, txt, l10n->wnddetails, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
+	int response=MessageBox(NULL, txt, l10n->wnddetails, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2|MB_SYSTEMMODAL);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
@@ -433,12 +437,12 @@ void FindAllWnds() {
 //Hooks
 _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
-		if (wParam == WM_LBUTTONDOWN) {
+		if (wParam == WM_LBUTTONDOWN && find) {
 			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
 			
 			//Make sure cursorwnd isn't in the way
-			ShowWindow(cursorwnd,SW_HIDE);
-			SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			ShowWindow(cursorwnd, SW_HIDE);
+			SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			
 			//Print window info
 			POINT *p_pt=malloc(sizeof(pt));
@@ -452,10 +456,15 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			return 1;
 		}
 		else if (wParam == WM_RBUTTONDOWN) {
+			//Disable mouse
+			DisableMouse();
+			//Prevent mousedown from propagating
+			return 1;
+		}
+		else if (wParam == WM_RBUTTONUP) {
 			//Unhook mouse
 			UnhookMouse();
-			
-			//Prevent mousedown from propagating (this won't have any effect since the hook is removed by now)
+			//Prevent mouseup from propagating
 			return 1;
 		}
 	}
@@ -491,26 +500,23 @@ int HookMouse() {
 	}
 	
 	//Show cursor
-	RECT desktop;
-	if (GetWindowRect(GetDesktopWindow(),&desktop) == 0) {
-		#ifdef DEBUG
-		Error(L"GetWindowRect(GetDesktopWindow())",L"HookMouse()",GetLastError(),__LINE__);
-		#endif
-	}
-	MoveWindow(cursorwnd,desktop.left,desktop.top,desktop.right-desktop.left,desktop.bottom-desktop.top,FALSE);
-	SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-	SetLayeredWindowAttributes(cursorwnd,0,1,LWA_ALPHA); //Almost transparent
-	ShowWindowAsync(cursorwnd,SW_SHOWNA);
+	int left=GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int top=GetSystemMetrics(SM_YVIRTUALSCREEN);
+	int width=GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	int height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	MoveWindow(cursorwnd, left, top, width, height, FALSE);
+	SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+	SetLayeredWindowAttributes(cursorwnd, 0, 1, LWA_ALPHA); //Almost transparent
+	ShowWindowAsync(cursorwnd, SW_SHOWNA);
 	
 	//Success
+	find=1;
 	return 0;
 }
 
-int UnhookMouse() {
-	if (!mousehook) {
-		//Mouse not hooked
-		return 1;
-	}
+DWORD WINAPI DelayedUnhookMouse() {
+	//Sleep so mouse events have time to be canceled
+	Sleep(100);
 	
 	//Unhook the mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
@@ -520,13 +526,33 @@ int UnhookMouse() {
 		return 1;
 	}
 	
-	//Hide cursor
-	ShowWindow(cursorwnd,SW_HIDE);
-	SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-	
 	//Success
 	mousehook=NULL;
+}
+
+int UnhookMouse() {
+	if (!mousehook) {
+		//Mouse not hooked
+		return 1;
+	}
+	
+	//Disable
+	DisableMouse();
+	
+	//Unhook
+	CreateThread(NULL,0,DelayedUnhookMouse,NULL,0,NULL);
+	
+	//Success
 	return 0;
+}
+
+int DisableMouse() {
+	//Disable
+	find=0;
+	
+	//Hide cursor
+	ShowWindow(cursorwnd, SW_HIDE);
+	SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
