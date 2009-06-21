@@ -91,8 +91,8 @@ int showerror=1;
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
 		//Edit the caption of the buttons
-		SetDlgItemText((HWND)wParam,IDYES,L"Copy error");
-		SetDlgItemText((HWND)wParam,IDNO,L"OK");
+		SetDlgItemText((HWND)wParam, IDYES, L"Copy error");
+		SetDlgItemText((HWND)wParam, IDNO,  L"OK");
 	}
 	return 0;
 }
@@ -371,11 +371,11 @@ int UpdateTray() {
 		int tries=0; //Try at least ten times, sleep 100 ms between each attempt
 		while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
 			tries++;
-			Sleep(100);
 			if (tries >= 10) {
 				Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)",L"Failed to update tray icon.",GetLastError(),__LINE__);
 				return 1;
 			}
+			Sleep(100);
 		}
 		
 		//Success
