@@ -163,10 +163,10 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM progman) {
 			return FALSE;
 		}
 	}
-	//Only store window if it's visible, not minimized to taskbar, not maximized, not the window we are dragging and not blacklisted
+	//Only store window if it's visible, not minimized to taskbar, not the window we are dragging and not blacklisted
 	RECT wnd;
 	if (window != hwnd && window != (HWND)progman
-	 && IsWindowVisible(window) && !IsIconic(window) && !IsZoomed(window)
+	 && IsWindowVisible(window) && !IsIconic(window)
 	 && !blacklisted(window,&settings.Blacklist_Sticky)
 	 && GetWindowRect(window,&wnd) != 0
 	) {
@@ -176,6 +176,15 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM progman) {
 				return TRUE;
 			}
 		}*/
+		//If maximized, then this window covers the whole monitor
+		//I do this since the window has an extra, invisible, border when maximized
+		if (IsZoomed(window)) {
+			HMONITOR monitor=MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+			MONITORINFO monitorinfo;
+			monitorinfo.cbSize=sizeof(MONITORINFO);
+			GetMonitorInfo(monitor, &monitorinfo);
+			wnd=monitorinfo.rcWork;
+		}
 		//Return if this window is overlapped by another window
 		int i;
 		for (i=0; i < numwnds; i++) {
@@ -557,7 +566,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			if (!alt && (vkey == VK_LMENU || vkey == VK_RMENU)) {
 				alt=1;
 				clicktime=0; //Reset double-click time
-				//Return if the window is fullscreen
+				//Check if the foreground window is fullscreen
 				HWND window=GetForegroundWindow();
 				HWND progman;
 				if (!(GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION)
@@ -565,20 +574,26 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 					//Enumerate monitors
 					nummonitors=0;
 					EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
-					//if (nummonitors == 1) {
-						//Get window size
-						RECT wnd;
-						if (GetWindowRect(window,&wnd) == 0) {
-							Error(L"GetWindowRect(&wnd)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-						}
+					//Get window size
+					RECT wnd;
+					if (GetWindowRect(window,&wnd) == 0) {
+						Error(L"GetWindowRect(&wnd)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+					}
+					/*
+					if (nummonitors == 1) {
 						//Return if the window is fullscreen
-						int i;
-						for (i=0; i < nummonitors; i++) {
-							if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
-								return CallNextHookEx(NULL, nCode, wParam, lParam);
-							}
+						if (wnd.left == monitors[0].left && wnd.top == monitors[0].top && wnd.right == monitors[0].right && wnd.bottom == monitors[0].bottom) {
+							return CallNextHookEx(NULL, nCode, wParam, lParam);
 						}
-					//}
+					}
+					*/
+					//Return if the window is fullscreen
+					int i;
+					for (i=0; i < nummonitors; i++) {
+						if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
+							return CallNextHookEx(NULL, nCode, wParam, lParam);
+						}
+					}
 				}
 				//Hook mouse
 				HookMouse();
