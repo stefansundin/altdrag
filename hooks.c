@@ -35,6 +35,7 @@ unsigned int clicktime=0;
 POINT offset;
 POINT resize_offset;
 enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
+int blockshift=0;
 
 //Sticky
 RECT *monitors=NULL;
@@ -608,7 +609,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 						ResizeWnd();
 					}
 				}
-				if (move) {
+				if (alt && blockshift) {
 					//Block keypress to prevent Windows from changing keyboard layout
 					return 1;
 				}
@@ -627,6 +628,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift=0;
+				blockshift=0;
 				if (move) {
 					MoveWnd();
 				}
@@ -760,6 +762,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				}
 				//Ready to move window
 				move=1;
+				blockshift=1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
