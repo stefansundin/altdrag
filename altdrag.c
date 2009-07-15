@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x0501
 #define _WIN32_IE 0x0600
 #include <windows.h>
 #include <shlwapi.h>
@@ -76,7 +76,7 @@ int hide=0;
 int update=0;
 struct {
 	int CheckForUpdate;
-	int ExperimentalFeatures;
+	int HookWindows;
 } settings={0,0};
 wchar_t txt[1000];
 
@@ -280,7 +280,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	HookSystem();
 	
 	//Add tray if hook failed, even though -hide was supplied
-	if (hide && (!keyhook || (settings.ExperimentalFeatures && !msghook))) {
+	if (hide && (!keyhook || (settings.HookWindows && !msghook))) {
 		hide=0;
 		UpdateTray();
 	}
@@ -470,7 +470,7 @@ int HookSystem() {
 		}
 	}
 	
-	if (!msghook && settings.ExperimentalFeatures) {
+	if (!msghook && settings.HookWindows) {
 		//Get address to message hook (beware name mangling)
 		if ((procaddr=(HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc@12")) == NULL) {
 			Error(L"GetProcAddress('CallWndProc@12')",L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.",GetLastError(),__LINE__);
@@ -481,6 +481,14 @@ int HookSystem() {
 			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)",L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),__LINE__);
 			return 1;
 		}
+		
+		//x64
+		/*BOOL x64;
+		IsWow64Process(GetCurrentProcess(),&x64);
+		if (x64) {
+			//Maybe use CreateProcess()
+			ShellExecute(NULL, L"open", L"HookWindows_x64.exe", NULL, NULL, SW_SHOWNORMAL);
+		}*/
 	}
 	
 	//Success
@@ -562,9 +570,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
 		PathRenameExtension(path,L".ini");
-		//ExperimentalFeatures
-		GetPrivateProfileString(APP_NAME,L"ExperimentalFeatures",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-		swscanf(txt,L"%d",&settings.ExperimentalFeatures);
+		//HookWindows
+		GetPrivateProfileString(APP_NAME,L"HookWindows",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
+		swscanf(txt,L"%d",&settings.HookWindows);
 		//Language
 		GetPrivateProfileString(APP_NAME,L"Language",L"en-US",txt,sizeof(txt)/sizeof(wchar_t),path);
 		int i;
