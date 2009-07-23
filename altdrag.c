@@ -447,7 +447,6 @@ int HookSystem() {
 	if (!hinstDLL) {
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
-		PathRenameExtension(path,L".ini");
 		PathRemoveFileSpec(path);
 		wcscat(path,L"\\hooks.dll");
 		if ((hinstDLL=LoadLibrary(path)) == NULL) {
