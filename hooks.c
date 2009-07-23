@@ -1071,6 +1071,7 @@ int UnhookMouse() {
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
 		Error(L"UnhookWindowsHookEx(mousehook)",L"",GetLastError(),__LINE__);
+		mousehook=NULL;
 		return 1;
 	}
 	
@@ -1141,7 +1142,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			}
 			
 			//Restore old WndProc if another window has already been subclassed
-			if (oldwndproc != NULL) {
+			if (oldwndproc != NULL && IsWindow(hwnd)) {
 				if (SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc) == 0) {
 					Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)",L"Failed to restore subclassed window to its old wndproc.",GetLastError(),__LINE__);
 				}
@@ -1303,7 +1304,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
 		//Restore old WndProc
-		if (oldwndproc != NULL) {
+		if (oldwndproc != NULL && IsWindow(hwnd)) {
 			SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc);
 		}
 		//Free memory
