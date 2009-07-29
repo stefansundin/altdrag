@@ -644,8 +644,64 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 
 _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
-		if (wParam == WM_LBUTTONDOWN && alt && !move) {
-			//Double check if the left alt key is being pressed
+		if (wParam == WM_MOUSEMOVE) {
+			//Reset double-click time
+			clicktime=0; //This prevents me from double-clicking when running Windows virtualized.
+			if (move || resize) {
+				//Move cursorwnd
+				if (sharedsettings.Cursor) {
+					POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
+					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,TRUE);
+					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+				}
+				//Move or resize
+				if (move) {
+					//Move window
+					MoveWnd();
+				}
+				else if (resize) {
+					//Resize window
+					ResizeWnd();
+				}
+			}
+		}
+		else if (wParam == WM_LBUTTONUP && move) {
+			move=0;
+			if (!alt) {
+				UnhookMouse();
+			}
+			//Hide cursorwnd
+			if (sharedsettings.Cursor) {
+				if (resize) {
+					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[resizecursor]);
+				}
+				else {
+					ShowWindow(cursorwnd,SW_HIDE);
+					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+				}
+			}
+			//Prevent mouseup from propagating
+			return 1;
+		}
+		else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONUP && alt) {
+			//Prevent mouseup from propagating
+			return 1;
+		}
+		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && (alt || resize)) {
+			resize=0;
+			if (!alt) {
+				UnhookMouse();
+			}
+			//Hide cursorwnd
+			if (sharedsettings.Cursor && !move) {
+				ShowWindow(cursorwnd,SW_HIDE);
+				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			}
+			//Prevent mouseup from propagating
+			return 1;
+		}
+		else if (alt && (wParam == WM_LBUTTONDOWN || wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN)) {
+			//Double check if any alt key is being pressed
 			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt=0;
 				UnhookMouse();
@@ -689,37 +745,39 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				}
 			}
 			
-			//Check if this is a double-click
-			if (GetTickCount()-clicktime <= GetDoubleClickTime()) {
-				//Alt+double-clicking a window maximizes it
-				//Maximize window
-				WINDOWPLACEMENT wndpl;
-				wndpl.length=sizeof(WINDOWPLACEMENT);
-				GetWindowPlacement(hwnd,&wndpl);
-				wndpl.showCmd=SW_MAXIMIZE;
-				//Also roll-down the window if it's in the roll-up database
-				for (i=0; i < NUMROLLUP; i++) {
-					if (rollup[i].hwnd == hwnd) {
-						//Roll-down window
-						RECT normalpos={wnd.left, wnd.top, wnd.left+rollup[i].width, wnd.top+rollup[i].height};
-						wndpl.rcNormalPosition=normalpos;
-						//Remove window from database
-						rollup[i].hwnd=NULL;
+			//Do things depending on what button was pressed
+			if (wParam == WM_LBUTTONDOWN) {
+				//Maximize window if this is a double-click
+				if (GetTickCount()-clicktime <= GetDoubleClickTime()) {
+					//Alt+double-clicking a window maximizes it
+					//Maximize window
+					WINDOWPLACEMENT wndpl;
+					wndpl.length=sizeof(WINDOWPLACEMENT);
+					GetWindowPlacement(hwnd,&wndpl);
+					wndpl.showCmd=SW_MAXIMIZE;
+					//Also roll-down the window if it's in the roll-up database
+					for (i=0; i < NUMROLLUP; i++) {
+						if (rollup[i].hwnd == hwnd) {
+							//Roll-down window
+							RECT normalpos={wnd.left, wnd.top, wnd.left+rollup[i].width, wnd.top+rollup[i].height};
+							wndpl.rcNormalPosition=normalpos;
+							//Remove window from database
+							rollup[i].hwnd=NULL;
+						}
 					}
+					SetWindowPlacement(hwnd,&wndpl);
+					//Stop move action
+					move=0;
+					//Hide cursorwnd
+					if (sharedsettings.Cursor) {
+						ShowWindow(cursorwnd,SW_HIDE);
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+						//Maybe show IDC_SIZEALL cursor here really quick somehow?
+					}
+					//Prevent mousedown from propagating
+					return 1;
 				}
-				SetWindowPlacement(hwnd,&wndpl);
-				//Stop move action
-				move=0;
-				//Hide cursorwnd
-				if (sharedsettings.Cursor) {
-					ShowWindow(cursorwnd,SW_HIDE);
-					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-					//Maybe show IDC_SIZEALL cursor here really quick somehow?
-				}
-				//Prevent mousedown from propagating
-				return 1;
-			}
-			else {
+				
 				//Restore the window if it's maximized
 				if (IsZoomed(hwnd)) {
 					//Restore window
@@ -766,148 +824,55 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				//Prevent mousedown from propagating
 				return 1;
 			}
-		}
-		else if (wParam == WM_LBUTTONUP && move) {
-			move=0;
-			if (!alt) {
-				UnhookMouse();
-			}
-			//Hide cursorwnd
-			if (sharedsettings.Cursor) {
-				if (resize) {
-					SetClassLongPtr(cursorwnd,GCLP_HCURSOR,(LONG_PTR)cursor[resizecursor]);
-				}
-				else {
-					ShowWindow(cursorwnd,SW_HIDE);
-					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-				}
-			}
-			//Prevent mouseup from propagating
-			return 1;
-		}
-		else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONDOWN && alt) {
-			//Double check if the left alt key is being pressed
-			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
-				alt=0;
-				UnhookMouse();
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Alt key is still being pressed
-			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-			
-			//Make sure cursorwnd isn't in the way
-			if (sharedsettings.Cursor) {
-				ShowWindow(cursorwnd,SW_HIDE);
-			}
-			
-			//Get window
-			if ((hwnd=WindowFromPoint(pt)) == NULL) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			hwnd=GetAncestor(hwnd,GA_ROOT);
-
-			//Return if window is blacklisted
-			if (blacklisted(hwnd,&settings.Blacklist)) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Minimize window
-			WINDOWPLACEMENT wndpl;
-			wndpl.length=sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(hwnd,&wndpl);
-			wndpl.showCmd=SW_MINIMIZE;
-			SetWindowPlacement(hwnd,&wndpl);
-			
-			//Prevent mousedown from propagating
-			return 1;
-		}
-		else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONUP && alt) {
-			//Prevent mouseup from propagating
-			return 1;
-		}
-		else if ((wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN) && alt) {
-			//Double check if the left alt key is being pressed
-			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
-				alt=0;
-				UnhookMouse();
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Alt key is still being pressed
-			POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-			
-			//Make sure cursorwnd isn't in the way
-			if (sharedsettings.Cursor) {
-				ShowWindow(cursorwnd,SW_HIDE);
-			}
-			
-			//Get window
-			if ((hwnd=WindowFromPoint(pt)) == NULL) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			hwnd=GetAncestor(hwnd,GA_ROOT);
-
-			//Return if window is blacklisted
-			if (blacklisted(hwnd,&settings.Blacklist)) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Get window size
-			RECT wnd;
-			if (GetWindowRect(hwnd,&wnd) == 0) {
-				Error(L"GetWindowRect(&wnd)",L"LowLevelMouseProc()",GetLastError(),__LINE__);
-			}
-			//Enumerate monitors
-			nummonitors=0;
-			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
-			//Return if the window is fullscreen
-			int i;
-			if (!(GetWindowLongPtr(hwnd,GWL_STYLE)&WS_CAPTION)) {
-				for (i=0; i < nummonitors; i++) {
-					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
-						return CallNextHookEx(NULL, nCode, wParam, lParam);
-					}
-				}
-			}
-			
-			//Roll-down the window if it's in the roll-up database
-			for (i=0; i < NUMROLLUP; i++) {
-				if (rollup[i].hwnd == hwnd) {
-					//Roll-down window
-					if (MoveWindow(hwnd, wnd.left, wnd.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
-						Error(L"MoveWindow()",L"When rolling down window",GetLastError(),__LINE__);
-					}
-					//Remove window from database
-					rollup[i].hwnd=NULL;
-					//Prevent mousedown from propagating
-					return 1;
-				}
-			}
-			
-			//Check if this is a double-click (or if both middle and right mouse button is pressed)
-			if (GetTickCount()-clicktime <= GetDoubleClickTime() || resize) {
-				//Alt+middle-double-clicking a window makes it roll-up
-				//Store window size
-				rollup[rolluppos].hwnd=hwnd;
-				rollup[rolluppos].width=wnd.right-wnd.left;
-				rollup[rolluppos].height=wnd.bottom-wnd.top;
-				rolluppos=(rolluppos+1)%NUMROLLUP;
-				//Roll-up window
-				if (MoveWindow(hwnd, wnd.left, wnd.top, wnd.right-wnd.left, 30, TRUE) == 0) {
-					Error(L"MoveWindow()",L"Roll-up",GetLastError(),__LINE__);
-				}
-				//Stop resize action
-				resize=1;
-				//Hide cursorwnd
-				if (sharedsettings.Cursor) {
-					ShowWindow(cursorwnd,SW_HIDE);
-					SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-				}
+			else if (sharedsettings.RMBMinimize && wParam == WM_RBUTTONDOWN) {
+				//Minimize window
+				WINDOWPLACEMENT wndpl;
+				wndpl.length=sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(hwnd,&wndpl);
+				wndpl.showCmd=SW_MINIMIZE;
+				SetWindowPlacement(hwnd,&wndpl);
+				
 				//Prevent mousedown from propagating
 				return 1;
 			}
 			else {
+				//Roll-down the window if it's in the roll-up database
+				for (i=0; i < NUMROLLUP; i++) {
+					if (rollup[i].hwnd == hwnd) {
+						//Roll-down window
+						if (MoveWindow(hwnd, wnd.left, wnd.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
+							Error(L"MoveWindow()",L"When rolling down window",GetLastError(),__LINE__);
+						}
+						//Remove window from database
+						rollup[i].hwnd=NULL;
+						//Prevent mousedown from propagating
+						return 1;
+					}
+				}
+				
+				//Roll-up window if this is a double-click (or if both middle and right mouse button is pressed)
+				if (GetTickCount()-clicktime <= GetDoubleClickTime() || resize) {
+					//Alt+middle-double-clicking a window makes it roll-up
+					//Store window size
+					rollup[rolluppos].hwnd=hwnd;
+					rollup[rolluppos].width=wnd.right-wnd.left;
+					rollup[rolluppos].height=wnd.bottom-wnd.top;
+					rolluppos=(rolluppos+1)%NUMROLLUP;
+					//Roll-up window
+					if (MoveWindow(hwnd, wnd.left, wnd.top, wnd.right-wnd.left, 30, TRUE) == 0) {
+						Error(L"MoveWindow()",L"Roll-up",GetLastError(),__LINE__);
+					}
+					//Stop resize action
+					resize=1;
+					//Hide cursorwnd
+					if (sharedsettings.Cursor) {
+						ShowWindow(cursorwnd,SW_HIDE);
+						SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+					}
+					//Prevent mousedown from propagating
+					return 1;
+				}
+				
 				//Restore the window if it's maximized
 				if (IsZoomed(hwnd)) {
 					//Restore window
@@ -1005,40 +970,6 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 				resize=1;
 				//Prevent mousedown from propagating
 				return 1;
-			}
-		}
-		else if ((wParam == WM_MBUTTONUP || wParam == WM_RBUTTONUP) && (alt || resize)) {
-			resize=0;
-			if (!alt) {
-				UnhookMouse();
-			}
-			//Hide cursorwnd
-			if (sharedsettings.Cursor && !move) {
-				ShowWindow(cursorwnd,SW_HIDE);
-				SetWindowLongPtr(cursorwnd,GWL_EXSTYLE,WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-			}
-			//Prevent mouseup from propagating
-			return 1;
-		}
-		else if (wParam == WM_MOUSEMOVE) {
-			//Reset double-click time
-			clicktime=0; //This prevents me from double-clicking when running Windows virtualized.
-			if (move || resize) {
-				//Move cursorwnd
-				if (sharedsettings.Cursor) {
-					POINT pt=((PMSLLHOOKSTRUCT)lParam)->pt;
-					MoveWindow(cursorwnd,pt.x-20,pt.y-20,41,41,TRUE);
-					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
-				}
-				//Move or resize
-				if (move) {
-					//Move window
-					MoveWnd();
-				}
-				else if (resize) {
-					//Resize window
-					ResizeWnd();
-				}
 			}
 		}
 	}
