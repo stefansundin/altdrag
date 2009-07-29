@@ -5,7 +5,6 @@
 I, Stefan Sundin, am a student in Sweden, programming my tools in my free time. My programs will always remain free and open source, even if I receive no donations.
 While you don't have to donate, donations are a great motivation for me to keep updating my programs. They are perfect to get my attention if you want me to add some special feature etc. :) But you should probably [mailto:recover89@gmail.com send me an email] first and ask if I can do it at all.
 If you don't want to donate money to me, consider donating to charity instead. I have donated some of the money I've received towards charity, look at the bottom of this page.
-You can also send something else, like a postcard, flowers or maybe even a gift. There are websites where you can send flowers or chocolate (or both!). Send the gift to: Stefan Sundin, Vänortsvägen 9, 97754 LULEÅ, Sweden.
 
 = Who have contributed =
 While I have done most of the work, here are some people who have contributed.
@@ -20,15 +19,13 @@ The easiest way to donate to me is by [https://www.paypal.com/cgi-bin/webscr?cmd
 [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom http://shutdownguard.googlecode.com/svn/wiki/donate.png]
 
 = Donations received =
-Donations received so far: $175 USD.
+Donations received so far: $190 USD.
 
 List of donors:
   * Corvallis Technical
-  * Anonymous donor
   * 김장환 Jang-hwan Kim
   * [http://www.1translate.com/ Translation agency 1translate.com]
-  * Anonymous donor
-  * Anonymous donor
+  * 4 anonymous donors
 
 Note: This includes donations I've received towards all my tools: [http://code.google.com/p/superf4/ SuperF4], [http://code.google.com/p/killkeys/ KillKeys], [http://code.google.com/p/traycd/ TrayCD], [http://code.google.com/p/shutdownguard ShutdownGuard] and [http://code.google.com/p/altdrag AltDrag].
 
