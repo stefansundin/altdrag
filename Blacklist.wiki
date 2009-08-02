@@ -29,7 +29,8 @@ You shouldn't need to edit or remove any of these entries.
 Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it. Add the rule to `Blacklist_Sticky` if you don't want to be able to stick to it with other windows.
 
 || *Application* || *Blacklist rule* ||
-|| Photoshop     || `|Photoshop`   ||
-|| PuTTY         || `|PuTTY`       ||
+|| Photoshop     || `|Photoshop`     ||
+|| Illutrator    || `|illustrator`   ||
+|| PuTTY         || `|PuTTY`         ||
 
 If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
