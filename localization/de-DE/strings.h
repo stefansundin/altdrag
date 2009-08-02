@@ -11,7 +11,7 @@
 	(at your option) any later version.
 */
 
-struct strings de_DE={
+struct strings de_DE = {
  /* menu_enable */    L"An",
  /* menu_disable */   L"Aus",
  /* menu_hide */      L"Verstecke Icon",

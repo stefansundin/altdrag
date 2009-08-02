@@ -11,7 +11,7 @@
 	(at your option) any later version.
 */
 
-struct strings en_US={
+struct strings en_US = {
  /* menu_enable */    L"Enable",
  /* menu_disable */   L"Disable",
  /* menu_hide */      L"Hide tray",

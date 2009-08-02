@@ -11,7 +11,7 @@
 	(at your option) any later version.
 */
 
-struct strings ko_KR={
+struct strings ko_KR = {
  /* menu_enable */    L"켜기", 
  /* menu_disable */   L"끄기", 
  /* menu_hide */      L"트레이에서 숨기기", 
