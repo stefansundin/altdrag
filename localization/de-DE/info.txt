@@ -1,0 +1,4 @@
+AltDrag
+Made by Stefan Sundin
+
+Info.txt missing for german translation.

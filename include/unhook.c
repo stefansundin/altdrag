@@ -1,6 +1,7 @@
 /*
 	Send a message to all windows, this forces them to unhook invalid hooks.
 	Needed to unhook windows hooked to hooks.dll CallWndProc after unclean AltDrag.exe exit.
+	If you still can't override hooks.dll, use Process Explorer to search for hooks.dll.
 	
 	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	

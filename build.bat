@@ -6,14 +6,14 @@ if not exist build (
 	mkdir build
 )
 
-gcc -o build\unhook.exe unhook.c
+gcc -o build\unhook.exe include\unhook.c
 "build\unhook.exe"
 
-windres -o build\resources.o resources.rc
-windres -o build\resources_hooks.o hooks.rc
+windres -o build\resources.o include\resources.rc
+windres -o build\resources_hooks.o include\hooks.rc
 
 if "%1" == "all" (
-	gcc -o build\ini.exe ini.c -lshlwapi
+	gcc -o build\ini.exe include\ini.c -lshlwapi
 	
 	@echo.
 	echo Building binaries
@@ -25,11 +25,10 @@ if "%1" == "all" (
 		exit /b
 	)
 	strip "build\en-US\AltDrag\AltDrag.exe"
-	gcc -c -o "build\hooks.o" hooks.c
-	if not exist "build\hooks.o" (
+	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\resources_hooks.o -mdll -lshlwapi
+	if not exist "build\en-US\AltDrag\hooks.dll" (
 		exit /b
 	)
-	gcc -shared -o "build\en-US\AltDrag\hooks.dll" "build\hooks.o" "build\resources_hooks.o" -lshlwapi
 	strip "build\en-US\AltDrag\hooks.dll"
 	
 	for /D %%f in (localization/*) do (
@@ -43,7 +42,7 @@ if "%1" == "all" (
 			copy "build\en-US\AltDrag\hooks.dll" "build\%%f\AltDrag"
 		)
 		copy "localization\%%f\info.txt" "build\%%f\AltDrag"
-		copy "AltDrag.ini" "build\%%f\AltDrag"
+		copy AltDrag.ini "build\%%f\AltDrag"
 		"build\ini.exe" "build\%%f\AltDrag\AltDrag.ini" AltDrag Language %%f
 	)
 	
@@ -52,8 +51,7 @@ if "%1" == "all" (
 	makensis /V2 installer.nsi
 ) else (
 	gcc -o AltDrag.exe altdrag.c build\resources.o -mwindows -lshlwapi -lwininet -DDEBUG
-	gcc -c -o "build\hooks.o" hooks.c -DDEBUG
-	gcc -shared -o "hooks.dll" "build\hooks.o" "build\resources_hooks.o" -lshlwapi
+	gcc -o hooks.dll hooks.c build\resources_hooks.o -mdll -lshlwapi -DDEBUG
 	
 	if "%1" == "run" (
 		start AltDrag.exe
