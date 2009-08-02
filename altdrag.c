@@ -36,7 +36,7 @@
 #define SWM_ABOUT              WM_APP+8
 #define SWM_EXIT               WM_APP+9
 
-//Balloon stuff missing in MinGW
+//Stuff missing in MinGW
 #define NIIF_USER 4
 #define NIN_BALLOONSHOW        WM_USER+2
 #define NIN_BALLOONHIDE        WM_USER+3

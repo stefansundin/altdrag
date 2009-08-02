@@ -95,7 +95,7 @@ enum {MOVE, RESIZE, NONE} msgaction = NONE;
 #ifdef DEBUG
 #include "include/error.h"
 #else
-void Error(wchar_t*, wchar_t*, int, int) { }
+#define Error(a,b,c,d)
 #endif
 
 //Blacklist

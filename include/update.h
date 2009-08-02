@@ -23,7 +23,7 @@ DWORD WINAPI _CheckForUpdate() {
 			#ifdef DEBUG
 			Error(L"InternetGetConnectedState()", L"No internet connection.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
 			#endif
-			return;
+			return 1;
 		}
 	}
 	
@@ -34,14 +34,14 @@ DWORD WINAPI _CheckForUpdate() {
 		#ifdef DEBUG
 		Error(L"InternetOpen()", L"Could not establish connection.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
 		#endif
-		return;
+		return 1;
 	}
 	file = InternetOpenUrl(http,APP_UPDATEURL,NULL,0,INTERNET_FLAG_NO_AUTH|INTERNET_FLAG_NO_AUTO_REDIRECT|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI,0);
 	if (file == NULL) {
 		#ifdef DEBUG
 		Error(L"InternetOpenUrl()", L"Could not establish connection.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
 		#endif
-		return;
+		return 1;
 	}
 	//Read file
 	char data[20];
@@ -50,7 +50,7 @@ DWORD WINAPI _CheckForUpdate() {
 		#ifdef DEBUG
 		Error(L"InternetReadFile()", L"Could not read file.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
 		#endif
-		return;
+		return 1;
 	}
 	data[numread] = '\0';
 	//Get error code
@@ -67,7 +67,7 @@ DWORD WINAPI _CheckForUpdate() {
 		swprintf(txt, L"Server returned %s error when checking for update.\nPlease check for update manually at "APP_URL, code);
 		MessageBox(NULL, txt, APP_NAME, MB_ICONWARNING|MB_OK);
 		#endif
-		return;
+		return 2;
 	}
 	
 	//New version available?
@@ -78,6 +78,7 @@ DWORD WINAPI _CheckForUpdate() {
 		UpdateTray();
 		traydata.uFlags ^= NIF_INFO;
 	}
+	return 0;
 }
 
 void CheckForUpdate() {
