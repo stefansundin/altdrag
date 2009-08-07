@@ -71,7 +71,7 @@ DWORD WINAPI _CheckForUpdate() {
 	}
 	
 	//New version available?
-	if (strcmp(data,APP_VERSION)) {
+	if (strcmp(data,APP_VERSION) > 0) {
 		update = 1;
 		wcsncpy(traydata.szInfo, l10n->update_balloon, sizeof(traydata.szInfo)/sizeof(wchar_t));
 		traydata.uFlags |= NIF_INFO;
