@@ -1,0 +1,72 @@
+AltDrag
+Feito por Stefan Sundin
+
+Move as ventás co rato cando premas a tecla Alt.
+Podes usar o botón dereito ou o botón do medio do rato para cambiar o tamaño das ventás.
+Se premes a tecla Shift mentres esteas movendo ou cambiando o tamaño, a ventá pegarase ás outras.
+Podes facer dobre clic nunha ventá para maximizala.
+Podes facer dobre clic co botón do medio do rato para enrolar as ventás.
+
+Podes cambiar máis opcións en AltDrag.ini:
+* Activa HookWindows para poder usar a tecla Shift ó mover ventás normalmente.
+* Activa AutoStick para facer que as ventás se peguen ás outras sen ter que premer Shift.
+* Activa RMBMinimize para minimizar as ventás co botón dereito do rato.
+
+Ás ventás de pantalla completa, coma os xogos, non se lles poderá cambiar o tamaño ou mover.
+Se notas que vai lento ó mover as ventás ou ó cambiarlles o tamaño proba a desactivar que apareza o rato en AltDrag.ini.
+AltDrag ha comprobar automaticamente se hai actualizacións. Podes desactivar isto en AltDrag.ini poñendo CheckForUpdate=0 no apartado [Update].
+
+Podes usar -hide como parámetro para esconder a icona na bandexa do sistema.
+
+Visita a páxina web en http://altdrag.googlecode.com/
+Envía a túa opinión ou comentarios (en inglés ou senón poñendo "Galician" ó comezo) a recover89@gmail.com
+
+Se atopas útil este programa, considera doar diñeiro por favor.
+Podes atopar como doar na páxina web.
+
+AltDrag é un programa de código fonte aberto, baixo a licencia GPL.
+
+Listaxe de Cambios:
+-------------------
+0.8:
+Engadido AutoStick, actívao para facer que a ventá sempre se pegue sen precisar premer Shift. Substitúe a StickyScreen.
+ExperimentalFeatures agora é HookWindows, tamén mellorado para eliminar o escintilo. Xa non o considero experimental.
+Engadido RMBMinimize, actívao para minimizar ventás co botón dereito do rato.
+Mellorado moito o soporte multi-monitor.
+Mellorada a lista negra (mira o wiki).
+
+0.7 - 2009-04-24:
+Engadiuse StickyScreen que fai que as ventás se peguen ós bordos da pantalla sen premer Shift (desactivado por defecto).
+Engadiuse a capacidade de enrolar ventás facendo dobre clic co botón do medio do rato.
+Arranxados varios erros en ExperimentalFeatures, funciona bastante ben, bótalle unha ollada.
+Arranxado un mensaxe de error molesto que aparecía a veces ó arrancar AltDrag co inicio do sistema.
+
+0.6 - 2009-02-12:
+Agora ó cambiar o tamaño tamén podes pegar lados a outras ventás (menos cando redimensionas en todas as direccións).
+Arranxado que non se ocultase a icona na bandexa cando se emprega -hide.
+Arranxado que non cambiase o cursor cando Aero está desactivado en Vista.
+Agora podes cambiar a lingua en AltDrag.ini seleccionando adecuadamente Language=lingua.
+
+0.5 - 2009-01-12:
+Agora podes cambiar o tamaño co botón do medio ou co botón dereito do rato.
+Agora podes facer dobre clic para maximizar a ventá.
+Agora podes meter na lista negra ventás para non poder movelas e certas ventás para non poder pegarse a elas.
+Lista negra: A ventá de Alt+Tab en Vista.
+Lista negra á que pegarse: O orbe de inicio en Vista.
+Agora cambia o cursor do rato cando moves ou cambias o tamaño.
+Só pode haber unha instancia de AltDrag en funcionamento. Tratando de executar outra, mostrará a primeira instancia e a súa icona se está escondida.
+Característica experimental desactivada por defecto: podes premer a tecla Shift tamén cando movas normalmente unha ventá. Non funciona con procesos de 64-bits.
+
+0.4 - 2008-09-14:
+Agora podes premer a tecla Shift para facer que a ventá se pegue a outras ventás.
+
+0.3 - 2008-08-03:
+Arranxado un erro que facía que AltDrag ignorase todas ventás que estiveran pegadas ós bordos.
+Mellorado o rendemento instalando o enlace ó rato só cando se preme a tecla Alt.
+
+0.2 - 2008-08-01:
+Xa non se poden mover ventás a pantalla completa.
+A ventá pódese colocar máis facilmente despois de restaurala de ser maximizada.
+
+0.1 - 2008-06-05:
+Lanzamento inicial.
