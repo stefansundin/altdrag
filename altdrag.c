@@ -209,7 +209,7 @@ void ShowContextMenu(HWND hwnd) {
 	int autostart_enabled=0, autostart_hide=0;
 	//Registry
 	HKEY key;
-	wchar_t autostart_value[MAX_PATH+10];
+	wchar_t autostart_value[MAX_PATH+10] = L"";
 	DWORD len = sizeof(autostart_value);
 	RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE, &key);
 	RegQueryValueEx(key, APP_NAME, NULL, NULL, (LPBYTE)autostart_value, &len);
