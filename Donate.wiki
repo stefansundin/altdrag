@@ -10,6 +10,7 @@ If you don't want to donate money to me, consider donating to charity instead. I
 While I have done most of the work, here are some people who have contributed.
   * [mailto:algernon@gmail.com Fabrizio Ferri]: Spanish translation
   * [mailto:janghwan@gmail.com 김장환 Jang-hwan Kim]: Korean translation
+  * [mailto:xandy.lua@gmail.com Alexander De Sousa]: Galician translation
 
 Also thanks to everyone who have reported bugs.
 
