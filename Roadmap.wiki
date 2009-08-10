@@ -7,14 +7,15 @@ This is a list of features I want to implement. Feel free to add suggestions in 
 
 = Version 1.0 =
 I want to finish this before I release 1.0:
-  * `ExperimentalFeatures`:
+  * `HookWindows (ExperimentalFeatures)`:
     * ~~support resizing~~ - Done in time for version 0.8.
     * support 64-bit processes
   * Alt shouldn't focus the menu
 
 = Other stuff =
 I also want to take care of this:
-  * Be able to resize troublesome windows such as PuTTY
+  * Be able to resize troublesome windows such as PuTTY.
   * Be able to drag and resize windows that have problems right now, such as Steam and Winamp.
+  * Be able to detect if a window is partially overlapped by other windows and only stick to the visible borders.
 
 If you know of more programs that have problems, please let me I know in the comments.
