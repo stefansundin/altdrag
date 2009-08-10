@@ -95,7 +95,7 @@ enum {MOVE, RESIZE, NONE} msgaction = NONE;
 #ifdef DEBUG
 #include "include/error.h"
 #else
-#define Error(a,b,c,d)
+#define Error(a,b,c,d,e)
 #endif
 
 //Blacklist
@@ -123,7 +123,7 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMoni
 		monitors_alloc++;
 		monitors = realloc(monitors,monitors_alloc*sizeof(RECT));
 		if (monitors == NULL) {
-			Error(L"realloc(monitors)", L"Out of memory?", 0, __LINE__);
+			Error(L"realloc(monitors)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
 			return FALSE;
 		}
 	}
@@ -139,7 +139,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		wnds_alloc += 20;
 		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
-			Error(L"realloc(wnds)", L"Out of memory?", 0, __LINE__);
+			Error(L"realloc(wnds)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
 			return FALSE;
 		}
 	}
@@ -333,7 +333,7 @@ void MoveWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		Error(L"GetWindowRect()", L"MoveWnd()", GetLastError(), __LINE__);
+		Error(L"GetWindowRect()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 	
 	//Get new position for window
@@ -356,7 +356,7 @@ void MoveWnd() {
 	
 	//Move
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		Error(L"MoveWindow()", L"MoveWnd()", GetLastError(), __LINE__);
+		Error(L"MoveWindow()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 }
 
@@ -476,7 +476,7 @@ void ResizeWnd() {
 	//Get window size
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
-		Error(L"GetWindowRect()",L"ResizeWnd()",GetLastError(),__LINE__);
+		Error(L"GetWindowRect()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 	
 	//Get new pos and size for window
@@ -530,7 +530,7 @@ void ResizeWnd() {
 	
 	//Resize
 	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		Error(L"MoveWindow()", L"ResizeWnd()", GetLastError(), __LINE__);
+		Error(L"MoveWindow()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 }
 
@@ -552,7 +552,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 						//Get window size
 						RECT wnd;
 						if (GetWindowRect(window,&wnd) == 0) {
-							Error(L"GetWindowRect(&wnd)", L"LowLevelKeyboardProc()", GetLastError(), __LINE__);
+							Error(L"GetWindowRect(&wnd)", L"LowLevelKeyboardProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 							return CallNextHookEx(NULL, nCode, wParam, lParam);
 						}
 						/*
@@ -650,7 +650,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 			//Get window size
 			RECT wnd;
 			if (GetWindowRect(hwnd,&wnd) == 0) {
-				Error(L"GetWindowRect(&wnd)", L"LowLevelMouseProc()", GetLastError(), __LINE__);
+				Error(L"GetWindowRect(&wnd)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 			}
 			//Enumerate monitors
 			nummonitors = 0;
@@ -710,7 +710,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					//Get new pos and size
 					RECT newwnd;
 					if (GetWindowRect(hwnd,&newwnd) == 0) {
-						Error(L"GetWindowRect()",L"LowLevelMouseProc()",GetLastError(),__LINE__);
+						Error(L"GetWindowRect()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 					}
 					
 					//Set offset
@@ -761,7 +761,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					if (rollup[i].hwnd == hwnd) {
 						//Roll-down window
 						if (MoveWindow(hwnd, wnd.left, wnd.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
-							Error(L"MoveWindow()", L"When rolling down window", GetLastError(), __LINE__);
+							Error(L"MoveWindow()", L"When rolling down window", GetLastError(), TEXT(__FILE__), __LINE__);
 						}
 						//Remove window from database
 						rollup[i].hwnd = NULL;
@@ -780,7 +780,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					rolluppos = (rolluppos+1)%NUMROLLUP;
 					//Roll-up window
 					if (MoveWindow(hwnd, wnd.left, wnd.top, wnd.right-wnd.left, 30, TRUE) == 0) {
-						Error(L"MoveWindow()", L"Roll-up", GetLastError(), __LINE__);
+						Error(L"MoveWindow()", L"Roll-up", GetLastError(), TEXT(__FILE__), __LINE__);
 					}
 					//Stop resize action
 					resize = 1;
@@ -805,7 +805,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam
 					MONITORINFO monitorinfo;
 					monitorinfo.cbSize = sizeof(MONITORINFO);
 					if (GetMonitorInfo(monitor,&monitorinfo) == FALSE) {
-						Error(L"GetMonitorInfo(monitor)", L"LowLevelMouseProc()", GetLastError(), __LINE__);
+						Error(L"GetMonitorInfo(monitor)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 					}
 					wndpl.rcNormalPosition = monitorinfo.rcWork;
 					//Update window
@@ -962,7 +962,7 @@ int HookMouse() {
 	//Set up the mouse hook
 	mousehook = SetWindowsHookEx(WH_MOUSE_LL,LowLevelMouseProc,hinstDLL,0);
 	if (mousehook == NULL) {
-		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"HookMouse()", GetLastError(), __LINE__);
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"HookMouse()", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
@@ -978,7 +978,7 @@ int UnhookMouse() {
 	
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		Error(L"UnhookWindowsHookEx(mousehook)", L"", GetLastError(), __LINE__);
+		Error(L"UnhookWindowsHookEx(mousehook)", L"", GetLastError(), TEXT(__FILE__), __LINE__);
 		mousehook = NULL;
 		return 1;
 	}
@@ -1052,7 +1052,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			//Restore old WndProc if another window has already been subclassed
 			if (oldwndproc != NULL && IsWindow(hwnd)) {
 				if (SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)oldwndproc) == 0) {
-					Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)", L"Failed to restore subclassed window to its old wndproc.", GetLastError(), __LINE__);
+					Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)", L"Failed to restore subclassed window to its old wndproc.", GetLastError(), TEXT(__FILE__), __LINE__);
 				}
 				oldwndproc = NULL;
 			}
@@ -1062,7 +1062,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			//Subclass window
 			oldwndproc = (WNDPROC)SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)CustomWndProc);
 			if (oldwndproc == 0) {
-				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, CustomWndProc)", L"Failed to subclass window.", GetLastError(), __LINE__);
+				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, CustomWndProc)", L"Failed to subclass window.", GetLastError(), TEXT(__FILE__), __LINE__);
 			}
 		}
 		
@@ -1104,7 +1104,7 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 		 && msg->hwnd == hwnd && oldwndproc != NULL) {
 			//Restore old WndProc
 			if (SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)oldwndproc) == 0) {
-				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)", L"Failed to restore subclassed window to its old wndproc.", GetLastError(), __LINE__);
+				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)", L"Failed to restore subclassed window to its old wndproc.", GetLastError(), TEXT(__FILE__), __LINE__);
 			}
 			oldwndproc = NULL;
 			hwnd = NULL;
@@ -1213,7 +1213,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		wnds_alloc += 5;
 		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
-			Error(L"realloc(wnds)", L"Out of memory?", 0, __LINE__);
+			Error(L"realloc(wnds)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
 			return FALSE;
 		}
 	}

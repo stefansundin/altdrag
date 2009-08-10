@@ -21,7 +21,7 @@ DWORD WINAPI _CheckForUpdate() {
 		Sleep(1000);
 		if (tries >= 10) {
 			#ifdef DEBUG
-			Error(L"InternetGetConnectedState()", L"No internet connection.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
+			Error(L"InternetGetConnectedState()", L"No internet connection.\nPlease check for update manually at "APP_URL, GetLastError(), TEXT(__FILE__), __LINE__);
 			#endif
 			return 1;
 		}
@@ -32,14 +32,14 @@ DWORD WINAPI _CheckForUpdate() {
 	http = InternetOpen(APP_NAME" - "APP_VERSION,INTERNET_OPEN_TYPE_DIRECT,NULL,NULL,0);
 	if (http == NULL) {
 		#ifdef DEBUG
-		Error(L"InternetOpen()", L"Could not establish connection.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
+		Error(L"InternetOpen()", L"Could not establish connection.\nPlease check for update manually at "APP_URL, GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 		return 1;
 	}
 	file = InternetOpenUrl(http,APP_UPDATEURL,NULL,0,INTERNET_FLAG_NO_AUTH|INTERNET_FLAG_NO_AUTO_REDIRECT|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI,0);
 	if (file == NULL) {
 		#ifdef DEBUG
-		Error(L"InternetOpenUrl()", L"Could not establish connection.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
+		Error(L"InternetOpenUrl()", L"Could not establish connection.\nPlease check for update manually at "APP_URL, GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 		return 1;
 	}
@@ -48,7 +48,7 @@ DWORD WINAPI _CheckForUpdate() {
 	DWORD numread;
 	if (InternetReadFile(file,data,sizeof(data),&numread) == FALSE) {
 		#ifdef DEBUG
-		Error(L"InternetReadFile()", L"Could not read file.\nPlease check for update manually at "APP_URL, GetLastError(), __LINE__);
+		Error(L"InternetReadFile()", L"Could not read file.\nPlease check for update manually at "APP_URL, GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 		return 1;
 	}

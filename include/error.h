@@ -19,13 +19,13 @@ LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	return 0;
 }
 
-void Error(wchar_t *func, wchar_t *info, int errorcode, int line) {
+void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line) {
 	if (showerror) {
 		//Format message
 		wchar_t errormsg[100];
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorcode, 0, errormsg, sizeof(errormsg)/sizeof(wchar_t), NULL);
 		errormsg[wcslen(errormsg)-2] = '\0'; //Remove that damn newline at the end of the formatted error message
-		swprintf(txt, L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, TEXT(__FILE__), line, errormsg, errorcode, info);
+		swprintf(txt, L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, file, line, errormsg, errorcode, info);
 		//Display message
 		HHOOK hhk = SetWindowsHookEx(WH_CBT,&ErrorMsgProc,0,GetCurrentThreadId());
 		int response = MessageBox(NULL,txt,APP_NAME" Error",MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
