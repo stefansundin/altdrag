@@ -44,8 +44,8 @@ int main(int argc, char *argv[]) {
 			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,errormsg,sizeof(errormsg),NULL);
 			errormsg[strlen(errormsg)-2]='\0'; //Remove that damn newline at the end of the formatted error message
 			printf("WritePrivateProfileString() failed in file %s, line %d.\nError: %s (%d)", TEXT(__FILE__), __LINE__, errormsg, errorcode);
-         return 1;
+			return 1;
 		}
 	}
-   return 0;
+	return 0;
 }

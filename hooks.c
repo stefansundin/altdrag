@@ -157,13 +157,13 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 			}
 		}*/
 		//If maximized, then this window covers the whole monitor
-		//I do this since the window has an extra, invisible, border when maximized
+		//I do this since the window has an extra, invisible, border when maximized (a border that stretches onto other monitors)
 		if (IsZoomed(window)) {
 			HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
 			MONITORINFO monitorinfo;
 			monitorinfo.cbSize = sizeof(MONITORINFO);
 			GetMonitorInfo(monitor, &monitorinfo);
-			wnd=monitorinfo.rcWork;
+			wnd=monitorinfo.rcMonitor;
 		}
 		//Return if this window is overlapped by another window
 		int i;
@@ -178,29 +178,27 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	return TRUE;
 }
 
-void Enum(int monitors, int windows) {
+void Enum() {
 	//Update handle to progman
 	if (!IsWindow(progman)) {
 		progman = FindWindow(L"Progman",L"Program Manager");
 	}
+	
 	//Enumerate monitors
-	if (monitors) {
-		nummonitors = 0;
-		EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
-	}
+	nummonitors = 0;
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+	
 	//Enumerate windows
-	if (windows) {
-		numwnds = 0;
-		if (shift || sharedsettings.AutoStick >= 2) {
-			EnumWindows(EnumWindowsProc, 0);
+	numwnds = 0;
+	if (shift || sharedsettings.AutoStick > 0) {
+		HWND taskbar = FindWindow(L"Shell_TrayWnd",NULL);
+		RECT wnd;
+		if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
+			wnds[numwnds++] = wnd;
 		}
-		else if (sharedsettings.AutoStick == 1) {
-			HWND taskbar = FindWindow(L"Shell_TrayWnd",NULL);
-			RECT wnd;
-			if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
-				wnds[numwnds++] = wnd;
-			}
-		}
+	}
+	if (shift || sharedsettings.AutoStick >= 2) {
+		EnumWindows(EnumWindowsProc, 0);
 	}
 	
 	//Use this to print the monitors and windows
@@ -227,7 +225,7 @@ void Enum(int monitors, int windows) {
 
 int MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
 	//Enumerate monitors and windows
-	Enum(1, 1);
+	Enum();
 	
 	//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
 	int i, j, thresholdx, thresholdy, stuckx=0, stucky=0, stickx=0, sticky=0;
@@ -362,7 +360,7 @@ void MoveWnd() {
 
 int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 	//Enumerate monitors and windows
-	Enum(1, 1);
+	Enum();
 	
 	//thresholdx and thresholdy will shrink to make sure the dragged window will stick to the closest windows
 	int i, j, thresholdx, thresholdy, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
