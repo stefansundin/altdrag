@@ -18,4 +18,7 @@
   * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes a functionality similar to WindowFinder)
   * [http://www.ivanheckman.com/allsnap/ allSnap] (Almost identical to `ExperimentalFeatures` but seem to work a bit better, also has a version which works with 64-bit windows)
 
+= Related =
+  * [http://www.mouseimp.com/ MouseImp]
+
 Feel free to add more programs in the comments below.
