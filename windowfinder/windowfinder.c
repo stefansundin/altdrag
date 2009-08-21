@@ -123,7 +123,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Load icon
 	icon = LoadImage(hInst,L"icon",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	if (icon == NULL) {
-		Error(L"LoadImage('icon')", L"Fatal error.", GetLastError(), __LINE__);
+		Error(L"LoadImage('icon')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
 		PostQuitMessage(1);
 	}
 	
@@ -199,7 +199,7 @@ int UpdateTray() {
 	while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
 		tries++;
 		if (tries >= 10) {
-			Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)", L"Failed to update tray icon.", GetLastError(), __LINE__);
+			Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)", L"Failed to update tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		Sleep(100);
@@ -217,7 +217,7 @@ int RemoveTray() {
 	}
 	
 	if (Shell_NotifyIcon(NIM_DELETE,&traydata) == FALSE) {
-		Error(L"Shell_NotifyIcon(NIM_DELETE)", L"Failed to remove tray icon.", GetLastError(), __LINE__);
+		Error(L"Shell_NotifyIcon(NIM_DELETE)", L"Failed to remove tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
@@ -241,7 +241,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	HWND hwnd_component, hwnd;
 	if ((hwnd_component=WindowFromPoint(pt)) == NULL) {
 		#ifdef DEBUG
-		Error(L"WindowFromPoint()", L"FindWnd()", GetLastError(), __LINE__);
+		Error(L"WindowFromPoint()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 	}
 	hwnd = GetAncestor(hwnd_component,GA_ROOT);
@@ -250,7 +250,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
 		#ifdef DEBUG
-		Error(L"GetWindowRect()", L"FindWnd()", GetLastError(), __LINE__);
+		Error(L"GetWindowRect()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 	}
 	POINT pt_child;
@@ -259,7 +259,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	HWND hwnd_child;
 	if ((hwnd_child=ChildWindowFromPoint(hwnd,pt_child)) == NULL) {
 		#ifdef DEBUG
-		Error(L"ChildWindowFromPoint()", L"FindWnd()", GetLastError(), __LINE__);
+		Error(L"ChildWindowFromPoint()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 	}
 	
@@ -394,21 +394,21 @@ int HookMouse() {
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 	if ((hinstDLL=LoadLibrary(path)) == NULL) {
-		Error(L"LoadLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), __LINE__);
+		Error(L"LoadLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
 	//Get address to mouse hook (beware name mangling)
 	HOOKPROC procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"LowLevelMouseProc@12");
 	if (procaddr == NULL) {
-		Error(L"GetProcAddress('LowLevelMouseProc@12')", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), __LINE__);
+		Error(L"GetProcAddress('LowLevelMouseProc@12')", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
 	//Set up the hook
 	mousehook = SetWindowsHookEx(WH_MOUSE_LL,procaddr,hinstDLL,0);
 	if (mousehook == NULL) {
-		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), __LINE__);
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
@@ -433,9 +433,7 @@ DWORD WINAPI DelayedUnhookMouse() {
 	
 	//Unhook the mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		#ifdef DEBUG
-		Error(L"UnhookWindowsHookEx(mousehook)", L"UnhookMouse()", GetLastError(), __LINE__);
-		#endif
+		Error(L"UnhookWindowsHookEx(mousehook)", L"UnhookMouse()", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	

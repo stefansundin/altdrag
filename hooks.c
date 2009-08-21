@@ -550,7 +550,7 @@ _declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wPa
 						//Get window size
 						RECT wnd;
 						if (GetWindowRect(window,&wnd) == 0) {
-							Error(L"GetWindowRect(&wnd)", L"LowLevelKeyboardProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+							//Error(L"GetWindowRect(&wnd)", L"LowLevelKeyboardProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 							return CallNextHookEx(NULL, nCode, wParam, lParam);
 						}
 						/*
@@ -1060,7 +1060,8 @@ _declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPAR
 			//Subclass window
 			oldwndproc = (WNDPROC)SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)CustomWndProc);
 			if (oldwndproc == 0) {
-				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, CustomWndProc)", L"Failed to subclass window.", GetLastError(), TEXT(__FILE__), __LINE__);
+				//This might fail if the window isn't responding, which happens from now and then, so there's no need to nag about it
+				//Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, CustomWndProc)", L"Failed to subclass window.", GetLastError(), TEXT(__FILE__), __LINE__);
 			}
 		}
 		

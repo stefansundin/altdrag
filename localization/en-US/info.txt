@@ -11,6 +11,7 @@ You can edit more settings in AltDrag.ini:
 * Enable HookWindows to be able to use the shift key when normally moving windows.
 * Enable AutoStick to make windows always stick without needing to press shift.
 * Enable RMBMinimize to be able to minimize windows with the right mouse button.
+* Edit the blacklist, a list where you can specify windows that shouldn't be dragged.
 
 Fullscreen windows, such as games, will not be dragged or resized.
 If you experience lag when you move or resize windows, try disabling the mouse cursor in AltDrag.ini.
@@ -28,7 +29,7 @@ AltDrag is open source, licensed under GPL.
 
 Changelog
 ---------
-0.8:
+0.8b2:
 Added AutoStick, enable it to make windows always stick without needing to press shift. This replaces StickyScreen.
 Renamed ExperimentalFeatures to HookWindows, also improved it so resizing is now supported and windows should no longer flicker. I no longer consider it experimental.
 Added RMBMinimize, enable it to minimize windows with the right mouse button.
