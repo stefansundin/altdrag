@@ -24,6 +24,8 @@ Envía comentarios a recover89@gmail.com
 Si opinas que este programa es útil, por favor, toma en consideración realizar un donativo. 
 Encontrarás las instrucciones en la página web.
 
+AltDrag es un programa de código abierto bajo licencia GPL.
+
 Historial de cambios
 --------------------
 0.7 - 2009-04-24:
