@@ -31,7 +31,7 @@ Click the tray icon and then click the window you want to blacklist. \
 A popup will appear with information about that window. \
 For more tricky windows, use the delayed find.\n\
 \n\
-Note that you can't blacklist windows by using the child or component information!\n\
+Note that you can't blacklist windows in AltDrag by using the child or component information!\n\
 \n\
 Read more on wiki page: "APP_URL"\n\
 Send feedback to recover89@gmail.com"
