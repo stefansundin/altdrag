@@ -22,7 +22,7 @@ You can use -hide as a parameter to hide the tray icon.
 Visit the website at http://altdrag.googlecode.com/
 Send feedback to recover89@gmail.com
 
-If you feel this program is useful, please consider donating money.
+If this program is useful for you, please consider donating money.
 You can find out how to donate on the website.
 
 AltDrag is open source, licensed under GPL.
