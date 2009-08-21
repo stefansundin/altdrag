@@ -5,13 +5,45 @@
 
 There are two blacklists in AltDrag. In them you can list windows which AltDrag should ignore. The first list specifies windows which shouldn't be dragged, the second list specify windows which shouldn't be stuck to with the shift button. So if you don't want to be able to alt-drag a specific window, you can add it to the first blacklist and AltDrag will ignore it.
 
-I realized that the ability to customize the blacklists are important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, so it is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries are in the format `title|classname`. If you omit either the title or the class name, then it will not be included it in the matching. Note that the matching is case-sensitive and you can't use wildcards.
+I realized that the ability to customize the blacklists is important since we are all running different applications on our computers. I made the blacklist so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, so it is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The blacklists are comma separated, and the entries are in the format `title|classname`. ~~If you omit either the title or the class name, then it will not be included it in the matching.~~ Note that the matching is case-sensitive and you can't use wildcards.
+
+*New behavior in 0.8 beta 2:* Omitting the title or classname now makes it match an empty string. To make it ignore the title or classname (like omitting did before), use the string "`*`". This does not enable you to use wildcards, `*` is only valid when you want to completely ignore matching the title or classname. Omitting the pipe character still ignores the classname. I did this change to be able to ignore the window that is following chrome since Google changed its classname to the same classname as the chrome windows, the only difference is that it has an empty title (which I couldn't match before).
 
 I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
 = Windows blacklisted by default =
 
 Here is an explanation of the default entries:
+
+|| *Blacklist rule*           || *Explanation* ||
+|| `*|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista. ||
+|| `*|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista. ||
+|| *Blacklist_Sticky rule*    || *Explanation* ||
+|| `*|AltDrag`                || This is the AltDrag cursor overlay window. Since an application must own the window the cursor is currently hovering to be able to change the mouse cursor, AltDrag puts a small invisible window over the cursor to change it. ||
+|| `Start|Button`             || This is the Windows Vista start menu orb. ||
+|| `|Chrome_WidgetWin_0`      || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. ||
+|| `|tooltips_class32`        || A tooltip window. ||
+|| `|SysShadow`               || Another tooltip window. ||
+|| `|SideBar_HTMLHostWindow`  || Windows 7 gadgets are hosted in windows such as this one. ||
+|| `*|BasicWindow`            || Windows 7 gadgets, again. ||
+|| `*|SpotifyShadow`           || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
+
+You shouldn't need to edit or remove any of these entries.
+
+= List of applications =
+
+Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it. Add the rule to `Blacklist_Sticky` if you don't want to be able to stick to it with other windows.
+
+|| *Application* || *Blacklist rule* ||
+|| Photoshop     || `*|Photoshop`     ||
+|| Illutrator    || `*|illustrator`   ||
+|| PuTTY         || `*|PuTTY`         ||
+
+If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
+
+= Blacklists and applications in 0.7 =
+
+This is the default blacklist rules in 0.7.
 
 || *Blacklist rule*          || *Explanation* ||
 || `|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista. ||
@@ -22,15 +54,7 @@ Here is an explanation of the default entries:
 || `|Chrome_ContainerWin_0`  || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. ||
 || `|SpotifyShadow`          || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
 
-You shouldn't need to edit or remove any of these entries.
-
-= List of applications =
-
-Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it. Add the rule to `Blacklist_Sticky` if you don't want to be able to stick to it with other windows.
-
 || *Application* || *Blacklist rule* ||
 || Photoshop     || `|Photoshop`     ||
 || Illutrator    || `|illustrator`   ||
 || PuTTY         || `|PuTTY`         ||
-
-If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
