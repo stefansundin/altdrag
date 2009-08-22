@@ -1,5 +1,4 @@
 ;AltDrag installer
-;NSIS Unicode: http://www.scratchpaper.com/
 ;
 ;Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 ;
