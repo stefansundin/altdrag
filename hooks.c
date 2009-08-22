@@ -1159,6 +1159,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		while (pos != NULL) {
 			wchar_t *title = pos;
 			wchar_t *classname = wcsstr(pos,L"|");
+			//Move pos to next item (if any)
 			pos = wcsstr(pos,L",");
 			if (pos != NULL) {
 				*pos = '\0';
@@ -1168,12 +1169,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				*classname = '\0';
 				classname++;
 			}
-			//Make sure we have enough space
-			if (add_blacklist->numitems == blacklist_alloc) {
-				blacklist_alloc += 10;
-				add_blacklist->items = realloc(add_blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
-			}
-			//Allocate memory for title and classname
+			//Allocate memory and copy over text
 			wchar_t *item_title, *item_classname;
 			if (!wcscmp(title,L"*")) {
 				item_title = NULL;
@@ -1182,7 +1178,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				item_title = malloc((wcslen(title)+1)*sizeof(wchar_t));
 				wcscpy(item_title, title);
 			}
-			if (classname != NULL) {
+			if (classname == NULL) {
+				item_classname = NULL;
+			}
+			else {
 				if (!wcscmp(classname,L"*")) {
 					item_classname = NULL;
 				}
@@ -1191,11 +1190,14 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 					wcscpy(item_classname, classname);
 				}
 			}
-			else {
-				item_classname = NULL;
-			}
-			//Only store item if it's not empty
+			//Store item if it's not empty
 			if (item_title != NULL || item_classname != NULL) {
+				//Make sure we have enough space
+				if (add_blacklist->numitems == blacklist_alloc) {
+					blacklist_alloc += 10;
+					add_blacklist->items = realloc(add_blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
+				}
+				//Store item
 				add_blacklist->items[add_blacklist->numitems].title = item_title;
 				add_blacklist->items[add_blacklist->numitems].classname = item_classname;
 				add_blacklist->numitems++;
