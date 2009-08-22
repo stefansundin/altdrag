@@ -1,5 +1,6 @@
 AltDrag
 Feito por Stefan Sundin
+Traducido por Alexander De Sousa
 
 Move as ventás co rato cando premas a tecla Alt.
 Podes usar o botón dereito ou o botón do medio do rato para cambiar o tamaño das ventás.
@@ -11,6 +12,7 @@ Podes cambiar máis opcións en AltDrag.ini:
 * Activa HookWindows para poder usar a tecla Shift ó mover ventás normalmente.
 * Activa AutoStick para facer que as ventás se peguen ás outras sen ter que premer Shift.
 * Activa RMBMinimize para minimizar as ventás co botón dereito do rato.
+* Editar a lista negra, unha lista na que podes escoller que ventás non se moverán.
 
 Ás ventás de pantalla completa, coma os xogos, non se lles poderá cambiar o tamaño ou mover.
 Se notas que vai lento ó mover as ventás ou ó cambiarlles o tamaño proba a desactivar que apareza o rato en AltDrag.ini.
@@ -21,14 +23,14 @@ Podes usar -hide como parámetro para esconder a icona na bandexa do sistema.
 Visita a páxina web en http://altdrag.googlecode.com/
 Envía a túa opinión ou comentarios (en inglés ou senón poñendo "Galician" ó comezo) a recover89@gmail.com
 
-Se atopas útil este programa, considera doar diñeiro por favor.
+Se este programa é útil para ti, considera doar diñeiro por favor.
 Podes atopar como doar na páxina web.
 
 AltDrag é un programa de código fonte aberto, baixo a licencia GPL.
 
 Listaxe de Cambios:
 -------------------
-0.8:
+0.8b2:
 Engadido AutoStick, actívao para facer que a ventá sempre se pegue sen precisar premer Shift. Substitúe a StickyScreen.
 ExperimentalFeatures agora é HookWindows, tamén mellorado para eliminar o escintilo. Xa non o considero experimental.
 Engadido RMBMinimize, actívao para minimizar ventás co botón dereito do rato.

@@ -25,6 +25,7 @@ struct strings gl_ES = {
  /* about_title */    L"Acerca de " APP_NAME,
  /* about */          APP_NAME " - " APP_VERSION "\n\
 Feito por Stefan Sundin\n\
+Traducido por Alexander De Sousa\n\
 \n\
 Move as ventás co rato cando premas a tecla Alt.\n\
 Podes usar o botón dereito ou o botón do medio do rato para cambiar o tamaño das ventás.\n\
