@@ -24,25 +24,25 @@ int main(int argc, char *argv[]) {
 	//Get path
 	char path[MAX_PATH];
 	if (PathIsRelative(argv[1])) {
-		GetCurrentDirectory(sizeof(path),path);
+		GetCurrentDirectory(sizeof(path), path);
 		PathAddBackslash(path);
-		strcat(path,argv[1]);
+		strcat(path, argv[1]);
 	}
 	else {
-		strcpy(path,argv[1]);
+		strcpy(path, argv[1]);
 	}
 	//Write/Read
 	if (argc == 3) {
 		char txt[1000];
-		GetPrivateProfileString(argv[2],argv[3],NULL,txt,sizeof(txt),path); //No error detection
+		GetPrivateProfileString(argv[2], argv[3], NULL, txt, sizeof(txt), path); //No error detection
 		printf(txt);
 	}
 	else {
 		if (WritePrivateProfileString(argv[2],argv[3],argv[4],path) == 0) {
-			int errorcode=GetLastError();
+			int errorcode = GetLastError();
 			char errormsg[100];
-			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,errormsg,sizeof(errormsg),NULL);
-			errormsg[strlen(errormsg)-2]='\0'; //Remove that damn newline at the end of the formatted error message
+			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorcode, 0, errormsg, sizeof(errormsg), NULL);
+			errormsg[strlen(errormsg)-2] = '\0'; //Remove that damn newline at the end of the formatted error message
 			printf("WritePrivateProfileString() failed in file %s, line %d.\nError: %s (%d)", TEXT(__FILE__), __LINE__, errormsg, errorcode);
 			return 1;
 		}
