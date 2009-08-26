@@ -238,7 +238,6 @@ void ShowContextMenu(HWND hwnd) {
 	//Update
 	if (update) {
 		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
-		InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	}
 	
 	//About

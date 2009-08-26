@@ -15,8 +15,8 @@
 
 LangString L10N_UPDATE_SECTION    ${LANG} "Überprüfe auf neue Version"
 LangString L10N_UPDATE_DIALOG     ${LANG} "Es wurde eine neue Version gefunden.$\nInstallation abbrechen und zur Webseite gehen?"
-LangString L10N_RUNNING_INSTALL   ${LANG} "${APP_NAME} läuft gerade. Schließen?"
-LangString L10N_RUNNING_UNINSTALL ${LANG} "${APP_NAME} läuft gerade. Schließen?$\nWenn Sie NEIN wählen, wird ${APP_NAME} beim nächsten Neustart entfernt."
+LangString L10N_RUNNING           ${LANG} "${APP_NAME} läuft gerade. Schließen?"
+LangString L10N_RUNNING_UNINSTALL ${LANG} "Wenn Sie NEIN wählen, wird ${APP_NAME} beim nächsten Neustart entfernt."
 LangString L10N_CLOSING           ${LANG} "Schließe ${APP_NAME}"
 LangString L10N_SHORTCUT          ${LANG} "Startmenü Verknüpfung"
 LangString L10N_AUTOSTART         ${LANG} "Autostart"
