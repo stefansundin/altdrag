@@ -96,7 +96,11 @@ Function ${un}CloseApp
 	FindWindow $0 "${APP_NAME}" ""
 	IntCmp $0 0 done
 		${If} $Upgrade_State != ${BST_CHECKED}
-			MessageBox MB_ICONINFORMATION|MB_YESNO "$(L10N_RUNNING_INSTALL)" /SD IDYES IDNO done
+			StrCpy $1 "$(L10N_RUNNING)"
+			${If} "${un}" == "un."
+				StrCpy $1 "$1$\n$(L10N_RUNNING_UNINSTALL)"
+			${EndIf}
+			MessageBox MB_ICONINFORMATION|MB_YESNO "$1" /SD IDYES IDNO done
 		${EndIf}
 		DetailPrint "Closing running ${APP_NAME}."
 		SendMessage $0 ${WM_CLOSE} 0 0
@@ -189,7 +193,7 @@ Section "${APP_NAME} (${APP_VERSION})" sec_app
 	IntCmp $LANGUAGE ${LANG_ENGLISH}  en-US
 	IntCmp $LANGUAGE ${LANG_SPANISH}  es-ES
 	IntCmp $LANGUAGE ${LANG_GALICIAN} gl-ES
-	IntCmp $LANGUAGE ${LANG_KOREAN}   ko-KR
+	;IntCmp $LANGUAGE ${LANG_KOREAN}   ko-KR
 	en-US:
 		File "build\en-US\${APP_NAME}\info.txt"
 		Goto files_installed
@@ -201,10 +205,10 @@ Section "${APP_NAME} (${APP_VERSION})" sec_app
 		File "build\gl-ES\${APP_NAME}\info.txt"
 		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "gl-ES"
 		Goto files_installed
-	ko-KR:
-		File "build\ko-KR\${APP_NAME}\info.txt"
-		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "ko-KR"
-		Goto files_installed
+	;ko-KR:
+		;File "build\ko-KR\${APP_NAME}\info.txt"
+		;WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "ko-KR"
+		;Goto files_installed
 
 	files_installed:
 
