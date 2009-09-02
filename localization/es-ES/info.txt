@@ -9,8 +9,10 @@ Hacer doble-clic en una ventana la maximizará.
 Puedes enrollar ventanas haciendo doble-clic con el botón central del ratón.
 
 Puedes editar más opciones en AltDrag.ini:
-* Habilitar funciones experimentales para usar la tecla Mayus. mientras mueves ventanas.
-* Habilitar StickyScreen para hacer que las ventanas siempre se peguen los bordes de la pantalla y a la barra de tareas cuando arrastres o redimensiones la ventana (no hace falta pulsar Mayus.).
+* Habilita HookWindows para poder usar la tecla Mayús. al mover normalmente las ventanas.
+* Habilita AutoStick para hacer que las ventanas se peguen siempre sin necesidad de pulsar Mayús.
+* Habilita RMBMinimize para minimizar ventanas con un clic derecho del ratón.
+* Edita la blacklist, un listado en el que puedes especificar qué ventanas no deben ser arrastradas.
 
 Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
 Si hay retraso al mover y cambiar de tamaño a las ventanas, prueba a desabilitar el switch del cursor del ratón en AltDrag.ini
