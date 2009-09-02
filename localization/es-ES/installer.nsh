@@ -8,7 +8,7 @@
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
 
-!if ${L10N_VERSION} == 2
+!if ${L10N_VERSION} == 3
 
 !insertmacro MUI_LANGUAGE "Spanish"
 !define LANG ${LANG_SPANISH}
@@ -26,6 +26,11 @@ LangString L10N_RUNNING_UNINSTALL ${LANG} "Si elige No, ${APP_NAME} será elimina
 LangString L10N_SHORTCUT          ${LANG} "Acceso directo en el menú Inicio"
 LangString L10N_AUTOSTART         ${LANG} "Iniciar con Windows"
 LangString L10N_AUTOSTART_HIDE    ${LANG} "Ocultar icono"
+
+LangString L10N_ALTSHIFT_TITLE    ${LANG} "Atajo de teclado"
+LangString L10N_ALTSHIFT_SUBTITLE ${LANG} "El atajo Alt + Mayús. entra en conflicto con ${APP_NAME}."
+LangString L10N_ALTSHIFT_HEADER   ${LANG} "El instalador ha detectado que tienes más de una distribución de teclado instalada, y que el atajo para activar la distribución actual es Alt+Mayús.$\n$\nAl usar ${APP_NAME}, puedes pulsar Mayús mientras arrastras ventanas para hacer que se peguen a otras. Es probable que pulses Alt + Mayús., la misma combinación que cambia tu distribución de teclado. Aunque ${APP_NAME} intente bloquear estos cambios accidentales, no siempre lo consigue.$\n$\nPuedes desactivar o cambiar el atajo que cambia la distribución de teclado pulsando este botón. Pulsa aquí para continuar."
+LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Abrir configuración de Teclado"
 
 !undef LANG
 
