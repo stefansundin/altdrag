@@ -2,6 +2,13 @@
 
 Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt may contain changes for upcoming versions.
 
+*0.8b2* - 2009-09-07:
+  * Added `AutoStick`, enable it to make windows always stick without needing to press shift. This replaces `StickyScreen`.
+  * Renamed `ExperimentalFeatures` to `HookWindows`, also improved it so resizing is now supported and windows should no longer flicker. I no longer consider it experimental.
+  * Added `RMBMinimize`, enable it to minimize windows with the right mouse button.
+  * Improved multi-monitor support a lot.
+  * Tweaked the blacklist (see [Blacklist wiki]).
+
 *0.7* - 2009-04-24:
   * Added `StickyScreen` which makes windows automatically stick to the screen borders without needing shift (off by default).
   * Added the ability to roll-up windows by double-clicking with the middle mouse button.
