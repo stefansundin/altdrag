@@ -15,39 +15,39 @@
 #include <stdlib.h>
 #include <windows.h>
 
-HWND *wnds=NULL;
-int numwnds=0;
-int maxwnds=0;
+HWND *wnds = NULL;
+int numwnds = 0;
+int maxwnds = 0;
 
-int wnds_alloc=0;
+int wnds_alloc = 0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
-		wnds_alloc+=100;
-		//printf("realloc() - wnds_alloc: %d\n",wnds_alloc);
-		if ((wnds=realloc(wnds,wnds_alloc*sizeof(HWND))) == NULL) {
-			printf("realloc() failed in file %s, line %d.\n",__FILE__,__LINE__);
+		wnds_alloc += 100;
+		wnds = realloc(wnds,wnds_alloc*sizeof(HWND));
+		if (wnds == NULL) {
+			printf("realloc() failed in file %s, line %d.\n", __FILE__, __LINE__);
 			return FALSE;
 		}
 	}
 	//Add window to wnds
-	wnds[numwnds++]=hwnd;
+	wnds[numwnds++] = hwnd;
 	return TRUE;
 }
 
 int main() {
-	EnumWindows(EnumWindowsProc,0);
+	EnumWindows(EnumWindowsProc, 0);
 	
 	char title[100];
 	char classname[100];
 	int i;
 	for (i=0; i < numwnds; i++) {
 		/*
-		GetWindowText(wnds[i],title,100);
-		GetClassName(wnds[i],classname,100);
-		printf("Sending WM_PAINT to window #%03d: %s [%s]\n",i,title,classname);
+		GetWindowText(wnds[i], title, 100);
+		GetClassName(wnds[i], classname, 100);
+		printf("Sending WM_PAINT to window #%03d: %s [%s]\n", i, title, classname);
 		*/
-		PostMessage(wnds[i],WM_PAINT,0,0);
+		PostMessage(wnds[i], WM_PAINT, 0, 0);
 	}
 	
 	return 0;
