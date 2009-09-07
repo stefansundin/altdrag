@@ -4,11 +4,34 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2009-04-24T13:37:00Z</updated>
+	<updated>2009-09-07T21:00:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:84b9d61f-4a48-4bf7-afef-02bd8943591d</id>
+		<title>AltDrag - 0.8 beta 2</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2009-09-07T21:00:00Z</updated>
+		<content type="html">
+Released 0.8 beta 2.&lt;br/>
+I am releasing this as a beta but it is still the most recommended version available. I have made some major changes and fixes, not to mention a few new features. First of all, I have completely redone the feature previously called &lt;tt>ExperimentalFeatures&lt;/tt>. I renamed it to &lt;tt>HookWindows&lt;/tt> since I no longer consider it experimental and I encourage you to try it out. A few other new things are &lt;tt>AutoStick&lt;/tt>, an improved version of &lt;tt>StickyScreen&lt;/tt>, and &lt;tt>RMBMinimize&lt;/tt> which makes your right mouse button minimize windows. I have also done a lot of fixes to multi-monitor support. New language: Galician by Alexander De Sousa. Users of 0.7 and 0.8b1 won't be automatically notified of this version. I plan to support 64-bit windows with HookWindows for the stable 0.8. &lt;br/>
+&lt;br/>
+&lt;u>Changelog:&lt;/u>
+&lt;ul>
+&lt;li>Added &lt;tt>AutoStick&lt;/tt>, enable it to make windows always stick without needing to press shift. This replaces &lt;tt>StickyScreen&lt;/tt>.&lt;/li>
+&lt;li>Renamed &lt;tt>ExperimentalFeatures&lt;/tt> to &lt;tt>HookWindows&lt;/tt>, also improved it so resizing is now supported and windows should no longer flicker. I no longer consider it experimental.&lt;/li>
+&lt;li>Added &lt;tt>RMBMinimize&lt;/tt>, enable it to minimize windows with the right mouse button.&lt;/li>
+&lt;li>Improved multi-monitor support a lot.&lt;/li>
+&lt;li>Tweaked the blacklist (see &lt;a href="http://code.google.com/p/altdrag/wiki/Blacklist">wiki&lt;/a>).&lt;/li>
+&lt;/ul>
+&lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the website&lt;/a>&lt;br/>
+&lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8b2.exe">&lt;img src="http://altdrag.googlecode.com/svn/wiki/down.png"/> Download installer&lt;/a> - Archive: &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8b2.7z">English&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8b2%20%28Spanish%29.7z">Spanish&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8b2%20%28Galician%29.7z">Galician&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8b2%20%28Korean%29.7z">Korean&lt;/a>&lt;br/>
+&lt;a href="http://groups.google.com/group/recovers-tools">&lt;img src="http://altdrag.googlecode.com/svn/wiki/groups.png"/> Discuss in the forum&lt;/a> (no registration required)
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:a3154d04-2e39-4508-8146-2c77817ab951</id>
