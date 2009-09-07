@@ -96,7 +96,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 	PathRenameExtension(path, L".ini");
-	GetPrivateProfileString(L"Update", L"CheckForUpdate", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Update", L"CheckForUpdate", L"1", txt, sizeof(txt)/sizeof(wchar_t), path);
 	swscanf(txt, L"%d", &settings.CheckForUpdate);
 	
 	//Create window class
