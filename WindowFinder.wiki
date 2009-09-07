@@ -7,4 +7,4 @@
 
 If you pressed a child window or a component of the window, it will also give you information about that. Note that you can't use the child window or component window information in the blacklist.
 
-Download: [http://altdrag.googlecode.com/files/WindowFinder-0.2.exe WindowFinder-0.2-exe]
+Download: [http://altdrag.googlecode.com/files/WindowFinder-0.2.exe WindowFinder-0.2.exe]
