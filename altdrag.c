@@ -82,6 +82,7 @@ wchar_t txt[1000];
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
+BOOL x64;
 
 //Error() and CheckForUpdate()
 #include "include/error.h"
@@ -124,6 +125,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 			break;
 		}
 	}
+	IsWow64Process(GetCurrentProcess(), &x64);
 	
 	//Create window class
 	WNDCLASSEX wnd;
@@ -378,12 +380,10 @@ int HookSystem() {
 		}
 		
 		//x64
-		/*BOOL x64;
-		IsWow64Process(GetCurrentProcess(), &x64);
 		if (x64) {
 			//Maybe use CreateProcess()?
 			ShellExecute(NULL, L"open", L"HookWindows_x64.exe", NULL, NULL, SW_SHOWNORMAL);
-		}*/
+		}
 	}
 	
 	//Success
@@ -413,6 +413,14 @@ int UnhookSystem() {
 			return 1;
 		}
 		msghook = NULL;
+		
+		//Close HookWindows_x64.exe
+		if (x64) {
+			HWND window = FindWindow(L"AltDrag-x64",NULL);
+			if (window != NULL) {
+				PostMessage(window, WM_CLOSE, 0, 0);
+			}
+		}
 	}
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
