@@ -8,7 +8,6 @@
 	(at your option) any later version.
 */
 
-
 #define UNICODE
 #define _UNICODE
 #define _WIN32_WINNT 0x0500
@@ -91,10 +90,10 @@ enum {MOVE, RESIZE, NONE} msgaction = NONE;
 #define Error(a,b,c,d,e)
 #endif
 
-__cdecl __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
-#include "hooks.h"
+__declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
+#include "include/hooks.h"
 
-__cdecl __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+__declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		int vkey = ((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
@@ -157,7 +156,7 @@ __cdecl __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, W
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-__cdecl __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+__declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		if (alt && (wParam == WM_LBUTTONDOWN || wParam == WM_MBUTTONDOWN || wParam == WM_RBUTTONDOWN)) {
 			//Double check if any alt key is being pressed
@@ -297,7 +296,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			GetPrivateProfileString(APP_NAME, L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Cursor);
 			if (sharedsettings.Cursor) {
-				cursorwnd=FindWindow(APP_NAME,NULL);
+				cursorwnd = FindWindow(APP_NAME,NULL);
 			}
 			//AutoStick
 			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);

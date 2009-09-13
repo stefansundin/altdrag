@@ -23,7 +23,6 @@
 
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND,UINT,WPARAM,LPARAM);
-UINT WM_UPDATESETTINGS = 0;
 wchar_t txt[1000];
 
 //Cool stuff
@@ -36,34 +35,41 @@ HHOOK msghook = NULL;
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
-	//Look for previous instance
-	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
-	HWND previnst = FindWindow(APP_NAME,NULL);
-	if (previnst != NULL) {
-		PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
+	//Warn user
+	if (!strcmp(szCmdLine,"")) {
+		MessageBox(NULL, L"HookWindows_x64.exe is launched internally by AltDrag if you have enabled HookWindows. There is no need to launch it manually.\n\nIf you still want to do this, launch HookWindows_x64.exe with an argument (it can be anything) to bypass this dialog.\n\nKeep in mind that HookWindows_x64.exe will automatically exit if it can't find AltDrag running.", L"HookWindows_x64.exe", MB_ICONINFORMATION|MB_OK);
+		return 1;
+	}
+	
+	//Look for previous instance and make sure AltDrag is running
+	if (FindWindow(APP_NAME,NULL) != NULL
+	 || FindWindow(L"AltDrag",NULL) == NULL) {
 		return 0;
 	}
 	
 	//Create window class
 	WNDCLASSEX wnd;
-	wnd.cbSize=sizeof(WNDCLASSEX);
-	wnd.style=0;
-	wnd.lpfnWndProc=WindowProc;
-	wnd.cbClsExtra=0;
-	wnd.cbWndExtra=0;
-	wnd.hInstance=hInst;
-	wnd.hIcon=NULL;
-	wnd.hIconSm=NULL;
-	wnd.hCursor=LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-	wnd.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
-	wnd.lpszMenuName=NULL;
-	wnd.lpszClassName=APP_NAME;
+	wnd.cbSize = sizeof(WNDCLASSEX);
+	wnd.style = 0;
+	wnd.lpfnWndProc = WindowProc;
+	wnd.cbClsExtra = 0;
+	wnd.cbWndExtra = 0;
+	wnd.hInstance = hInst;
+	wnd.hIcon = NULL;
+	wnd.hIconSm = NULL;
+	wnd.hCursor = LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
+	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+	wnd.lpszMenuName = NULL;
+	wnd.lpszClassName = APP_NAME;
 	
 	//Register class
 	RegisterClassEx(&wnd);
 	
 	//Create window
-	HWND hwnd=CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	HWND hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	
+	//Start a timer that checks if AltDrag exits without telling us
+	SetTimer(hwnd, 0, 10000, NULL);
 	
 	//Hook system
 	HookSystem();
@@ -75,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	
 	//Message loop
 	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0)) {
+	while (GetMessage(&msg,NULL,0,0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -88,9 +94,6 @@ int HookSystem() {
 		return 1;
 	}
 	
-	//Update settings
-	//SendMessage(traydata.hWnd, WM_UPDATESETTINGS, 0, 0);
-	
 	//Load library
 	if (!hinstDLL) {
 		wchar_t path[MAX_PATH];
@@ -99,7 +102,7 @@ int HookSystem() {
 		wcscat(path, L"\\hooks_x64.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary()", L"This probably means that the file hooks_x64.dll is missing.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary()", L"This probably means that the file hooks_x64.dll is missing.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -109,13 +112,13 @@ int HookSystem() {
 		//Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"LowLevelKeyboardProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0);
 		if (keyhook == NULL) {
-			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -123,14 +126,14 @@ int HookSystem() {
 	//Get address to message hook (beware name mangling)
 	procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc");
 	if (procaddr == NULL) {
-		Error(L"GetProcAddress('CallWndProc')",L"This probably means that the file hooks_x64.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
 	//Set up the message hook
 	msghook = SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0);
 	if (msghook == NULL) {
-		Error(L"SetWindowsHookEx(WH_CALLWNDPROC)",L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+		Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
 		return 1;
 	}
 	
@@ -144,9 +147,16 @@ int UnhookSystem() {
 		return 1;
 	}
 	
+	//Remove keyboard hook
+	if (UnhookWindowsHookEx(keyhook) == 0) {
+		Error(L"UnhookWindowsHookEx(keyhook)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+		return 1;
+	}
+	keyhook = NULL;
+	
 	//Remove message hook
 	if (UnhookWindowsHookEx(msghook) == 0) {
-		Error(L"UnhookWindowsHookEx(msghook)",L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+		Error(L"UnhookWindowsHookEx(msghook)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
 		return 1;
 	}
 	msghook = NULL;
@@ -158,7 +168,7 @@ int UnhookSystem() {
 	if (hinstDLL) {
 		//Unload library
 		if (FreeLibrary(hinstDLL) == 0) {
-			Error(L"FreeLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"FreeLibrary()", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		hinstDLL = NULL;
@@ -178,33 +188,16 @@ void ToggleState() {
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (msg == WM_UPDATESETTINGS) {
-		/*//Load settings
-		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL,path,sizeof(path)/sizeof(wchar_t));
-		PathRenameExtension(path,L".ini");
-		//HookApps
-		GetPrivateProfileString(APP_NAME,L"HookApps",L"0",txt,sizeof(txt)/sizeof(wchar_t),path);
-		swscanf(txt,L"%d",&settings.HookApps);
-		//Language
-		GetPrivateProfileString(APP_NAME,L"Language",L"en-US",txt,sizeof(txt)/sizeof(wchar_t),path);
-		int i;
-		for (i=0; i < num_languages; i++) {
-			if (!wcscmp(txt,languages[i].code)) {
-				l10n=languages[i].strings;
-			}
-		}
-		//Reload hooks
-		if (keyhook || msghook) {
-			UnhookSystem();
-			HookSystem();
-		}*/
-	}
-	else if (msg == WM_DESTROY) {
+	if (msg == WM_DESTROY) {
 		showerror = 0;
 		UnhookSystem();
 		PostQuitMessage(0);
 		return 0;
+	}
+	else if (msg == WM_TIMER) {
+		if (FindWindow(L"AltDrag",NULL) == NULL) {
+			SendMessage(hwnd, WM_CLOSE, 0, 0);
+		}
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
