@@ -1,0 +1,26 @@
+#summary How to compile AltDrag
+#labels Featured,Phase-Implementation
+
+= Introduction =
+
+This document explains how to compile AltDrag. There are two distinct parts that you have to compile separately, the 32-bit part and the 64-bit part.
+
+Your first task is to download the AltDrag source code. You have to use an SVN client and check out "`http://altdrag.googlecode.com/svn/trunk/`".
+
+= 32-bit part =
+
+The 32-bit part is `AltDrag.exe` and `hooks.dll`. They can be easily compiled with MinGW. Download and install MinGW, and then add `<MinGW path>\bin` to the PATH variable. After that you can compile the 32-bit part by running `build.bat`. It's convenient to run `build` in a terminal so you can see eventual error messages.
+
+
+= 64-bit part =
+
+The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are used if you enable HookWindows and are running x64. They are needed to be able to hook into 64-bit processes. To compile them your best choice is using [http://www.cadforte.com/system64.html WPG System64]. It is a pack that uses the Mingw-w64 port. It is very easy to use and works very well, even though it is using a very cutting edge toolchain. Simply download WPG System64 and extract it to `C:\msys`, then run `msys.bat` and navigate to the AltDrag trunk and run "`make -i`". For reference, I used the version 1.4b of WPG System64. Thanks to Xenofears for making the wonderful WPG System64, if not for him I can't imagine that compiling for x64 would be this easy.
+
+I had a little trouble initially when trying to compile for x64, but after looking at the different GCC version in MinGW and WPG System64, that's no surprise. MinGW 5.1.4 uses GCC 3.4.5, while WPG System64 1.4b uses 4.5.0. I have now changed the code so it should work for both versions.
+
+`AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, so because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag a 64-bit only program.
+
+
+= Installer =
+
+To build the installer you need to download NSIS and put it in PATH as well. `build.bat` automatically builds the installer.
