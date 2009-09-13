@@ -9,9 +9,9 @@
 
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "0.8b2"
+!define APP_VERSION   "0.8"
 !define APP_URL       "http://altdrag.googlecode.com/"
-!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
+!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 !define L10N_VERSION  3
 
 ;Libraries
@@ -188,6 +188,8 @@ Section "${APP_NAME} (${APP_VERSION})" sec_app
 	;Install files
 	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
 	File "build\en-US\${APP_NAME}\hooks.dll"
+	File "build\en-US\${APP_NAME}\HookWindows_x64.exe"
+	File "build\en-US\${APP_NAME}\hooks_x64.dll"
 	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	
 	IntCmp $LANGUAGE ${LANG_ENGLISH}  en-US
@@ -342,6 +344,8 @@ Section "Uninstall"
 
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}.exe"
 	Delete /REBOOTOK "$INSTDIR\hooks.dll"
+	Delete /REBOOTOK "$INSTDIR\HookWindows_x64.exe"
+	Delete /REBOOTOK "$INSTDIR\hooks_x64.dll"
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}.ini"
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}-old.ini"
 	Delete /REBOOTOK "$INSTDIR\info.txt"

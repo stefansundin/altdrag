@@ -13,6 +13,8 @@
 int update = 0;
 
 DWORD WINAPI _CheckForUpdate() {
+	if (!settings.CheckForUpdate) return 1;
+	
 	//Check if we are connected to the internet
 	DWORD flags; //Not used
 	int tries = 0; //Try at least ten times, sleep one second between each attempt
@@ -82,5 +84,6 @@ DWORD WINAPI _CheckForUpdate() {
 }
 
 void CheckForUpdate() {
+	if (!settings.CheckForUpdate) return;
 	CreateThread(NULL, 0, _CheckForUpdate, NULL, 0, NULL);
 }

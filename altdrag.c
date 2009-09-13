@@ -10,19 +10,19 @@
 
 #define UNICODE
 #define _UNICODE
+#define _WIN32_WINNT 0x0501
+#define _WIN32_IE 0x0600
 
 #include <stdio.h>
 #include <stdlib.h>
-#define _WIN32_WINNT 0x0501
-#define _WIN32_IE 0x0600
 #include <windows.h>
 #include <shlwapi.h>
 
 //App
 #define APP_NAME      L"AltDrag"
-#define APP_VERSION   "0.8b2"
+#define APP_VERSION   "0.8"
 #define APP_URL       L"http://altdrag.googlecode.com/"
-#define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
+#define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 
 //Messages
 #define WM_ICONTRAY            WM_USER+1
@@ -37,11 +37,13 @@
 #define SWM_EXIT               WM_APP+9
 
 //Stuff missing in MinGW
+#ifndef NIIF_USER
 #define NIIF_USER 4
 #define NIN_BALLOONSHOW        WM_USER+2
 #define NIN_BALLOONHIDE        WM_USER+3
 #define NIN_BALLOONTIMEOUT     WM_USER+4
 #define NIN_BALLOONUSERCLICK   WM_USER+5
+#endif
 
 //Localization
 struct strings {
@@ -120,7 +122,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
 	int i;
 	for (i=0; i < num_languages; i++) {
-		if (!wcscmp(txt,languages[i].code)) {
+		if (!wcsicmp(txt,languages[i].code)) {
 			l10n = languages[i].strings;
 			break;
 		}
@@ -183,9 +185,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 	
 	//Check for update
-	if (settings.CheckForUpdate) {
-		CheckForUpdate();
-	}
+	CheckForUpdate();
 	
 	//Message loop
 	MSG msg;
@@ -220,12 +220,12 @@ void ShowContextMenu(HWND hwnd) {
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL, path, MAX_PATH);
 	swprintf(txt, L"\"%s\"", path);
-	if (!wcscmp(txt,autostart_value)) {
+	if (!wcsicmp(txt,autostart_value)) {
 		autostart_enabled = 1;
 	}
 	else {
 		swprintf(txt, L"\"%s\" -hide", path);
-		if (!wcscmp(txt,autostart_value)) {
+		if (!wcsicmp(txt,autostart_value)) {
 			autostart_enabled = 1;
 			autostart_hide = 1;
 		}
@@ -234,7 +234,7 @@ void ShowContextMenu(HWND hwnd) {
 	HMENU hAutostartMenu = CreatePopupMenu();
 	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), l10n->menu_autostart);
 	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), l10n->menu_hide);
-	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT)hAutostartMenu, l10n->menu_autostart);
+	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hAutostartMenu, l10n->menu_autostart);
 	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	
 	//Update
@@ -260,10 +260,10 @@ int UpdateTray() {
 	
 	//Only add or modify if not hidden or if balloon will be displayed
 	if (!hide || traydata.uFlags&NIF_INFO) {
-		int tries = 0; //Try at least ten times, sleep 100 ms between each attempt
+		int tries = 0; //Try at least a hundred times, sleep 100 ms between each attempt
 		while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
 			tries++;
-			if (tries >= 10) {
+			if (tries >= 100) {
 				Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)", L"Failed to update tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
 				return 1;
 			}
@@ -382,7 +382,11 @@ int HookSystem() {
 		//x64
 		if (x64) {
 			//Maybe use CreateProcess()?
-			ShellExecute(NULL, L"open", L"HookWindows_x64.exe", L"nowhineplz", NULL, SW_SHOWNORMAL);
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			PathRemoveFileSpec(path);
+			wcscat(path, L"\\HookWindows_x64.exe");
+			ShellExecute(NULL, L"open", path, L"nowarning", NULL, SW_SHOWNORMAL);
 		}
 	}
 	
@@ -480,7 +484,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
 		int i;
 		for (i=0; i < num_languages; i++) {
-			if (!wcscmp(txt,languages[i].code)) {
+			if (!wcsicmp(txt,languages[i].code)) {
 				l10n = languages[i].strings;
 				break;
 			}
