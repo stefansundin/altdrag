@@ -82,7 +82,7 @@ wchar_t txt[1000];
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
-BOOL x64;
+BOOL x64 = FALSE;
 
 //Error() and CheckForUpdate()
 #include "include/error.h"
@@ -382,7 +382,7 @@ int HookSystem() {
 		//x64
 		if (x64) {
 			//Maybe use CreateProcess()?
-			ShellExecute(NULL, L"open", L"HookWindows_x64.exe", NULL, NULL, SW_SHOWNORMAL);
+			ShellExecute(NULL, L"open", L"HookWindows_x64.exe", L"nowhineplz", NULL, SW_SHOWNORMAL);
 		}
 	}
 	

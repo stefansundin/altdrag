@@ -372,7 +372,7 @@ int UnhookMouse() {
 }
 
 //Msghook
-__cdecl __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+__declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_WINDOWPOSCHANGING && (shift || sharedsettings.AutoStick)) {
 		WINDOWPOS *wndpos = (WINDOWPOS*)lParam;
 		if (msgaction == MOVE && !(wndpos->flags&SWP_NOMOVE)) {
@@ -406,7 +406,7 @@ __cdecl __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg
 
 //CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
-__cdecl __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
+__declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
 		
@@ -497,6 +497,6 @@ __cdecl __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wPa
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-__cdecl __declspec(dllexport) void ClearSettings() {
+__declspec(dllexport) void ClearSettings() {
 	sharedsettings_loaded=0;
 }
