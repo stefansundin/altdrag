@@ -40,21 +40,3 @@ Here is a list of applications with their blacklist rule. Add the rule to `Black
 || PuTTY         || `*|PuTTY`         ||
 
 If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
-
-= Blacklists and applications in 0.7 =
-
-This is the default blacklist rules in 0.7.
-
-|| *Blacklist rule*          || *Explanation* ||
-|| `|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista. ||
-|| `|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista. ||
-|| *Blacklist_Sticky rule*   || *Explanation* ||
-|| `|AltDrag`                || This is the AltDrag cursor overlay window. Since an application must own the window the cursor is currently hovering to be able to change the mouse cursor, AltDrag puts a small invisible window over the cursor to change it. ||
-|| `Start|Button`            || This is the Windows Vista start menu orb. ||
-|| `|Chrome_ContainerWin_0`  || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. ||
-|| `|SpotifyShadow`          || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
-
-|| *Application* || *Blacklist rule* ||
-|| Photoshop     || `|Photoshop`     ||
-|| Illutrator    || `|illustrator`   ||
-|| PuTTY         || `|PuTTY`         ||
