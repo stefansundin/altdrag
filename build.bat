@@ -20,12 +20,12 @@ if "%1" == "all" (
 	if not exist "build\en-US\AltDrag" (
 		mkdir "build\en-US\AltDrag"
 	)
-	gcc -o "build\en-US\AltDrag\AltDrag.exe" altdrag.c build\resources.o -mwindows -lshlwapi -lwininet
+	gcc -O2 -march=pentium2 -mtune=pentium2 -o "build\en-US\AltDrag\AltDrag.exe" altdrag.c build\resources.o -mwindows -lshlwapi -lwininet
 	if not exist "build\en-US\AltDrag\AltDrag.exe" (
 		exit /b
 	)
 	strip "build\en-US\AltDrag\AltDrag.exe"
-	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\resources_hooks.o -mdll -lshlwapi
+	gcc -O2 -march=pentium2 -mtune=pentium2 -o "build\en-US\AltDrag\hooks.dll" hooks.c build\resources_hooks.o -mdll -lshlwapi
 	if not exist "build\en-US\AltDrag\hooks.dll" (
 		exit /b
 	)
