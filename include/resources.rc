@@ -1,6 +1,6 @@
-icon ICON media/icon.ico
-tray-disabled ICON media/tray-disabled.ico
-tray-enabled ICON media/tray-enabled.ico
+app_icon ICON "media/icon.ico"
+tray_disabled ICON "media/tray-disabled.ico"
+tray_enabled ICON "media/tray-enabled.ico"
 
 #define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define RT_MANIFEST 24

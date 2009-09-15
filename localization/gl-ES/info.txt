@@ -30,9 +30,9 @@ AltDrag é un programa de código fonte aberto, baixo a licencia GPL.
 
 Listaxe de Cambios:
 -------------------
-0.8b2 - 2009-09-07:
+0.8:
 Engadido AutoStick, actívao para facer que a ventá sempre se pegue sen precisar premer Shift. Substitúe a StickyScreen.
-ExperimentalFeatures agora é HookWindows, tamén mellorado para eliminar o escintilo. Xa non o considero experimental.
+ExperimentalFeatures agora é HookWindows, tamén mellorado para eliminar o escintilo. As versións de 64-bits xa funcionan. Xa non o considero experimental.
 Engadido RMBMinimize, actívao para minimizar ventás co botón dereito do rato.
 Mellorado moito o soporte multi-monitor.
 Mellorada a lista negra (mira o wiki).
