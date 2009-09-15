@@ -6,14 +6,14 @@ if not exist build (
 	mkdir build
 )
 
-gcc -o build\unhook.exe include\unhook.c
+gcc -march=pentium2 -mtune=pentium2 -o build\unhook.exe include\unhook.c
 "build\unhook.exe"
 
 windres -o build\resources.o include\resources.rc
 windres -o build\resources_hooks.o include\hooks.rc
 
 if "%1" == "all" (
-	gcc -o build\ini.exe include\ini.c -lshlwapi
+	gcc -march=pentium2 -mtune=pentium2 -o build\ini.exe include\ini.c -lshlwapi
 	
 	@echo.
 	echo Building binaries
@@ -50,8 +50,8 @@ if "%1" == "all" (
 	echo Building installer
 	makensis /V2 installer.nsi
 ) else (
-	gcc -o AltDrag.exe altdrag.c build\resources.o -mwindows -lshlwapi -lwininet -DDEBUG
-	gcc -o hooks.dll hooks.c build\resources_hooks.o -mdll -lshlwapi -DDEBUG
+	gcc -march=pentium2 -mtune=pentium2 -o AltDrag.exe altdrag.c build\resources.o -mwindows -lshlwapi -lwininet -DDEBUG
+	gcc -march=pentium2 -mtune=pentium2 -o hooks.dll hooks.c build\resources_hooks.o -mdll -lshlwapi -DDEBUG
 	
 	if "%1" == "run" (
 		start AltDrag.exe
