@@ -188,8 +188,8 @@ Section "${APP_NAME} (${APP_VERSION})" sec_app
 	;Install files
 	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
 	File "build\en-US\${APP_NAME}\hooks.dll"
-	File "build\en-US\${APP_NAME}\HookWindows_x64.exe"
-	File "build\en-US\${APP_NAME}\hooks_x64.dll"
+	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
+	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
 	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	
 	IntCmp $LANGUAGE ${LANG_ENGLISH}  en-US

@@ -102,7 +102,7 @@ int HookSystem() {
 		wcscat(path, L"\\hooks_x64.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary()", L"This probably means that the file hooks_x64.dll is missing.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
