@@ -154,7 +154,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	icon[0] = LoadImage(hInst,L"tray_disabled",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	icon[1] = LoadImage(hInst,L"tray_enabled",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	if (icon[0] == NULL || icon[1] == NULL) {
-		Error(L"LoadImage('tray-*')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"LoadImage('tray_*')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
 		PostQuitMessage(1);
 	}
 	
@@ -343,8 +343,9 @@ int HookSystem() {
 		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 		PathRemoveFileSpec(path);
 		wcscat(path, L"\\hooks.dll");
-		if ((hinstDLL=LoadLibrary(path)) == NULL) {
-			Error(L"LoadLibrary()", L"This probably means that the file hooks.dll is missing.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+		hinstDLL = LoadLibrary(path);
+		if (hinstDLL == NULL) {
+			Error(L"LoadLibrary('hooks.dll')", L"This probably means that the file hooks.dll is missing.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -381,7 +382,6 @@ int HookSystem() {
 		
 		//x64
 		if (x64) {
-			//Maybe use CreateProcess()?
 			wchar_t path[MAX_PATH];
 			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 			PathRemoveFileSpec(path);

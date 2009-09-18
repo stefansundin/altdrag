@@ -22,10 +22,9 @@ LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line) {
 	if (showerror) {
 		//Format message
-		wchar_t msg[1000];
-		wchar_t *errormsg;
-		int length = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorcode, 0, (wchar_t *) &errormsg, 0, NULL);
-		errormsg[length - 2] = '\0'; //Remove that damn newline at the end of the formatted error message
+		wchar_t msg[1000], *errormsg;
+		int length = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,(wchar_t*)&errormsg,0,NULL);
+		errormsg[length-2] = '\0'; //Remove that damn newline at the end of the formatted error message
 		swprintf(msg, L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, file, line, errormsg, errorcode, info);
 		LocalFree(errormsg);
 		//Display message
@@ -34,7 +33,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 		UnhookWindowsHookEx(hhk);
 		if (response == IDYES) {
 			//Copy message to clipboard
-			int size = (wcslen(msg) + 1) * sizeof(wchar_t);
+			int size = (wcslen(msg)+1)*sizeof(wchar_t);
 			OpenClipboard(NULL);
 			EmptyClipboard();
 			wchar_t *data = LocalAlloc(LMEM_FIXED,size);
