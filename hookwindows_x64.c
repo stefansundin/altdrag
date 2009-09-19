@@ -19,7 +19,7 @@
 #include <shlwapi.h>
 
 //App
-#define APP_NAME L"AltDrag-x64"
+#define APP_NAME L"AltDrag"
 
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND,UINT,WPARAM,LPARAM);
@@ -37,13 +37,13 @@ HHOOK msghook = NULL;
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	//Warn user
 	if (!strcmp(szCmdLine,"")) {
-		MessageBox(NULL, L"HookWindows_x64.exe is launched internally by AltDrag if you have enabled HookWindows. There is no need to launch it manually.\n\nIf you still want to do this, launch HookWindows_x64.exe with an argument (it can be anything) to bypass this dialog.\n\nKeep in mind that HookWindows_x64.exe will automatically exit if it can't find AltDrag running.", L"HookWindows_x64.exe", MB_ICONINFORMATION|MB_OK);
+		MessageBox(NULL, L"HookWindows_x64.exe is launched internally by "APP_NAME" if you have enabled HookWindows. There is no need to launch it manually.\n\nIf you still want to do this, launch HookWindows_x64.exe with an argument (it can be anything) to bypass this dialog.\n\nKeep in mind that HookWindows_x64.exe will automatically exit if it can't find "APP_NAME" running.", L"HookWindows_x64.exe", MB_ICONINFORMATION|MB_OK);
 		return 1;
 	}
 	
 	//Look for previous instance and make sure AltDrag is running
-	if (FindWindow(APP_NAME,NULL) != NULL
-	 || FindWindow(L"AltDrag",NULL) == NULL) {
+	if (FindWindow(APP_NAME"-x64",NULL) != NULL
+	 || FindWindow(APP_NAME,NULL) == NULL) {
 		return 0;
 	}
 	
@@ -60,15 +60,15 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wnd.hCursor = LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName = NULL;
-	wnd.lpszClassName = APP_NAME;
+	wnd.lpszClassName = APP_NAME"-x64";
 	
 	//Register class
 	RegisterClassEx(&wnd);
 	
 	//Create window
-	HWND hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	HWND hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME"-x64", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
 	
-	//Start a timer that checks if AltDrag exits without telling us
+	//Start a timer that checks if AltDrag is still running every 10 seconds
 	SetTimer(hwnd, 0, 10000, NULL);
 	
 	//Hook system
@@ -118,7 +118,7 @@ int HookSystem() {
 		//Set up the keyboard hook
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0);
 		if (keyhook == NULL) {
-			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -133,7 +133,7 @@ int HookSystem() {
 	//Set up the message hook
 	msghook = SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0);
 	if (msghook == NULL) {
-		Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+		Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
 		return 1;
 	}
 	
@@ -149,14 +149,14 @@ int UnhookSystem() {
 	
 	//Remove keyboard hook
 	if (UnhookWindowsHookEx(keyhook) == 0) {
-		Error(L"UnhookWindowsHookEx(keyhook)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"UnhookWindowsHookEx(keyhook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	keyhook = NULL;
 	
 	//Remove message hook
 	if (UnhookWindowsHookEx(msghook) == 0) {
-		Error(L"UnhookWindowsHookEx(msghook)", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+		Error(L"UnhookWindowsHookEx(msghook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
 		return 1;
 	}
 	msghook = NULL;
@@ -168,7 +168,7 @@ int UnhookSystem() {
 	if (hinstDLL) {
 		//Unload library
 		if (FreeLibrary(hinstDLL) == 0) {
-			Error(L"FreeLibrary()", L"Check the AltDrag website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"FreeLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		hinstDLL = NULL;
@@ -195,7 +195,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return 0;
 	}
 	else if (msg == WM_TIMER) {
-		if (FindWindow(L"AltDrag",NULL) == NULL) {
+		//Exit if AltDrag is not running
+		if (FindWindow(APP_NAME,NULL) == NULL) {
 			SendMessage(hwnd, WM_CLOSE, 0, 0);
 		}
 	}
