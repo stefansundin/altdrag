@@ -36,6 +36,7 @@ POINT offset;
 POINT resize_offset;
 enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
 int blockshift = 0;
+int blockaltup = 0;
 
 //Sticky
 RECT *monitors = NULL;
@@ -215,6 +216,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 			if (!alt && (vkey == VK_LMENU || vkey == VK_RMENU)) {
 				alt = 1;
+				blockaltup = 0;
 				clicktime = 0; //Reset double-click time
 				//Don't hook the mouse if the foreground window is fullscreen
 				HWND window = GetForegroundWindow();
@@ -272,6 +274,31 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 			if ((vkey == VK_LMENU || vkey == VK_RMENU) && !(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt = 0;
+				
+				//Block the alt keyup to prevent the menu of the foreground window to be selected
+				//This actually "disguises" the alt keypress in such a way that the menu will not be triggered
+				//For more information, see issue 20
+				if (blockaltup) {
+					//Send a ctrl keydown and keyup event to disguise the alt keyup
+					KEYBDINPUT ctrl[2];
+					ctrl[0].wVk = VK_CONTROL;
+					ctrl[0].wScan = 0;
+					ctrl[0].dwFlags = 0;
+					ctrl[0].time = 0;
+					ctrl[0].dwExtraInfo = GetMessageExtraInfo();
+					ctrl[1].wVk = VK_CONTROL;
+					ctrl[1].wScan = 0;
+					ctrl[1].dwFlags = KEYEVENTF_KEYUP;
+					ctrl[1].time = 0;
+					ctrl[1].dwExtraInfo = ctrl[0].dwExtraInfo;
+					INPUT input[2];
+					input[0].type = INPUT_KEYBOARD;
+					input[0].ki = ctrl[0];
+					input[1].type = INPUT_KEYBOARD;
+					input[1].ki = ctrl[1];
+					SendInput(2, input, sizeof(INPUT));
+				}
+				
 				if (!move && !resize) {
 					UnhookMouse();
 				}
@@ -415,6 +442,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Ready to move window
 				move = 1;
 				blockshift = 1;
+				blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
