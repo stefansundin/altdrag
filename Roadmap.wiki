@@ -10,12 +10,12 @@ I want to finish this before I release 1.0:
   * `HookWindows (ExperimentalFeatures)`:
     * ~~support resizing~~ - Done in 0.8b2.
     * ~~support 64-bit processes~~ - Done in time for 0.8.
-  * Alt shouldn't focus the menu
+  * ~~Alt shouldn't focus the menu~~ - Done in time for 0.8.
 
 = Other stuff =
 I also want to take care of this:
   * Be able to resize troublesome windows such as PuTTY.
   * Be able to drag and resize windows that have problems right now, such as Steam and Winamp.
-  * Be able to detect if a window is partially overlapped by other windows and only stick to the visible borders.
+  * Be able to detect if a window is partially overlapped by other windows and only stick to the visible borders. This will require heavy refactoring of the stick code. I'm not even sure if everyone want this so it's a low priority issue until a discussion can start about it.
 
 If you know of more programs that have problems, please let me I know in the comments.
