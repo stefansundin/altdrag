@@ -25,7 +25,7 @@ if "%1" == "all" (
 		exit /b
 	)
 	strip "build\en-US\AltDrag\AltDrag.exe"
-	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -march=pentium2 -O2
+	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -march=pentium2 -O2
 	if not exist "build\en-US\AltDrag\hooks.dll" (
 		exit /b
 	)
@@ -53,7 +53,7 @@ if "%1" == "all" (
 	makensis /V2 installer.nsi
 ) else (
 	gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -march=pentium2 -DDEBUG
-	gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -march=pentium2 -DDEBUG
+	gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -march=pentium2 -DDEBUG
 	
 	if "%1" == "run" (
 		start AltDrag.exe

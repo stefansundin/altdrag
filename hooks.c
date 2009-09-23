@@ -10,13 +10,14 @@
 
 #define UNICODE
 #define _UNICODE
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x0501
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
 #include <shlwapi.h>
+#include <commctrl.h>
 
 //App
 #define APP_NAME L"AltDrag"
@@ -106,11 +107,12 @@ HINSTANCE hinstDLL = NULL;
 HHOOK mousehook = NULL;
 
 //Msghook data
-WNDPROC oldwndproc = NULL;
+BOOL subclassed = FALSE;
 enum {MOVE, RESIZE, NONE} msgaction = NONE;
 
 //Error()
 #ifdef DEBUG
+//#define ERROR_WRITETOFILE
 #include "include/error.h"
 #else
 #define Error(a,b,c,d,e)
@@ -118,8 +120,7 @@ enum {MOVE, RESIZE, NONE} msgaction = NONE;
 
 //Blacklist
 int blacklisted(HWND hwnd, struct blacklist *list) {
-	wchar_t title[256];
-	wchar_t classname[256];
+	wchar_t title[256], classname[256];
 	GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
 	GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
 	int i;
@@ -153,7 +154,7 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMoni
 		monitors_alloc++;
 		monitors = realloc(monitors,monitors_alloc*sizeof(RECT));
 		if (monitors == NULL) {
-			Error(L"realloc(monitors)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
+			Error(L"realloc(monitors)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 			return FALSE;
 		}
 	}
@@ -169,7 +170,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		wnds_alloc += 20;
 		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
-			Error(L"realloc(wnds)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
+			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 			return FALSE;
 		}
 	}
@@ -240,8 +241,7 @@ void Enum() {
 	}
 	fprintf(f, "\n");
 	fprintf(f, "numwnds: %d\n", numwnds);
-	char title[100];
-	char classname[100];
+	char title[100], classname[100];
 	for (k=0; k < numwnds; k++) {
 		//GetWindowTextA(wnds[k], title, 100);
 		//GetClassNameA(wnds[k], classname, 100);
@@ -678,13 +678,13 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		//Set up some variables
-		PMSLLHOOKSTRUCT event = (PMSLLHOOKSTRUCT)lParam;
+		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
 		int button =
 			(wParam==WM_LBUTTONDOWN||wParam==WM_LBUTTONUP)?BUTTON_LMB:
 			(wParam==WM_MBUTTONDOWN||wParam==WM_MBUTTONUP)?BUTTON_MMB:
 			(wParam==WM_RBUTTONDOWN||wParam==WM_RBUTTONUP)?BUTTON_RMB:
-			(HIWORD(event->mouseData)==XBUTTON1)?BUTTON_MB4:
-			(HIWORD(event->mouseData)==XBUTTON2)?BUTTON_MB5:BUTTON_NONE;
+			(HIWORD(msg->mouseData)==XBUTTON1)?BUTTON_MB4:
+			(HIWORD(msg->mouseData)==XBUTTON2)?BUTTON_MB5:BUTTON_NONE;
 		int state =
 			(wParam==WM_LBUTTONDOWN||wParam==WM_MBUTTONDOWN||wParam==WM_RBUTTONDOWN||wParam==WM_XBUTTONDOWN)?STATE_DOWN:
 			(wParam==WM_LBUTTONUP||wParam==WM_MBUTTONUP||wParam==WM_RBUTTONUP||wParam==WM_XBUTTONUP)?STATE_UP:STATE_NONE;
@@ -698,7 +698,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Alt key is still being pressed
-			POINT pt = event->pt;
+			POINT pt = msg->pt;
 			
 			//Make sure cursorwnd isn't in the way
 			if (sharedsettings.Cursor) {
@@ -1040,7 +1040,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (move || resize) {
 				//Move cursorwnd
 				if (sharedsettings.Cursor) {
-					POINT pt = event->pt;
+					POINT pt = msg->pt;
 					MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
 					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
 				}
@@ -1098,7 +1098,7 @@ int UnhookMouse() {
 }
 
 //Msghook
-__declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+__declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
 	if (msg == WM_WINDOWPOSCHANGING && (shift || sharedsettings.AutoStick)) {
 		WINDOWPOS *wndpos = (WINDOWPOS*)lParam;
 		if (msgaction == MOVE && !(wndpos->flags&SWP_NOMOVE)) {
@@ -1108,8 +1108,17 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 			ResizeStick(&wndpos->x, &wndpos->y, &wndpos->cx, &wndpos->cy);
 		}
 	}
+	else if (msg == WM_EXITSIZEMOVE || msg == WM_NCDESTROY) {
+		subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
+		if (subclassed) {
+			Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
+			return DefSubclassProc(hwnd, msg, wParam, lParam);
+		}
+		hwnd = NULL;
+	}
 	
-	/* //Fun code to trap window on screen
+	/*
+	//Fun code to trap window on screen
 	if (msg == WM_WINDOWPOSCHANGING) {
 		WINDOWPOS *wndpos = (WINDOWPOS*)lParam;
 		if (wndpos->x < 0) {
@@ -1127,16 +1136,17 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 	}
 	*/
 	
-	return CallWindowProc(oldwndproc, hwnd, msg, wParam, lParam);
+	return DefSubclassProc(hwnd, msg, wParam, lParam);
 }
 
 //CallWndProc is called in the context of the thread that calls SendMessage, not the thread that receives the message.
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
+//Variables that are not shared, e.g. the blacklist, are loaded individually for each process.
 __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
 		
-		if (hwnd != msg->hwnd
+		if ((!subclassed || hwnd != msg->hwnd)
 		 && (msg->message == WM_ENTERSIZEMOVE || msg->message == WM_WINDOWPOSCHANGING)
 		 && (shift || sharedsettings.AutoStick)
 		 && IsWindowVisible(msg->hwnd)
@@ -1156,21 +1166,20 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
-			//Restore old WndProc if another window has already been subclassed
-			if (oldwndproc != NULL && IsWindow(hwnd)) {
-				if (SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)oldwndproc) == 0) {
-					Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)", L"Failed to restore subclassed window to its old wndproc.", GetLastError(), TEXT(__FILE__), __LINE__);
+			//Remove old subclassing if another window is currently subclassed
+			if (subclassed && IsWindow(hwnd)) {
+				subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
+				if (subclassed) {
+					Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
 				}
-				oldwndproc = NULL;
 			}
 			
 			//Set hwnd
 			hwnd = msg->hwnd;
 			//Subclass window
-			oldwndproc = (WNDPROC)SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)CustomWndProc);
-			if (oldwndproc == 0) {
-				//This might fail if the window isn't responding, which happens from now and then, but there are no need to nag about it
-				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, CustomWndProc)", L"Failed to subclass window.", GetLastError(), TEXT(__FILE__), __LINE__);
+			subclassed = SetWindowSubclass(hwnd, CustomWndProc, 0, 0);
+			if (!subclassed) {
+				Error(L"SetWindowSubclass(hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1, TEXT(__FILE__), __LINE__);
 			}
 		}
 		
@@ -1206,16 +1215,6 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				resize_offset.x = 0;
 				resize_offset.y = 0;
 			}
-		}
-		
-		if ((msg->message == WM_EXITSIZEMOVE || msg->message == WM_DESTROY)
-		 && msg->hwnd == hwnd && oldwndproc != NULL) {
-			//Restore old WndProc
-			if (SetWindowLongPtr(hwnd,GWLP_WNDPROC,(LONG_PTR)oldwndproc) == 0) {
-				Error(L"SetWindowLongPtr(hwnd, GWLP_WNDPROC, oldwndproc)", L"Failed to restore subclassed window to its old wndproc.", GetLastError(), TEXT(__FILE__), __LINE__);
-			}
-			oldwndproc = NULL;
-			hwnd = NULL;
 		}
 	}
 	
@@ -1327,7 +1326,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 					blacklist_alloc += 10;
 					add_blacklist->items = realloc(add_blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
 					if (add_blacklist->items == NULL) {
-						Error(L"realloc(add_blacklist->items)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
+						Error(L"realloc(add_blacklist->items)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 					}
 				}
 				//Store item
@@ -1347,14 +1346,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		wnds_alloc += 5;
 		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
-			Error(L"realloc(wnds)", L"Out of memory?", 0, TEXT(__FILE__), __LINE__);
+			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 			return FALSE;
 		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
-		//Restore old WndProc
-		if (oldwndproc != NULL && IsWindow(hwnd)) {
-			SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)oldwndproc);
+		//Remove subclassing if a window is currently subclassed
+		if (subclassed && IsWindow(hwnd)) {
+			subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
+			if (subclassed) {
+				Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
+			}
 		}
 		//Free memory
 		//Do not free any shared variables
