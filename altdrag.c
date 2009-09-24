@@ -32,9 +32,10 @@
 #define SWM_AUTOSTART_OFF      WM_APP+4
 #define SWM_AUTOSTART_HIDE_ON  WM_APP+5
 #define SWM_AUTOSTART_HIDE_OFF WM_APP+6
-#define SWM_UPDATE             WM_APP+7
-#define SWM_ABOUT              WM_APP+8
-#define SWM_EXIT               WM_APP+9
+#define SWM_SETTINGS           WM_APP+7
+#define SWM_UPDATE             WM_APP+8
+#define SWM_ABOUT              WM_APP+9
+#define SWM_EXIT               WM_APP+10
 
 //Stuff missing in MinGW
 #ifndef NIIF_USER
@@ -50,7 +51,9 @@ struct strings {
 	wchar_t *menu_enable;
 	wchar_t *menu_disable;
 	wchar_t *menu_hide;
+	wchar_t *menu_options;
 	wchar_t *menu_autostart;
+	wchar_t *menu_settings;
 	wchar_t *menu_update;
 	wchar_t *menu_about;
 	wchar_t *menu_exit;
@@ -116,7 +119,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Load settings
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	PathRenameExtension(path, L".ini");
+	PathRemoveFileSpec(path);
+	wcscat(path, L"\\"APP_NAME".ini");
 	GetPrivateProfileString(L"Update", L"CheckForUpdate", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
 	swscanf(txt, L"%d", &settings.CheckForUpdate);
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
@@ -150,7 +154,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Create window
 	HWND hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
 	
-	//Load icons
+	//Load tray icons
 	icon[0] = LoadImage(hInst,L"tray_disabled",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	icon[1] = LoadImage(hInst,L"tray_enabled",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
 	if (icon[0] == NULL || icon[1] == NULL) {
@@ -199,13 +203,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 void ShowContextMenu(HWND hwnd) {
 	POINT pt;
 	GetCursorPos(&pt);
-	HMENU hMenu = CreatePopupMenu();
+	HMENU menu = CreatePopupMenu();
 	
 	//Toggle
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_TOGGLE, (keyhook||msghook?l10n->menu_disable:l10n->menu_enable));
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_TOGGLE, (keyhook||msghook?l10n->menu_disable:l10n->menu_enable));
 	
 	//Hide
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_HIDE, l10n->menu_hide);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_HIDE, l10n->menu_hide);
 	
 	//Check autostart
 	int autostart_enabled=0, autostart_hide=0;
@@ -231,27 +235,29 @@ void ShowContextMenu(HWND hwnd) {
 		}
 	}
 	//Autostart
-	HMENU hAutostartMenu = CreatePopupMenu();
-	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), l10n->menu_autostart);
-	InsertMenu(hAutostartMenu, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), l10n->menu_hide);
-	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hAutostartMenu, l10n->menu_autostart);
-	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
+	HMENU menu_options = CreatePopupMenu();
+	InsertMenu(menu_options, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), l10n->menu_autostart);
+	InsertMenu(menu_options, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), l10n->menu_hide);
+	InsertMenu(menu_options, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
+	InsertMenu(menu_options, -1, MF_BYPOSITION, SWM_SETTINGS, l10n->menu_settings);
+	InsertMenu(menu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)menu_options, l10n->menu_options);
+	InsertMenu(menu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
 	
 	//Update
 	if (update) {
-		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
+		InsertMenu(menu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
 	}
 	
 	//About
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
 	
 	//Exit
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
 	
 	//Track menu
 	SetForegroundWindow(hwnd);
-	TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL);
-	DestroyMenu(hMenu);
+	TrackPopupMenu(menu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL);
+	DestroyMenu(menu);
 }
 
 int UpdateTray() {
@@ -476,7 +482,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		//Load settings
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-		PathRenameExtension(path, L".ini");
+		PathRemoveFileSpec(path);
+		wcscat(path, L"\\"APP_NAME".ini");
 		//HookWindows
 		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
 		swscanf(txt, L"%d", &settings.HookWindows);
@@ -527,6 +534,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 		else if (wmId == SWM_AUTOSTART_HIDE_OFF) {
 			SetAutostart(1, 0);
+		}
+		else if (wmId == SWM_SETTINGS) {
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			PathRemoveFileSpec(path);
+			wcscat(path, L"\\"APP_NAME".ini");
+			ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
 		}
 		else if (wmId == SWM_UPDATE) {
 			if (MessageBox(NULL, l10n->update_dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {

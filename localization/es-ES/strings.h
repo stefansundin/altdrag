@@ -1,7 +1,7 @@
 /*
 	AltDrag - es-ES localization by Fabrizio Ferri (algernon@gmail.com)
 	Do not localize APP_NAME, it will be automatically replaced.
-	Keep this file in UTF–8
+	Keep this file in UTF–8.
 	
 	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
@@ -15,7 +15,9 @@ struct strings es_ES = {
  /* menu_enable */    L"Activar",
  /* menu_disable */   L"Desactivar",
  /* menu_hide */      L"Ocultar icono",
+ /* menu_options */   L"Options", //Not translated yet
  /* menu_autostart */ L"Iniciar con Windows",
+ /* menu_settings */  L"Open settings", //Not translated yet
  /* menu_update */    L"Actualización disponible",
  /* menu_about */     L"Acerca de",
  /* menu_exit */      L"Salir",
