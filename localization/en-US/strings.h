@@ -1,7 +1,7 @@
 /*
 	AltDrag - en-US localization by Stefan Sundin (recover89@gmail.com)
 	Do not localize APP_NAME, it will be automatically replaced.
-	Keep this file in UTF–8
+	Keep this file in UTF–8.
 	
 	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
@@ -15,7 +15,9 @@ struct strings en_US = {
  /* menu_enable */    L"Enable",
  /* menu_disable */   L"Disable",
  /* menu_hide */      L"Hide tray",
+ /* menu_options */   L"Options",
  /* menu_autostart */ L"Autostart",
+ /* menu_settings */  L"Open settings",
  /* menu_update */    L"Update available!",
  /* menu_about */     L"About",
  /* menu_exit */      L"Exit",

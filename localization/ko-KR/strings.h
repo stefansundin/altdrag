@@ -1,7 +1,7 @@
 /*
 	AltDrag - ko-KR localization by 김장환 (janghwan@gmail.com)
 	Do not localize APP_NAME, it will be automatically replaced.
-	Keep this file in UTF–8
+	Keep this file in UTF–8.
 	
 	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
@@ -15,7 +15,9 @@ struct strings ko_KR = {
  /* menu_enable */    L"켜기", 
  /* menu_disable */   L"끄기", 
  /* menu_hide */      L"트레이에서 숨기기", 
+ /* menu_options */   L"Options", //Not translated yet
  /* menu_autostart */ L"자동시작",  
+ /* menu_settings */  L"Open settings", //Not translated yet
  /* menu_update */    L"업데이트 가능", 
  /* menu_about */     L"이 프로그램은..", 
  /* menu_exit */      L"끝내기", 

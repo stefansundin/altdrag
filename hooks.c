@@ -1268,7 +1268,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			};
 			int i;
 			for (i=0; buttons[i].key != NULL; i++) {
-				GetPrivateProfileString(APP_NAME, buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				GetPrivateProfileString(L"Mouse", buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				if      (!wcsicmp(txt,L"Move"))     *buttons[i].ptr = ACTION_MOVE;
 				else if (!wcsicmp(txt,L"Resize"))   *buttons[i].ptr = ACTION_RESIZE;
 				else if (!wcsicmp(txt,L"Minimize")) *buttons[i].ptr = ACTION_MINIMIZE;
