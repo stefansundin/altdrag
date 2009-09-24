@@ -11,10 +11,15 @@ Your first task is to download the AltDrag source code. You have to use an SVN c
 
 The 32-bit part is `AltDrag.exe` and `hooks.dll`. They can be easily compiled with [http://www.mingw.org/ MinGW]. Download and install MinGW, and then add `<MinGW path>\bin` to the PATH variable. After that you can compile the 32-bit part by running `build.bat`. It's convenient to run `build` in a terminal so you can see eventual error messages.
 
+== Missing function definitions ==
+
+Since MinGW is missing some definitions for the subclassing API, you will have to update the file called `libcomctl32.a`. I have done the dirty work for you so you can simply grab the updated file here: [http://altdrag.googlecode.com/files/libcomctl32.a libcomctl32.a]. This is not needed if you are using mingw-w64 to compile.
+
+The functions definitions that are missing are "`DefSubclassProc@16`" and "`RemoveWindowSubclass@12`". To update the library yourself, you have to [http://cygwin.com/cgi-bin/cvsweb.cgi/~checkout~/src/winsup/w32api/lib/comctl32.def?cvsroot=src download comctl32.def], add the function definitions, and then run: `dlltool -k -d comctl32.def -D comctl32.dll -l libcomctl32.a`
 
 = 64-bit part =
 
-The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are used if you enable HookWindows and are running x64. They are needed to be able to hook into 64-bit processes. To compile them your best choice is using [http://www.cadforte.com/system64.html WPG System64]. It is a pack that uses the Mingw-w64 port. It is very easy to use and works very well, even though it is using a very cutting edge toolchain. Simply download WPG System64 and extract it to `C:\msys`, then run `msys.bat`, navigate to the AltDrag trunk and run "`make -i`". For reference, I used the version 1.4b of WPG System64. Thanks to Xenofears for making the wonderful WPG System64, if not for him I can't imagine that compiling for x64 would be this easy.
+The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are used if you enable HookWindows and are running x64. They are needed to be able to hook into 64-bit processes. To compile them your best choice is using [http://www.cadforte.com/system64.html WPG System64]. It is a pack that uses the [http://mingw-w64.sourceforge.net/ mingw-w64] port. It is very easy to use and works very well, even though it is using a very cutting edge toolchain. Simply download WPG System64 and extract it to `C:\msys`, then run `msys.bat`, navigate to the AltDrag trunk and run "`make`". For reference, I used the version 1.4b of WPG System64. Thanks to Xenofears for making WPG System64, it makes it very easy to compile for x64.
 
 I had a little trouble initially when trying to compile for x64, but after looking at the different GCC version in MinGW and WPG System64, that's no surprise. MinGW 5.1.4 uses GCC 3.4.5, while WPG System64 1.4b uses 4.5.0. I have now changed the code so it should work for both versions.
 
@@ -23,4 +28,4 @@ I had a little trouble initially when trying to compile for x64, but after looki
 
 = Installer =
 
-To build the installer you need to download NSIS and put it in PATH as well, then run "`build all`" in a terminal to automatically build the installer.
+To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and put it in PATH as well, then run "`build all`" in the terminal to automatically build the installer.
