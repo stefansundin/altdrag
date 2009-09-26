@@ -243,13 +243,17 @@ FunctionEnd
 
 ;Alt+Shift notification
 Function PageAltShift
+	ClearErrors
 	ReadRegStr $0 HKCU "Keyboard Layout\Toggle" "Language Hotkey"
+	IfErrors check
 	ReadRegStr $1 HKCU "Keyboard Layout\Toggle" "Layout Hotkey"
+	MessageBox MB_ICONINFORMATION "0: '$1'$\n1: $1" /SD IDYES IDNO done
 	${If} $0 != "1"
 	${AndIf} $1 != "1"
 		Abort
 	${EndIf}
 	
+	check:
 	StrCpy $0 0
 	loop:
 		ClearErrors
