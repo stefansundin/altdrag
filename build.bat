@@ -57,6 +57,9 @@ if "%1" == "all" (
 	echo Building installer
 	makensis /V2 installer.nsi
 ) else if "%1" == "x64" (
+	x86_64-w64-mingw32-gcc -o build\unhook_x64.exe include\unhook.c
+	"build\unhook_x64.exe"
+	
 	x86_64-w64-mingw32-windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
 	x86_64-w64-mingw32-windres -o build\hooks_x64.o include\hooks_x64.rc
 	x86_64-w64-mingw32-gcc -o HookWindows_x64.exe hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -DDEBUG
