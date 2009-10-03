@@ -80,7 +80,7 @@ struct blacklistitem {
 };
 struct blacklist {
 	struct blacklistitem *items;
-	int numitems;
+	int length;
 };
 struct {
 	struct blacklist Blacklist;
@@ -124,7 +124,7 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 	GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
 	GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
 	int i;
-	for (i=0; i < list->numitems; i++) {
+	for (i=0; i < list->length; i++) {
 		if ((list->items[i].title == NULL && !wcscmp(classname,list->items[i].classname))
 		 || (list->items[i].classname == NULL && !wcscmp(title,list->items[i].title))
 		 || (list->items[i].title != NULL && list->items[i].classname != NULL && !wcscmp(title,list->items[i].title) && !wcscmp(classname,list->items[i].classname))) {
@@ -1108,7 +1108,7 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 			ResizeStick(&wndpos->x, &wndpos->y, &wndpos->cx, &wndpos->cy);
 		}
 	}
-	else if (msg == WM_EXITSIZEMOVE || msg == WM_NCDESTROY) {
+	else if (msg == WM_EXITSIZEMOVE || msg == WM_DESTROY) {
 		subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
 		if (subclassed) {
 			Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
@@ -1322,7 +1322,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			//Store item if it's not empty
 			if (item_title != NULL || item_classname != NULL) {
 				//Make sure we have enough space
-				if (add_blacklist->numitems == blacklist_alloc) {
+				if (add_blacklist->length == blacklist_alloc) {
 					blacklist_alloc += 10;
 					add_blacklist->items = realloc(add_blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
 					if (add_blacklist->items == NULL) {
@@ -1330,9 +1330,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 					}
 				}
 				//Store item
-				add_blacklist->items[add_blacklist->numitems].title = item_title;
-				add_blacklist->items[add_blacklist->numitems].classname = item_classname;
-				add_blacklist->numitems++;
+				add_blacklist->items[add_blacklist->length].title = item_title;
+				add_blacklist->items[add_blacklist->length].classname = item_classname;
+				add_blacklist->length++;
 			}
 			//Switch gears to Blacklist_Sticky?
 			if (pos == NULL && add_blacklist == &settings.Blacklist) {
@@ -1360,18 +1360,15 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 		//Free memory
 		//Do not free any shared variables
-		int i;
-		for (i=0; i < settings.Blacklist.numitems; i++) {
-			free(settings.Blacklist.items[i].title);
-			free(settings.Blacklist.items[i].classname);
+		for (; settings.Blacklist.length > 0; settings.Blacklist.length--) {
+			free(settings.Blacklist.items[settings.Blacklist.length-1].title);
+			free(settings.Blacklist.items[settings.Blacklist.length-1].classname);
 		}
-		settings.Blacklist.numitems = 0;
 		free(settings.Blacklist.items);
-		for (i=0; i < settings.Blacklist_Sticky.numitems; i++) {
-			free(settings.Blacklist_Sticky.items[i].title);
-			free(settings.Blacklist_Sticky.items[i].classname);
+		for (; settings.Blacklist_Sticky.length > 0; settings.Blacklist_Sticky.length--) {
+			free(settings.Blacklist_Sticky.items[settings.Blacklist_Sticky.length-1].title);
+			free(settings.Blacklist_Sticky.items[settings.Blacklist_Sticky.length-1].classname);
 		}
-		settings.Blacklist_Sticky.numitems = 0;
 		free(settings.Blacklist_Sticky.items);
 		free(wnds);
 	}

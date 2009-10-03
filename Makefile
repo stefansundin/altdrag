@@ -22,7 +22,7 @@ all: pre
 pre:
 	-taskkill -IM HookWindows_x64.exe
 	-mkdir build
-	gcc -o build/unhook.exe include/unhook.c
-	build/unhook.exe
+	gcc -o build/unhook_x64.exe include/unhook.c
+	build/unhook_x64.exe
 	windres -o build/hookwindows_x64.o include/hookwindows_x64.rc
 	windres -o build/hooks_x64.o include/hooks_x64.rc
