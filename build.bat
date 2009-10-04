@@ -19,7 +19,7 @@ if "%1" == "all" (
 	gcc -o "build\en-US\AltDrag\AltDrag.exe" altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -march=pentium2 -O2
 	if not exist "build\en-US\AltDrag\AltDrag.exe". exit /b
 	strip "build\en-US\AltDrag\AltDrag.exe"
-	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -march=pentium2 -O2
+	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\hooks.o include\libcomctl32.a -mdll -lshlwapi -lcomctl32 -march=pentium2 -O2
 	if not exist "build\en-US\AltDrag\hooks.dll". exit /b
 	strip "build\en-US\AltDrag\hooks.dll"
 	
@@ -66,7 +66,7 @@ if "%1" == "all" (
 	x86_64-w64-mingw32-gcc -o hooks_x64.dll hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -DDEBUG
 ) else (
 	gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -march=pentium2 -DDEBUG
-	gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -march=pentium2 -DDEBUG
+	gcc -o hooks.dll hooks.c build\hooks.o include\libcomctl32.a -mdll -lshlwapi -lcomctl32 -march=pentium2 -DDEBUG
 	
 	if "%1" == "run" (
 		start AltDrag.exe
