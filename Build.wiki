@@ -13,9 +13,9 @@ The 32-bit part is `AltDrag.exe` and `hooks.dll`. They can be easily compiled wi
 
 == Missing function definitions ==
 
-Since MinGW is missing some definitions for the subclassing API, you will have to update the file called `libcomctl32.a`. I have done the dirty work for you so you can simply grab the updated file here: [http://altdrag.googlecode.com/files/libcomctl32.a libcomctl32.a]. This is not needed if you are using mingw-w64 to compile.
+MinGW is missing some definitions for the subclassing API, but I have included an updated library so the build script should be able to compile without errors. Mingw-w64 has updated lib files for both 32-bit and 64-bit compilation.
 
-The functions definitions that are missing are "`DefSubclassProc@16`" and "`RemoveWindowSubclass@12`". To update the library yourself, you have to [http://cygwin.com/cgi-bin/cvsweb.cgi/~checkout~/src/winsup/w32api/lib/comctl32.def?cvsroot=src download comctl32.def], add the function definitions, and then run: `dlltool -k -d comctl32.def -D comctl32.dll -l libcomctl32.a`
+The functions definitions that are missing are "`DefSubclassProc@16`" and "`RemoveWindowSubclass@12`". If you want to update the library yourself, you have to [http://cygwin.com/cgi-bin/cvsweb.cgi/~checkout~/src/winsup/w32api/lib/comctl32.def?cvsroot=src download comctl32.def], add the function definitions, and then run: `dlltool -k -d comctl32.def -D comctl32.dll -l libcomctl32.a`
 
 = 64-bit part =
 
