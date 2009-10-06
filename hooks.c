@@ -205,6 +205,13 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		}
 		//Add window
 		wnds[numwnds++] = wnd;
+		//Use this to print the title and classname of the windows that are stickable
+		/*FILE *f = fopen("C:\\altdrag-log.txt","ab");
+		char title[100], classname[100];
+		GetWindowTextA(window, title, 100);
+		GetClassNameA(window, classname, 100);
+		fprintf(f, "window: %s|%s\n", title, classname);
+		fclose(f);*/
 	}
 	return TRUE;
 }
@@ -241,7 +248,7 @@ void Enum() {
 	}
 	fprintf(f, "\n");
 	fprintf(f, "numwnds: %d\n", numwnds);
-	char title[100], classname[100];
+	//char title[100], classname[100];
 	for (k=0; k < numwnds; k++) {
 		//GetWindowTextA(wnds[k], title, 100);
 		//GetClassNameA(wnds[k], classname, 100);

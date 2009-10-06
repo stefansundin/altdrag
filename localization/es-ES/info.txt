@@ -11,7 +11,7 @@ Puedes enrollar ventanas haciendo doble-clic con el botón central del ratón.
 Puedes editar más opciones en AltDrag.ini:
 * Habilita HookWindows para poder usar la tecla Mayús. al mover normalmente las ventanas.
 * Habilita AutoStick para hacer que las ventanas se peguen siempre sin necesidad de pulsar Mayús.
-* Habilita RMBMinimize para minimizar ventanas con un clic derecho del ratón.
+* Cambiar las acciones de los botones del ratón. Puedes hacer que cualquier botón del ratón sirva para mover, redimensionar, minimizar o centrar la ventana sobre la cual hagas clic.
 * Edita la blacklist, un listado en el que puedes especificar qué ventanas no deben ser arrastradas.
 
 Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
