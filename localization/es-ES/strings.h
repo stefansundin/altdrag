@@ -15,9 +15,9 @@ struct strings es_ES = {
  /* menu_enable */    L"Activar",
  /* menu_disable */   L"Desactivar",
  /* menu_hide */      L"Ocultar icono",
- /* menu_options */   L"Options", //Not translated yet
+ /* menu_options */   L"Opciones",
  /* menu_autostart */ L"Iniciar con Windows",
- /* menu_settings */  L"Open settings", //Not translated yet
+ /* menu_settings */  L"Abrir configuración",
  /* menu_update */    L"Actualización disponible",
  /* menu_about */     L"Acerca de",
  /* menu_exit */      L"Salir",
