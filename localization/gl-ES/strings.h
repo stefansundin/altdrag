@@ -1,7 +1,6 @@
 /*
 	AltDrag - gl-ES localization by Alexander De Sousa (xandy.lua@gmail.com)
-	Do not localize APP_NAME, it will be automatically replaced.
-	Keep this file in UTF–8.
+	This file is UTF–8 encoded -- UTF-8 without BOM (ANSI as UTF-8)
 	
 	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
@@ -15,10 +14,10 @@ struct strings gl_ES = {
  /* menu_enable */    L"Activar",
  /* menu_disable */   L"Desactivar",
  /* menu_hide */      L"Esconder a icona",
- /* menu_options */   L"Options", //Not translated yet
+ /* menu_options */   L"Preferencias",
  /* menu_autostart */ L"Arrancar ó inicio",
- /* menu_settings */  L"Open settings", //Not translated yet
- /* menu_update */    L"Actualización dispoñibel",
+ /* menu_settings */  L"Abrir configuración",
+ /* menu_update */    L"Actualización dispoñíbel",
  /* menu_about */     L"Acerca de",
  /* menu_exit */      L"Saír",
  /* tray_enabled */   APP_NAME " (activado)",

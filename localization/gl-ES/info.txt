@@ -11,7 +11,7 @@ Podes facer dobre clic co botón do medio do rato para enrolar as ventás.
 Podes cambiar máis opcións en AltDrag.ini:
 * Activa HookWindows para poder usar a tecla Shift ó mover ventás normalmente.
 * Activa AutoStick para facer que as ventás se peguen ás outras sen ter que premer Shift.
-* Activa RMBMinimize para minimizar as ventás co botón dereito do rato.
+* Cambia as accións dos botóns do rato. Podes facer que calquera botón do rato mova, cambie o tamaño, minimice ou centre a ventá na que fas clic.
 * Editar a lista negra, unha lista na que podes escoller que ventás non se moverán.
 
 Ás ventás de pantalla completa, coma os xogos, non se lles poderá cambiar o tamaño ou mover.
@@ -32,8 +32,9 @@ Listaxe de Cambios:
 -------------------
 0.8:
 Engadido AutoStick, actívao para facer que a ventá sempre se pegue sen precisar premer Shift. Substitúe a StickyScreen.
-ExperimentalFeatures agora é HookWindows, tamén mellorado para eliminar o escintilo. As versións de 64-bits xa funcionan. Xa non o considero experimental.
-Engadido RMBMinimize, actívao para minimizar ventás co botón dereito do rato.
+ExperimentalFeatures agora é HookWindows, tamén mellorado para eliminar o escintilo. As versións de 64-bits xa funcionan. Xa non o considero experimental!
+A tecla Alt xa non activa o menú da ventá!
+Xa se pode configurar as accións dos botóns do rato. Novas accións: minimizar e centrar.
 Mellorado moito o soporte multi-monitor.
 Mellorada a lista negra (mira o wiki).
 

@@ -1,5 +1,5 @@
-icon ICON media/icon.ico
-find CURSOR media/find.cur
+app_icon ICON "media/icon.ico"
+find CURSOR "media/find.cur"
 
 #define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define RT_MANIFEST 24
