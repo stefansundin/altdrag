@@ -10,7 +10,7 @@
 	(at your option) any later version.
 */
 
-struct strings en_US = {
+struct strings gl_ES = {
  /* menu_find */      L"Buscar",
  /* menu_finddelay */ L"Buscar en 3 segundos",
  /* menu_findall */   L"Enumerar todas as ventás",
