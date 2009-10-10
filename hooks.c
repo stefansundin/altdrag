@@ -1157,7 +1157,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 		 && (msg->message == WM_ENTERSIZEMOVE || msg->message == WM_WINDOWPOSCHANGING)
 		 && (shift || sharedsettings.AutoStick)
 		 && IsWindowVisible(msg->hwnd)
-		 && (GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION)
+		 && ((GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION) || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW))
 		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
 		 && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
 			//Double check if any of the shift keys are still being pressed
