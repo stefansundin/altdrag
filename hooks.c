@@ -614,34 +614,27 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				if (!shift) {
 					shift = 1;
-					#ifndef _WIN64
 					if (move) {
 						MoveWnd();
 					}
 					if (resize) {
 						ResizeWnd();
 					}
-					#endif
 				}
-				#ifndef _WIN64
 				if (alt && blockshift) {
 					//Block keypress to prevent Windows from changing keyboard layout
 					return 1;
 				}
-				#endif
 			}
-			#ifndef _WIN64
 			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
 				//This doesn't always work since the menu is activated by the alt keypress (read msdn)
 				SetForegroundWindow(hwnd);
 			}
-			#endif
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 			if ((vkey == VK_LMENU || vkey == VK_RMENU) && !(GetAsyncKeyState(VK_MENU)&0x8000)) {
 				alt = 0;
 				
-				#ifndef _WIN64
 				//Block the alt keyup to prevent the window menu to be selected.
 				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup.
 				//For more information, see issue 20
@@ -658,7 +651,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					input[1].ki = ctrl[1];
 					SendInput(2, input, sizeof(INPUT));
 				}
-				#endif
 				
 				if (!move && !resize) {
 					UnhookMouse();
@@ -666,7 +658,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				shift = 0;
-				#ifndef _WIN64
 				blockshift = 0;
 				if (move) {
 					MoveWnd();
@@ -674,7 +665,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				if (resize) {
 					ResizeWnd();
 				}
-				#endif
 			}
 		}
 	}
@@ -743,7 +733,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Do things depending on what button was pressed
 			if (EvalAction(button,ACTION_MOVE)) {
-				#ifndef _WIN64
 				//Maximize window if this is a double-click
 				if (GetTickCount()-clicktime <= GetDoubleClickTime()) {
 					//Alt+double-clicking a window maximizes it
@@ -821,12 +810,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
-				#else
-				move = 1;
-				#endif
 			}
 			else if (EvalAction(button,ACTION_RESIZE)) {
-				#ifndef _WIN64
 				//Roll-down the window if it's in the roll-up database
 				for (i=0; i < NUMROLLUP; i++) {
 					if (rollup[i].hwnd == hwnd) {
@@ -963,11 +948,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				resize = 1;
 				//Prevent mousedown from propagating
 				return 1;
-				#else
-				resize = 1;
-				#endif
 			}
-			#ifndef _WIN64
 			else if (EvalAction(button,ACTION_MINIMIZE)) {
 				//Minimize window
 				WINDOWPLACEMENT wndpl;
@@ -995,7 +976,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mousedown from propagating
 				return 1;
 			}
-			#endif
 		}
 		else if (state == STATE_UP) {
 			if (move && EvalAction(button,ACTION_MOVE)) {
@@ -1003,7 +983,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				if (!alt) {
 					UnhookMouse();
 				}
-				#ifndef _WIN64
 				//Hide cursorwnd
 				if (sharedsettings.Cursor) {
 					if (resize) {
@@ -1016,14 +995,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				//Prevent mouseup from propagating
 				return 1;
-				#endif
 			}
 			else if (resize && EvalAction(button,ACTION_RESIZE)) {
 				resize = 0;
 				if (!alt) {
 					UnhookMouse();
 				}
-				#ifndef _WIN64
 				//Hide cursorwnd
 				if (sharedsettings.Cursor && !move) {
 					ShowWindow(cursorwnd, SW_HIDE);
@@ -1031,19 +1008,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				//Prevent mouseup from propagating
 				return 1;
-				#endif
 			}
-			#ifndef _WIN64
 			else if (alt && (EvalAction(button,ACTION_MINIMIZE) || EvalAction(button,ACTION_CENTER))) {
 				//Prevent mouseup from propagating
 				return 1;
 			}
-			#endif
 		}
 		else if (wParam == WM_MOUSEMOVE) {
 			//Reset double-click time
 			clicktime = 0; //This prevents me from double-clicking when running Windows virtualized.
-			#ifndef _WIN64
 			if (move || resize) {
 				//Move cursorwnd
 				if (sharedsettings.Cursor) {
@@ -1061,7 +1034,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					ResizeWnd();
 				}
 			}
-			#endif
 		}
 	}
 	
@@ -1150,11 +1122,11 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
 //Variables that are not shared, e.g. the blacklist, are loaded individually for each process.
 __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && !move && !resize) {
+	if (nCode == HC_ACTION) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
 		
 		if ((!subclassed || hwnd != msg->hwnd)
-		 && (msg->message == WM_ENTERSIZEMOVE || msg->message == WM_WINDOWPOSCHANGING)
+		 && msg->message == WM_ENTERSIZEMOVE
 		 && (shift || sharedsettings.AutoStick)
 		 && IsWindowVisible(msg->hwnd)
 		 && ((GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION) || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW))
@@ -1171,6 +1143,24 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			//Return if window is blacklisted
 			if (blacklisted(msg->hwnd,&settings.Blacklist)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Get window size
+			RECT wnd;
+			if (GetWindowRect(msg->hwnd,&wnd) == 0) {
+				Error(L"GetWindowRect(&wnd)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+			}
+			//Enumerate monitors
+			nummonitors = 0;
+			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+			//Return if the window is fullscreen
+			int i;
+			if (!(GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION)) {
+				for (i=0; i < nummonitors; i++) {
+					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+				}
 			}
 			
 			//Remove old subclassing if another window is currently subclassed
