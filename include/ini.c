@@ -17,7 +17,7 @@
 
 int main(int argc, char *argv[]) {
 	if (argc < 4) {
-		printf("Not enough arguments\n");
+		printf("Not enough arguments!\n");
 		printf("Usage: ini <file> <section> <key> [new value]\n");
 		return 0;
 	}
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	else if (WritePrivateProfileString(argv[2],argv[3],argv[4],path) == 0) {
 		int errorcode = GetLastError();
 		char *errormsg;
-		int length = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,NULL,errorcode,0,(char*)&errormsg,0,NULL);
+		int length = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorcode, 0, (char*)&errormsg, 0, NULL);
 		errormsg[length-2] = '\0'; //Remove that damn newline at the end of the formatted error message
 		printf("WritePrivateProfileString() failed in file %s, line %d.\nError: %s (%d)", TEXT(__FILE__), __LINE__, errormsg, errorcode);
 		LocalFree(errormsg);

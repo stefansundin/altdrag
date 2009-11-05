@@ -52,7 +52,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 		#endif
 	}
 	#ifdef ERROR_WRITETOFILE
-	FILE *f = fopen("C:\\errorlog.txt","ab");
+	FILE *f = fopen("C:\\"APP_NAME"-errorlog.txt","ab");
 	fwprintf(f,L"%s\n\n",msg);
 	fclose(f);
 	#endif

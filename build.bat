@@ -20,6 +20,7 @@ if "%1" == "all" (
 	if not exist "build\en-US\AltDrag\AltDrag.exe". exit /b
 	gcc -o "build\en-US\AltDrag\hooks.dll" hooks.c build\hooks.o include\libcomctl32.a -mdll -lshlwapi -lcomctl32 -march=pentium2 -O2 -s
 	if not exist "build\en-US\AltDrag\hooks.dll". exit /b
+	
 	if "%2" == "x64" (
 		x86_64-w64-mingw32-windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
 		x86_64-w64-mingw32-windres -o build\hooks_x64.o include\hooks_x64.rc
