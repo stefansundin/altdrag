@@ -33,7 +33,8 @@ Changelog
 Added AutoStick, enable it to make windows always stick without needing to press shift. This replaces StickyScreen.
 Renamed ExperimentalFeatures to HookWindows, also improved it so resizing is now supported and windows should no longer flicker. 64-bit programs also work now. I no longer consider it experimental!
 The alt key will no longer activate the window menu!
-Made it possible to configure what the mouse button do. New actions: minimize and center.
+Added the ability to configure what keys should trigger the dragging, resizing, etc.
+Added the ability to configure what the mouse buttons do. New actions: minimize and center.
 Improved multi-monitor support a lot.
 Tweaked the blacklist (see wiki).
 

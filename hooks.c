@@ -63,15 +63,18 @@ HWND progman = NULL;
 struct {
 	int Cursor;
 	int AutoStick;
+	struct {
+		unsigned char *keys;
+		int length;
+	} Keys;
 	int LMB;
 	int MMB;
 	int RMB;
 	int MB4;
 	int MB5;
-} sharedsettings shareattr = {0,0,0,0,0,0,0};
+} sharedsettings shareattr = {0,0,{NULL,0},0,0,0,0,0};
 int sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
-wchar_t txt[1000] shareattr;
 
 //Blacklist
 struct blacklistitem {
@@ -81,6 +84,7 @@ struct blacklistitem {
 struct blacklist {
 	struct blacklistitem *items;
 	int length;
+	wchar_t *data;
 };
 struct {
 	struct blacklist Blacklist;
@@ -134,14 +138,25 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 	return 0;
 }
 
-//Check if mouse action should be evaluated
-int EvalAction(int button, int action) {
+//Check if action is bound to the button
+int IsButton(int button, int action) {
 	if ((button == BUTTON_LMB && sharedsettings.LMB == action)
 	 || (button == BUTTON_MMB && sharedsettings.MMB == action)
 	 || (button == BUTTON_RMB && sharedsettings.RMB == action)
 	 || (button == BUTTON_MB4 && sharedsettings.MB4 == action)
 	 || (button == BUTTON_MB5 && sharedsettings.MB5 == action)) {
 		return 1;
+	}
+	return 0;
+}
+
+//Check if key is assigned
+int IsKey(int key) {
+	int i;
+	for (i=0; i < sharedsettings.Keys.length; i++) {
+		if (key == sharedsettings.Keys.keys[i]) {
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -260,114 +275,7 @@ void Enum() {
 	fclose(f);*/
 }
 
-void MoveWnd() {
-	//Check if window still exists
-	if (!IsWindow(hwnd)) {
-		move = 0;
-		UnhookMouse();
-		return;
-	}
-	
-	//Get window size
-	RECT wnd;
-	if (GetWindowRect(hwnd,&wnd) == 0) {
-		Error(L"GetWindowRect()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
-	}
-	
-	//Get new position for window
-	POINT pt;
-	GetCursorPos(&pt);
-	int posx = pt.x-offset.x;
-	int posy = pt.y-offset.y;
-	int wndwidth = wnd.right-wnd.left;
-	int wndheight = wnd.bottom-wnd.top;
-	
-	//Double check if any of the alt keys are still being pressed
-	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-		shift = 0;
-	}
-	
-	//Check if window will stick anywhere
-	if (shift || sharedsettings.AutoStick) {
-		MoveStick(&posx, &posy, wndwidth, wndheight);
-	}
-	
-	//Move
-	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		Error(L"MoveWindow()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
-	}
-}
-
-void ResizeWnd() {
-	//Check if window still exists
-	if (!IsWindow(hwnd)) {
-		resize = 0;
-		UnhookMouse();
-		return;
-	}
-	
-	//Get window size
-	RECT wnd;
-	if (GetWindowRect(hwnd,&wnd) == 0) {
-		Error(L"GetWindowRect()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
-	}
-	
-	//Get new pos and size for window
-	POINT pt;
-	GetCursorPos(&pt);
-	int posx, posy, wndwidth, wndheight;
-	if (resize_x == CENTER && resize_y == CENTER) {
-		posx = wnd.left-(pt.x-resize_offset.x);
-		posy = wnd.top-(pt.y-resize_offset.y);
-		wndwidth = wnd.right-wnd.left+2*(pt.x-resize_offset.x);
-		wndheight = wnd.bottom-wnd.top+2*(pt.y-resize_offset.y);
-		resize_offset.x = pt.x;
-		resize_offset.y = pt.y;
-	}
-	else {
-		if (resize_y == TOP) {
-			posy = pt.y-resize_offset.y;
-			wndheight = wnd.bottom-pt.y+resize_offset.y;
-		}
-		else if (resize_y == CENTER) {
-			posy = wnd.top;
-			wndheight = wnd.bottom-wnd.top;
-		}
-		else if (resize_y == BOTTOM) {
-			posy = wnd.top;
-			wndheight = pt.y-wnd.top+resize_offset.y;
-		}
-		if (resize_x == LEFT) {
-			posx = pt.x-resize_offset.x;
-			wndwidth = wnd.right-pt.x+resize_offset.x;
-		}
-		else if (resize_x == CENTER) {
-			posx = wnd.left;
-			wndwidth = wnd.right-wnd.left;
-		}
-		else if (resize_x == RIGHT) {
-			posx = wnd.left;
-			wndwidth = pt.x-wnd.left+resize_offset.x;
-		}
-	}
-	
-	//Double check if any of the shift keys are being still pressed
-	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-		shift = 0;
-	}
-	
-	//Check if window will stick anywhere
-	if ((shift || sharedsettings.AutoStick) && (resize_x != CENTER || resize_y != CENTER)) {
-		ResizeStick(&posx, &posy, &wndwidth, &wndheight);
-	}
-	
-	//Resize
-	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
-		Error(L"MoveWindow()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
-	}
-}
-
-int MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
+void MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
 	//Enumerate monitors and windows
 	Enum();
 	
@@ -459,12 +367,9 @@ int MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
 	if (stucky) {
 		*posy = sticky;
 	}
-	
-	//Return
-	return (stuckx || stucky);
 }
 
-int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
+void ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 	//Enumerate monitors and windows
 	Enum();
 	
@@ -564,9 +469,135 @@ int ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 	if (stuckbottom) {
 		*wndheight = stickbottom-*posy;
 	}
+}
+
+#ifdef _WIN64
+
+//x64 keyhook needs only to check when the shift key is depressed
+__declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode == HC_ACTION) {
+		int vkey = ((PKBDLLHOOKSTRUCT)lParam)->vkCode;
+		
+		if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
+			if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+				shift = 1;
+			}
+			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+				shift = 0;
+			}
+		}
+	}
 	
-	//Return
-	return (stuckleft || stucktop || stuckright || stuckbottom);
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+#else
+
+void MoveWnd() {
+	//Check if window still exists
+	if (!IsWindow(hwnd)) {
+		move = 0;
+		UnhookMouse();
+		return;
+	}
+	
+	//Get window size
+	RECT wnd;
+	if (GetWindowRect(hwnd,&wnd) == 0) {
+		Error(L"GetWindowRect()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+	}
+	
+	//Get new position for window
+	POINT pt;
+	GetCursorPos(&pt);
+	int posx = pt.x-offset.x;
+	int posy = pt.y-offset.y;
+	int wndwidth = wnd.right-wnd.left;
+	int wndheight = wnd.bottom-wnd.top;
+	
+	//Double check that a shift is still being pressed
+	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+		shift = 0;
+	}
+	
+	//Check if the window will stick anywhere
+	if (shift || sharedsettings.AutoStick) {
+		MoveStick(&posx, &posy, wndwidth, wndheight);
+	}
+	
+	//Move
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+		Error(L"MoveWindow()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+	}
+}
+
+void ResizeWnd() {
+	//Check if window still exists
+	if (!IsWindow(hwnd)) {
+		resize = 0;
+		UnhookMouse();
+		return;
+	}
+	
+	//Get window size
+	RECT wnd;
+	if (GetWindowRect(hwnd,&wnd) == 0) {
+		Error(L"GetWindowRect()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+	}
+	
+	//Get new pos and size for window
+	POINT pt;
+	GetCursorPos(&pt);
+	int posx, posy, wndwidth, wndheight;
+	if (resize_x == CENTER && resize_y == CENTER) {
+		posx = wnd.left-(pt.x-resize_offset.x);
+		posy = wnd.top-(pt.y-resize_offset.y);
+		wndwidth = wnd.right-wnd.left+2*(pt.x-resize_offset.x);
+		wndheight = wnd.bottom-wnd.top+2*(pt.y-resize_offset.y);
+		resize_offset.x = pt.x;
+		resize_offset.y = pt.y;
+	}
+	else {
+		if (resize_y == TOP) {
+			posy = pt.y-resize_offset.y;
+			wndheight = wnd.bottom-pt.y+resize_offset.y;
+		}
+		else if (resize_y == CENTER) {
+			posy = wnd.top;
+			wndheight = wnd.bottom-wnd.top;
+		}
+		else if (resize_y == BOTTOM) {
+			posy = wnd.top;
+			wndheight = pt.y-wnd.top+resize_offset.y;
+		}
+		if (resize_x == LEFT) {
+			posx = pt.x-resize_offset.x;
+			wndwidth = wnd.right-pt.x+resize_offset.x;
+		}
+		else if (resize_x == CENTER) {
+			posx = wnd.left;
+			wndwidth = wnd.right-wnd.left;
+		}
+		else if (resize_x == RIGHT) {
+			posx = wnd.left;
+			wndwidth = pt.x-wnd.left+resize_offset.x;
+		}
+	}
+	
+	//Double check that a shift is still being pressed
+	if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+		shift = 0;
+	}
+	
+	//Check if the window will stick anywhere
+	if ((shift || sharedsettings.AutoStick) && (resize_x != CENTER || resize_y != CENTER)) {
+		ResizeStick(&posx, &posy, &wndwidth, &wndheight);
+	}
+	
+	//Resize
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+		Error(L"MoveWindow()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+	}
 }
 
 __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -574,7 +605,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		int vkey = ((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-			if (!alt && (vkey == VK_LMENU || vkey == VK_RMENU)) {
+			if (!alt && IsKey(vkey)) {
 				alt = 1;
 				blockaltup = 0;
 				clicktime = 0; //Reset double-click time
@@ -627,12 +658,20 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				}
 			}
 			else if (move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
-				//This doesn't always work since the menu is activated by the alt keypress (read msdn)
 				SetForegroundWindow(hwnd);
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
-			if ((vkey == VK_LMENU || vkey == VK_RMENU) && !(GetAsyncKeyState(VK_MENU)&0x8000)) {
+			if (IsKey(vkey)) {
+				//Double check that all the trigger keys have been released
+				int i;
+				for (i=0; i < sharedsettings.Keys.length; i++) {
+					if (vkey != sharedsettings.Keys.keys[i] && GetAsyncKeyState(sharedsettings.Keys.keys[i])&0x8000) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+				}
+				
+				//Okay, all trigger keys have been released
 				alt = 0;
 				
 				//Block the alt keyup to prevent the window menu to be selected.
@@ -687,14 +726,20 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			(wParam==WM_LBUTTONUP||wParam==WM_MBUTTONUP||wParam==WM_RBUTTONUP||wParam==WM_XBUTTONUP)?STATE_UP:STATE_NONE;
 		
 		if (alt && state == STATE_DOWN) {
-			//Double check if any of the alt keys are still being pressed
-			if (!(GetAsyncKeyState(VK_MENU)&0x8000)) {
-				alt = 0;
-				UnhookMouse();
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			//Double check if any of the trigger keys are still being pressed
+			int i;
+			for (i=0; i < sharedsettings.Keys.length; i++) {
+				if (GetAsyncKeyState(sharedsettings.Keys.keys[i])&0x8000) {
+					break;
+				}
+				else if (i+1 == sharedsettings.Keys.length) {
+					alt = 0;
+					UnhookMouse();
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
 			}
 			
-			//Alt key is still being pressed
+			//Okay, at least one trigger key is being pressed
 			POINT pt = msg->pt;
 			
 			//Make sure cursorwnd isn't in the way
@@ -722,7 +767,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			nummonitors = 0;
 			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
 			//Return if the window is fullscreen
-			int i;
 			if (!(GetWindowLongPtr(hwnd,GWL_STYLE)&WS_CAPTION)) {
 				for (i=0; i < nummonitors; i++) {
 					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
@@ -732,7 +776,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Do things depending on what button was pressed
-			if (EvalAction(button,ACTION_MOVE)) {
+			if (IsButton(button,ACTION_MOVE)) {
 				//Maximize window if this is a double-click
 				if (GetTickCount()-clicktime <= GetDoubleClickTime()) {
 					//Alt+double-clicking a window maximizes it
@@ -811,7 +855,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mousedown from propagating
 				return 1;
 			}
-			else if (EvalAction(button,ACTION_RESIZE)) {
+			else if (IsButton(button,ACTION_RESIZE)) {
 				//Roll-down the window if it's in the roll-up database
 				for (i=0; i < NUMROLLUP; i++) {
 					if (rollup[i].hwnd == hwnd) {
@@ -949,7 +993,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mousedown from propagating
 				return 1;
 			}
-			else if (EvalAction(button,ACTION_MINIMIZE)) {
+			else if (IsButton(button,ACTION_MINIMIZE)) {
 				//Minimize window
 				WINDOWPLACEMENT wndpl;
 				wndpl.length = sizeof(WINDOWPLACEMENT);
@@ -961,7 +1005,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mousedown from propagating
 				return 1;
 			}
-			else if (EvalAction(button,ACTION_CENTER)) {
+			else if (IsButton(button,ACTION_CENTER)) {
 				//Center window
 				HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 				MONITORINFO monitorinfo;
@@ -978,7 +1022,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 		}
 		else if (state == STATE_UP) {
-			if (move && EvalAction(button,ACTION_MOVE)) {
+			if (move && IsButton(button,ACTION_MOVE)) {
 				move = 0;
 				if (!alt) {
 					UnhookMouse();
@@ -996,7 +1040,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mouseup from propagating
 				return 1;
 			}
-			else if (resize && EvalAction(button,ACTION_RESIZE)) {
+			else if (resize && IsButton(button,ACTION_RESIZE)) {
 				resize = 0;
 				if (!alt) {
 					UnhookMouse();
@@ -1009,7 +1053,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mouseup from propagating
 				return 1;
 			}
-			else if (alt && (EvalAction(button,ACTION_MINIMIZE) || EvalAction(button,ACTION_CENTER))) {
+			else if (alt && (IsButton(button,ACTION_MINIMIZE) || IsButton(button,ACTION_CENTER))) {
 				//Prevent mouseup from propagating
 				return 1;
 			}
@@ -1076,6 +1120,8 @@ int UnhookMouse() {
 	return 0;
 }
 
+#endif
+
 //Msghook
 __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
 	if (msg == WM_WINDOWPOSCHANGING && (shift || sharedsettings.AutoStick)) {
@@ -1094,6 +1140,7 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 			return DefSubclassProc(hwnd, msg, wParam, lParam);
 		}
 		hwnd = NULL;
+		msgaction = NONE;
 	}
 	
 	/*
@@ -1129,10 +1176,11 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 		 && msg->message == WM_ENTERSIZEMOVE
 		 && (shift || sharedsettings.AutoStick)
 		 && IsWindowVisible(msg->hwnd)
-		 && ((GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION) || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW))
+		 && GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION // || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW)
 		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
-		 && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)) {
-			//Double check if any of the shift keys are still being pressed
+		 && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)
+		) {
+			//Double check if a shift key is still being pressed
 			if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 				shift = 0;
 				if (!sharedsettings.AutoStick) {
@@ -1145,6 +1193,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
+			/*
 			//Get window size
 			RECT wnd;
 			if (GetWindowRect(msg->hwnd,&wnd) == 0) {
@@ -1162,6 +1211,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 					}
 				}
 			}
+			*/
 			
 			//Remove old subclassing if another window is currently subclassed
 			if (subclassed && IsWindow(hwnd)) {
@@ -1219,13 +1269,14 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 }
 
 __declspec(dllexport) void ClearSettings() {
-	sharedsettings_loaded=0;
+	sharedsettings_loaded = 0;
 }
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		hinstDLL = hInstance;
 		//Load settings
+		wchar_t txt[1000];
 		//Settings shared with CallWndProc hook
 		if (!sharedsettings_loaded) {
 			sharedsettings_loaded = 1;
@@ -1250,6 +1301,23 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			//AutoStick
 			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.AutoStick);
+			//Keys
+			int keys_alloc = 0;
+			unsigned char temp;
+			int numread;
+			sharedsettings.Keys.length = 0;
+			GetPrivateProfileString(L"Keyboard", L"Keys", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			wchar_t *pos = txt;
+			while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
+				//Make sure we have enough space
+				if (sharedsettings.Keys.length == keys_alloc) {
+					keys_alloc += 10;
+					sharedsettings.Keys.keys = realloc(sharedsettings.Keys.keys,keys_alloc*sizeof(int));
+				}
+				//Store key
+				sharedsettings.Keys.keys[sharedsettings.Keys.length++] = temp;
+				pos += numread;
+			}
 			//Mouse actions
 			struct {
 				wchar_t *key;
@@ -1277,11 +1345,14 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				rollup[i].hwnd = NULL;
 			}
 		}
-		//Blacklist
-		GetPrivateProfileString(APP_NAME, L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		//Blacklist and Blacklist_Sticky
 		int blacklist_alloc = 0;
-		wchar_t *pos = txt;
-		struct blacklist *add_blacklist = &settings.Blacklist;
+		struct blacklist *blacklist = &settings.Blacklist;
+		//Process Blacklist first
+		GetPrivateProfileString(APP_NAME, L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
+		wcscpy(blacklist->data, txt);
+		wchar_t *pos = blacklist->data;
 		while (pos != NULL) {
 			wchar_t *title = pos;
 			wchar_t *classname = wcsstr(pos,L"|");
@@ -1295,52 +1366,40 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				*classname = '\0';
 				classname++;
 			}
-			//Allocate memory and copy over text
-			wchar_t *item_title, *item_classname;
+			//Check if title or classname is wildcard
 			if (!wcscmp(title,L"*")) {
-				item_title = NULL;
+				title = NULL;
 			}
-			else {
-				item_title = malloc((wcslen(title)+1)*sizeof(wchar_t));
-				wcscpy(item_title, title);
-			}
-			if (classname == NULL) {
-				item_classname = NULL;
-			}
-			else {
-				if (!wcscmp(classname,L"*")) {
-					item_classname = NULL;
-				}
-				else {
-					item_classname = malloc((wcslen(classname)+1)*sizeof(wchar_t));
-					wcscpy(item_classname, classname);
-				}
+			if (classname != NULL && !wcscmp(classname,L"*")) {
+				classname = NULL;
 			}
 			//Store item if it's not empty
-			if (item_title != NULL || item_classname != NULL) {
+			if (title != NULL || classname != NULL) {
 				//Make sure we have enough space
-				if (add_blacklist->length == blacklist_alloc) {
-					blacklist_alloc += 10;
-					add_blacklist->items = realloc(add_blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
-					if (add_blacklist->items == NULL) {
-						Error(L"realloc(add_blacklist->items)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
+				if (blacklist->length == blacklist_alloc) {
+					blacklist_alloc += 15;
+					blacklist->items = realloc(blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
+					if (blacklist->items == NULL) {
+						Error(L"realloc(blacklist->items)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 					}
 				}
 				//Store item
-				add_blacklist->items[add_blacklist->length].title = item_title;
-				add_blacklist->items[add_blacklist->length].classname = item_classname;
-				add_blacklist->length++;
+				blacklist->items[blacklist->length].title = title;
+				blacklist->items[blacklist->length].classname = classname;
+				blacklist->length++;
 			}
 			//Switch gears to Blacklist_Sticky?
-			if (pos == NULL && add_blacklist == &settings.Blacklist) {
-				add_blacklist = &settings.Blacklist_Sticky;
+			if (pos == NULL && blacklist == &settings.Blacklist) {
+				blacklist = &settings.Blacklist_Sticky;
 				blacklist_alloc = 0;
 				GetPrivateProfileString(APP_NAME, L"Blacklist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-				pos = txt;
+				blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
+				wcscpy(blacklist->data, txt);
+				pos = blacklist->data;
 			}
 		}
 		//Allocate space for wnds
-		wnds_alloc += 5;
+		wnds_alloc += 10;
 		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
 			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
@@ -1357,16 +1416,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 		//Free memory
 		//Do not free any shared variables
-		for (; settings.Blacklist.length > 0; settings.Blacklist.length--) {
-			free(settings.Blacklist.items[settings.Blacklist.length-1].title);
-			free(settings.Blacklist.items[settings.Blacklist.length-1].classname);
-		}
 		free(settings.Blacklist.items);
-		for (; settings.Blacklist_Sticky.length > 0; settings.Blacklist_Sticky.length--) {
-			free(settings.Blacklist_Sticky.items[settings.Blacklist_Sticky.length-1].title);
-			free(settings.Blacklist_Sticky.items[settings.Blacklist_Sticky.length-1].classname);
-		}
+		free(settings.Blacklist.data);
 		free(settings.Blacklist_Sticky.items);
+		free(settings.Blacklist_Sticky.data);
 		free(wnds);
 	}
 	return TRUE;

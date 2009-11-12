@@ -26,6 +26,7 @@ LRESULT CALLBACK WindowProc(HWND,UINT,WPARAM,LPARAM);
 
 //Cool stuff
 HINSTANCE hinstDLL = NULL;
+HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
 
 //Error()
@@ -87,7 +88,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 }
 
 int HookSystem() {
-	if (msghook) {
+	if (keyhook && msghook) {
 		//System already hooked
 		return 1;
 	}
@@ -105,18 +106,35 @@ int HookSystem() {
 		}
 	}
 	
-	//Get address to message hook (beware name mangling)
-	HOOKPROC procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc");
-	if (procaddr == NULL) {
-		Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
-		return 1;
+	HOOKPROC procaddr;
+	if (!keyhook) {
+		//Get address to keyboard hook (beware name mangling)
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"LowLevelKeyboardProc");
+		if (procaddr == NULL) {
+			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
+			return 1;
+		}
+		//Set up the keyboard hook
+		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0);
+		if (keyhook == NULL) {
+			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			return 1;
+		}
 	}
 	
-	//Set up the message hook
-	msghook = SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0);
-	if (msghook == NULL) {
-		Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
-		return 1;
+	//Get address to message hook (beware name mangling)
+	if (!msghook) {
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc");
+		if (procaddr == NULL) {
+			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
+			return 1;
+		}
+		//Set up the message hook
+		msghook = SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0);
+		if (msghook == NULL) {
+			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+			return 1;
+		}
 	}
 	
 	//Success
@@ -124,10 +142,17 @@ int HookSystem() {
 }
 
 int UnhookSystem() {
-	if (!msghook) {
+	if (!keyhook && !msghook) {
 		//System not hooked
 		return 1;
 	}
+	
+	//Remove keyboard hook
+	if (UnhookWindowsHookEx(keyhook) == 0) {
+		Error(L"UnhookWindowsHookEx(keyhook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+		return 1;
+	}
+	keyhook = NULL;
 	
 	//Remove message hook
 	if (UnhookWindowsHookEx(msghook) == 0) {
@@ -151,15 +176,6 @@ int UnhookSystem() {
 	
 	//Success
 	return 0;
-}
-
-void ToggleState() {
-	if (msghook) {
-		UnhookSystem();
-	}
-	else {
-		HookSystem();
-	}
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
