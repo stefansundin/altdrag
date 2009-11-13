@@ -5,7 +5,7 @@
 
   * [http://virtuawin.sourceforge.net/modules.php Win32WM], a module for [http://virtuawin.sourceforge.net/ VirtuaWin], but can also be used independently.
   * [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/ AltWindowDrag], an AutoHotkey script.
-  * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE-SizerXP], another AutoHotkey script.
+  * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], another AutoHotkey script.
   * [http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm EasyWindowDrag], a third AutoHotkey script.
   * [http://winxmove.sourceforge.net/ Win-X-Move]
   * [http://taekwindow.sourceforge.net/ Taekwindow]
