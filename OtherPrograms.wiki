@@ -9,7 +9,7 @@
   * [http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm EasyWindowDrag], a third AutoHotkey script.
   * [http://winxmove.sourceforge.net/ Win-X-Move]
   * [http://taekwindow.sourceforge.net/ Taekwindow]
-  * ComfortResize in [http://www.heise.de/ct/activaid/default_en.shtml ac'tivAid]
+  * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
   * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotKey script.
   * [http://www.palma.com.au/winroll/ WinRoll] (Rollup)
 
