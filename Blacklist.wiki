@@ -16,17 +16,20 @@ I want to mention that when AltDrag conflicts with other applications, you can o
 Here is an explanation of the default entries:
 
 || *Blacklist rule*           || *Explanation* ||
-|| `*|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista. ||
-|| `*|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista. ||
+|| `*|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista+. ||
+|| `*|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista+. ||
 || *Blacklist_Sticky rule*    || *Explanation* ||
 || `*|AltDrag`                || This is the AltDrag cursor overlay window. Since an application must own the window the cursor is currently hovering to be able to change the mouse cursor, AltDrag puts a small invisible window over the cursor to change it. ||
 || `Start|Button`             || This is the Windows Vista start menu orb. ||
-|| `|Chrome_WidgetWin_0`      || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. ||
 || `|tooltips_class32`        || A tooltip window. ||
 || `|SysShadow`               || Another tooltip window. ||
 || `|SideBar_HTMLHostWindow`  || Windows 7 gadgets are hosted in windows such as this one. ||
 || `*|BasicWindow`            || Windows 7 gadgets, again. ||
-|| `*|SpotifyShadow`           || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
+|| `*|KbxLabelClass`          || Windows 7 ribbon interface window. ||
+|| `|Chrome_WidgetWin_0`      || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. This window is in Chrome 3.0. ||
+|| `|Chrome_WindowImpl_0`     || This is same window as above, but for Chrome 4.0. Why do they keep changing this? This is the second time I have to update this rule! ||
+|| `*|SpotifyShadow`          || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
+|| `Notifier|BaseWindow_RootWnd` || This is the notify window that Winamp pops up. ||
 
 You shouldn't need to edit or remove any of these entries.
 
@@ -35,8 +38,8 @@ You shouldn't need to edit or remove any of these entries.
 Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it. Add the rule to `Blacklist_Sticky` if you don't want to be able to stick to it with other windows.
 
 || *Application* || *Blacklist rule* ||
-|| Photoshop     || `*|Photoshop`     ||
-|| Illutrator    || `*|illustrator`   ||
-|| PuTTY         || `*|PuTTY`         ||
+|| Photoshop     || `*|Photoshop`    ||
+|| Illutrator    || `*|illustrator`  ||
+|| PuTTY         || `*|PuTTY`        ||
 
 If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
