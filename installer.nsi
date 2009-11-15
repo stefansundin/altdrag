@@ -196,7 +196,8 @@ Section "${APP_NAME} (${APP_VERSION})" sec_app
 	IntCmp $LANGUAGE ${LANG_ENGLISH}  en-US
 	IntCmp $LANGUAGE ${LANG_SPANISH}  es-ES
 	IntCmp $LANGUAGE ${LANG_GALICIAN} gl-ES
-	;IntCmp $LANGUAGE ${LANG_KOREAN}   ko-KR
+	IntCmp $LANGUAGE ${LANG_KOREAN}   ko-KR
+	IntCmp $LANGUAGE ${LANG_RUSSIAN}  ru-RU
 	en-US:
 		File "build\en-US\${APP_NAME}\info.txt"
 		Goto files_installed
@@ -208,10 +209,14 @@ Section "${APP_NAME} (${APP_VERSION})" sec_app
 		File "build\gl-ES\${APP_NAME}\info.txt"
 		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "gl-ES"
 		Goto files_installed
-	;ko-KR:
-		;File "build\ko-KR\${APP_NAME}\info.txt"
-		;WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "ko-KR"
-		;Goto files_installed
+	ko-KR:
+		File "build\ko-KR\${APP_NAME}\info.txt"
+		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "ko-KR"
+		Goto files_installed
+	ru-RU:
+		File "build\ru-RU\${APP_NAME}\info.txt"
+		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "ru-RU"
+		Goto files_installed
 
 	files_installed:
 
