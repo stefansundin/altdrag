@@ -11,13 +11,13 @@
   * [http://taekwindow.sourceforge.net/ Taekwindow]
   * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
   * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotKey script.
-  * [http://www.palma.com.au/winroll/ WinRoll] (Rollup)
+  * [http://www.palma.com.au/winroll/ WinRoll] (Rollups)
 
 = Freeware =
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
-  * [http://www.hmmn.org/FreeShade/ FreeShade] (Only does rollups)
+  * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
   * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes a functionality similar to WindowFinder)
-  * [http://www.ivanheckman.com/allsnap/ allSnap] (Identical to `HookWindows`, also has a version which works with 64-bit windows)
+  * [http://www.ivanheckman.com/allsnap/ allSnap] (Identical to `HookWindows`)
 
 = Related =
   * [http://www.mouseimp.com/ MouseImp]
