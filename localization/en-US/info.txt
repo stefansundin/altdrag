@@ -29,7 +29,7 @@ AltDrag is open source, licensed under GPL.
 
 Changelog
 ---------
-0.8:
+0.8 - 2009-11-15:
 Added AutoStick, enable it to make windows always stick without needing to press shift. This replaces StickyScreen.
 Renamed ExperimentalFeatures to HookWindows, also improved it so resizing is now supported and windows should no longer flicker. 64-bit programs also work now. I no longer consider it experimental!
 The alt key will no longer activate the window menu!
