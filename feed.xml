@@ -4,11 +4,36 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2009-09-07T21:00:00Z</updated>
+	<updated>2009-11-15T20:00:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:36fe8f1d-ec94-4c31-81e6-e1c86176c707</id>
+		<title>AltDrag - 0.8</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2009-11-15T20:00:00Z</updated>
+		<content type="html">
+Released 0.8.&lt;br/>
+The new things since the beta are 64-bit support for &lt;tt>HookWindows&lt;/tt>, the ability to configure what keys trigger the alt dragging, the ability to reconfigure what the mouse buttons do. I have fixed a few bugs, most notable: the alt key will no longer trigger the window menu! New language: Russian by Gluek. If you are updating from 0.7, there are a few more things as well, which were described in the last update.&lt;br/>
+&lt;br/>
+&lt;u>Changelog:&lt;/u>
+&lt;ul>
+&lt;li>Added &lt;tt>AutoStick&lt;/tt>, enable it to make windows always stick without needing to press shift. This replaces &lt;tt>StickyScreen&lt;/tt>.&lt;/li>
+&lt;li>Renamed &lt;tt>ExperimentalFeatures&lt;/tt> to &lt;tt>HookWindows&lt;/tt>, also improved it so resizing is now supported and windows should no longer flicker. 64-bit programs also work now. I no longer consider it experimental!&lt;/li>
+&lt;li>The alt key will no longer activate the window menu!&lt;/li>
+&lt;li>Added the ability to configure what keys should trigger the dragging, resizing, etc.&lt;/li>
+&lt;li>Added the ability to configure what the mouse buttons do. New actions: minimize and center.&lt;/li>
+&lt;li>Improved multi-monitor support a lot.&lt;/li>
+&lt;li>Tweaked the blacklist (see &lt;a href="http://code.google.com/p/altdrag/wiki/Blacklist">wiki&lt;/a>).&lt;/li>
+&lt;/ul>
+&lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the website&lt;/a>&lt;br/>
+&lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8.exe">&lt;img src="http://altdrag.googlecode.com/svn/wiki/down.png"/> Download installer&lt;/a> - Archive: &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8.7z">English&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8%20%28Spanish%29.7z">Spanish&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8%20%28Galician%29.7z">Galician&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8%20%28Korean%29.7z">Korean&lt;/a> - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.8%20%28Russian%29.7z">Russian&lt;/a>&lt;br/>
+&lt;a href="http://groups.google.com/group/recovers-tools">&lt;img src="http://altdrag.googlecode.com/svn/wiki/groups.png"/> Discuss in the forum&lt;/a> (no registration required)
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:84b9d61f-4a48-4bf7-afef-02bd8943591d</id>
