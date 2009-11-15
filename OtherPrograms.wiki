@@ -1,25 +1,28 @@
-#summary Other programs that offer the same functionality
+#summary Other programs that do the same thing
 #labels Phase-QA
 
 = Open source =
-
   * [http://virtuawin.sourceforge.net/modules.php Win32WM], a module for [http://virtuawin.sourceforge.net/ VirtuaWin], but can also be used independently.
-  * [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/ AltWindowDrag], an AutoHotkey script.
-  * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], another AutoHotkey script.
+  * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], an AutoHotkey script.
+  * [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/ AltWindowDrag], another AutoHotkey script.
   * [http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm EasyWindowDrag], a third AutoHotkey script.
-  * [http://winxmove.sourceforge.net/ Win-X-Move]
+  * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotkey script.
+  * [http://www.donationcoder.com/Software/Skrommel/index.html#MoveInactiveWin MoveInactiveWin], a fifth AutoHotkey script.
   * [http://taekwindow.sourceforge.net/ Taekwindow]
+  * [http://winxmove.sourceforge.net/ Win-X-Move]
   * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
-  * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotKey script.
   * [http://www.palma.com.au/winroll/ WinRoll] (Rollups)
 
 = Freeware =
-  * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
-  * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
-  * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes a functionality similar to WindowFinder)
+  * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes something similar to WindowFinder)
   * [http://www.ivanheckman.com/allsnap/ allSnap] (Identical to `HookWindows`)
+  * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
+  * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
 
 = Related =
   * [http://www.mouseimp.com/ MouseImp]
+
+= Other =
+  * [http://www.techsupportalert.com/content/best-free-window-manager-resizer-arranger.htm List of window management programs]
 
 Feel free to add more programs in the comments below.
