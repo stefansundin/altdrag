@@ -27,6 +27,7 @@
 #define ACTION_RESIZE    2
 #define ACTION_MINIMIZE  3
 #define ACTION_CENTER    4
+#define ACTION_ALWAYSONTOP 5
 #define STATE_NONE       0
 #define STATE_DOWN       1
 #define STATE_UP         2
@@ -986,10 +987,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				//Remember time of this click so we can check for double-click
 				clicktime = GetTickCount();
-				//Block alt keyup
-				blockaltup = 1;
 				//Ready to resize window
 				resize = 1;
+				//Block alt keyup
+				blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
@@ -1015,7 +1016,16 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				RECT mon = monitorinfo.rcWork;
 				MoveWindow(hwnd, mon.left+(mon.right-mon.left)/2-(wnd.right-wnd.left)/2, mon.top+(mon.bottom-mon.top)/2-(wnd.bottom-wnd.top)/2, wnd.right-wnd.left, wnd.bottom-wnd.top, TRUE);
-				
+				//Block alt keyup
+				blockaltup = 1;
+				//Prevent mousedown from propagating
+				return 1;
+			}
+			else if (IsButton(button,ACTION_ALWAYSONTOP)) {
+				//Toggle always on top
+				int topmost = GetWindowLongPtr(hwnd,GWL_EXSTYLE)&WS_EX_TOPMOST;
+				SetWindowPos(hwnd, (topmost?HWND_NOTOPMOST:HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+				//Block alt keyup
 				blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
@@ -1053,7 +1063,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mouseup from propagating
 				return 1;
 			}
-			else if (alt && (IsButton(button,ACTION_MINIMIZE) || IsButton(button,ACTION_CENTER))) {
+			else if (alt && (IsButton(button,ACTION_MINIMIZE) || IsButton(button,ACTION_CENTER) || IsButton(button,ACTION_ALWAYSONTOP))) {
 				//Prevent mouseup from propagating
 				return 1;
 			}
@@ -1338,6 +1348,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				else if (!wcsicmp(txt,L"Resize"))   *buttons[i].ptr = ACTION_RESIZE;
 				else if (!wcsicmp(txt,L"Minimize")) *buttons[i].ptr = ACTION_MINIMIZE;
 				else if (!wcsicmp(txt,L"Center"))   *buttons[i].ptr = ACTION_CENTER;
+				else if (!wcsicmp(txt,L"AlwaysOnTop")) *buttons[i].ptr = ACTION_ALWAYSONTOP;
 				else                                *buttons[i].ptr = ACTION_NOTHING;
 			}
 			//Zero-out roll-up hwnds
