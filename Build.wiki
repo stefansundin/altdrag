@@ -19,11 +19,11 @@ The functions definitions that are missing are "`DefSubclassProc@16`" and "`Remo
 
 = 64-bit part =
 
-The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are used if you enable HookWindows and are running x64. They are needed to be able to hook into 64-bit processes. To compile them your best choice is using [http://www.cadforte.com/system64.html WPG System64]. It is a pack that uses the [http://mingw-w64.sourceforge.net/ mingw-w64] port. It is very easy to use and works very well, even though it is using a very cutting edge toolchain. Simply download WPG System64 and extract it to `C:\msys`, then run `msys.bat`, navigate to the AltDrag trunk and run "`make`". For reference, I used the version 1.4b of WPG System64. Thanks to Xenofears for making WPG System64, it makes it very easy to compile for x64.
+The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are only used if you enable HookWindows and are running x64. They need to be 64-bit so that they can hook into 64-bit processes. To compile them your best choice is using [http://mingw-w64.sourceforge.net/ mingw-w64]. Mingw-w64 works just as MinGW, except there are no installer and the binary files are prefixed.
 
-I had a little trouble initially when trying to compile for x64, but after looking at the different GCC version in MinGW and WPG System64, that's no surprise. MinGW 5.1.4 uses GCC 3.4.5, while WPG System64 1.4b uses 4.5.0. I have now changed the code so it should work for both versions.
+The mingw-w64 file download section is a mess, but here's [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Automated%20Builds/mingw-w64-1.0-bin_i686-mingw_20091109.zip/download the 64-bit toolchain]. If you want, you can also download [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Automated%20Builds/mingw-w32-1.0-bin_i686-mingw_20091109.zip/download the 32-bit toolchain] and use mingw-w64 to compile the 32-bit part. Once you have the files in PATH, type "`build x64`" or "`build all x64`" to build.
 
-`AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, so because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag a 64-bit only program.
+`AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, so because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag a 64-bit only program (yet).
 
 
 = Installer =
