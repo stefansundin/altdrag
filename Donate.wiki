@@ -26,13 +26,13 @@ If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com
 
 = Donations received =
 
-Donations received so far: $200 USD.
+Donations received so far: $240 USD.
 
 List of donors:
   * Corvallis Technical
   * 김장환 Jang-hwan Kim
-  * [http://www.1translate.com/ Translation agency 1translate.com]
-  * 5 anonymous donors
+  * Translation agency [http://www.1translate.com/ 1translate.com]
+  * Anonymous donors
 
 Note: This includes donations I've received towards all my tools: [http://code.google.com/p/superf4/ SuperF4], [http://code.google.com/p/killkeys/ KillKeys], [http://code.google.com/p/traycd/ TrayCD], [http://code.google.com/p/shutdownguard ShutdownGuard] and [http://code.google.com/p/altdrag AltDrag].
 
