@@ -21,24 +21,24 @@
 
 //App
 #define APP_NAME L"AltDrag"
-#define STICKY_THRESHOLD 20
-#define ACTION_NOTHING   0
-#define ACTION_MOVE      1
-#define ACTION_RESIZE    2
-#define ACTION_MINIMIZE  3
-#define ACTION_CENTER    4
+#define STICKY_THRESHOLD   20
+#define ACTION_NOTHING     0
+#define ACTION_MOVE        1
+#define ACTION_RESIZE      2
+#define ACTION_MINIMIZE    3
+#define ACTION_CENTER      4
 #define ACTION_ALWAYSONTOP 5
-#define STATE_NONE       0
-#define STATE_DOWN       1
-#define STATE_UP         2
-#define BUTTON_NONE      0
-#define BUTTON_LMB       1
-#define BUTTON_MMB       2
-#define BUTTON_RMB       3
-#define BUTTON_MB4       4
-#define BUTTON_MB5       5
+#define STATE_NONE         0
+#define STATE_DOWN         1
+#define STATE_UP           2
+#define BUTTON_NONE        0
+#define BUTTON_LMB         1
+#define BUTTON_MMB         2
+#define BUTTON_RMB         3
+#define BUTTON_MB4         4
+#define BUTTON_MB5         5
 
-//Some variables must be shared so the CallWndProc hooks can access them
+//Some variables must be shared so that CallWndProc hooks can access them
 #define shareattr __attribute__((section ("shared"), shared))
 
 //States
@@ -117,7 +117,7 @@ enum {MOVE, RESIZE, NONE} msgaction = NONE;
 
 //Error()
 #ifdef DEBUG
-//#define ERROR_WRITETOFILE
+#define ERROR_WRITETOFILE
 #include "include/error.h"
 #else
 #define Error(a,b,c,d,e)
@@ -649,7 +649,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					if (move) {
 						MoveWnd();
 					}
-					if (resize) {
+					else if (resize) {
 						ResizeWnd();
 					}
 				}
@@ -1179,49 +1179,20 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (shift, move, resize and hwnd)
 //Variables that are not shared, e.g. the blacklist, are loaded individually for each process.
 __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION) {
+	if (nCode == HC_ACTION && !move && !resize) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
 		
-		if ((!subclassed || hwnd != msg->hwnd)
-		 && msg->message == WM_ENTERSIZEMOVE
-		 && (shift || sharedsettings.AutoStick)
+		if (msg->message == WM_ENTERSIZEMOVE
+		 && (!subclassed || hwnd != msg->hwnd)
 		 && IsWindowVisible(msg->hwnd)
-		 && GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION // || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW)
+		 && GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION // || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW))
 		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
 		 && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)
 		) {
-			//Double check if a shift key is still being pressed
-			if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-				shift = 0;
-				if (!sharedsettings.AutoStick) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-			}
-			
 			//Return if window is blacklisted
 			if (blacklisted(msg->hwnd,&settings.Blacklist)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
-			
-			/*
-			//Get window size
-			RECT wnd;
-			if (GetWindowRect(msg->hwnd,&wnd) == 0) {
-				Error(L"GetWindowRect(&wnd)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
-			}
-			//Enumerate monitors
-			nummonitors = 0;
-			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
-			//Return if the window is fullscreen
-			int i;
-			if (!(GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION)) {
-				for (i=0; i < nummonitors; i++) {
-					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
-						return CallNextHookEx(NULL, nCode, wParam, lParam);
-					}
-				}
-			}
-			*/
 			
 			//Remove old subclassing if another window is currently subclassed
 			if (subclassed && IsWindow(hwnd)) {
@@ -1233,14 +1204,32 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			
 			//Set hwnd
 			hwnd = msg->hwnd;
+			
+			//Double check if a shift key is still being pressed
+			if (shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+				shift = 0;
+			}
+			if (!shift && !sharedsettings.AutoStick) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
 			//Subclass window
 			subclassed = SetWindowSubclass(hwnd, CustomWndProc, 0, 0);
 			if (!subclassed) {
 				Error(L"SetWindowSubclass(hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1, TEXT(__FILE__), __LINE__);
 			}
 		}
-		
-		if (msg->message == WM_SYSCOMMAND) {
+		else if (msg->message == WM_WINDOWPOSCHANGING
+		 && !subclassed && hwnd == msg->hwnd && msgaction != NONE
+		 && (shift || sharedsettings.AutoStick)) {
+			
+			//Subclass window
+			subclassed = SetWindowSubclass(hwnd, CustomWndProc, 0, 0);
+			if (!subclassed) {
+				Error(L"SetWindowSubclass(hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1, TEXT(__FILE__), __LINE__);
+			}
+		}
+		else if (msg->message == WM_SYSCOMMAND) {
 			WPARAM action = msg->wParam&0xFFF0;
 			if (action == SC_MOVE) {
 				msgaction = MOVE;
@@ -1272,6 +1261,9 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				resize_offset.x = 0;
 				resize_offset.y = 0;
 			}
+		}
+		else if (msg->message == WM_EXITSIZEMOVE) {
+			msgaction = NONE;
 		}
 	}
 	
@@ -1334,22 +1326,22 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				wchar_t *def;
 				int *ptr;
 			} buttons[] = {
-				{L"LMB",L"Move",   &sharedsettings.LMB},
-				{L"MMB",L"Resize", &sharedsettings.MMB},
-				{L"RMB",L"Resize", &sharedsettings.RMB},
-				{L"MB4",L"Nothing",&sharedsettings.MB4},
-				{L"MB5",L"Nothing",&sharedsettings.MB5},
+				{L"LMB", L"Move",    &sharedsettings.LMB},
+				{L"MMB", L"Resize",  &sharedsettings.MMB},
+				{L"RMB", L"Resize",  &sharedsettings.RMB},
+				{L"MB4", L"Nothing", &sharedsettings.MB4},
+				{L"MB5", L"Nothing", &sharedsettings.MB5},
 				{NULL},
 			};
 			int i;
 			for (i=0; buttons[i].key != NULL; i++) {
 				GetPrivateProfileString(L"Mouse", buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
-				if      (!wcsicmp(txt,L"Move"))     *buttons[i].ptr = ACTION_MOVE;
-				else if (!wcsicmp(txt,L"Resize"))   *buttons[i].ptr = ACTION_RESIZE;
-				else if (!wcsicmp(txt,L"Minimize")) *buttons[i].ptr = ACTION_MINIMIZE;
-				else if (!wcsicmp(txt,L"Center"))   *buttons[i].ptr = ACTION_CENTER;
+				if      (!wcsicmp(txt,L"Move"))        *buttons[i].ptr = ACTION_MOVE;
+				else if (!wcsicmp(txt,L"Resize"))      *buttons[i].ptr = ACTION_RESIZE;
+				else if (!wcsicmp(txt,L"Minimize"))    *buttons[i].ptr = ACTION_MINIMIZE;
+				else if (!wcsicmp(txt,L"Center"))      *buttons[i].ptr = ACTION_CENTER;
 				else if (!wcsicmp(txt,L"AlwaysOnTop")) *buttons[i].ptr = ACTION_ALWAYSONTOP;
-				else                                *buttons[i].ptr = ACTION_NOTHING;
+				else                                   *buttons[i].ptr = ACTION_NOTHING;
 			}
 			//Zero-out roll-up hwnds
 			for (i=0; i < NUMROLLUP; i++) {
