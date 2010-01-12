@@ -28,6 +28,7 @@
 #define ACTION_MINIMIZE    3
 #define ACTION_CENTER      4
 #define ACTION_ALWAYSONTOP 5
+#define ACTION_CLOSE       6
 #define STATE_NONE         0
 #define STATE_DOWN         1
 #define STATE_UP           2
@@ -1030,6 +1031,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mousedown from propagating
 				return 1;
 			}
+			else if (IsButton(button,ACTION_CLOSE)) {
+				//Close window
+				SendMessage(hwnd, WM_CLOSE, 0, 0);
+				//Block alt keyup
+				blockaltup = 1;
+				//Prevent mousedown from propagating
+				return 1;
+			}
 		}
 		else if (state == STATE_UP) {
 			if (move && IsButton(button,ACTION_MOVE)) {
@@ -1063,7 +1072,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Prevent mouseup from propagating
 				return 1;
 			}
-			else if (alt && (IsButton(button,ACTION_MINIMIZE) || IsButton(button,ACTION_CENTER) || IsButton(button,ACTION_ALWAYSONTOP))) {
+			else if (alt && (IsButton(button,ACTION_MINIMIZE) || IsButton(button,ACTION_CENTER) || IsButton(button,ACTION_ALWAYSONTOP) || IsButton(button,ACTION_CLOSE))) {
 				//Prevent mouseup from propagating
 				return 1;
 			}
@@ -1341,6 +1350,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				else if (!wcsicmp(txt,L"Minimize"))    *buttons[i].ptr = ACTION_MINIMIZE;
 				else if (!wcsicmp(txt,L"Center"))      *buttons[i].ptr = ACTION_CENTER;
 				else if (!wcsicmp(txt,L"AlwaysOnTop")) *buttons[i].ptr = ACTION_ALWAYSONTOP;
+				else if (!wcsicmp(txt,L"Close"))       *buttons[i].ptr = ACTION_CLOSE;
 				else                                   *buttons[i].ptr = ACTION_NOTHING;
 			}
 			//Zero-out roll-up hwnds
