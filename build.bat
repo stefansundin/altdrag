@@ -55,17 +55,19 @@ if "%1" == "all" (
 	@echo.
 	echo Building installer
 	makensis /V2 installer.nsi
-) else if "%1" == "x64" (
-	%prefix64%gcc -o build\unhook_x64.exe include\unhook.c
-	"build\unhook_x64.exe"
-	
-	%prefix64%windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
-	%prefix64%windres -o build\hooks_x64.o include\hooks_x64.rc
-	%prefix64%gcc -o HookWindows_x64.exe hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -DDEBUG
-	%prefix64%gcc -o hooks_x64.dll hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -DDEBUG
 ) else (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -march=pentium2 -DDEBUG
 	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o include\libcomctl32.a -mdll -lshlwapi -lcomctl32 -march=pentium2 -DDEBUG
+	
+	if "%1" == "x64" (
+		%prefix64%gcc -o build\unhook_x64.exe include\unhook.c
+		"build\unhook_x64.exe"
+		
+		%prefix64%windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
+		%prefix64%windres -o build\hooks_x64.o include\hooks_x64.rc
+		%prefix64%gcc -o HookWindows_x64.exe hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -DDEBUG
+		%prefix64%gcc -o hooks_x64.dll hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -DDEBUG
+	)
 	
 	if "%1" == "run" (
 		start AltDrag.exe
