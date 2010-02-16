@@ -1,4 +1,5 @@
 #summary A more in-depth introduction
+#labels Featured,Phase-Deploy
 
 = Introduction =
 
@@ -39,7 +40,9 @@ If you enable both `HookWindows` and `AutoStick` then your windows will automati
 
 == Language ==
 
-This settings lets you change the language of AltDrag. You can currently choose between English, Spanish, Galician, Korean and Russian. If you want to translate AltDrag, feel free to email me, but please only do this if you want to commit to keeping your translation up to date in the future.
+This settings lets you change the language of AltDrag. You can currently choose between English, Spanish, Galician, Korean and Russian.
+
+If you want to translate AltDrag, feel free to email me, but please only do this if you want to commit to keeping your translation up to date in the future.
 
 
 == Keyboard ==
@@ -61,3 +64,7 @@ If you have a great idea for a new mouse action, then send me an email.
 AltDrag will by default check if there is a newer version available when it is started. It will only notify you if it finds a new version, it will not download anything for you. If you do not like this behavior, you can disable it here. You have to restart AltDrag to force a new check.
 
 Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml the rss feed] for new releases.
+
+= More =
+
+Now, give AltDrag a try. Most of the features will make sense after you have tried them out.
