@@ -1,0 +1,26 @@
+#summary A more in-depth introduction
+
+= Introduction =
+
+In addition to simply dragging windows, you can double-click a window to maximize it. You can roll-up windows by double-clicking them with the right mouse button.
+
+= HookWindows =
+
+You can enable an option called `HookWindows` which enables you to use the shift key when you are normally moving windows.
+
+= AutoStick =
+
+Another nifty option is `AutoStick`, which automatically makes windows stick to each other, just as if you would be pressing the shift button. This happens both when you move and resize windows.
+
+There are three different settings:
+  * *1*: Automatically stick windows to the screen borders and the taskbar.
+  * *2*: Also automatically stick windows to the outside of all other windows.
+  * *3*: Also automatically stick windows to the inside of all other windows.
+
+If you enable both `AutoStick` and `HookWindows` then windows will automatically stick to each other when you drag them normally. This works really well and will likely surprise your friends. :)
+
+= Resize =
+
+You can use either the middle or right mouse button to resize windows. Think of the window as if it is divided into nine squares, and depending on where you press, you will resize the nearest corner.
+
+http://altdrag.googlecode.com/svn/wiki/resize.png
