@@ -7,21 +7,24 @@ This document explains how to compile AltDrag. There are two distinct parts that
 
 Your first task is to download the AltDrag source code. You have to use an SVN client and check out "`http://altdrag.googlecode.com/svn/trunk/`".
 
+
 = 32-bit part =
 
 The 32-bit part is `AltDrag.exe` and `hooks.dll`. They can be easily compiled with [http://www.mingw.org/ MinGW]. Download and install MinGW, and then add `<MinGW path>\bin` to the PATH variable. After that you can compile the 32-bit part by running `build.bat`. It's convenient to run `build` in a terminal so you can see eventual error messages.
 
+
 == Missing function definitions ==
 
-MinGW is missing some definitions for the subclassing API, but I have included an updated library so the build script should be able to compile without errors. Mingw-w64 has updated lib files for both 32-bit and 64-bit compilation.
+MinGW is missing some library definitions for the subclassing API, but I have included an updated library so the build script should be able to compile without errors. Mingw-w64 has updated lib files for both 32-bit and 64-bit compilation.
 
-The functions definitions that are missing are "`DefSubclassProc@16`" and "`RemoveWindowSubclass@12`". If you want to update the library yourself, you have to [http://cygwin.com/cgi-bin/cvsweb.cgi/~checkout~/src/winsup/w32api/lib/comctl32.def?cvsroot=src download comctl32.def], add the function definitions, and then run: `dlltool -k -d comctl32.def -D comctl32.dll -l libcomctl32.a`
+The library definitions that are missing are "`DefSubclassProc@16`" and "`RemoveWindowSubclass@12`". If you want to update the library yourself, you have to [http://cygwin.com/cgi-bin/cvsweb.cgi/~checkout~/src/winsup/w32api/lib/comctl32.def?cvsroot=src download comctl32.def], add the function definitions if necessary, and then run: `dlltool -k -d comctl32.def -D comctl32.dll -l libcomctl32.a`
+
 
 = 64-bit part =
 
 The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are only used if you enable HookWindows and are running x64. They need to be 64-bit so that they can hook into 64-bit processes. To compile them your best choice is using [http://mingw-w64.sourceforge.net/ mingw-w64]. Mingw-w64 works just as MinGW, except there are no installer and the binary files are prefixed.
 
-The mingw-w64 file download section is a mess, but here's [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Automated%20Builds/mingw-w64-1.0-bin_i686-mingw_20091109.zip/download the 64-bit toolchain]. If you want, you can also download [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Automated%20Builds/mingw-w32-1.0-bin_i686-mingw_20091109.zip/download the 32-bit toolchain] and use mingw-w64 to compile the 32-bit part. Once you have the files in PATH, type "`build x64`" or "`build all x64`" to build.
+The mingw-w64 file download section is a mess, but here's [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Automated%20Builds/mingw-w64-1.0-bin_i686-mingw_20091109.zip/download the 64-bit toolchain]. If you want, you can also download [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Automated%20Builds/mingw-w32-1.0-bin_i686-mingw_20091109.zip/download the 32-bit toolchain] and use mingw-w32 to compile the 32-bit part. Once you have the files in PATH, type "`build x64`" or "`build all x64`" to build.
 
 `AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, so because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag a 64-bit only program (yet).
 
