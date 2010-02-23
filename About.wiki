@@ -3,7 +3,7 @@
 
 = Introduction =
 
-In addition to simply dragging windows, you can double-click a window to maximize it. You can roll-up windows by double-clicking them with the right mouse button.
+In addition to simply dragging windows, you can double-click a window to maximize it. You can double-click with the right mouse button to roll-up windows.
 
 == Resize ==
 
@@ -17,7 +17,7 @@ There are more features that you can configure in the configuration file called 
 
 == Blacklist ==
 
-The first option you will see is the blacklist. This is a pretty advanced option and even has [Blacklist its own wiki page], if you want to read more. I recommend you to skip this option until you have learned more about AltDrag.
+The first two options you will see are the blacklists, which lets you disable AltDrag from affecting some windows. This is a pretty advanced option and even has [Blacklist its own wiki page]. I recommend you to skip this option until you have learned more about AltDrag.
 
 == Cursor ==
 
