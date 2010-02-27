@@ -10,3 +10,12 @@ If you pressed a child window or a component of the window, it will also give yo
 Download: [http://altdrag.googlecode.com/files/WindowFinder-0.2.exe WindowFinder-0.2.exe]
 
 !WindowFinder will automatically check for updates and notify you if one is available.
+
+= Other programs =
+
+There are some other programs that offer the same functionality as !WindowFinder. These can useful if !WindowFinder is unable to get you the data you need.
+
+  * [http://www.autohotkey.com/ AutoIt3 Window Spy] (available in AutoHotkey)
+  * [http://www.catch22.net/software/winspy WinSpy++]
+
+Leave a comment if you know of more programs.
