@@ -40,3 +40,4 @@ Note: This includes donations I've received towards all my tools: [http://code.g
 
 This is what I have used the money for:
   * *2009-03-22*: Donated $20 to [http://www.charitywater.org/ charity:water]. I highly recommend you to check it out!
+  * *2010-03-21*: Donated $10 to [http://mingw-w64.sourceforge.net/ mingw-w64]. This is the compiler I use and I really appreciate the work done by its developers.
