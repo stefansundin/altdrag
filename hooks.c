@@ -997,11 +997,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			else if (IsButton(button,ACTION_MINIMIZE)) {
 				//Minimize window
-				WINDOWPLACEMENT wndpl;
-				wndpl.length = sizeof(WINDOWPLACEMENT);
-				GetWindowPlacement(hwnd, &wndpl);
-				wndpl.showCmd = SW_MINIMIZE;
-				SetWindowPlacement(hwnd, &wndpl);
+				SendMessage(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
 				//Block alt keyup
 				blockaltup = 1;
 				//Prevent mousedown from propagating
