@@ -22,17 +22,17 @@ The easiest way to donate is by [https://www.paypal.com/cgi-bin/webscr?cmd=_dona
 
 [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom http://altdrag.googlecode.com/svn/wiki/donate.png]
 
-If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details. If you want to have your name appear in the list below, please let me know. You will remain anonymous until you give me permission to post your name.
+If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details. If you want to have your name appear in the list below, please let me know. You will remain anonymous unless you explicitly give me permission to post your name.
 
 = Donate with Flattr =
 
-[http://flattr.com/ Flattr] is a new service that allows you to easily donate a very small amount. Visit the site and watch the video if you want to learn more. You can flattr me by clicking this button:
+[http://flattr.com/ Flattr] is a new service that allows you to easily donate a very small amount. Visit the site and watch the video if you want to learn more. Flattr is currently in a beta stage and thus you may have to wait a long time to get an invite. If you already have Flattr, then you can flattr me by clicking this button:
 
 <wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="66" height="76" up_uid="458" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
 
 = Donations received =
 
-Donations received so far: $240 USD.
+Donations received so far: $250 USD.
 
 List of donors:
   * Corvallis Technical
