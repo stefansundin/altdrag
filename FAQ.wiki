@@ -1,0 +1,12 @@
+#summary Answers for some common questions
+#labels Featured,Phase-Support
+
+= FAQ =
+
+*Q: AltDrag does not work in VirtualBox when using Linux as a host OS. Why?*
+  * A: AltDrag does not work since your window manager is intercepting the alt keypress so you can move the VirtualBox window. You can reassign the hotkey for AltDrag as a workaround. For more information, read issue 23.
+
+
+= This doesn't answer my question! =
+
+Is your question not here? Ask it in the comments!
