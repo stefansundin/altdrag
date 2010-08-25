@@ -88,7 +88,7 @@ int find = 0;
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	//Look for previous instance
-	HWND previnst = FindWindow(APP_NAME,NULL);
+	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
 		SendMessage(previnst, WM_COMMAND, SWM_FIND, 0);
 		return 0;
@@ -111,7 +111,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wnd.hInstance = hInst;
 	wnd.hIcon = NULL;
 	wnd.hIconSm = NULL;
-	wnd.hCursor = LoadImage(hInst,L"find",IMAGE_CURSOR,0,0,LR_DEFAULTCOLOR);
+	wnd.hCursor = LoadImage(hInst, L"find", IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName = NULL;
 	wnd.lpszClassName = APP_NAME;
@@ -123,9 +123,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	cursorwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
 	
 	//Load icon
-	icon = LoadImage(hInst,L"icon",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
+	icon = LoadImage(hInst, L"app_icon", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	if (icon == NULL) {
-		Error(L"LoadImage('icon')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"LoadImage('app_icon')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
 		PostQuitMessage(1);
 	}
 	
@@ -239,14 +239,15 @@ LRESULT CALLBACK WndDetailsMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 
 DWORD WINAPI FindWnd(LPVOID arg) {
 	POINT pt = *(POINT*)arg;
+	free(arg);
 	
-	HWND hwnd_component, hwnd;
-	if ((hwnd_component=WindowFromPoint(pt)) == NULL) {
+	HWND hwnd_component = WindowFromPoint(pt);
+	if (hwnd_component == NULL) {
 		#ifdef DEBUG
 		Error(L"WindowFromPoint()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
 	}
-	hwnd = GetAncestor(hwnd_component,GA_ROOT);
+	HWND hwnd = GetAncestor(hwnd_component, GA_ROOT);
 	
 	//Get child window
 	RECT wnd;
@@ -258,8 +259,8 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	POINT pt_child;
 	pt_child.x = pt.x-wnd.left;
 	pt_child.y = pt.y-wnd.top;
-	HWND hwnd_child;
-	if ((hwnd_child=ChildWindowFromPoint(hwnd,pt_child)) == NULL) {
+	HWND hwnd_child = ChildWindowFromPoint(hwnd, pt_child);
+	if (hwnd_child == NULL) {
 		#ifdef DEBUG
 		Error(L"ChildWindowFromPoint()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 		#endif
@@ -285,20 +286,18 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	}
 	swprintf(txt, L"%s\n\nExample blacklist rules:\n%s|%s\n*|%s", txt, title, classname, classname);
 	//Show message
-	HHOOK hhk = SetWindowsHookEx(WH_CBT,&WndDetailsMsgProc,0,GetCurrentThreadId());
-	int response = MessageBox(NULL,txt,l10n->wnddetails,MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2|MB_SYSTEMMODAL);
+	HHOOK hhk = SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
+	int response = MessageBox(NULL, txt, l10n->wnddetails, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2|MB_SYSTEMMODAL);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
 		OpenClipboard(NULL);
 		EmptyClipboard();
-		wchar_t *data = LocalAlloc(LMEM_FIXED,(wcslen(txt)+1)*sizeof(wchar_t));
+		wchar_t *data = LocalAlloc(LMEM_FIXED, (wcslen(txt)+1)*sizeof(wchar_t));
 		memcpy(data, txt, (wcslen(txt)+1)*sizeof(wchar_t));
 		SetClipboardData(CF_UNICODETEXT, data);
 		CloseClipboard();
 	}
-	
-	free(arg);
 }
 
 int wnds_alloc = 0;
@@ -306,7 +305,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
 		wnds_alloc += 100;
-		wnds = realloc(wnds,wnds_alloc*sizeof(HWND));
+		wnds = realloc(wnds, wnds_alloc*sizeof(HWND));
 	}
 	//Store window if it's visible
 	if (IsWindowVisible(hwnd)) {
@@ -334,14 +333,14 @@ void FindAllWnds() {
 	}
 	
 	//Show message
-	HHOOK hhk = SetWindowsHookEx(WH_CBT,&WndDetailsMsgProc,0,GetCurrentThreadId());
-	int response = MessageBox(NULL,txt,l10n->allwnds,MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
+	HHOOK hhk = SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
+	int response = MessageBox(NULL, txt, l10n->allwnds, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
 		OpenClipboard(NULL);
 		EmptyClipboard();
-		wchar_t *data = LocalAlloc(LMEM_FIXED,(wcslen(txt)+1)*sizeof(wchar_t));
+		wchar_t *data = LocalAlloc(LMEM_FIXED, (wcslen(txt)+1)*sizeof(wchar_t));
 		memcpy(data, txt, (wcslen(txt)+1)*sizeof(wchar_t));
 		SetClipboardData(CF_UNICODETEXT, data);
 		CloseClipboard();
@@ -395,20 +394,21 @@ int HookMouse() {
 	//Load library
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	if ((hinstDLL=LoadLibrary(path)) == NULL) {
+	hinstDLL = LoadLibrary(path);
+	if (hinstDLL == NULL) {
 		Error(L"LoadLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
 	//Get address to mouse hook (beware name mangling)
-	HOOKPROC procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"LowLevelMouseProc@12");
+	HOOKPROC procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelMouseProc@12");
 	if (procaddr == NULL) {
 		Error(L"GetProcAddress('LowLevelMouseProc@12')", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	
 	//Set up the hook
-	mousehook = SetWindowsHookEx(WH_MOUSE_LL,procaddr,hinstDLL,0);
+	mousehook = SetWindowsHookEx(WH_MOUSE_LL, procaddr, hinstDLL, 0);
 	if (mousehook == NULL) {
 		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;

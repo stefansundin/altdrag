@@ -3,7 +3,7 @@ find CURSOR "media/find.cur"
 
 #define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define RT_MANIFEST 24
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "WindowFinder.exe.manifest"
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "include/WindowFinder.exe.manifest"
 
 #define VS_VERSION_INFO 1
 VS_VERSION_INFO VERSIONINFO
@@ -24,7 +24,7 @@ BEGIN
 			VALUE "InternalName", "windowfinder"
 			VALUE "OriginalFilename", "WindowFinder.exe"
 			VALUE "CompanyName", "Stefan Sundin"
-			VALUE "LegalCopyright", "© Stefan Sundin 2009"
+			VALUE "LegalCopyright", "© Stefan Sundin 2010"
 		END
 	END
 	BLOCK "VarFileInfo"
