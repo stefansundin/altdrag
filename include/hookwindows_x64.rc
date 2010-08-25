@@ -1,7 +1,7 @@
 
 #define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define RT_MANIFEST 24
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "HookWindows_x64.exe.manifest"
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "include/HookWindows_x64.exe.manifest"
 
 #define VS_VERSION_INFO 1
 VS_VERSION_INFO VERSIONINFO
@@ -22,7 +22,7 @@ BEGIN
 			VALUE "InternalName", "hookwindows_x64"
 			VALUE "OriginalFilename", "HookWindows_x64.exe"
 			VALUE "CompanyName", "Stefan Sundin"
-			VALUE "LegalCopyright", "© Stefan Sundin 2009"
+			VALUE "LegalCopyright", "© Stefan Sundin 2010"
 		END
 	END
 	BLOCK "VarFileInfo"

@@ -24,7 +24,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
 		wnds_alloc += 100;
-		wnds = realloc(wnds,wnds_alloc*sizeof(HWND));
+		wnds = realloc(wnds, wnds_alloc*sizeof(HWND));
 		if (wnds == NULL) {
 			printf("realloc() failed in file %s, line %d.\n", __FILE__, __LINE__);
 			return FALSE;
