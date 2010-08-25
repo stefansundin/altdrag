@@ -5,30 +5,48 @@
 
 This document explains how to compile AltDrag. There are two distinct parts that you have to compile separately, the 32-bit part and the 64-bit part.
 
-Your first task is to download the AltDrag source code. You have to use an SVN client and check out "`http://altdrag.googlecode.com/svn/trunk/`".
+Your first task is to download the AltDrag source code, [http://code.google.com/p/altdrag/source/checkout instructions here].
 
 
-= 32-bit part =
+= Compiler =
 
-The 32-bit part is `AltDrag.exe` and `hooks.dll`. They can be easily compiled with [http://www.mingw.org/ MinGW]. Download and install MinGW, and then add `<MinGW path>\bin` to the PATH variable. After that you can compile the 32-bit part by running `build.bat`. It's convenient to run `build` in a terminal so you can see eventual error messages.
+I use [http://mingw-w64.sourceforge.net/ mingw-w64] to build AltDrag. Contrary to its name, there is also a 32-bit compiler available. You need the 32-bit toolchain to build 32-bit binaries, and the 64-bit toolchain to build 64-bit binaries. So if you want to build for both 32-bit and 64-bit, you will need to get both toolchains.
+
+The [http://sourceforge.net/projects/mingw-w64/files/ mingw-w64 file download] section is a mess, so to find the files you want, search for the prefix `mingw-w32-1.0-bin_i686-mingw` to get the correct 32-bit download and `mingw-w64-1.0-bin_i686-mingw` for the 64-bit download.
+
+It doesn't matter where you extract them, but I usually use C:\mingw-w32 and C:\mingw-w64.
+
+I previously used the normal [http://www.mingw.org/ MinGW] to build the 32-bit part of AltDrag, but moved from it because they never update it anymore. Note that you should still be able to build the 32-bit part with MinGW, but you must modify `build.bat`. You do need mingw-w64 if you want to compile the 64-bit part.
+
+Note that the mingw-w32 and mingw-w64 toolchains have prefixed binaries, e.g. the name of `gcc` for mingw-w32 is `i686-w64-mingw32-gcc` and for mingw-w64 is `x86_64-w64-mingw32-gcc`. The normal MinGW binaries does not have any prefixes. This means that you can have MinGW, mingw-w32 and mingw-w64 installed and all three in PATH without any conflicts. It does make it a bit annoying to type manually though, but I have a build script that will make it easier.
 
 
 == Missing function definitions ==
 
-MinGW is missing some library definitions for the subclassing API, but I have included an updated library so the build script should be able to compile without errors. Mingw-w64 has updated lib files for both 32-bit and 64-bit compilation.
+Note that in previous versions of MinGW, there were some missing library definitions for the subclassing API. The latest version should be fine however. If you get errors about `DefSubclassProc` and `RemoveWindowSubclass`, be sure to check that you have the latest version.
 
-The library definitions that are missing are "`DefSubclassProc@16`" and "`RemoveWindowSubclass@12`". If you want to update the library yourself, you have to [http://cygwin.com/cgi-bin/cvsweb.cgi/~checkout~/src/winsup/w32api/lib/comctl32.def?cvsroot=src download comctl32.def], add the function definitions if necessary, and then run: `dlltool -k -d comctl32.def -D comctl32.dll -l libcomctl32.a`
+
+= Configure PATH =
+
+After downloading the compilers, you need to add them to the PATH variable so the build script can use the them. Do this by _right clicking_ on the _Computer_ desktop icon, go to the _Advanced_ tab, press the _Environment variables_ button, locate the PATH variable and add _<mingw-w32 path>\bin_ to the list, and press ok on all the dialogs. If you want to build the 64-bit part, add mingw-w64 to the PATH as well.
+
+Here is an example of my PATH variable: C:\mingw-w32\bin;C:\mingw-w64\bin
+
+If you had the terminal open when you changed the PATH variable, you must restart it.
+
+
+= 32-bit part =
+
+The 32-bit part is `AltDrag.exe` and `hooks.dll`. They are compiled by mingw-w32 or MinGW. To compile the 32-bit part run `build.bat`. It's convenient to run `build` in a terminal so you can see any error messages.
 
 
 = 64-bit part =
 
-The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are only used if you enable HookWindows and are running x64. They need to be 64-bit so that they can hook into 64-bit processes. To compile them your best choice is using [http://mingw-w64.sourceforge.net/ mingw-w64]. Mingw-w64 works just as MinGW, except there are no installer and the binary files are prefixed.
-
-The mingw-w64 file download section is a mess, but here's [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Automated%20Builds/mingw-w64-1.0-bin_i686-mingw_20091109.zip/download the 64-bit toolchain]. If you want, you can also download [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Automated%20Builds/mingw-w32-1.0-bin_i686-mingw_20091109.zip/download the 32-bit toolchain] and use mingw-w32 to compile the 32-bit part. Once you have the files in PATH, type "`build x64`" or "`build all x64`" to build.
+The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are only used if you enable HookWindows and are running x64. They need to be 64-bit so that they can hook into 64-bit processes. To compile them you must use mingw-w64. Run `build x64` to build the files.
 
 `AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, so because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag a 64-bit only program (yet).
 
 
 = Installer =
 
-To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and put it in PATH as well, then run "`build all`" in the terminal to automatically build the installer.
+To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and put it in PATH as well, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
