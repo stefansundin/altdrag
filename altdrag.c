@@ -143,7 +143,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wnd.hInstance = hInst;
 	wnd.hIcon = NULL;
 	wnd.hIconSm = NULL;
-	wnd.hCursor = LoadImage(NULL,IDC_HAND,IMAGE_CURSOR,0,0,LR_DEFAULTCOLOR|LR_SHARED);
+	wnd.hCursor = LoadImage(NULL,IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName = NULL;
 	wnd.lpszClassName = APP_NAME;
@@ -155,8 +155,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	HWND hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
 	
 	//Load tray icons
-	icon[0] = LoadImage(hInst,L"tray_disabled",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
-	icon[1] = LoadImage(hInst,L"tray_enabled",IMAGE_ICON,0,0,LR_DEFAULTCOLOR);
+	icon[0] = LoadImage(hInst, L"tray_disabled", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+	icon[1] = LoadImage(hInst, L"tray_enabled", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	if (icon[0] == NULL || icon[1] == NULL) {
 		Error(L"LoadImage('tray_*')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
 		PostQuitMessage(1);
@@ -301,7 +301,7 @@ int RemoveTray() {
 void SetAutostart(int on, int hide) {
 	//Open key
 	HKEY key;
-	int error = RegCreateKeyEx(HKEY_CURRENT_USER,L"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,NULL,0,KEY_SET_VALUE,NULL,&key,NULL);
+	int error = RegCreateKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, NULL, 0, KEY_SET_VALUE, NULL, &key, NULL);
 	if (error != ERROR_SUCCESS) {
 		Error(L"RegCreateKeyEx(HKEY_CURRENT_USER,'Software\\Microsoft\\Windows\\CurrentVersion\\Run')", L"Error opening the registry.", error, TEXT(__FILE__), __LINE__);
 		return;
@@ -316,7 +316,7 @@ void SetAutostart(int on, int hide) {
 		//Add
 		wchar_t value[MAX_PATH+10];
 		swprintf(value, (hide?L"\"%s\" -hide":L"\"%s\""), path);
-		error = RegSetValueEx(key,APP_NAME,0,REG_SZ,(LPBYTE)value,(wcslen(value)+1)*sizeof(wchar_t));
+		error = RegSetValueEx(key, APP_NAME, 0, REG_SZ, (LPBYTE)value, (wcslen(value)+1)*sizeof(wchar_t));
 		if (error != ERROR_SUCCESS) {
 			Error(L"RegSetValueEx('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
 			return;
@@ -324,7 +324,7 @@ void SetAutostart(int on, int hide) {
 	}
 	else {
 		//Remove
-		error = RegDeleteValue(key,APP_NAME);
+		error = RegDeleteValue(key, APP_NAME);
 		if (error != ERROR_SUCCESS) {
 			Error(L"RegDeleteValue('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
 			return;
@@ -359,13 +359,13 @@ int HookSystem() {
 	HOOKPROC procaddr;
 	if (!keyhook) {
 		//Get address to keyboard hook (beware name mangling)
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"LowLevelKeyboardProc@12");
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc@12");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
-		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0);
+		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
 			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
@@ -374,13 +374,13 @@ int HookSystem() {
 	
 	if (!msghook && settings.HookWindows) {
 		//Get address to message hook (beware name mangling)
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc@12");
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the message hook
-		msghook = SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0);
+		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
 			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
@@ -426,7 +426,7 @@ int UnhookSystem() {
 		
 		//Close HookWindows_x64.exe
 		if (x64) {
-			HWND window = FindWindow(L"AltDrag-x64",NULL);
+			HWND window = FindWindow(L"AltDrag-x64", NULL);
 			if (window != NULL) {
 				PostMessage(window, WM_CLOSE, 0, 0);
 			}
@@ -434,7 +434,7 @@ int UnhookSystem() {
 	}
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
-	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL,"ClearSettings");
+	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
 	
 	if (hinstDLL) {

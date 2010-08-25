@@ -22,7 +22,7 @@
 #define APP_NAME L"AltDrag"
 
 //Boring stuff
-LRESULT CALLBACK WindowProc(HWND,UINT,WPARAM,LPARAM);
+LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 
 //Cool stuff
 HINSTANCE hinstDLL = NULL;
@@ -109,13 +109,13 @@ int HookSystem() {
 	HOOKPROC procaddr;
 	if (!keyhook) {
 		//Get address to keyboard hook (beware name mangling)
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"LowLevelKeyboardProc");
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
-		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL,procaddr,hinstDLL,0);
+		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
 			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
@@ -124,13 +124,13 @@ int HookSystem() {
 	
 	//Get address to message hook (beware name mangling)
 	if (!msghook) {
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL,"CallWndProc");
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the message hook
-		msghook = SetWindowsHookEx(WH_CALLWNDPROC,procaddr,hinstDLL,0);
+		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
 			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
 			return 1;
@@ -162,7 +162,7 @@ int UnhookSystem() {
 	msghook = NULL;
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
-	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL,"ClearSettings");
+	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
 	
 	if (hinstDLL) {
