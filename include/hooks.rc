@@ -18,7 +18,7 @@ BEGIN
 			VALUE "InternalName", "hooks"
 			VALUE "OriginalFilename", "hooks.dll"
 			VALUE "CompanyName", "Stefan Sundin"
-			VALUE "LegalCopyright", "© Stefan Sundin 2009"
+			VALUE "LegalCopyright", "© Stefan Sundin 2010"
 		END
 	END
 	BLOCK "VarFileInfo"
