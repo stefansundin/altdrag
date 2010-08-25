@@ -65,6 +65,7 @@ HWND progman = NULL;
 struct {
 	int Cursor;
 	int AutoStick;
+	int Autofocus;
 	struct {
 		unsigned char *keys;
 		int length;
@@ -74,7 +75,7 @@ struct {
 	int RMB;
 	int MB4;
 	int MB5;
-} sharedsettings shareattr = {0,0,{NULL,0},0,0,0,0,0};
+} sharedsettings shareattr = {0,0,0,{NULL,0},0,0,0,0,0};
 int sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
 
@@ -91,7 +92,8 @@ struct blacklist {
 struct {
 	struct blacklist Blacklist;
 	struct blacklist Blacklist_Sticky;
-} settings = {{NULL,0},{NULL,0}};
+	struct blacklist Whitelist_Sticky;
+} settings = {{NULL,0},{NULL,0},{NULL,0}};
 
 //Cursor data
 HWND cursorwnd shareattr = NULL;
@@ -169,7 +171,7 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMoni
 	//Make sure we have enough space allocated
 	if (nummonitors == monitors_alloc) {
 		monitors_alloc++;
-		monitors = realloc(monitors,monitors_alloc*sizeof(RECT));
+		monitors = realloc(monitors, monitors_alloc*sizeof(RECT));
 		if (monitors == NULL) {
 			Error(L"realloc(monitors)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 			return FALSE;
@@ -185,7 +187,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	//Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
 		wnds_alloc += 20;
-		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
+		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
 			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 			return FALSE;
@@ -196,6 +198,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	if (window != hwnd && window != progman
 	 && IsWindowVisible(window) && !IsIconic(window)
 	 && !blacklisted(window,&settings.Blacklist_Sticky)
+	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION || blacklisted(window,&settings.Whitelist_Sticky))
 	 && GetWindowRect(window,&wnd) != 0
 	) {
 		//Return if the window is in the roll-up database (I want to get used to the roll-ups before deciding if I want this)
@@ -211,7 +214,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 			MONITORINFO monitorinfo;
 			monitorinfo.cbSize = sizeof(MONITORINFO);
 			GetMonitorInfo(monitor, &monitorinfo);
-			wnd=monitorinfo.rcMonitor;
+			wnd = monitorinfo.rcMonitor;
 		}
 		//Return if this window is overlapped by another window
 		int i;
@@ -223,7 +226,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		//Add window
 		wnds[numwnds++] = wnd;
 		//Use this to print the title and classname of the windows that are stickable
-		/*FILE *f = fopen("C:\\altdrag-log.txt","ab");
+		/*FILE *f = fopen("C:\\altdrag-log.txt", "ab");
 		char title[100], classname[100];
 		GetWindowTextA(window, title, 100);
 		GetClassNameA(window, classname, 100);
@@ -246,7 +249,7 @@ void Enum() {
 	//Enumerate windows
 	numwnds = 0;
 	if (shift || sharedsettings.AutoStick > 0) {
-		HWND taskbar = FindWindow(L"Shell_TrayWnd",NULL);
+		HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
 		RECT wnd;
 		if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
 			wnds[numwnds++] = wnd;
@@ -257,7 +260,7 @@ void Enum() {
 	}
 	
 	//Use this to print the monitors and windows
-	/*FILE *f = fopen("C:\\altdrag-log.txt","wb");
+	/*FILE *f = fopen("C:\\altdrag-log.txt", "wb");
 	fprintf(f, "nummonitors: %d\n", nummonitors);
 	int k;
 	for (k=0; k < nummonitors; k++) {
@@ -750,7 +753,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Get window
-			if ((hwnd=WindowFromPoint(pt)) == NULL) {
+			hwnd = WindowFromPoint(pt);
+			if (hwnd == NULL) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			hwnd = GetAncestor(hwnd,GA_ROOT);
@@ -775,6 +779,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
 				}
+			}
+			
+			//Autofocus
+			if (sharedsettings.Autofocus) {
+				SetForegroundWindow(hwnd);
 			}
 			
 			//Do things depending on what button was pressed
@@ -1106,7 +1115,7 @@ int HookMouse() {
 	}
 	
 	//Set up the mouse hook
-	mousehook = SetWindowsHookEx(WH_MOUSE_LL,LowLevelMouseProc,hinstDLL,0);
+	mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, hinstDLL, 0);
 	if (mousehook == NULL) {
 		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"HookMouse()", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
@@ -1292,10 +1301,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			PathRemoveFileSpec(inipath);
 			wcscat(inipath, L"\\"APP_NAME".ini");
 			//Cursor
-			GetPrivateProfileString(APP_NAME, L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Performance", L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Cursor);
 			if (sharedsettings.Cursor) {
-				cursorwnd = FindWindow(APP_NAME,NULL);
+				cursorwnd = FindWindow(APP_NAME, NULL);
 				#ifndef _WIN64
 				cursor[HAND]     = LoadImage(NULL, IDC_HAND,     IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				cursor[SIZENWSE] = LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
@@ -1308,6 +1317,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			//AutoStick
 			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.AutoStick);
+			//AutoStick
+			GetPrivateProfileString(APP_NAME, L"Autofocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Autofocus);
 			//Keys
 			int keys_alloc = 0;
 			unsigned char temp;
@@ -1319,7 +1331,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				//Make sure we have enough space
 				if (sharedsettings.Keys.length == keys_alloc) {
 					keys_alloc += 10;
-					sharedsettings.Keys.keys = realloc(sharedsettings.Keys.keys,keys_alloc*sizeof(int));
+					sharedsettings.Keys.keys = realloc(sharedsettings.Keys.keys, keys_alloc*sizeof(int));
 				}
 				//Store key
 				sharedsettings.Keys.keys[sharedsettings.Keys.length++] = temp;
@@ -1354,7 +1366,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				rollup[i].hwnd = NULL;
 			}
 		}
-		//Blacklist and Blacklist_Sticky
+		//Blacklists
 		int blacklist_alloc = 0;
 		struct blacklist *blacklist = &settings.Blacklist;
 		//Process Blacklist first
@@ -1364,9 +1376,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		wchar_t *pos = blacklist->data;
 		while (pos != NULL) {
 			wchar_t *title = pos;
-			wchar_t *classname = wcsstr(pos,L"|");
+			wchar_t *classname = wcsstr(pos, L"|");
 			//Move pos to next item (if any)
-			pos = wcsstr(pos,L",");
+			pos = wcsstr(pos, L",");
 			if (pos != NULL) {
 				*pos = '\0';
 				pos++;
@@ -1387,7 +1399,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				//Make sure we have enough space
 				if (blacklist->length == blacklist_alloc) {
 					blacklist_alloc += 15;
-					blacklist->items = realloc(blacklist->items,blacklist_alloc*sizeof(struct blacklistitem));
+					blacklist->items = realloc(blacklist->items, blacklist_alloc*sizeof(struct blacklistitem));
 					if (blacklist->items == NULL) {
 						Error(L"realloc(blacklist->items)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 					}
@@ -1397,11 +1409,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				blacklist->items[blacklist->length].classname = classname;
 				blacklist->length++;
 			}
-			//Switch gears to Blacklist_Sticky?
-			if (pos == NULL && blacklist == &settings.Blacklist) {
-				blacklist = &settings.Blacklist_Sticky;
+			//Switch gears?
+			if (pos == NULL && blacklist != &settings.Whitelist_Sticky) {
 				blacklist_alloc = 0;
-				GetPrivateProfileString(APP_NAME, L"Blacklist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				if (blacklist == &settings.Blacklist) {
+					blacklist = &settings.Blacklist_Sticky;
+					GetPrivateProfileString(APP_NAME, L"Blacklist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				}
+				else {
+					blacklist = &settings.Whitelist_Sticky;
+					GetPrivateProfileString(APP_NAME, L"Whitelist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				}
 				blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 				wcscpy(blacklist->data, txt);
 				pos = blacklist->data;
@@ -1409,7 +1427,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 		}
 		//Allocate space for wnds
 		wnds_alloc += 10;
-		wnds = realloc(wnds,wnds_alloc*sizeof(RECT));
+		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
 		if (wnds == NULL) {
 			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
 			return FALSE;
