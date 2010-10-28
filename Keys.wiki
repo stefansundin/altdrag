@@ -18,5 +18,7 @@ I'm listing some common keys here.
 || Right Alt Key      || A5 ||
 || Left Windows Key   || 5B ||
 || Right Windows Key  || 5C ||
+|| Left Ctrl Key      || A2 ||
+|| Right Ctrl Key     || A3 ||
 
 Write a comment if you think I have missed a common key.
