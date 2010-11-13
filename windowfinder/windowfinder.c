@@ -1,6 +1,5 @@
 /*
-	WindowFinder - Get the title and classname of windows
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -10,11 +9,11 @@
 
 #define UNICODE
 #define _UNICODE
+#define _WIN32_WINNT 0x0500
+#define _WIN32_IE 0x0600
 
 #include <stdio.h>
 #include <stdlib.h>
-#define _WIN32_WINNT 0x0500
-#define _WIN32_IE 0x0600
 #include <windows.h>
 #include <shlwapi.h>
 #include <wchar.h>
@@ -23,11 +22,10 @@
 #define APP_NAME      L"WindowFinder"
 #define APP_VERSION   "0.2"
 #define APP_URL       L"http://code.google.com/p/altdrag/wiki/WindowFinder"
-#define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/windowfinder-latest-stable.txt"
 //#define DEBUG
 
 //Messages
-#define WM_ICONTRAY            WM_USER+1
+#define WM_TRAY                WM_USER+1
 #define SWM_FIND               WM_APP+1
 #define SWM_FINDDELAY          WM_APP+2
 #define SWM_FINDALL            WM_APP+3
@@ -44,49 +42,28 @@
 #define NIN_BALLOONUSERCLICK   WM_USER+5
 #endif
 
-//Localization
-struct strings {
-	wchar_t *menu_find;
-	wchar_t *menu_finddelay;
-	wchar_t *menu_findall;
-	wchar_t *menu_update;
-	wchar_t *menu_about;
-	wchar_t *menu_exit;
-	wchar_t *update_balloon;
-	wchar_t *update_dialog;
-	wchar_t *wnddetails;
-	wchar_t *allwnds;
-	wchar_t *about_title;
-	wchar_t *about;
-};
-#include "localization/strings.h"
-struct strings *l10n=&en_US;
-
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-HICON icon;
-NOTIFYICONDATA traydata;
+HINSTANCE g_hinst = NULL;
+HWND g_hwnd = NULL;
 UINT WM_TASKBARCREATED = 0;
-int tray_added = 0;
-struct {
-	int CheckForUpdate;
-} settings = {0};
 wchar_t txt[2000];
 
 //Cool stuff
-HINSTANCE hinstDLL = NULL;
 HHOOK mousehook = NULL;
-HWND cursorwnd = NULL;
 HWND *wnds = NULL;
 int numwnds = 0;
 int find = 0;
 
-//Error() and CheckForUpdate()
-#include "../include/error.h"
-#include "../include/update.h"
+//Include stuff
+#include "localization/strings.h"
+#include "../include/error.c"
+#include "include/tray.c"
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+	g_hinst = hInst;
+	
 	//Look for previous instance
 	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
@@ -94,14 +71,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		return 0;
 	}
 	
-	//Load settings
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	PathRenameExtension(path, L".ini");
-	GetPrivateProfileString(L"Update", L"CheckForUpdate", L"1", txt, sizeof(txt)/sizeof(wchar_t), path);
-	swscanf(txt, L"%d", &settings.CheckForUpdate);
-	
-	//Create window class
+	//Create window
 	WNDCLASSEX wnd;
 	wnd.cbSize = sizeof(WNDCLASSEX);
 	wnd.style = 0;
@@ -115,43 +85,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName = NULL;
 	wnd.lpszClassName = APP_NAME;
-	
-	//Register class
 	RegisterClassEx(&wnd);
+	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
 	
-	//Create window
-	cursorwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
-	
-	//Load icon
-	icon = LoadImage(hInst, L"app_icon", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
-	if (icon == NULL) {
-		Error(L"LoadImage('app_icon')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
-		PostQuitMessage(1);
-	}
-	
-	//Create icondata
-	traydata.cbSize = sizeof(NOTIFYICONDATA);
-	traydata.uID = 0;
-	traydata.uFlags = NIF_MESSAGE|NIF_ICON|NIF_TIP;
-	traydata.hWnd = cursorwnd;
-	traydata.uCallbackMessage = WM_ICONTRAY;
-	wcsncpy(traydata.szTip, APP_NAME, sizeof(traydata.szTip)/sizeof(wchar_t));
-	traydata.hIcon = icon;
-	//Balloon tooltip
-	traydata.uTimeout = 10000;
-	wcsncpy(traydata.szInfoTitle, APP_NAME, sizeof(traydata.szInfoTitle)/sizeof(wchar_t));
-	traydata.dwInfoFlags = NIIF_USER;
-	
-	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
-	WM_TASKBARCREATED = RegisterWindowMessage(L"TaskbarCreated");
-	
-	//Update tray icon
+	//Tray icon
+	InitTray();
 	UpdateTray();
-	
-	//Check for update
-	if (settings.CheckForUpdate) {
-		CheckForUpdate();
-	}
 	
 	//Hook mouse
 	if ((GetAsyncKeyState(VK_SHIFT)&0x8000)) {
@@ -165,67 +104,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		DispatchMessage(&msg);
 	}
 	return msg.wParam;
-}
-
-void ShowContextMenu(HWND hwnd) {
-	POINT pt;
-	GetCursorPos(&pt);
-	HMENU hMenu = CreatePopupMenu();
-	
-	//Find
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FIND, l10n->menu_find);
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDDELAY, l10n->menu_finddelay);
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_FINDALL, l10n->menu_findall);
-	InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-	
-	//Update
-	if (update) {
-		InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
-		InsertMenu(hMenu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-	}
-	
-	//About
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
-	
-	//Exit
-	InsertMenu(hMenu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
-
-	//Track menu
-	SetForegroundWindow(hwnd);
-	TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL);
-	DestroyMenu(hMenu);
-}
-
-int UpdateTray() {
-	int tries = 0; //Try at least ten times, sleep 100 ms between
-	while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
-		tries++;
-		if (tries >= 10) {
-			Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)", L"Failed to update tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
-		}
-		Sleep(100);
-	}
-	
-	//Success
-	tray_added = 1;
-	return 0;
-}
-
-int RemoveTray() {
-	if (!tray_added) {
-		//Tray not added
-		return 1;
-	}
-	
-	if (Shell_NotifyIcon(NIM_DELETE,&traydata) == FALSE) {
-		Error(L"Shell_NotifyIcon(NIM_DELETE)", L"Failed to remove tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
-		return 1;
-	}
-	
-	//Success
-	tray_added = 0;
-	return 0;
 }
 
 LRESULT CALLBACK WndDetailsMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
@@ -348,14 +226,14 @@ void FindAllWnds() {
 }
 
 //Hooks
-__declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && find) {
 			POINT pt = ((PMSLLHOOKSTRUCT)lParam)->pt;
 			
 			//Make sure cursorwnd isn't in the way
-			ShowWindow(cursorwnd, SW_HIDE);
-			SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			ShowWindow(g_hwnd, SW_HIDE);
+			SetWindowLongPtr(g_hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			
 			//Print window info
 			POINT *p_pt = malloc(sizeof(pt));
@@ -391,24 +269,8 @@ int HookMouse() {
 		return 1;
 	}
 	
-	//Load library
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	hinstDLL = LoadLibrary(path);
-	if (hinstDLL == NULL) {
-		Error(L"LoadLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
-		return 1;
-	}
-	
-	//Get address to mouse hook (beware name mangling)
-	HOOKPROC procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelMouseProc@12");
-	if (procaddr == NULL) {
-		Error(L"GetProcAddress('LowLevelMouseProc@12')", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
-		return 1;
-	}
-	
 	//Set up the hook
-	mousehook = SetWindowsHookEx(WH_MOUSE_LL, procaddr, hinstDLL, 0);
+	mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, g_hinst, 0);
 	if (mousehook == NULL) {
 		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
@@ -419,10 +281,10 @@ int HookMouse() {
 	int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-	MoveWindow(cursorwnd, left, top, width, height, FALSE);
-	SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-	SetLayeredWindowAttributes(cursorwnd, 0, 1, LWA_ALPHA); //Almost transparent
-	ShowWindowAsync(cursorwnd, SW_SHOWNA);
+	MoveWindow(g_hwnd, left, top, width, height, FALSE);
+	SetWindowLongPtr(g_hwnd, GWL_EXSTYLE, WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
+	ShowWindowAsync(g_hwnd, SW_SHOWNA);
 	
 	//Success
 	find = 1;
@@ -464,20 +326,17 @@ int DisableMouse() {
 	find = 0;
 	
 	//Hide cursor
-	ShowWindow(cursorwnd, SW_HIDE);
-	SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+	ShowWindow(g_hwnd, SW_HIDE);
+	SetWindowLongPtr(g_hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (msg == WM_ICONTRAY) {
+	if (msg == WM_TRAY) {
 		if (lParam == WM_LBUTTONDOWN) {
 			HookMouse();
 		}
 		else if (lParam == WM_RBUTTONDOWN) {
 			ShowContextMenu(hwnd);
-		}
-		else if (lParam == NIN_BALLOONUSERCLICK) {
-			SendMessage(hwnd, WM_COMMAND, SWM_UPDATE, 0);
 		}
 	}
 	else if (msg == WM_TASKBARCREATED) {
@@ -495,11 +354,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 		else if (wmId == SWM_FINDALL) {
 			FindAllWnds();
-		}
-		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL,l10n->update_dialog,APP_NAME,MB_ICONINFORMATION|MB_YESNO) == IDYES) {
-				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
-			}
 		}
 		else if (wmId == SWM_ABOUT) {
 			MessageBox(NULL, l10n->about, l10n->about_title, MB_ICONINFORMATION|MB_OK);

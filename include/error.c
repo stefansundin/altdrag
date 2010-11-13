@@ -1,6 +1,6 @@
 /*
 	Error message handler.
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -33,19 +33,19 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	LocalFree(errormsg);
 	//Display message
 	#ifdef ERROR_WRITETOFILE
-	FILE *f = _wfopen("C:\\"APP_NAME"-errorlog.txt",L"ab");
-	fwprintf(f,L"%s\n\n",msg);
+	FILE *f = _wfopen("C:\\"APP_NAME"-errorlog.txt", L"ab");
+	fwprintf(f, L"%s\n\n", msg);
 	fclose(f);
 	#else
-	HHOOK hhk = SetWindowsHookEx(WH_CBT,&ErrorMsgProc,0,GetCurrentThreadId());
-	int response = MessageBox(NULL,msg,APP_NAME" Error",MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
+	HHOOK hhk = SetWindowsHookEx(WH_CBT, &ErrorMsgProc, 0, GetCurrentThreadId());
+	int response = MessageBox(NULL, msg, APP_NAME" Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
 		int size = (wcslen(msg)+1)*sizeof(wchar_t);
 		OpenClipboard(NULL);
 		EmptyClipboard();
-		wchar_t *data = LocalAlloc(LMEM_FIXED,size);
+		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
 		memcpy(data, msg, size);
 		SetClipboardData(CF_UNICODETEXT, data);
 		CloseClipboard();

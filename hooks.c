@@ -1,6 +1,5 @@
 /*
-	AltDrag - Drag windows with the mouse when pressing the alt key
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -121,7 +120,7 @@ enum {MOVE, RESIZE, NONE} msgaction = NONE;
 //Error()
 #ifdef DEBUG
 #define ERROR_WRITETOFILE
-#include "include/error.h"
+#include "include/error.c"
 #else
 #define Error(a,b,c,d,e)
 #endif

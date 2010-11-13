@@ -1,9 +1,5 @@
 /*
 	AltDrag - ru-RU локализация, сделана Gluek (mrgluek@gmail.com)
-	Не переводите APP_NAME, оно будет заменено автоматически.
-	Сохраните этот файл в UTF-8
-	
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
 	Эта программа является свободным программным обеспечением, вы можете распространять ее и / или модифицировать
 	в соответствии с условиями GNU General Public License, опубликованной
@@ -12,21 +8,23 @@
 */
 
 struct strings ru_RU = {
- /* menu_enable */    L"Включить",
- /* menu_disable */   L"Отключить",
- /* menu_hide */      L"Скрыть иконку",
- /* menu_options */   L"Параметры",
+ /* menu_enable    */ L"Включить",
+ /* menu_disable   */ L"Отключить",
+ /* menu_hide      */ L"Скрыть иконку",
+ /* menu_options   */ L"Параметры",
  /* menu_autostart */ L"Автозапуск",
- /* menu_settings */  L"Открыть настройки",
- /* menu_update */    L"Доступно обновление!",
- /* menu_about */     L"О программе",
- /* menu_exit */      L"Выход",
- /* tray_enabled */   APP_NAME " (включено)",
- /* tray_disabled */  APP_NAME " (выключено)",
+ /* menu_settings  */ L"Открыть настройки",
+ /* menu_chkupdate */ L"Check for update",
+ /* menu_update    */ L"Доступно обновление!",
+ /* menu_about     */ L"О программе",
+ /* menu_exit      */ L"Выход",
+ /* tray_enabled   */ APP_NAME " (включено)",
+ /* tray_disabled  */ APP_NAME " (выключено)",
  /* update_balloon */ L"Обнаружена новая версия!",
- /* update_dialog */  L"Доступна новая версия.\nПерейти на сайт?\n\n(Вы можете отключить проверку обновлений в "APP_NAME".ini)",
- /* about_title */    L"О программе " APP_NAME,
- /* about */          APP_NAME " - " APP_VERSION "\n\
+ /* update_dialog  */ L"Доступна новая версия.\nПерейти на сайт?\n\nВы можете отключить проверку обновлений в "APP_NAME".ini",
+ /* update_nonew   */ L"No update available.",
+ /* about_title    */ L"О программе " APP_NAME,
+ /* about          */ APP_NAME " - " APP_VERSION "\n\
 Автор Stefan Sundin\n\
 Перевод Gluek (mrgluek@gmail.com)\n\
 \n\

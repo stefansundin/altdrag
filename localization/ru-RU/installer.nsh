@@ -1,14 +1,9 @@
 ﻿;AltDrag - ru-RU локализация, сделана Gluek (mrgluek@gmail.com)
-;Не переводите APP_NAME, оно будет заменено автоматически.
-;
-;Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 ;
 ;Эта программа является свободным программным обеспечением, вы можете распространять ее и / или модифицировать
 ;в соответствии с условиями GNU General Public License, опубликованной
 ;Free Software Foundation, пользуясь либо версию 3 лицензии, либо
 ;(по вашему выбору) любой более поздней версиий.
-
-!if ${L10N_VERSION} == 3
 
 !insertmacro MUI_LANGUAGE "Russian"
 !define LANG ${LANG_RUSSIAN}
@@ -19,6 +14,7 @@ LangString L10N_UPGRADE_HEADER    ${LANG} "${APP_NAME} уже установле
 LangString L10N_UPGRADE_UPGRADE   ${LANG} "&Обновить ${APP_NAME} до версии ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       ${LANG} "Ваши существующие настройки будут скопированы в ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   ${LANG} "&Установить в новое место."
+LangString L10N_UPGRADE_UNINSTALL ${LANG} "&Uninstall ${APP_NAME}."
 LangString L10N_UPDATE_SECTION    ${LANG} "Проверить обновления перед установкой"
 LangString L10N_UPDATE_DIALOG     ${LANG} "Доступна новая версия.$\nПрервать установку и перейти на сайт?"
 LangString L10N_RUNNING           ${LANG} "${APP_NAME} запущена. Закрыть?"
@@ -33,7 +29,3 @@ LangString L10N_ALTSHIFT_HEADER   ${LANG} "Программа установки
 LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Настройки клавиатуры"
 
 !undef LANG
-
-!else
-!warning "Localization out of date!" ;Don't localize this
-!endif

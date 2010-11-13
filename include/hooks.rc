@@ -13,10 +13,16 @@ BEGIN
 	BEGIN
 		BLOCK "040904b0"
 		BEGIN
+#ifdef _WIN64
+			VALUE "FileDescription", "Hooks (x64) for AltDrag"
+			VALUE "InternalName", "hooks_x64"
+			VALUE "OriginalFilename", "hooks_x64.dll"
+#else
 			VALUE "FileDescription", "Hooks for AltDrag"
-			VALUE "FileVersion", "0.8"
 			VALUE "InternalName", "hooks"
 			VALUE "OriginalFilename", "hooks.dll"
+#endif
+			VALUE "FileVersion", "0.8"
 			VALUE "CompanyName", "Stefan Sundin"
 			VALUE "LegalCopyright", "© Stefan Sundin 2010"
 		END
