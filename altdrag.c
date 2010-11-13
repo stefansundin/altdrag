@@ -1,6 +1,5 @@
 /*
-	AltDrag - Drag windows with the mouse when pressing the alt key
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,13 +18,14 @@
 #include <shlwapi.h>
 
 //App
-#define APP_NAME      L"AltDrag"
-#define APP_VERSION   "0.8"
-#define APP_URL       L"http://altdrag.googlecode.com/"
-#define APP_UPDATEURL L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
+#define APP_NAME            L"AltDrag"
+#define APP_VERSION         "0.8"
+#define APP_URL             L"http://altdrag.googlecode.com/"
+#define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
+#define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
 
 //Messages
-#define WM_ICONTRAY            WM_USER+1
+#define WM_TRAY                WM_USER+1
 #define SWM_TOGGLE             WM_APP+1
 #define SWM_HIDE               WM_APP+2
 #define SWM_AUTOSTART_ON       WM_APP+3
@@ -33,9 +33,10 @@
 #define SWM_AUTOSTART_HIDE_ON  WM_APP+5
 #define SWM_AUTOSTART_HIDE_OFF WM_APP+6
 #define SWM_SETTINGS           WM_APP+7
-#define SWM_UPDATE             WM_APP+8
-#define SWM_ABOUT              WM_APP+9
-#define SWM_EXIT               WM_APP+10
+#define SWM_CHECKFORUPDATE     WM_APP+8
+#define SWM_UPDATE             WM_APP+9
+#define SWM_ABOUT              WM_APP+10
+#define SWM_EXIT               WM_APP+11
 
 //Stuff missing in MinGW
 #ifndef NIIF_USER
@@ -46,42 +47,17 @@
 #define NIN_BALLOONUSERCLICK   WM_USER+5
 #endif
 
-//Localization
-struct strings {
-	wchar_t *menu_enable;
-	wchar_t *menu_disable;
-	wchar_t *menu_hide;
-	wchar_t *menu_options;
-	wchar_t *menu_autostart;
-	wchar_t *menu_settings;
-	wchar_t *menu_update;
-	wchar_t *menu_about;
-	wchar_t *menu_exit;
-	wchar_t *tray_enabled;
-	wchar_t *tray_disabled;
-	wchar_t *update_balloon;
-	wchar_t *update_dialog;
-	wchar_t *about_title;
-	wchar_t *about;
-};
-#include "localization/strings.h"
-struct strings *l10n = &en_US;
-
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-HICON icon[2];
-NOTIFYICONDATA traydata;
+HINSTANCE g_hinst = NULL;
+HWND g_hwnd = NULL;
 UINT WM_TASKBARCREATED = 0;
 UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
-int tray_added = 0;
-int hide = 0;
 struct {
-	int CheckForUpdate;
 	int HookWindows;
-} settings = {0,0};
-wchar_t txt[1000];
+} settings = {0};
 
 //Cool stuff
 HINSTANCE hinstDLL = NULL;
@@ -89,12 +65,17 @@ HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
 BOOL x64 = FALSE;
 
-//Error() and CheckForUpdate()
-#include "include/error.h"
-#include "include/update.h"
+//Include stuff
+#include "localization/strings.h"
+#include "include/error.c"
+#include "include/autostart.c"
+#include "include/tray.c"
+#include "include/update.c"
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+	g_hinst = hInst;
+	
 	//Check command line
 	if (!strcmp(szCmdLine,"-hide")) {
 		hide = 1;
@@ -104,36 +85,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
-	HWND previnst = FindWindow(APP_NAME,NULL);
+	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
 		PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
-		if (hide) {
-			PostMessage(previnst, WM_HIDETRAY, 0, 0);
-		}
-		else {
-			PostMessage(previnst, WM_ADDTRAY, 0, 0);
-		}
+		PostMessage(previnst, (hide?WM_HIDETRAY:WM_ADDTRAY), 0, 0);
 		return 0;
 	}
 	
-	//Load settings
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	PathRemoveFileSpec(path);
-	wcscat(path, L"\\"APP_NAME".ini");
-	GetPrivateProfileString(L"Update", L"CheckForUpdate", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
-	swscanf(txt, L"%d", &settings.CheckForUpdate);
-	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
-	int i;
-	for (i=0; i < num_languages; i++) {
-		if (!wcsicmp(txt,languages[i].code)) {
-			l10n = languages[i].strings;
-			break;
-		}
-	}
-	IsWow64Process(GetCurrentProcess(), &x64);
-	
-	//Create window class
+	//Create window
 	WNDCLASSEX wnd;
 	wnd.cbSize = sizeof(WNDCLASSEX);
 	wnd.style = 0;
@@ -147,36 +106,27 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName = NULL;
 	wnd.lpszClassName = APP_NAME;
-	
-	//Register class
 	RegisterClassEx(&wnd);
+	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
 	
-	//Create window
-	HWND hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
-	
-	//Load tray icons
-	icon[0] = LoadImage(hInst, L"tray_disabled", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
-	icon[1] = LoadImage(hInst, L"tray_enabled", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
-	if (icon[0] == NULL || icon[1] == NULL) {
-		Error(L"LoadImage('tray_*')", L"Fatal error.", GetLastError(), TEXT(__FILE__), __LINE__);
-		PostQuitMessage(1);
+	//Load settings
+	wchar_t path[MAX_PATH];
+	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+	PathRemoveFileSpec(path);
+	wcscat(path, L"\\"APP_NAME".ini");
+	wchar_t txt[10];
+	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
+	int i;
+	for (i=0; languages[i].code != NULL; i++) {
+		if (!wcsicmp(txt,languages[i].code)) {
+			l10n = languages[i].strings;
+			break;
+		}
 	}
+	IsWow64Process(GetCurrentProcess(), &x64);
 	
-	//Create icondata
-	traydata.cbSize = sizeof(NOTIFYICONDATA);
-	traydata.uID = 0;
-	traydata.uFlags = NIF_MESSAGE|NIF_ICON|NIF_TIP;
-	traydata.hWnd = hwnd;
-	traydata.uCallbackMessage = WM_ICONTRAY;
-	//Balloon tooltip
-	traydata.uTimeout = 10000;
-	wcsncpy(traydata.szInfoTitle, APP_NAME, sizeof(traydata.szInfoTitle)/sizeof(wchar_t));
-	traydata.dwInfoFlags = NIIF_USER;
-	
-	//Register TaskbarCreated so we can re-add the tray icon if explorer.exe crashes
-	WM_TASKBARCREATED = RegisterWindowMessage(L"TaskbarCreated");
-	
-	//Update tray icon
+	//Tray icon
+	InitTray();
 	UpdateTray();
 	
 	//Hook system
@@ -189,7 +139,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 	
 	//Check for update
-	CheckForUpdate();
+	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	int checkforupdate = _wtoi(txt);
+	if (checkforupdate) {
+		CheckForUpdate(0);
+	}
 	
 	//Message loop
 	MSG msg;
@@ -200,148 +154,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	return msg.wParam;
 }
 
-void ShowContextMenu(HWND hwnd) {
-	POINT pt;
-	GetCursorPos(&pt);
-	HMENU menu = CreatePopupMenu();
-	
-	//Toggle
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_TOGGLE, (keyhook||msghook?l10n->menu_disable:l10n->menu_enable));
-	
-	//Hide
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_HIDE, l10n->menu_hide);
-	
-	//Check autostart
-	int autostart_enabled=0, autostart_hide=0;
-	//Registry
-	HKEY key;
-	wchar_t autostart_value[MAX_PATH+10] = L"";
-	DWORD len = sizeof(autostart_value);
-	RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE, &key);
-	RegQueryValueEx(key, APP_NAME, NULL, NULL, (LPBYTE)autostart_value, &len);
-	RegCloseKey(key);
-	//Compare
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, MAX_PATH);
-	swprintf(txt, L"\"%s\"", path);
-	if (!wcsicmp(txt,autostart_value)) {
-		autostart_enabled = 1;
-	}
-	else {
-		swprintf(txt, L"\"%s\" -hide", path);
-		if (!wcsicmp(txt,autostart_value)) {
-			autostart_enabled = 1;
-			autostart_hide = 1;
-		}
-	}
-	//Options
-	HMENU menu_options = CreatePopupMenu();
-	InsertMenu(menu_options, -1, MF_BYPOSITION|(autostart_enabled?MF_CHECKED:0), (autostart_enabled?SWM_AUTOSTART_OFF:SWM_AUTOSTART_ON), l10n->menu_autostart);
-	InsertMenu(menu_options, -1, MF_BYPOSITION|(autostart_hide?MF_CHECKED:0), (autostart_hide?SWM_AUTOSTART_HIDE_OFF:SWM_AUTOSTART_HIDE_ON), l10n->menu_hide);
-	InsertMenu(menu_options, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-	InsertMenu(menu_options, -1, MF_BYPOSITION, SWM_SETTINGS, l10n->menu_settings);
-	InsertMenu(menu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)menu_options, l10n->menu_options);
-	InsertMenu(menu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-	
-	//Update
-	if (update) {
-		InsertMenu(menu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
-	}
-	
-	//About
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
-	
-	//Exit
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
-	
-	//Track menu
-	SetForegroundWindow(hwnd);
-	TrackPopupMenu(menu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL);
-	DestroyMenu(menu);
-}
-
-int UpdateTray() {
-	wcsncpy(traydata.szTip, (keyhook||msghook?l10n->tray_enabled:l10n->tray_disabled), sizeof(traydata.szTip)/sizeof(wchar_t));
-	traydata.hIcon = icon[keyhook||msghook?1:0];
-	
-	//Only add or modify if not hidden or if balloon will be displayed
-	if (!hide || traydata.uFlags&NIF_INFO) {
-		int tries = 0; //Try at least a hundred times, sleep 100 ms between each attempt
-		while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&traydata) == FALSE) {
-			tries++;
-			if (tries >= 100) {
-				Error(L"Shell_NotifyIcon(NIM_ADD/NIM_MODIFY)", L"Failed to update tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
-				return 1;
-			}
-			Sleep(100);
-		}
-		
-		//Success
-		tray_added = 1;
-	}
-	return 0;
-}
-
-int RemoveTray() {
-	if (!tray_added) {
-		//Tray not added
-		return 1;
-	}
-	
-	if (Shell_NotifyIcon(NIM_DELETE,&traydata) == FALSE) {
-		Error(L"Shell_NotifyIcon(NIM_DELETE)", L"Failed to remove tray icon.", GetLastError(), TEXT(__FILE__), __LINE__);
-		return 1;
-	}
-	
-	//Success
-	tray_added = 0;
-	return 0;
-}
-
-void SetAutostart(int on, int hide) {
-	//Open key
-	HKEY key;
-	int error = RegCreateKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, NULL, 0, KEY_SET_VALUE, NULL, &key, NULL);
-	if (error != ERROR_SUCCESS) {
-		Error(L"RegCreateKeyEx(HKEY_CURRENT_USER,'Software\\Microsoft\\Windows\\CurrentVersion\\Run')", L"Error opening the registry.", error, TEXT(__FILE__), __LINE__);
-		return;
-	}
-	if (on) {
-		//Get path
-		wchar_t path[MAX_PATH];
-		if (GetModuleFileName(NULL,path,MAX_PATH) == 0) {
-			Error(L"GetModuleFileName(NULL)", L"SetAutostart()", GetLastError(), TEXT(__FILE__), __LINE__);
-			return;
-		}
-		//Add
-		wchar_t value[MAX_PATH+10];
-		swprintf(value, (hide?L"\"%s\" -hide":L"\"%s\""), path);
-		error = RegSetValueEx(key, APP_NAME, 0, REG_SZ, (LPBYTE)value, (wcslen(value)+1)*sizeof(wchar_t));
-		if (error != ERROR_SUCCESS) {
-			Error(L"RegSetValueEx('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
-			return;
-		}
-	}
-	else {
-		//Remove
-		error = RegDeleteValue(key, APP_NAME);
-		if (error != ERROR_SUCCESS) {
-			Error(L"RegDeleteValue('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
-			return;
-		}
-	}
-	//Close key
-	RegCloseKey(key);
-}
-
 int HookSystem() {
 	if (keyhook && msghook) {
 		//System already hooked
 		return 1;
 	}
-	
-	//Update settings
-	SendMessage(traydata.hWnd, WM_UPDATESETTINGS, 0, 0);
 	
 	//Load library
 	if (!hinstDLL) {
@@ -451,31 +268,39 @@ int UnhookSystem() {
 	return 0;
 }
 
+int enabled() {
+	return keyhook || msghook;
+}
+
 void ToggleState() {
-	if (keyhook || msghook) {
+	if (enabled()) {
 		UnhookSystem();
 	}
 	else {
+		SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 		HookSystem();
 	}
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (msg == WM_ICONTRAY) {
+	if (msg == WM_TRAY) {
 		if (lParam == WM_LBUTTONDOWN || lParam == WM_LBUTTONDBLCLK) {
 			ToggleState();
 		}
+		else if (lParam == WM_MBUTTONDOWN) {
+			SendMessage(hwnd, WM_COMMAND, SWM_SETTINGS, 0);
+		}
 		else if (lParam == WM_RBUTTONDOWN) {
 			ShowContextMenu(hwnd);
+		}
+		else if (lParam == NIN_BALLOONUSERCLICK) {
+			hide=0;
+			SendMessage(hwnd, WM_COMMAND, SWM_UPDATE, 0);
 		}
 		else if (lParam == NIN_BALLOONTIMEOUT) {
 			if (hide) {
 				RemoveTray();
 			}
-		}
-		else if (lParam == NIN_BALLOONUSERCLICK) {
-			hide=0;
-			SendMessage(hwnd, WM_COMMAND, SWM_UPDATE, 0);
 		}
 	}
 	else if (msg == WM_UPDATESETTINGS) {
@@ -484,20 +309,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 		PathRemoveFileSpec(path);
 		wcscat(path, L"\\"APP_NAME".ini");
+		wchar_t txt[10];
 		//HookWindows
 		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
 		swscanf(txt, L"%d", &settings.HookWindows);
 		//Language
 		GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
 		int i;
-		for (i=0; i < num_languages; i++) {
+		for (i=0; languages[i].code != NULL; i++) {
 			if (!wcsicmp(txt,languages[i].code)) {
 				l10n = languages[i].strings;
 				break;
 			}
 		}
 		//Reload hooks
-		if (keyhook || msghook) {
+		if (enabled()) {
 			UnhookSystem();
 			HookSystem();
 		}
@@ -541,6 +367,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			PathRemoveFileSpec(path);
 			wcscat(path, L"\\"APP_NAME".ini");
 			ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
+		}
+		else if (wmId == SWM_CHECKFORUPDATE) {
+			CheckForUpdate(1);
 		}
 		else if (wmId == SWM_UPDATE) {
 			if (MessageBox(NULL, l10n->update_dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {

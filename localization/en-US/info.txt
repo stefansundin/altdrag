@@ -17,14 +17,11 @@ Fullscreen windows, such as games, will not be dragged or resized.
 If you experience lag when you move or resize windows, try disabling the mouse cursor in AltDrag.ini.
 AltDrag will automatically check for updates. You can disable this in AltDrag.ini.
 
-You can use -hide as a parameter to hide the tray icon.
-
-Visit the website at http://altdrag.googlecode.com/
-Send feedback to recover89@gmail.com
+Visit the website at http://code.google.com/p/altdrag/
+Visit the author's website at http://stefansundin.com/
 
 If this program is useful for you, please consider donating money.
 You can find out how to donate on the website.
-
 AltDrag is open source, licensed under GPL.
 
 Changelog

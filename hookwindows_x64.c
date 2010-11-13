@@ -1,6 +1,5 @@
 /*
-	AltDrag - Drag windows with the mouse when pressing the alt key
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -29,8 +28,8 @@ HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
 
-//Error()
-#include "include/error.h"
+//Include stuff
+#include "include/error.c"
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
@@ -46,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		return 0;
 	}
 	
-	//Create window class
+	//Create window
 	WNDCLASSEX wnd;
 	wnd.cbSize = sizeof(WNDCLASSEX);
 	wnd.style = 0;
@@ -60,11 +59,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	wnd.lpszMenuName = NULL;
 	wnd.lpszClassName = APP_NAME"-x64";
-	
-	//Register class
 	RegisterClassEx(&wnd);
-	
-	//Create window
 	HWND hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME"-x64", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
 	
 	//Start a timer that checks if AltDrag is still running every 10 seconds

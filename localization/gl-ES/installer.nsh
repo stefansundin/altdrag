@@ -1,14 +1,9 @@
 ;AltDrag - gl-ES localization by Alexander De Sousa (xandy.lua@gmail.com)
-;This file in ANSI encoded.
-;
-;Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 ;
 ;This program is free software: you can redistribute it and/or modify
 ;it under the terms of the GNU General Public License as published by
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
-
-!if ${L10N_VERSION} == 3
 
 !insertmacro MUI_LANGUAGE "Galician"
 !define LANG ${LANG_GALICIAN}
@@ -19,6 +14,7 @@ LangString L10N_UPGRADE_HEADER    ${LANG} "${APP_NAME} xa está instalado no teu 
 LangString L10N_UPGRADE_UPGRADE   ${LANG} "&Actualizar ${APP_NAME} á versión ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       ${LANG} "A configuración actual copiarase a ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   ${LANG} "&Instalar de novo."
+LangString L10N_UPGRADE_UNINSTALL ${LANG} "&Desinstalar ${APP_NAME}."
 LangString L10N_UPDATE_SECTION    ${LANG} "Comprobar actualizacións antes de instalar"
 LangString L10N_UPDATE_DIALOG     ${LANG} "Unha nova versión está dispoñible.$\nQueres abortar a instalación e ir á páxina web?"
 LangString L10N_RUNNING           ${LANG} "${APP_NAME} está en funcionamento. Quérelo pechar?"
@@ -33,7 +29,3 @@ LangString L10N_ALTSHIFT_HEADER   ${LANG} "O instalador detectou que tes máis de
 LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Config. do teclado"
 
 !undef LANG
-
-!else
-!warning "Localization out of date!"
-!endif

@@ -1,8 +1,8 @@
 /*
-	Writes information to a .ini file.
+	Read/write to ini files.
 	Used to batch-write the Language setting when using 'build all'.
 	
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 
 int main(int argc, char *argv[]) {
 	if (argc < 4) {
-		printf("Not enough arguments!\n");
+		printf("Not enough arguments\n");
 		printf("Usage: ini <file> <section> <key> [new value]\n");
 		return 0;
 	}

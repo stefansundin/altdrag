@@ -1,9 +1,5 @@
 /*
 	AltDrag - es-ES localization by Fabrizio Ferri (algernon@gmail.com)
-	Do not localize APP_NAME, it will be automatically replaced.
-	Keep this file in UTF–8.
-	
-	Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -12,21 +8,23 @@
 */
 
 struct strings es_ES = {
- /* menu_enable */    L"Activar",
- /* menu_disable */   L"Desactivar",
- /* menu_hide */      L"Ocultar icono",
- /* menu_options */   L"Opciones",
+ /* menu_enable    */ L"Activar",
+ /* menu_disable   */ L"Desactivar",
+ /* menu_hide      */ L"Ocultar icono",
+ /* menu_options   */ L"Opciones",
  /* menu_autostart */ L"Iniciar con Windows",
- /* menu_settings */  L"Abrir configuración",
- /* menu_update */    L"Actualización disponible",
- /* menu_about */     L"Acerca de",
- /* menu_exit */      L"Salir",
- /* tray_enabled */   APP_NAME " (activado)",
- /* tray_disabled */  APP_NAME " (desactivado)",
- /* update_balloon */ L"Nueva versión disponible",
- /* update_dialog */  L"Hay una nueva versión disponible.\n¿Ir a la página web?\n\n(Puedes desactivar la comprobación automática de actualizaciones editando "APP_NAME".ini)",
- /* about_title */    L"Acerca de " APP_NAME,
- /* about */          APP_NAME " - " APP_VERSION "\n\
+ /* menu_settings  */ L"Abrir configuración",
+ /* menu_chkupdate */ L"Comprobar actualizaciones",
+ /* menu_update    */ L"¡Actualización disponible!",
+ /* menu_about     */ L"Acerca de",
+ /* menu_exit      */ L"Salir",
+ /* tray_enabled   */ APP_NAME " (activado)",
+ /* tray_disabled  */ APP_NAME " (desactivado)",
+ /* update_balloon */ L"¡Nueva versión disponible!",
+ /* update_dialog  */ L"Hay una nueva versión disponible.\n¿Ir a la página web?\n\nPuedes desactivar la comprobación automática de actualizaciones en la configuración.",
+ /* update_nonew   */ L"No hay actualizaciones disponibles.",
+ /* about_title    */ L"Acerca de " APP_NAME,
+ /* about          */ APP_NAME " - " APP_VERSION "\n\
 Por Stefan Sundin\n\
 Traducido por Fabrizio Ferri (algernon@gmail.com)\n\
 \n\
@@ -38,5 +36,5 @@ Hacer doble-clic en una ventana la maximizará.\n\
 Ventanas a pantalla completa, como los juegos, no pueden moverse o redimensionarse.\n\
 \n\
 Visita la página web en "APP_URL"\n\
-Envía comentarios a recover89@gmail.com"
+Visita la página web del autor en http://stefansundin.com/"
 };
