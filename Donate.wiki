@@ -1,10 +1,15 @@
 #summary If this program is useful for you, please consider donating money.
 #labels Featured
 
+
 = Introduction =
 
 My name is Stefan Sundin. I am a student in Sweden, programming my tools in my free time. My programs will always remain free and open source, even if I receive no donations.
-While you don't have to donate, donations are a great motivation for me to keep updating my programs. They are perfect to get my attention if you want me to add some special feature. :) But you should probably [mailto:recover89@gmail.com send me an email] first and ask if I can do it at all.
+
+Donations are a great motivation for me to keep updating my programs. They are perfect to get my attention if you want me to add some special feature, but you should probably [mailto:recover89@gmail.com send me an email] first and ask if I can do it at all.
+
+You can get in touch with me by sending an email to [mailto:recover89@gmail.com recover89@gmail.com]. You can also [http://stefansundin.com/ visit my website] to read a little more about me.
+
 
 = Who have contributed =
 
@@ -16,34 +21,23 @@ While I have done most of the work, here are some people who have contributed.
 
 Also thanks to everyone who have reported bugs.
 
+
 = How to donate =
 
-The easiest way to donate is by [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom sending money with PayPal to recover89@gmail.com]. You can donate with PayPal without a PayPal account, using only your credit card. Note that PayPal will take a small processing fee.
+The easiest way to donate is by sending money with PayPal to recover89@gmail.com. You can donate with PayPal without a PayPal account, using only your credit card. Note that PayPal will take a small processing fee.
 
 [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=recover89%40gmail%2ecom http://altdrag.googlecode.com/svn/wiki/donate.png]
 
-If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details. If you want to have your name appear in the list below, please let me know. You will remain anonymous unless you explicitly give me permission to post your name.
+If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com email me] to get banking details.
+
 
 = Donate with Flattr =
 
-[http://flattr.com/ Flattr] is a new service that allows you to easily donate a very small amount. Visit the site and [http://www.youtube.com/watch?v=9zrMlEEWBgY watch the video] if you want to learn more. If you already have Flattr, then you can flattr me by clicking this button:
+[http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. Visit the site and [http://www.youtube.com/watch?v=9zrMlEEWBgY watch the video] if you want to learn more. If you already have Flattr, then you can flattr me by clicking this button:
 
 <wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="66" height="76" up_uid="458" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
 
-= Donations received =
 
-Donations received so far: $295 USD.
+= Thank You! =
 
-List of donors:
-  * Corvallis Technical
-  * 김장환 Jang-hwan Kim
-  * Translation agency [http://www.1translate.com/ 1translate.com]
-  * Anonymous donors
-
-Note: This includes donations I've received towards all my tools: [http://code.google.com/p/superf4/ SuperF4], [http://code.google.com/p/killkeys/ KillKeys], [http://code.google.com/p/traycd/ TrayCD], [http://code.google.com/p/shutdownguard ShutdownGuard] and [http://code.google.com/p/altdrag AltDrag].
-
-= What I have used the money for =
-
-This is what I have used the money for:
-  * *2009-03-22*: Donated $20 to [http://www.charitywater.org/ charity:water]. I highly recommend you to check it out!
-  * *2010-03-21*: Donated $10 to [http://mingw-w64.sourceforge.net/ mingw-w64]. This is the compiler I use and I really appreciate the work done by its developers.
+I want to thank those of you who have donated. While it isn't much money by any means, it is a way for you to give something back to me. *Thank You!*
