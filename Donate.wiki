@@ -14,10 +14,10 @@ You can get in touch with me by sending an email to [mailto:recover89@gmail.com 
 = Who have contributed =
 
 While I have done most of the work, here are some people who have contributed.
-  * [mailto:algernon@gmail.com Fabrizio Ferri]: Spanish translation
-  * [mailto:janghwan@gmail.com 김장환 Jang-hwan Kim]: Korean translation
-  * [mailto:xandy.lua@gmail.com Alexander De Sousa]: Galician translation
-  * [mailto:mrgluek@gmail.com Gluek]: Russian translation
+  * Fabrizio Ferri: Spanish translation
+  * Alexander De Sousa: Galician translation
+  * 김장환 Jang-hwan Kim: Korean translation
+  * Gluek: Russian translation
 
 Also thanks to everyone who have reported bugs.
 
@@ -35,7 +35,7 @@ If you prefer, you can transfer money to me by bank, [mailto:recover89@gmail.com
 
 [http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. Visit the site and [http://www.youtube.com/watch?v=9zrMlEEWBgY watch the video] if you want to learn more. If you already have Flattr, then you can flattr me by clicking this button:
 
-<wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="66" height="76" up_uid="458" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
+<wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="55" height="62" up_uid="recover" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
 
 
 = Thank You! =
