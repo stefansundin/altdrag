@@ -173,11 +173,10 @@ Section "$(L10N_UPDATE_SECTION)" sec_update
 	FileRead $0 $1
 	FileClose $0
 	Delete /REBOOTOK "$TEMP\${APP_NAME}-updatecheck"
-	${If} $1 > ${APP_VERSION}
+	StrCmp $1 ${APP_VERSION} done
 		MessageBox MB_ICONINFORMATION|MB_YESNO "$(L10N_UPDATE_DIALOG)" /SD IDNO IDNO done
 			ExecShell "open" "${APP_URL}"
 			Quit
-	${EndIf}
 	done:
 SectionEnd
 
