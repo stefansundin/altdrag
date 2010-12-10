@@ -3,8 +3,11 @@
 
 = FAQ =
 
-*Q: AltDrag does not work in VirtualBox when using Linux as a host OS. Why?*
-  * A: AltDrag does not work since your window manager is intercepting the alt keypress so you can move the VirtualBox window. You can reassign the hotkey for AltDrag as a workaround. For more information, read issue 23.
+*AltDrag does not work in VirtualBox when using Linux as a host OS. Why?*
+  * AltDrag does not work since your window manager is intercepting the alt keypress so you can move the VirtualBox window. You can reassign the hotkey for AltDrag as a workaround. For more information, read issue 23.
+
+*I can't drag or resize window X. Why?*
+  * Some programs implement their own window handlers which may interfere with AltDrag. Some example programs are Steam, Winamp and PuTTY. For these specific cases, the problem lies with the program you are trying to drag. They did not expect that another program might want to move it and thus they didn't code for that scenario. If you encounter a program that is having troubles, I suggest that you send a bug report to its developers. If you still think the problem lies with AltDrag, please file a bug report.
 
 
 = This doesn't answer my question! =
