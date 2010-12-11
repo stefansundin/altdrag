@@ -52,6 +52,7 @@ POINT offset, resize_offset;
 enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
 int blockshift = 0;
 int blockaltup = 0;
+int updatecount = 0;
 
 //Sticky
 RECT *monitors = NULL;
@@ -62,19 +63,24 @@ HWND progman = NULL;
 
 //Settings
 struct {
-	int Cursor;
 	int AutoStick;
 	int Autofocus;
+	struct {
+		int Cursor;
+		int UpdateRate;
+	} Performance;
 	struct {
 		unsigned char *keys;
 		int length;
 	} Keys;
-	int LMB;
-	int MMB;
-	int RMB;
-	int MB4;
-	int MB5;
-} sharedsettings shareattr = {0,0,0,{NULL,0},0,0,0,0,0};
+	struct {
+		int LMB;
+		int MMB;
+		int RMB;
+		int MB4;
+		int MB5;
+	} Mouse;
+} sharedsettings shareattr = {0,0,{0,1},{NULL,0},{0,0,0,0,0}};
 int sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
 
@@ -143,11 +149,11 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 
 //Check if action is bound to the button
 int IsButton(int button, int action) {
-	if ((button == BUTTON_LMB && sharedsettings.LMB == action)
-	 || (button == BUTTON_MMB && sharedsettings.MMB == action)
-	 || (button == BUTTON_RMB && sharedsettings.RMB == action)
-	 || (button == BUTTON_MB4 && sharedsettings.MB4 == action)
-	 || (button == BUTTON_MB5 && sharedsettings.MB5 == action)) {
+	if ((button == BUTTON_LMB && sharedsettings.Mouse.LMB == action)
+	 || (button == BUTTON_MMB && sharedsettings.Mouse.MMB == action)
+	 || (button == BUTTON_RMB && sharedsettings.Mouse.RMB == action)
+	 || (button == BUTTON_MB4 && sharedsettings.Mouse.MB4 == action)
+	 || (button == BUTTON_MB5 && sharedsettings.Mouse.MB5 == action)) {
 		return 1;
 	}
 	return 0;
@@ -497,6 +503,13 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 
 #else
 
+BOOL IncUpdateRate() {
+	if (sharedsettings.Performance.UpdateRate) {
+		updatecount = (updatecount+1)%sharedsettings.Performance.UpdateRate;
+	}
+	return (sharedsettings.Performance.UpdateRate && updatecount==0)?TRUE:FALSE;
+}
+
 void MoveWnd() {
 	//Check if window still exists
 	if (!IsWindow(hwnd)) {
@@ -530,7 +543,8 @@ void MoveWnd() {
 	}
 	
 	//Move
-	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+	BOOL repaint = IncUpdateRate();
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,repaint) == 0) {
 		Error(L"MoveWindow()", L"MoveWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 }
@@ -599,7 +613,8 @@ void ResizeWnd() {
 	}
 	
 	//Resize
-	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,TRUE) == 0) {
+	BOOL repaint = IncUpdateRate();
+	if (MoveWindow(hwnd,posx,posy,wndwidth,wndheight,repaint) == 0) {
 		Error(L"MoveWindow()", L"ResizeWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 }
@@ -747,7 +762,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			POINT pt = msg->pt;
 			
 			//Make sure cursorwnd isn't in the way
-			if (sharedsettings.Cursor) {
+			if (sharedsettings.Performance.Cursor) {
 				ShowWindow(cursorwnd, SW_HIDE);
 			}
 			
@@ -807,7 +822,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 					SetWindowPlacement(hwnd, &wndpl);
 					//Hide cursorwnd
-					if (sharedsettings.Cursor) {
+					if (sharedsettings.Performance.Cursor) {
 						ShowWindow(cursorwnd, SW_HIDE);
 						SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 						//Maybe show IDC_SIZEALL cursor here really quick somehow?
@@ -849,7 +864,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					offset.y = pt.y-wnd.top;
 				}
 				//Show cursorwnd
-				if (sharedsettings.Cursor) {
+				if (sharedsettings.Performance.Cursor) {
 					SetClassLongPtr(cursorwnd, GCLP_HCURSOR, (LONG_PTR)cursor[HAND]);
 					if (!resize) {
 						MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, FALSE);
@@ -893,7 +908,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						Error(L"MoveWindow()", L"Roll-up", GetLastError(), TEXT(__FILE__), __LINE__);
 					}
 					//Hide cursorwnd
-					if (sharedsettings.Cursor) {
+					if (sharedsettings.Performance.Cursor) {
 						ShowWindow(cursorwnd, SW_HIDE);
 						SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 					}
@@ -964,7 +979,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 				}
 				//Show cursorwnd
-				if (sharedsettings.Cursor) {
+				if (sharedsettings.Performance.Cursor) {
 					//Determine shape of cursor
 					if ((resize_y == TOP && resize_x == LEFT)
 					 || (resize_y == BOTTOM && resize_x == RIGHT)) {
@@ -1051,7 +1066,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					UnhookMouse();
 				}
 				//Hide cursorwnd
-				if (sharedsettings.Cursor) {
+				if (sharedsettings.Performance.Cursor) {
 					if (resize) {
 						SetClassLongPtr(cursorwnd, GCLP_HCURSOR, (LONG_PTR)cursor[resizecursor]);
 					}
@@ -1069,7 +1084,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					UnhookMouse();
 				}
 				//Hide cursorwnd
-				if (sharedsettings.Cursor && !move) {
+				if (sharedsettings.Performance.Cursor && !move) {
 					ShowWindow(cursorwnd, SW_HIDE);
 					SetWindowLongPtr(cursorwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 				}
@@ -1086,7 +1101,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			clicktime = 0; //This prevents me from double-clicking when running Windows virtualized.
 			if (move || resize) {
 				//Move cursorwnd
-				if (sharedsettings.Cursor) {
+				if (sharedsettings.Performance.Cursor) {
 					POINT pt = msg->pt;
 					MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
 					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
@@ -1299,10 +1314,15 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
 			PathRemoveFileSpec(inipath);
 			wcscat(inipath, L"\\"APP_NAME".ini");
-			//Cursor
+			//[AltDrag]
+			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.AutoStick);
+			GetPrivateProfileString(APP_NAME, L"Autofocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Autofocus);
+			//[Performance]
 			GetPrivateProfileString(L"Performance", L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Cursor);
-			if (sharedsettings.Cursor) {
+			swscanf(txt, L"%d", &sharedsettings.Performance.Cursor);
+			if (sharedsettings.Performance.Cursor) {
 				cursorwnd = FindWindow(APP_NAME, NULL);
 				#ifndef _WIN64
 				cursor[HAND]     = LoadImage(NULL, IDC_HAND,     IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
@@ -1313,12 +1333,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				cursor[SIZEALL]  = LoadImage(NULL, IDC_SIZEALL,  IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				#endif
 			}
-			//AutoStick
-			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.AutoStick);
-			//AutoStick
-			GetPrivateProfileString(APP_NAME, L"Autofocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Autofocus);
+			GetPrivateProfileString(L"Performance", L"UpdateRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Performance.UpdateRate);
 			//Keys
 			int keys_alloc = 0;
 			unsigned char temp;
@@ -1336,17 +1352,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				sharedsettings.Keys.keys[sharedsettings.Keys.length++] = temp;
 				pos += numread;
 			}
-			//Mouse actions
+			//[Mouse]
 			struct {
 				wchar_t *key;
 				wchar_t *def;
 				int *ptr;
 			} buttons[] = {
-				{L"LMB", L"Move",    &sharedsettings.LMB},
-				{L"MMB", L"Resize",  &sharedsettings.MMB},
-				{L"RMB", L"Resize",  &sharedsettings.RMB},
-				{L"MB4", L"Nothing", &sharedsettings.MB4},
-				{L"MB5", L"Nothing", &sharedsettings.MB5},
+				{L"LMB", L"Move",    &sharedsettings.Mouse.LMB},
+				{L"MMB", L"Resize",  &sharedsettings.Mouse.MMB},
+				{L"RMB", L"Resize",  &sharedsettings.Mouse.RMB},
+				{L"MB4", L"Nothing", &sharedsettings.Mouse.MB4},
+				{L"MB5", L"Nothing", &sharedsettings.Mouse.MB5},
 				{NULL},
 			};
 			int i;
