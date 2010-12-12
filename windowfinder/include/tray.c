@@ -86,7 +86,7 @@ void ShowContextMenu(HWND hwnd) {
 	
 	//Exit
 	InsertMenu(menu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
-
+	
 	//Track menu
 	SetForegroundWindow(hwnd);
 	TrackPopupMenu(menu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL);

@@ -1160,6 +1160,26 @@ int UnhookMouse() {
 	return 0;
 }
 
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_TIMER) {
+		KillTimer(g_hwnd, UNLOCK_TIMER);
+		state.locked = 0;
+		
+		if (sharedstate.move) {
+			//Restore window
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			wndpl.showCmd = SW_RESTORE;
+			SetWindowPlacement(state.hwnd, &wndpl);
+			
+			//Move
+			MouseMove();
+		}
+	}
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
 #endif
 
 //Msghook
@@ -1300,29 +1320,12 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
+//I have removed this for the time being in order to see if sending dummy messages to all processes resolves the issue in a cleaner way
+/*
 __declspec(dllexport) void ClearSettings() {
 	sharedsettings_loaded = 0;
 }
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (msg == WM_TIMER) {
-		KillTimer(g_hwnd, UNLOCK_TIMER);
-		state.locked = 0;
-		
-		if (sharedstate.move) {
-			//Restore window
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(state.hwnd, &wndpl);
-			wndpl.showCmd = SW_RESTORE;
-			SetWindowPlacement(state.hwnd, &wndpl);
-			
-			//Move
-			MouseMove();
-		}
-	}
-	return DefWindowProc(hwnd, msg, wParam, lParam);
-}
+*/
 
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
@@ -1402,10 +1405,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			for (i=0; i < NUMROLLUP; i++) {
 				rollup[i].hwnd = NULL;
 			}
+			#ifndef _WIN64
 			//Create window for timers
 			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME, NULL};
 			RegisterClassEx(&wnd);
 			g_hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInst, NULL);
+			#endif
 		}
 		//[Blacklist]
 		int blacklist_alloc = 0;
