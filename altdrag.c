@@ -93,19 +93,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 	
 	//Create window
-	WNDCLASSEX wnd;
-	wnd.cbSize = sizeof(WNDCLASSEX);
-	wnd.style = 0;
-	wnd.lpfnWndProc = WindowProc;
-	wnd.cbClsExtra = 0;
-	wnd.cbWndExtra = 0;
-	wnd.hInstance = hInst;
-	wnd.hIcon = NULL;
-	wnd.hIconSm = NULL;
-	wnd.hCursor = LoadImage(NULL,IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	wnd.lpszMenuName = NULL;
-	wnd.lpszClassName = APP_NAME;
+	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME, NULL};
 	RegisterClassEx(&wnd);
 	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
 	
@@ -123,6 +111,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 			break;
 		}
 	}
+	SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 	IsWow64Process(GetCurrentProcess(), &x64);
 	
 	//Tray icon
@@ -184,7 +173,7 @@ int HookSystem() {
 		//Set up the keyboard hook
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
-			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -199,7 +188,7 @@ int HookSystem() {
 		//Set up the message hook
 		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
-			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook windows. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		
@@ -218,6 +207,12 @@ int HookSystem() {
 	return 0;
 }
 
+//Force processes to unhook hooks.dll by sending them a dummy message
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+	PostMessage(hwnd, WM_NULL, 0, 0);
+	return TRUE;
+}
+
 int UnhookSystem() {
 	if (!keyhook && !msghook) {
 		//System not hooked
@@ -227,7 +222,7 @@ int UnhookSystem() {
 	if (keyhook) {
 		//Remove keyboard hook
 		if (UnhookWindowsHookEx(keyhook) == 0) {
-			Error(L"UnhookWindowsHookEx(keyhook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		keyhook = NULL;
@@ -236,7 +231,7 @@ int UnhookSystem() {
 	if (msghook) {
 		//Remove message hook
 		if (UnhookWindowsHookEx(msghook) == 0) {
-			Error(L"UnhookWindowsHookEx(msghook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		msghook = NULL;
@@ -248,16 +243,22 @@ int UnhookSystem() {
 				PostMessage(window, WM_CLOSE, 0, 0);
 			}
 		}
+		
+		//Send dummy messages to all processes to make them unhook hooks.dll
+		EnumWindows(EnumWindowsProc, 0);
 	}
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
+	//I have removed this for the time being in order to see if sending dummy messages to all processes resolves the issue in a cleaner way
+	/*
 	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
+	*/
 	
 	if (hinstDLL) {
 		//Unload library
 		if (FreeLibrary(hinstDLL) == 0) {
-			Error(L"FreeLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		hinstDLL = NULL;

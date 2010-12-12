@@ -22,6 +22,8 @@
 
 //Boring stuff
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
+HINSTANCE g_hinst = NULL;
+HWND g_hwnd = NULL;
 
 //Cool stuff
 HINSTANCE hinstDLL = NULL;
@@ -33,6 +35,8 @@ HHOOK msghook = NULL;
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+	g_hinst = hInst;
+	
 	//Warn user
 	if (!strcmp(szCmdLine,"")) {
 		MessageBox(NULL, L"HookWindows_x64.exe is launched internally by "APP_NAME" if you have enabled HookWindows. There is no need to launch it manually.\n\nIf you still want to do this, launch HookWindows_x64.exe with an argument (it can be anything) to bypass this dialog.\n\nKeep in mind that HookWindows_x64.exe will automatically exit if it can't find "APP_NAME" running.", L"HookWindows_x64.exe", MB_ICONINFORMATION|MB_OK);
@@ -46,24 +50,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 	
 	//Create window
-	WNDCLASSEX wnd;
-	wnd.cbSize = sizeof(WNDCLASSEX);
-	wnd.style = 0;
-	wnd.lpfnWndProc = WindowProc;
-	wnd.cbClsExtra = 0;
-	wnd.cbWndExtra = 0;
-	wnd.hInstance = hInst;
-	wnd.hIcon = NULL;
-	wnd.hIconSm = NULL;
-	wnd.hCursor = LoadImage(NULL, IDC_HAND, IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
-	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	wnd.lpszMenuName = NULL;
-	wnd.lpszClassName = APP_NAME"-x64";
+	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME"-x64", NULL};
 	RegisterClassEx(&wnd);
-	HWND hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME"-x64", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInst, NULL);
+	g_hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME"-x64", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInst, NULL);
 	
 	//Start a timer that checks if AltDrag is still running every 10 seconds
-	SetTimer(hwnd, 0, 10000, NULL);
+	SetTimer(g_hwnd, 0, 10000, NULL);
 	
 	//Hook system
 	HookSystem();
@@ -96,7 +88,7 @@ int HookSystem() {
 		wcscat(path, L"\\hooks_x64.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -106,13 +98,13 @@ int HookSystem() {
 		//Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
-			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -121,13 +113,13 @@ int HookSystem() {
 	if (!msghook) {
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the message hook
 		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
-			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook windows. Another program might be interfering.",GetLastError(),TEXT(__FILE__),__LINE__);
 			return 1;
 		}
 	}
@@ -144,26 +136,29 @@ int UnhookSystem() {
 	
 	//Remove keyboard hook
 	if (UnhookWindowsHookEx(keyhook) == 0) {
-		Error(L"UnhookWindowsHookEx(keyhook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	keyhook = NULL;
 	
 	//Remove message hook
 	if (UnhookWindowsHookEx(msghook) == 0) {
-		Error(L"UnhookWindowsHookEx(msghook)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.",GetLastError(),TEXT(__FILE__),__LINE__);
+		Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".",GetLastError(),TEXT(__FILE__),__LINE__);
 		return 1;
 	}
 	msghook = NULL;
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
+	//I have removed this for the time being in order to see if sending dummy messages to all processes resolves the issue in a cleaner way
+	/*
 	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
+	*/
 	
 	if (hinstDLL) {
 		//Unload library
 		if (FreeLibrary(hinstDLL) == 0) {
-			Error(L"FreeLibrary()", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"FreeLibrary()", L"Could not free hooks_x64.dll. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		hinstDLL = NULL;
