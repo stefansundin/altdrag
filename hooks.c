@@ -20,26 +20,19 @@
 
 //App
 #define APP_NAME L"AltDrag"
-#define STICKY_THRESHOLD   20
-#define ACTION_NOTHING     0
-#define ACTION_MOVE        1
-#define ACTION_RESIZE      2
-#define ACTION_MINIMIZE    3
-#define ACTION_CENTER      4
-#define ACTION_ALWAYSONTOP 5
-#define ACTION_CLOSE       6
-#define STATE_NONE         0
-#define STATE_DOWN         1
-#define STATE_UP           2
-#define BUTTON_NONE        0
-#define BUTTON_LMB         1
-#define BUTTON_MMB         2
-#define BUTTON_RMB         3
-#define BUTTON_MB4         4
-#define BUTTON_MB5         5
+#define STICKY_THRESHOLD 20
+
+//Timers
+HWND g_hwnd;
+#define UNLOCK_TIMER WM_APP+1
 
 //Some variables must be shared so that CallWndProc hooks can access them
 #define shareattr __attribute__((section ("shared"), shared))
+
+//Enumerators
+enum action {ACTION_NOTHING, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE};
+enum button {BUTTON_NONE, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
+enum resize {RESIZE_NONE, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
 
 //State
 struct {
@@ -47,11 +40,16 @@ struct {
 	int alt;
 	unsigned int clicktime;
 	POINT offset, resize_offset;
-	enum {TOP, RIGHT, BOTTOM, LEFT, CENTER} resize_x, resize_y;
+	enum resize resize_x, resize_y;
 	int blockshift;
 	int blockaltup;
 	int updatecount;
-} state = {NULL, 0, 0, {0,0}, {0,0}, 0, 0, 0, 0, 0};
+	int locked;
+	struct {
+		HMONITOR/*int*/ monitor;
+		int maximized;
+	} origin;
+} state = {NULL, 0, 0, {0,0}, {0,0}, RESIZE_NONE, RESIZE_NONE, 0, 0, 0, 0, {NULL,0}};
 
 struct {
 	int shift;
@@ -79,11 +77,7 @@ struct {
 		int length;
 	} Hotkeys;
 	struct {
-		int LMB;
-		int MMB;
-		int RMB;
-		int MB4;
-		int MB5;
+		enum action LMB, MMB, RMB, MB4, MB5;
 	} Mouse;
 } sharedsettings shareattr = {0, 0, {0,1}, {NULL,0}, {0,0,0,0,0}};
 int sharedsettings_loaded shareattr = 0;
@@ -103,7 +97,7 @@ struct {
 	struct blacklist Blacklist;
 	struct blacklist Blacklist_Sticky;
 	struct blacklist Whitelist_Sticky;
-} settings = {{NULL,0},{NULL,0},{NULL,0}};
+} settings = {{NULL,0}, {NULL,0}, {NULL,0}};
 
 //Cursor data
 HWND cursorwnd shareattr = NULL;
@@ -328,20 +322,20 @@ void MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
 		//Check if posx sticks
 		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
 		 || (*posy-thresholdx < stickywnd.top && stickywnd.top < *posy+wndheight+thresholdx)) {
-			int stickinsidecond = (stickinside || *posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
+			int stickinside_cond = (stickinside || *posy+wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
 			if (*posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
 				//The left edge of the dragged window will stick to this window's right edge
 				stuckx = 1;
 				stickx = stickywnd.right;
 				thresholdx = stickywnd.right-*posx;
 			}
-			else if (stickinsidecond && *posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+wndwidth+thresholdx) {
+			else if (stickinside_cond && *posx+wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+wndwidth+thresholdx) {
 				//The right edge of the dragged window will stick to this window's right edge
 				stuckx = 1;
 				stickx = stickywnd.right-wndwidth;
 				thresholdx = stickywnd.right-(*posx+wndwidth);
 			}
-			else if (stickinsidecond && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
+			else if (stickinside_cond && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
 				//The left edge of the dragged window will stick to this window's left edge
 				stuckx = 1;
 				stickx = stickywnd.left;
@@ -358,20 +352,20 @@ void MoveStick(int *posx, int *posy, int wndwidth, int wndheight) {
 		//Check if posy sticks
 		if ((stickywnd.left-thresholdy < *posx && *posx < stickywnd.right+thresholdy)
 		 || (*posx-thresholdy < stickywnd.left && stickywnd.left < *posx+wndwidth+thresholdy)) {
-			int stickinsidecond = (stickinside || *posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
+			int stickinside_cond = (stickinside || *posx+wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
 			if (*posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
 				//The top edge of the dragged window will stick to this window's bottom edge
 				stucky = 1;
 				sticky = stickywnd.bottom;
 				thresholdy = stickywnd.bottom-*posy;
 			}
-			else if (stickinsidecond && *posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+wndheight+thresholdy) {
+			else if (stickinside_cond && *posy+wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+wndheight+thresholdy) {
 				//The bottom edge of the dragged window will stick to this window's bottom edge
 				stucky = 1;
 				sticky = stickywnd.bottom-wndheight;
 				thresholdy = stickywnd.bottom-(*posy+wndheight);
 			}
-			else if (stickinsidecond && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
+			else if (stickinside_cond && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
 				//The top edge of the dragged window will stick to this window's top edge
 				stucky = 1;
 				sticky = stickywnd.top;
@@ -422,26 +416,26 @@ void ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 		//Check if posx sticks
 		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
 		 || (*posy-thresholdx < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdx)) {
-			int stickinsidecond = (stickinside || *posy+*wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
-			if (state.resize_x == LEFT && *posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
+			int stickinside_cond = (stickinside || *posy+*wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
+			if (state.resize_x == RESIZE_LEFT && *posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
 				//The left edge of the dragged window will stick to this window's right edge
 				stuckleft = 1;
 				stickleft = stickywnd.right;
 				thresholdx = stickywnd.right-*posx;
 			}
-			else if (stickinsidecond && state.resize_x == RIGHT && *posx+*wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+*wndwidth+thresholdx) {
+			else if (stickinside_cond && state.resize_x == RESIZE_RIGHT && *posx+*wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+*wndwidth+thresholdx) {
 				//The right edge of the dragged window will stick to this window's right edge
 				stuckright = 1;
 				stickright = stickywnd.right;
 				thresholdx = stickywnd.right-(*posx+*wndwidth);
 			}
-			else if (stickinsidecond && state.resize_x == LEFT && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
+			else if (stickinside_cond && state.resize_x == RESIZE_LEFT && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
 				//The left edge of the dragged window will stick to this window's left edge
 				stuckleft = 1;
 				stickleft = stickywnd.left;
 				thresholdx = stickywnd.left-*posx;
 			}
-			else if (state.resize_x == RIGHT && *posx+*wndwidth-thresholdx < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdx) {
+			else if (state.resize_x == RESIZE_RIGHT && *posx+*wndwidth-thresholdx < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdx) {
 				//The right edge of the dragged window will stick to this window's left edge
 				stuckright = 1;
 				stickright = stickywnd.left;
@@ -452,26 +446,26 @@ void ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 		//Check if posy sticks
 		if ((stickywnd.left-thresholdy < *posx && *posx < stickywnd.right+thresholdy)
 		 || (*posx-thresholdy < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdy)) {
-			int stickinsidecond = (stickinside || *posx+*wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
-			if (state.resize_y == TOP && *posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
+			int stickinside_cond = (stickinside || *posx+*wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
+			if (state.resize_y == RESIZE_TOP && *posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
 				//The top edge of the dragged window will stick to this window's bottom edge
 				stucktop = 1;
 				sticktop = stickywnd.bottom;
 				thresholdy = stickywnd.bottom-*posy;
 			}
-			else if (stickinsidecond && state.resize_y == BOTTOM && *posy+*wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+*wndheight+thresholdy) {
+			else if (stickinside_cond && state.resize_y == RESIZE_BOTTOM && *posy+*wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+*wndheight+thresholdy) {
 				//The bottom edge of the dragged window will stick to this window's bottom edge
 				stuckbottom = 1;
 				stickbottom = stickywnd.bottom;
 				thresholdy = stickywnd.bottom-(*posy+*wndheight);
 			}
-			else if (stickinsidecond && state.resize_y == TOP && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
+			else if (stickinside_cond && state.resize_y == RESIZE_TOP && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
 				//The top edge of the dragged window will stick to this window's top edge
 				stucktop = 1;
 				sticktop = stickywnd.top;
 				thresholdy = stickywnd.top-*posy;
 			}
-			else if (state.resize_y == BOTTOM && *posy+*wndheight-thresholdy < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdy) {
+			else if (state.resize_y == RESIZE_BOTTOM && *posy+*wndheight-thresholdy < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdy) {
 				//The bottom edge of the dragged window will stick to this window's top edge
 				stuckbottom = 1;
 				stickbottom = stickywnd.top;
@@ -528,7 +522,7 @@ BOOL IncUpdateRate() {
 
 void MouseMove() {
 	//Make sure we got something to do
-	if (!sharedstate.move && !sharedstate.resize) {
+	if (state.locked || (!sharedstate.move && !sharedstate.resize)) {
 		return;
 	}
 	
@@ -556,6 +550,26 @@ void MouseMove() {
 	GetCursorPos(&pt);
 	int posx, posy, wndwidth, wndheight;
 	if (sharedstate.move) {
+		//Maximize window again if moved from another monitor
+		if (state.origin.maximized && !state.locked) {
+			HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+			//int monitor = (pt.x > 1920/2)?1:0;
+			if (monitor != state.origin.monitor) {
+				//Maximize window
+				WINDOWPLACEMENT wndpl;
+				wndpl.length = sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(state.hwnd, &wndpl);
+				wndpl.showCmd = SW_MAXIMIZE;
+				SetWindowPlacement(state.hwnd, &wndpl);
+				//Set this monitor as the origin
+				state.origin.monitor = monitor;
+				//Lock the current state, but restore window after a timeout
+				state.locked = 1;
+				SetTimer(g_hwnd, UNLOCK_TIMER, 1000, NULL);
+				return;
+			}
+		}
+		
 		posx = pt.x-state.offset.x;
 		posy = pt.y-state.offset.y;
 		wndwidth = wnd.right-wnd.left;
@@ -567,7 +581,7 @@ void MouseMove() {
 		}
 	}
 	else if (sharedstate.resize) {
-		if (state.resize_x == CENTER && state.resize_y == CENTER) {
+		if (state.resize_x == RESIZE_CENTER && state.resize_y == RESIZE_CENTER) {
 			posx = wnd.left-(pt.x-state.resize_offset.x);
 			posy = wnd.top-(pt.y-state.resize_offset.y);
 			wndwidth = wnd.right-wnd.left+2*(pt.x-state.resize_offset.x);
@@ -576,34 +590,34 @@ void MouseMove() {
 			state.resize_offset.y = pt.y;
 		}
 		else {
-			if (state.resize_y == TOP) {
+			if (state.resize_y == RESIZE_TOP) {
 				posy = pt.y-state.resize_offset.y;
 				wndheight = wnd.bottom-pt.y+state.resize_offset.y;
 			}
-			else if (state.resize_y == CENTER) {
+			else if (state.resize_y == RESIZE_CENTER) {
 				posy = wnd.top;
 				wndheight = wnd.bottom-wnd.top;
 			}
-			else if (state.resize_y == BOTTOM) {
+			else if (state.resize_y == RESIZE_BOTTOM) {
 				posy = wnd.top;
 				wndheight = pt.y-wnd.top+state.resize_offset.y;
 			}
-			if (state.resize_x == LEFT) {
+			if (state.resize_x == RESIZE_LEFT) {
 				posx = pt.x-state.resize_offset.x;
 				wndwidth = wnd.right-pt.x+state.resize_offset.x;
 			}
-			else if (state.resize_x == CENTER) {
+			else if (state.resize_x == RESIZE_CENTER) {
 				posx = wnd.left;
 				wndwidth = wnd.right-wnd.left;
 			}
-			else if (state.resize_x == RIGHT) {
+			else if (state.resize_x == RESIZE_RIGHT) {
 				posx = wnd.left;
 				wndwidth = pt.x-wnd.left+state.resize_offset.x;
 			}
 		}
 		
 		//Check if the window will stick anywhere
-		if ((sharedstate.shift || sharedsettings.AutoStick) && (state.resize_x != CENTER || state.resize_y != CENTER)) {
+		if ((sharedstate.shift || sharedsettings.AutoStick) && (state.resize_x != RESIZE_CENTER || state.resize_y != RESIZE_CENTER)) {
 			ResizeStick(&posx, &posy, &wndwidth, &wndheight);
 		}
 	}
@@ -726,7 +740,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			(wParam==WM_RBUTTONDOWN||wParam==WM_RBUTTONUP)?BUTTON_RMB:
 			(HIWORD(msg->mouseData)==XBUTTON1)?BUTTON_MB4:
 			(HIWORD(msg->mouseData)==XBUTTON2)?BUTTON_MB5:BUTTON_NONE;
-		int buttonstate =
+		enum {STATE_NONE, STATE_DOWN, STATE_UP} buttonstate =
 			(wParam==WM_LBUTTONDOWN||wParam==WM_MBUTTONDOWN||wParam==WM_RBUTTONDOWN||wParam==WM_XBUTTONDOWN)?STATE_DOWN:
 			(wParam==WM_LBUTTONUP||wParam==WM_MBUTTONUP||wParam==WM_RBUTTONUP||wParam==WM_XBUTTONUP)?STATE_UP:STATE_NONE;
 		
@@ -823,9 +837,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				sharedstate.move = 1;
 				state.blockshift = 1;
 				state.blockaltup = 1;
+				state.locked = 0;
+				state.origin.maximized = 0;
 				
 				//Restore the window if it's maximized
 				if (IsZoomed(state.hwnd)) {
+					state.origin.maximized = 1;
+					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
+					//state.origin.monitor = (pt.x > 1920/2)?1:0;
+					
 					//Restore window
 					WINDOWPLACEMENT wndpl;
 					wndpl.length = sizeof(WINDOWPLACEMENT);
@@ -929,61 +949,61 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Set edge and offset
 				if (wnd.bottom-wnd.top < 60) {
 					//This is a very thin window
-					state.resize_y = BOTTOM;
+					state.resize_y = RESIZE_BOTTOM;
 					state.resize_offset.y = wnd.bottom-pt.y;
 					if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
-						state.resize_x = LEFT;
+						state.resize_x = RESIZE_LEFT;
 						state.resize_offset.x = pt.x-wnd.left;
 					}
 					else {
-						state.resize_x = RIGHT;
+						state.resize_x = RESIZE_RIGHT;
 						state.resize_offset.x = wnd.right-pt.x;
 					}
 				}
 				else {
 					//Think of the window as nine boxes
 					if (pt.y-wnd.top < (wnd.bottom-wnd.top)/3) {
-						state.resize_y = TOP;
+						state.resize_y = RESIZE_TOP;
 						state.resize_offset.y = pt.y-wnd.top;
 					}
 					else if (pt.y-wnd.top < (wnd.bottom-wnd.top)*2/3) {
-						state.resize_y = CENTER;
+						state.resize_y = RESIZE_CENTER;
 						state.resize_offset.y = pt.y; //Used only if both x and y are CENTER
 					}
 					else {
-						state.resize_y = BOTTOM;
+						state.resize_y = RESIZE_BOTTOM;
 						state.resize_offset.y = wnd.bottom-pt.y;
 					}
 					if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
-						state.resize_x = LEFT;
+						state.resize_x = RESIZE_LEFT;
 						state.resize_offset.x = pt.x-wnd.left;
 					}
 					else if (pt.x-wnd.left < (wnd.right-wnd.left)*2/3) {
-						state.resize_x = CENTER;
+						state.resize_x = RESIZE_CENTER;
 						state.resize_offset.x = pt.x; //Used only if both x and y are CENTER
 					}
 					else {
-						state.resize_x = RIGHT;
+						state.resize_x = RESIZE_RIGHT;
 						state.resize_offset.x = wnd.right-pt.x;
 					}
 				}
 				//Show cursorwnd
 				if (sharedsettings.Performance.Cursor) {
 					//Determine shape of cursor
-					if ((state.resize_y == TOP && state.resize_x == LEFT)
-					 || (state.resize_y == BOTTOM && state.resize_x == RIGHT)) {
+					if ((state.resize_y == RESIZE_TOP && state.resize_x == RESIZE_LEFT)
+					 || (state.resize_y == RESIZE_BOTTOM && state.resize_x == RESIZE_RIGHT)) {
 						resizecursor = SIZENWSE;
 					}
-					else if ((state.resize_y == TOP && state.resize_x == RIGHT)
-					 || (state.resize_y == BOTTOM && state.resize_x == LEFT)) {
+					else if ((state.resize_y == RESIZE_TOP && state.resize_x == RESIZE_RIGHT)
+					 || (state.resize_y == RESIZE_BOTTOM && state.resize_x == RESIZE_LEFT)) {
 						resizecursor = SIZENESW;
 					}
-					else if ((state.resize_y == TOP && state.resize_x == CENTER)
-					 || (state.resize_y == BOTTOM && state.resize_x == CENTER)) {
+					else if ((state.resize_y == RESIZE_TOP && state.resize_x == RESIZE_CENTER)
+					 || (state.resize_y == RESIZE_BOTTOM && state.resize_x == RESIZE_CENTER)) {
 						resizecursor = SIZENS;
 					}
-					else if ((state.resize_y == CENTER && state.resize_x == LEFT)
-					 || (state.resize_y == CENTER && state.resize_x == RIGHT)) {
+					else if ((state.resize_y == RESIZE_CENTER && state.resize_x == RESIZE_LEFT)
+					 || (state.resize_y == RESIZE_CENTER && state.resize_x == RESIZE_RIGHT)) {
 						resizecursor = SIZEWE;
 					}
 					else {
@@ -1250,23 +1270,23 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				//Set offset
 				//resize_x
 				if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
-					state.resize_x = CENTER;
+					state.resize_x = RESIZE_CENTER;
 				}
 				if (edge == WMSZ_LEFT || edge == WMSZ_TOPLEFT || edge == WMSZ_BOTTOMLEFT) {
-					state.resize_x = LEFT;
+					state.resize_x = RESIZE_LEFT;
 				}
 				else if (edge == WMSZ_RIGHT || edge == WMSZ_TOPRIGHT || edge == WMSZ_BOTTOMRIGHT) {
-					state.resize_x = RIGHT;
+					state.resize_x = RESIZE_RIGHT;
 				}
 				//resize_y
 				if (edge == WMSZ_LEFT || edge == WMSZ_RIGHT) {
-					state.resize_y = CENTER;
+					state.resize_y = RESIZE_CENTER;
 				}
 				if (edge == WMSZ_TOP || edge == WMSZ_TOPLEFT || edge == WMSZ_TOPRIGHT) {
-					state.resize_y = TOP;
+					state.resize_y = RESIZE_TOP;
 				}
 				else if (edge == WMSZ_BOTTOM || edge == WMSZ_BOTTOMLEFT || edge == WMSZ_BOTTOMRIGHT) {
-					state.resize_y = BOTTOM;
+					state.resize_y = RESIZE_BOTTOM;
 				}
 				state.resize_offset.x = 0;
 				state.resize_offset.y = 0;
@@ -1284,9 +1304,29 @@ __declspec(dllexport) void ClearSettings() {
 	sharedsettings_loaded = 0;
 }
 
-BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_TIMER) {
+		KillTimer(g_hwnd, UNLOCK_TIMER);
+		state.locked = 0;
+		
+		if (sharedstate.move) {
+			//Restore window
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			wndpl.showCmd = SW_RESTORE;
+			SetWindowPlacement(state.hwnd, &wndpl);
+			
+			//Move
+			MouseMove();
+		}
+	}
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
-		hinstDLL = hInstance;
+		hinstDLL = hInst;
 		//Load settings
 		wchar_t txt[1000];
 		//Settings shared with CallWndProc hook
@@ -1297,10 +1337,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			PathRemoveFileSpec(inipath);
 			wcscat(inipath, L"\\"APP_NAME".ini");
 			//[AltDrag]
-			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.AutoStick);
 			GetPrivateProfileString(APP_NAME, L"Autofocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Autofocus);
+			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.AutoStick);
 			//[Performance]
 			GetPrivateProfileString(L"Performance", L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Performance.Cursor);
@@ -1317,7 +1357,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			}
 			GetPrivateProfileString(L"Performance", L"UpdateRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Performance.UpdateRate);
-			//Hotkeys
+			//[Keyboard]
 			int keys_alloc = 0;
 			unsigned char temp;
 			int numread;
@@ -1338,14 +1378,14 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			struct {
 				wchar_t *key;
 				wchar_t *def;
-				int *ptr;
+				enum action *ptr;
 			} buttons[] = {
 				{L"LMB", L"Move",    &sharedsettings.Mouse.LMB},
 				{L"MMB", L"Resize",  &sharedsettings.Mouse.MMB},
 				{L"RMB", L"Resize",  &sharedsettings.Mouse.RMB},
 				{L"MB4", L"Nothing", &sharedsettings.Mouse.MB4},
 				{L"MB5", L"Nothing", &sharedsettings.Mouse.MB5},
-				{NULL},
+				{NULL}
 			};
 			int i;
 			for (i=0; buttons[i].key != NULL; i++) {
@@ -1362,12 +1402,16 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 			for (i=0; i < NUMROLLUP; i++) {
 				rollup[i].hwnd = NULL;
 			}
+			//Create window for timers
+			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME, NULL};
+			RegisterClassEx(&wnd);
+			g_hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInst, NULL);
 		}
-		//Blacklists
+		//[Blacklist]
 		int blacklist_alloc = 0;
 		struct blacklist *blacklist = &settings.Blacklist;
 		//Process Blacklist first
-		GetPrivateProfileString(APP_NAME, L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 		wcscpy(blacklist->data, txt);
 		wchar_t *pos = blacklist->data;
@@ -1411,11 +1455,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD reason, LPVOID reserved) {
 				blacklist_alloc = 0;
 				if (blacklist == &settings.Blacklist) {
 					blacklist = &settings.Blacklist_Sticky;
-					GetPrivateProfileString(APP_NAME, L"Blacklist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+					GetPrivateProfileString(L"Blacklist", L"Blacklist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
 				else {
 					blacklist = &settings.Whitelist_Sticky;
-					GetPrivateProfileString(APP_NAME, L"Whitelist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+					GetPrivateProfileString(L"Blacklist", L"Whitelist_Sticky", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
 				blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 				wcscpy(blacklist->data, txt);
