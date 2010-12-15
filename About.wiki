@@ -5,6 +5,8 @@
 
 In addition to simply dragging windows, you can double-click a window to maximize it. You can double-click with the right mouse button to roll-up windows.
 
+If you still have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=22OaiP_HPXY this short video] that one of my users have posted to YouTube.
+
 == Resize ==
 
 You can use either the middle or right mouse button to resize windows. Think of the window as if it is divided into nine squares, and depending on where you press, you will resize the nearest corner.
