@@ -149,11 +149,8 @@ int UnhookSystem() {
 	msghook = NULL;
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
-	//I have removed this for the time being in order to see if sending dummy messages to all processes resolves the issue in a cleaner way
-	/*
 	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
-	*/
 	
 	if (hinstDLL) {
 		//Unload library

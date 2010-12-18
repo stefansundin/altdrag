@@ -19,7 +19,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "0.8"
+#define APP_VERSION         "0.9"
 #define APP_URL             L"http://altdrag.googlecode.com/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
@@ -249,11 +249,8 @@ int UnhookSystem() {
 	}
 	
 	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
-	//I have removed this for the time being in order to see if sending dummy messages to all processes resolves the issue in a cleaner way
-	/*
 	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
-	*/
 	
 	if (hinstDLL) {
 		//Unload library
