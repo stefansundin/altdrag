@@ -7,7 +7,7 @@
 
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "0.8"
+!define APP_VERSION   "0.9"
 !define APP_URL       "http://code.google.com/p/altdrag/"
 !define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 

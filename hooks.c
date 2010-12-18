@@ -1425,12 +1425,10 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-//I have removed this for the time being in order to see if sending dummy messages to all processes resolves the issue in a cleaner way
-/*
+//This is needed sometimes when an msghook thread lingers around for no apparent reason.
 __declspec(dllexport) void ClearSettings() {
 	sharedsettings_loaded = 0;
 }
-*/
 
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {

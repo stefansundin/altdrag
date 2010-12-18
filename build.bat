@@ -12,8 +12,8 @@ taskkill /IM AltDrag.exe
 
 if not exist build. mkdir build
 
-%prefix32%gcc -o build\unhook.exe include\unhook.c
-"build\unhook.exe"
+rem %prefix32%gcc -o build\unhook.exe include\unhook.c
+rem "build\unhook.exe"
 
 %prefix32%windres -o build\altdrag.o include\altdrag.rc
 %prefix32%windres -o build\hooks.o include\hooks.rc
@@ -60,8 +60,8 @@ if "%1" == "all" (
 	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -g -DDEBUG
 	
 	if "%1" == "x64" (
-		%prefix64%gcc -o build\unhook_x64.exe include\unhook.c
-		"build\unhook_x64.exe"
+		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
+		rem "build\unhook_x64.exe"
 		
 		%prefix64%windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
 		%prefix64%windres -o build\hooks_x64.o include\hooks.rc
