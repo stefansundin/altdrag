@@ -45,11 +45,13 @@ struct {
 	int blockaltup;
 	int updatecount;
 	int locked;
+	int aero;
 	struct {
 		HMONITOR/*int*/ monitor;
 		int maximized;
+		RECT placement;
 	} origin;
-} state = {NULL, 0, 0, {0,0}, {0,0}, RESIZE_NONE, RESIZE_NONE, 0, 0, 0, 0, {NULL,0}};
+} state = {NULL, 0, 0, {0,0}, {0,0}, RESIZE_NONE, RESIZE_NONE, 0, 0, 0, 0, 0, {NULL,0,0}};
 
 struct {
 	int shift;
@@ -68,6 +70,7 @@ HWND progman = NULL;
 struct {
 	int AutoStick;
 	int Autofocus;
+	int Aero;
 	struct {
 		int Cursor;
 		int UpdateRate;
@@ -79,7 +82,7 @@ struct {
 	struct {
 		enum action LMB, MMB, RMB, MB4, MB5;
 	} Mouse;
-} sharedsettings shareattr = {0, 0, {0,1}, {NULL,0}, {0,0,0,0,0}};
+} sharedsettings shareattr = {0, 0, 0, {0,1}, {NULL,0}, {0,0,0,0,0}};
 int sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
 
@@ -104,15 +107,15 @@ HWND cursorwnd shareattr = NULL;
 HCURSOR cursor[6] shareattr;
 enum {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL} resizecursor;
 
-//Roll-up data
-#define NUMROLLUP 8
-struct rollupdata {
+//Window database
+#define NUMWNDDB 30
+struct wnddata {
 	HWND hwnd;
 	int width;
 	int height;
 };
-struct rollupdata rollup[NUMROLLUP];
-int rolluppos = 0;
+struct wnddata wnddb[NUMWNDDB];
+int wnddbpos = 0;
 
 //Mousehook data
 HINSTANCE hinstDLL = NULL;
@@ -206,13 +209,6 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION || blacklisted(window,&settings.Whitelist_Sticky))
 	 && GetWindowRect(window,&wnd) != 0
 	) {
-		//Return if the window is in the roll-up database (I want to get used to the roll-ups before deciding if I want this)
-		/*for (i=0; i < NUMROLLUP; i++) {
-			if (rollup[i].hwnd == window) {
-				return TRUE;
-			}
-		}*/
-		
 		//Maximized?
 		if (IsZoomed(window)) {
 			//Get monitor size
@@ -539,18 +535,127 @@ void MouseMove() {
 		sharedstate.shift = 0;
 	}
 	
-	//Get window size
-	RECT wnd;
-	if (GetWindowRect(state.hwnd,&wnd) == 0) {
-		Error(L"GetWindowRect()", L"MouseMove()", GetLastError(), TEXT(__FILE__), __LINE__);
-	}
+	//Get state
+	int maximized = IsZoomed(state.hwnd);
+	WINDOWPLACEMENT wndpl;
+	wndpl.length = sizeof(WINDOWPLACEMENT);
+	GetWindowPlacement(state.hwnd, &wndpl);
+	RECT wnd = wndpl.rcNormalPosition;
 	
 	//Get new position for window
 	POINT pt;
 	GetCursorPos(&pt);
 	int posx, posy, wndwidth, wndheight;
 	if (sharedstate.move) {
+		posx = pt.x-state.offset.x;
+		posy = pt.y-state.offset.y;
+		wndwidth = wnd.right-wnd.left;
+		wndheight = wnd.bottom-wnd.top;
+		
+		if (sharedsettings.Aero) {
+			//Enumerate monitors
+			nummonitors = 0;
+			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+			
+			//Check if window is in wnddb database
+			struct wnddata *wndentry = NULL;
+			int i;
+			for (i=0; i < NUMWNDDB; i++) {
+				if (wnddb[i].hwnd == state.hwnd) {
+					wndentry = &wnddb[i];
+					break;
+				}
+			}
+			
+			//Restore window?
+			if (maximized && (pt.y > 0
+			 || (pt.y == 0 && (pt.x == 0 || pt.x == monitors[0].right-1)))) {
+				//Restore window
+				wndpl.showCmd = SW_RESTORE;
+				SetWindowPlacement(state.hwnd, &wndpl);
+			}
+			
+			//Move window
+			if (pt.x == 0 && pt.y == 0) {
+				//Topleft
+				state.aero = 1;
+				posx = 0;
+				posy = 0;
+				wndwidth = monitors[0].right/2;
+				wndheight = monitors[0].bottom/2;
+			}
+			else if (pt.x == monitors[0].right-1 && pt.y == 0) {
+				//Topright
+				state.aero = 1;
+				posx = monitors[0].right/2;
+				posy = 0;
+				wndwidth = monitors[0].right/2;
+				wndheight = monitors[0].bottom/2;
+			}
+			else if (pt.y == 0) {
+				if (!maximized) {
+					//Maximize window
+					wndpl.showCmd = SW_MAXIMIZE;
+					SetWindowPlacement(state.hwnd, &wndpl);
+				}
+				return;
+			}
+			else if (pt.x == 0) {
+				//Left
+				state.aero = 1;
+				posx = 0;
+				posy = 0;
+				wndwidth = monitors[0].right/2;
+				wndheight = monitors[0].bottom;
+				
+				//Store in wnddb
+				if (wndentry == NULL) {
+					wnddb[wnddbpos].hwnd = state.hwnd;
+					wnddb[wnddbpos].width = state.origin.placement.right-state.origin.placement.left;
+					wnddb[wnddbpos].height = state.origin.placement.bottom-state.origin.placement.top;
+					wnddbpos = (wnddbpos+1)%NUMWNDDB;
+				}
+				
+				//Compensate for taskbar
+				HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
+				RECT wnd;
+				if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
+					wndheight = wndheight-(wnd.bottom-wnd.top);
+				}
+			}
+			else if (pt.x == monitors[0].right-1) {
+				//Right
+				state.aero = 1;
+				posx = monitors[0].right/2;
+				posy = 0;
+				wndwidth = monitors[0].right/2;
+				wndheight = monitors[0].bottom;
+				
+				//Store in wnddb
+				if (wndentry == NULL) {
+					wnddb[wnddbpos].hwnd = state.hwnd;
+					wnddb[wnddbpos].width = state.origin.placement.right-state.origin.placement.left;
+					wnddb[wnddbpos].height = state.origin.placement.bottom-state.origin.placement.top;
+					wnddbpos = (wnddbpos+1)%NUMWNDDB;
+				}
+				
+				//Compensate for taskbar
+				HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
+				RECT wnd;
+				if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
+					wndheight = wndheight-(wnd.bottom-wnd.top);
+				}
+			}
+			else if (state.aero) {
+				//Restore previous placement
+				state.aero = 0;
+				wndwidth = state.origin.placement.right-state.origin.placement.left;
+				wndheight = state.origin.placement.bottom-state.origin.placement.top;
+			}
+		}
+		
 		//Maximize window again if moved from another monitor
+		/*
 		if (state.origin.maximized && !state.locked) {
 			HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 			//int monitor = (pt.x > 1920/2)?1:0;
@@ -569,11 +674,7 @@ void MouseMove() {
 				return;
 			}
 		}
-		
-		posx = pt.x-state.offset.x;
-		posy = pt.y-state.offset.y;
-		wndwidth = wnd.right-wnd.left;
-		wndheight = wnd.bottom-wnd.top;
+		*/
 		
 		//Check if the window will stick anywhere
 		if (sharedstate.shift || sharedsettings.AutoStick) {
@@ -624,9 +725,7 @@ void MouseMove() {
 	
 	//Move
 	BOOL repaint = IncUpdateRate();
-	if (MoveWindow(state.hwnd,posx,posy,wndwidth,wndheight,repaint) == 0) {
-		Error(L"MoveWindow()", L"MouseMove()", GetLastError(), TEXT(__FILE__), __LINE__);
-	}
+	MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, repaint);
 }
 
 __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -802,24 +901,42 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Do things depending on what button was pressed
 			if (IsButton(button,ACTION_MOVE)) {
+				//Get window placement
+				WINDOWPLACEMENT wndpl;
+				wndpl.length = sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(state.hwnd, &wndpl);
+				
+				//Ready to move window
+				sharedstate.move = 1;
+				state.blockshift = 1;
+				state.blockaltup = 1;
+				state.locked = 0;
+				state.aero = 0;
+				state.origin.maximized = IsZoomed(state.hwnd);
+				state.origin.placement = wndpl.rcNormalPosition;
+				
+				//Check if window is in the wnddb database
+				for (i=0; i < NUMWNDDB; i++) {
+					if (wnddb[i].hwnd == state.hwnd) {
+						//Set offset
+						state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*wnddb[i].width;
+						state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*wnddb[i].height;
+						//Restore old window size
+						MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, wnddb[i].width, wnddb[i].height, TRUE);
+						//Remember time of this click so we can check for double-click
+						state.clicktime = GetTickCount();
+						//Remove window from database
+						wnddb[i].hwnd = NULL;
+						//Prevent mousedown from propagating
+						return;
+					}
+				}
+				
 				//Maximize window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					//Alt+double-clicking a window maximizes it
 					//Maximize window
-					WINDOWPLACEMENT wndpl;
-					wndpl.length = sizeof(WINDOWPLACEMENT);
-					GetWindowPlacement(state.hwnd, &wndpl);
 					wndpl.showCmd = SW_MAXIMIZE;
-					//Also roll-down the window if it's in the roll-up database
-					for (i=0; i < NUMROLLUP; i++) {
-						if (rollup[i].hwnd == state.hwnd) {
-							//Roll-down window
-							RECT normalpos = {wnd.left, wnd.top, wnd.left+rollup[i].width, wnd.top+rollup[i].height};
-							wndpl.rcNormalPosition = normalpos;
-							//Remove window from database
-							rollup[i].hwnd = NULL;
-						}
-					}
 					SetWindowPlacement(state.hwnd, &wndpl);
 					//Hide cursorwnd
 					if (sharedsettings.Performance.Cursor) {
@@ -833,35 +950,18 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					return 1;
 				}
 				
-				//Ready to move window
-				sharedstate.move = 1;
-				state.blockshift = 1;
-				state.blockaltup = 1;
-				state.locked = 0;
-				state.origin.maximized = 0;
-				
 				//Restore the window if it's maximized
-				if (IsZoomed(state.hwnd)) {
-					state.origin.maximized = 1;
+				if (state.origin.maximized) {
 					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					//state.origin.monitor = (pt.x > 1920/2)?1:0;
 					
 					//Restore window
-					WINDOWPLACEMENT wndpl;
-					wndpl.length = sizeof(WINDOWPLACEMENT);
-					GetWindowPlacement(state.hwnd, &wndpl);
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					
-					//Get new pos and size
-					RECT newwnd;
-					if (GetWindowRect(state.hwnd,&newwnd) == 0) {
-						Error(L"GetWindowRect()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
-					}
-					
 					//Set offset
-					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*(newwnd.right-newwnd.left);
-					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*(newwnd.bottom-newwnd.top);
+					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*(wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left);
+					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*(wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top);
 					
 					//Move
 					MouseMove();
@@ -890,32 +990,37 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				return 1;
 			}
 			else if (IsButton(button,ACTION_RESIZE)) {
-				//Roll-down the window if it's in the roll-up database
-				for (i=0; i < NUMROLLUP; i++) {
-					if (rollup[i].hwnd == state.hwnd) {
-						//Roll-down window
-						if (MoveWindow(state.hwnd, wnd.left, wnd.top, rollup[i].width, rollup[i].height, TRUE) == 0) {
-							Error(L"MoveWindow()", L"When rolling down window", GetLastError(), TEXT(__FILE__), __LINE__);
-						}
-						//Remove window from database
-						rollup[i].hwnd = NULL;
-						//Prevent mousedown from propagating
-						return 1;
+				//Remove window from wnddb if present
+				for (i=0; i < NUMWNDDB; i++) {
+					if (wnddb[i].hwnd == state.hwnd) {
+						wnddb[i].hwnd = NULL;
+						break;
 					}
 				}
 				
-				//Roll-up window if this is a double-click (or if both middle and right mouse button is pressed)
+				//Move this window to the left or right side of the monitor if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime() || sharedstate.resize) {
-					//Alt+middle-double-clicking a window makes it roll-up
 					//Store window size
-					rollup[rolluppos].hwnd = state.hwnd;
-					rollup[rolluppos].width = wnd.right-wnd.left;
-					rollup[rolluppos].height = wnd.bottom-wnd.top;
-					rolluppos = (rolluppos+1)%NUMROLLUP;
-					//Roll-up window
-					if (MoveWindow(state.hwnd, wnd.left, wnd.top, wnd.right-wnd.left, 30, TRUE) == 0) {
-						Error(L"MoveWindow()", L"Roll-up", GetLastError(), TEXT(__FILE__), __LINE__);
+					wnddb[wnddbpos].hwnd = state.hwnd;
+					wnddb[wnddbpos].width = wnd.right-wnd.left;
+					wnddb[wnddbpos].height = wnd.bottom-wnd.top;
+					wnddbpos = (wnddbpos+1)%NUMWNDDB;
+					//Enumerate monitors
+					nummonitors = 0;
+					EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+					//Get new position
+					int posx = 0;
+					int posy = 0;
+					int wndwidth = monitors[0].right/2;
+					int wndheight = monitors[0].bottom;
+					//Compensate for taskbar
+					HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
+					RECT wnd;
+					if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
+						wndheight = wndheight-(wnd.bottom-wnd.top);
 					}
+					//Move window to the left
+					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 					//Hide cursorwnd
 					if (sharedsettings.Performance.Cursor) {
 						ShowWindow(cursorwnd, SW_HIDE);
@@ -1344,6 +1449,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.Autofocus);
 			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.AutoStick);
+			GetPrivateProfileString(APP_NAME, L"Aero", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Aero);
 			//[Performance]
 			GetPrivateProfileString(L"Performance", L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Performance.Cursor);
@@ -1401,9 +1508,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				else if (!wcsicmp(txt,L"Close"))       *buttons[i].ptr = ACTION_CLOSE;
 				else                                   *buttons[i].ptr = ACTION_NOTHING;
 			}
-			//Zero-out roll-up hwnds
-			for (i=0; i < NUMROLLUP; i++) {
-				rollup[i].hwnd = NULL;
+			//Zero-out wnddb hwnds
+			for (i=0; i < NUMWNDDB; i++) {
+				wnddb[i].hwnd = NULL;
 			}
 			#ifndef _WIN64
 			//Create window for timers
