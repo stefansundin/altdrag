@@ -5,6 +5,7 @@ Drag windows with the mouse when pressing the alt key.
 You can use the middle or right mouse button to resize windows.
 If you press the shift key while you drag or resize, the window will stick to other windows.
 Double-click windows to maximize them.
+AltDrag will mimic Windows 7 Aero Snap behavior (even if you don't run Windows 7).
 
 You can edit more settings in AltDrag.ini:
 * Enable HookWindows to be able to use the shift key when normally moving windows.

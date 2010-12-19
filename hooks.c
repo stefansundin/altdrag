@@ -21,6 +21,7 @@
 //App
 #define APP_NAME L"AltDrag"
 #define STICKY_THRESHOLD 20
+#define AERO_THRESHOLD   5
 
 //Timers
 HWND g_hwnd;
@@ -34,6 +35,18 @@ enum action {ACTION_NOTHING, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION
 enum button {BUTTON_NONE, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
 enum resize {RESIZE_NONE, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
 
+//Window database
+#define NUMWNDDB 30
+struct wnddata {
+	HWND hwnd;
+	int width;
+	int height;
+};
+struct {
+	struct wnddata items[NUMWNDDB];
+	struct wnddata *pos;
+} wnddb;
+
 //State
 struct {
 	HWND hwnd;
@@ -46,12 +59,14 @@ struct {
 	int updatecount;
 	int locked;
 	int aero;
+	struct wnddata *wndentry;
 	struct {
-		HMONITOR/*int*/ monitor;
+		HMONITOR monitor;
 		int maximized;
-		RECT placement;
+		int width;
+		int height;
 	} origin;
-} state = {NULL, 0, 0, {0,0}, {0,0}, RESIZE_NONE, RESIZE_NONE, 0, 0, 0, 0, 0, {NULL,0,0}};
+} state;
 
 struct {
 	int shift;
@@ -71,6 +86,7 @@ struct {
 	int AutoStick;
 	int Autofocus;
 	int Aero;
+	int AutoRemaximize;
 	struct {
 		int Cursor;
 		int UpdateRate;
@@ -82,7 +98,7 @@ struct {
 	struct {
 		enum action LMB, MMB, RMB, MB4, MB5;
 	} Mouse;
-} sharedsettings shareattr = {0, 0, 0, {0,1}, {NULL,0}, {0,0,0,0,0}};
+} sharedsettings shareattr;
 int sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
 
@@ -106,16 +122,6 @@ struct {
 HWND cursorwnd shareattr = NULL;
 HCURSOR cursor[6] shareattr;
 enum {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL} resizecursor;
-
-//Window database
-#define NUMWNDDB 30
-struct wnddata {
-	HWND hwnd;
-	int width;
-	int height;
-};
-struct wnddata wnddb[NUMWNDDB];
-int wnddbpos = 0;
 
 //Mousehook data
 HINSTANCE hinstDLL = NULL;
@@ -552,129 +558,136 @@ void MouseMove() {
 		wndwidth = wnd.right-wnd.left;
 		wndheight = wnd.bottom-wnd.top;
 		
+		//Get monitor
+		HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+		
 		if (sharedsettings.Aero) {
-			//Enumerate monitors
-			nummonitors = 0;
-			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
-			
-			//Check if window is in wnddb database
-			struct wnddata *wndentry = NULL;
-			int i;
-			for (i=0; i < NUMWNDDB; i++) {
-				if (wnddb[i].hwnd == state.hwnd) {
-					wndentry = &wnddb[i];
-					break;
-				}
-			}
+			//Get monitor info
+			MONITORINFO monitorinfo;
+			monitorinfo.cbSize = sizeof(MONITORINFO);
+			GetMonitorInfo(monitor, &monitorinfo);
+			RECT mon = monitorinfo.rcMonitor;
+			RECT wmon = monitorinfo.rcWork;
 			
 			//Restore window?
-			if (maximized && (pt.y > 0
-			 || (pt.y == 0 && (pt.x == 0 || pt.x == monitors[0].right-1)))) {
+			if (maximized && (pt.y > mon.top+AERO_THRESHOLD
+			 || ((mon.left < pt.x && pt.x < mon.left+2*AERO_THRESHOLD)
+			  || (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < mon.right)))) {
 				//Restore window
 				wndpl.showCmd = SW_RESTORE;
 				SetWindowPlacement(state.hwnd, &wndpl);
 			}
 			
 			//Move window
-			if (pt.x == 0 && pt.y == 0) {
+			if (mon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
+			 && mon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Topleft
 				state.aero = 1;
-				posx = 0;
-				posy = 0;
-				wndwidth = monitors[0].right/2;
-				wndheight = monitors[0].bottom/2;
+				wndwidth = (wmon.right-wmon.left)/2;
+				wndheight = (wmon.bottom-wmon.top)/2;
+				posx = wmon.left;
+				posy = wmon.top;
 			}
-			else if (pt.x == monitors[0].right-1 && pt.y == 0) {
+			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < mon.right
+			      && mon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Topright
 				state.aero = 1;
-				posx = monitors[0].right/2;
-				posy = 0;
-				wndwidth = monitors[0].right/2;
-				wndheight = monitors[0].bottom/2;
+				wndwidth = (wmon.right-wmon.left)/2;
+				wndheight = (wmon.bottom-wmon.top)/2;
+				posx = wmon.right-wndwidth;
+				posy = wmon.top;
 			}
-			else if (pt.y == 0) {
+			else if (mon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
+			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < mon.bottom) {
+				//Bottomleft
+				state.aero = 1;
+				wndwidth = (wmon.right-wmon.left)/2;
+				wndheight = (wmon.bottom-wmon.top)/2;
+				posx = wmon.left;
+				posy = wmon.bottom-wndheight;
+			}
+			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < mon.right
+			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < mon.bottom) {
+				//Bottomright
+				state.aero = 1;
+				wndwidth = (wmon.right-wmon.left)/2;
+				wndheight = (wmon.bottom-wmon.top)/2;
+				posx = wmon.right-wndwidth;
+				posy = wmon.bottom-wndheight;
+			}
+			else if (mon.top <= pt.y && pt.y < mon.top+AERO_THRESHOLD) {
+				//Top
 				if (!maximized) {
-					//Maximize window
+					state.aero = 1;
+					//Move window to screen and maximize it
+					wndpl.rcNormalPosition.left = wmon.left;
+					wndpl.rcNormalPosition.top = wmon.top;
+					wndpl.rcNormalPosition.right = wmon.left+state.origin.width;
+					wndpl.rcNormalPosition.bottom = wmon.top+state.origin.height;
 					wndpl.showCmd = SW_MAXIMIZE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 				}
 				return;
 			}
-			else if (pt.x == 0) {
+			else if (mon.left <= pt.x && pt.x < mon.left+AERO_THRESHOLD) {
 				//Left
 				state.aero = 1;
-				posx = 0;
-				posy = 0;
-				wndwidth = monitors[0].right/2;
-				wndheight = monitors[0].bottom;
-				
-				//Store in wnddb
-				if (wndentry == NULL) {
-					wnddb[wnddbpos].hwnd = state.hwnd;
-					wnddb[wnddbpos].width = state.origin.placement.right-state.origin.placement.left;
-					wnddb[wnddbpos].height = state.origin.placement.bottom-state.origin.placement.top;
-					wnddbpos = (wnddbpos+1)%NUMWNDDB;
-				}
-				
-				//Compensate for taskbar
-				HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
-				RECT wnd;
-				if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
-					wndheight = wndheight-(wnd.bottom-wnd.top);
-				}
+				wndwidth = (wmon.right-wmon.left)/2;
+				wndheight = (wmon.bottom-wmon.top);
+				posx = wmon.left;
+				posy = wmon.top;
 			}
-			else if (pt.x == monitors[0].right-1) {
+			else if (mon.right-AERO_THRESHOLD < pt.x && pt.x < mon.right) {
 				//Right
 				state.aero = 1;
-				posx = monitors[0].right/2;
-				posy = 0;
-				wndwidth = monitors[0].right/2;
-				wndheight = monitors[0].bottom;
-				
-				//Store in wnddb
-				if (wndentry == NULL) {
-					wnddb[wnddbpos].hwnd = state.hwnd;
-					wnddb[wnddbpos].width = state.origin.placement.right-state.origin.placement.left;
-					wnddb[wnddbpos].height = state.origin.placement.bottom-state.origin.placement.top;
-					wnddbpos = (wnddbpos+1)%NUMWNDDB;
-				}
-				
-				//Compensate for taskbar
-				HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
-				RECT wnd;
-				if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
-					wndheight = wndheight-(wnd.bottom-wnd.top);
-				}
+				wndwidth = (wmon.right-wmon.left)/2;
+				wndheight = (wmon.bottom-wmon.top);
+				posx = wmon.right-wndwidth;
+				posy = wmon.top;
 			}
 			else if (state.aero) {
-				//Restore previous placement
+				//Restore original window size
 				state.aero = 0;
-				wndwidth = state.origin.placement.right-state.origin.placement.left;
-				wndheight = state.origin.placement.bottom-state.origin.placement.top;
+				wndwidth = state.origin.width;
+				wndheight = state.origin.height;
+			}
+			
+			//Store in wnddb
+			if (state.aero && state.wndentry == NULL) {
+				state.wndentry = wnddb.pos;
+				wnddb.pos->hwnd = state.hwnd;
+				wnddb.pos->width = state.origin.width;
+				wnddb.pos->height = state.origin.height;
+				wnddb.pos = (wnddb.pos == &wnddb.items[NUMWNDDB-1])?&wnddb.items[0]:wnddb.pos+1;
 			}
 		}
 		
 		//Maximize window again if moved from another monitor
-		/*
-		if (state.origin.maximized && !state.locked) {
-			HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-			//int monitor = (pt.x > 1920/2)?1:0;
-			if (monitor != state.origin.monitor) {
-				//Maximize window
-				WINDOWPLACEMENT wndpl;
-				wndpl.length = sizeof(WINDOWPLACEMENT);
-				GetWindowPlacement(state.hwnd, &wndpl);
-				wndpl.showCmd = SW_MAXIMIZE;
-				SetWindowPlacement(state.hwnd, &wndpl);
-				//Set this monitor as the origin
-				state.origin.monitor = monitor;
-				//Lock the current state, but restore window after a timeout
-				state.locked = 1;
-				SetTimer(g_hwnd, UNLOCK_TIMER, 1000, NULL);
-				return;
-			}
+		if (sharedsettings.AutoRemaximize && state.origin.maximized
+		 && !state.locked && monitor != state.origin.monitor) {
+			//Get monitor rect
+			MONITORINFO monitorinfo;
+			monitorinfo.cbSize = sizeof(MONITORINFO);
+			GetMonitorInfo(monitor, &monitorinfo);
+			RECT mon = monitorinfo.rcWork;
+			//Move window to monitor and maximize it
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			wndpl.rcNormalPosition.left = mon.left;
+			wndpl.rcNormalPosition.top = mon.top;
+			wndpl.rcNormalPosition.right = mon.left+wndwidth;
+			wndpl.rcNormalPosition.bottom = mon.top+wndheight;
+			wndpl.showCmd = SW_MAXIMIZE;
+			SetWindowPlacement(state.hwnd, &wndpl);
+			//Set this monitor as the origin
+			state.origin.monitor = monitor;
+			//Lock the current state, but restore window after a timeout
+			state.locked = 1;
+			SetTimer(g_hwnd, UNLOCK_TIMER, 1000, NULL);
+			return;
 		}
-		*/
+		
 		
 		//Check if the window will stick anywhere
 		if (sharedstate.shift || sharedsettings.AutoStick) {
@@ -877,22 +890,28 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
-			//Get window size
-			RECT wnd;
-			if (GetWindowRect(state.hwnd,&wnd) == 0) {
-				Error(L"GetWindowRect(&wnd)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
-			}
-			//Enumerate monitors
-			nummonitors = 0;
-			EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
-			//Return if the window is fullscreen
+			//Get window placement
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			RECT wnd = wndpl.rcNormalPosition;
+			
+			//Return if the window is fullscreen and no border
 			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)) {
-				for (i=0; i < nummonitors; i++) {
-					if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
-						return CallNextHookEx(NULL, nCode, wParam, lParam);
-					}
+				HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+				MONITORINFO monitorinfo;
+				monitorinfo.cbSize = sizeof(MONITORINFO);
+				GetMonitorInfo(monitor, &monitorinfo);
+				RECT mon = monitorinfo.rcMonitor;
+				if (wnd.left == mon.left && wnd.top == mon.top && wnd.right == mon.right && wnd.bottom == mon.bottom) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
+			
+			//Store window size
+			state.wndentry = NULL;
+			state.origin.width = wnd.right-wnd.left;
+			state.origin.height = wnd.bottom-wnd.top;
 			
 			//Autofocus
 			if (sharedsettings.Autofocus) {
@@ -901,11 +920,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Do things depending on what button was pressed
 			if (IsButton(button,ACTION_MOVE)) {
-				//Get window placement
-				WINDOWPLACEMENT wndpl;
-				wndpl.length = sizeof(WINDOWPLACEMENT);
-				GetWindowPlacement(state.hwnd, &wndpl);
-				
 				//Ready to move window
 				sharedstate.move = 1;
 				state.blockshift = 1;
@@ -913,20 +927,22 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.locked = 0;
 				state.aero = 0;
 				state.origin.maximized = IsZoomed(state.hwnd);
-				state.origin.placement = wndpl.rcNormalPosition;
 				
 				//Check if window is in the wnddb database
 				for (i=0; i < NUMWNDDB; i++) {
-					if (wnddb[i].hwnd == state.hwnd) {
+					if (wnddb.items[i].hwnd == state.hwnd) {
 						//Set offset
-						state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*wnddb[i].width;
-						state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*wnddb[i].height;
+						state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*wnddb.items[i].width;
+						state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*wnddb.items[i].height;
 						//Restore old window size
-						MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, wnddb[i].width, wnddb[i].height, TRUE);
+						MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, wnddb.items[i].width, wnddb.items[i].height, TRUE);
 						//Remember time of this click so we can check for double-click
 						state.clicktime = GetTickCount();
+						//Correct origin width/height
+						state.origin.width = wnddb.items[i].width;
+						state.origin.height = wnddb.items[i].height;
 						//Remove window from database
-						wnddb[i].hwnd = NULL;
+						wnddb.items[i].hwnd = NULL;
 						//Prevent mousedown from propagating
 						return;
 					}
@@ -955,13 +971,17 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					//state.origin.monitor = (pt.x > 1920/2)?1:0;
 					
+					//Get maximized rect
+					RECT wndmax;
+					GetWindowRect(state.hwnd, &wndmax);
+					
 					//Restore window
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					
 					//Set offset
-					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*(wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left);
-					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*(wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top);
+					state.offset.x = (float)(pt.x-wndmax.left)/(wndmax.right-wndmax.left)*(wnd.right-wnd.left);
+					state.offset.y = (float)(pt.y-wndmax.top)/(wndmax.bottom-wndmax.top)*(wnd.bottom-wnd.top);
 					
 					//Move
 					MouseMove();
@@ -992,33 +1012,31 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			else if (IsButton(button,ACTION_RESIZE)) {
 				//Remove window from wnddb if present
 				for (i=0; i < NUMWNDDB; i++) {
-					if (wnddb[i].hwnd == state.hwnd) {
-						wnddb[i].hwnd = NULL;
+					if (wnddb.items[i].hwnd == state.hwnd) {
+						wnddb.items[i].hwnd = NULL;
 						break;
 					}
 				}
 				
 				//Move this window to the left or right side of the monitor if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime() || sharedstate.resize) {
-					//Store window size
-					wnddb[wnddbpos].hwnd = state.hwnd;
-					wnddb[wnddbpos].width = wnd.right-wnd.left;
-					wnddb[wnddbpos].height = wnd.bottom-wnd.top;
-					wnddbpos = (wnddbpos+1)%NUMWNDDB;
-					//Enumerate monitors
-					nummonitors = 0;
-					EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+					//Store window in wnddb
+					state.wndentry = wnddb.pos;
+					wnddb.pos->hwnd = state.hwnd;
+					wnddb.pos->width = state.origin.width;
+					wnddb.pos->height = state.origin.height;
+					wnddb.pos = (wnddb.pos == &wnddb.items[NUMWNDDB-1])?&wnddb.items[0]:wnddb.pos+1;
+					//Get monitor info
+					HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+					MONITORINFO monitorinfo;
+					monitorinfo.cbSize = sizeof(MONITORINFO);
+					GetMonitorInfo(monitor, &monitorinfo);
+					RECT mon = monitorinfo.rcWork;
 					//Get new position
-					int posx = 0;
-					int posy = 0;
-					int wndwidth = monitors[0].right/2;
-					int wndheight = monitors[0].bottom;
-					//Compensate for taskbar
-					HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
-					RECT wnd;
-					if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
-						wndheight = wndheight-(wnd.bottom-wnd.top);
-					}
+					int wndwidth = (mon.right-mon.left)/2;
+					int wndheight = mon.bottom-mon.top;
+					int posx = mon.left;
+					int posy = mon.top;
 					//Move window to the left
 					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 					//Hide cursorwnd
@@ -1035,9 +1053,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Restore the window if it's maximized
 				if (IsZoomed(state.hwnd)) {
 					//Restore window
-					WINDOWPLACEMENT wndpl;
-					wndpl.length = sizeof(WINDOWPLACEMENT);
-					GetWindowPlacement(state.hwnd, &wndpl);
 					wndpl.showCmd = SW_RESTORE;
 					//Get new size
 					HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
@@ -1447,10 +1462,24 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.Autofocus);
 			GetPrivateProfileString(APP_NAME, L"AutoStick", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.AutoStick);
-			GetPrivateProfileString(APP_NAME, L"Aero", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Aero);
+			GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.AutoRemaximize);
+			//Detect if Aero Snap is enabled
+			if (sharedsettings.Aero == 2) {
+				HKEY key;
+				wchar_t aero[2] = L"";
+				DWORD len = sizeof(aero);
+				RegOpenKeyEx(HKEY_CURRENT_USER, L"Control Panel\\Desktop", 0, KEY_QUERY_VALUE, &key);
+				int error = RegQueryValueEx(key, L"WindowArrangementActive", NULL, NULL, (LPBYTE)aero, &len);
+				RegCloseKey(key);
+				if (error == ERROR_SUCCESS) {
+					sharedsettings.Aero = _wtoi(aero);
+				}
+			}
 			//[Performance]
-			GetPrivateProfileString(L"Performance", L"Cursor", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Performance", L"Cursor", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Performance.Cursor);
 			if (sharedsettings.Performance.Cursor) {
 				cursorwnd = FindWindow(APP_NAME, NULL);
@@ -1470,7 +1499,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			unsigned char temp;
 			int numread;
 			sharedsettings.Hotkeys.length = 0;
-			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			wchar_t *pos = txt;
 			while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
 				//Make sure we have enough space
@@ -1508,8 +1537,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			}
 			//Zero-out wnddb hwnds
 			for (i=0; i < NUMWNDDB; i++) {
-				wnddb[i].hwnd = NULL;
+				wnddb.items[i].hwnd = NULL;
 			}
+			wnddb.pos = &wnddb.items[0];
 			#ifndef _WIN64
 			//Create window for timers
 			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME, NULL};
