@@ -52,9 +52,10 @@ struct {
 	HWND hwnd;
 	int alt;
 	unsigned int clicktime;
-	POINT offset, resize_offset;
-	enum resize resize_x, resize_y;
-	int blockshift;
+	POINT offset;
+	struct {
+		enum resize x, y;
+	} resize;
 	int blockaltup;
 	int updatecount;
 	int locked;
@@ -256,7 +257,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 void Enum() {
 	//Update handle to progman
 	if (!IsWindow(progman)) {
-		progman = FindWindow(L"Progman",L"Program Manager");
+		progman = FindWindow(L"Progman", L"Program Manager");
 	}
 	
 	//Enumerate monitors
@@ -419,25 +420,25 @@ void ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 		if ((stickywnd.top-thresholdx < *posy && *posy < stickywnd.bottom+thresholdx)
 		 || (*posy-thresholdx < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdx)) {
 			int stickinside_cond = (stickinside || *posy+*wndheight-thresholdx < stickywnd.top || stickywnd.bottom < *posy+thresholdx);
-			if (state.resize_x == RESIZE_LEFT && *posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
+			if (state.resize.x == RESIZE_LEFT && *posx-thresholdx < stickywnd.right && stickywnd.right < *posx+thresholdx) {
 				//The left edge of the dragged window will stick to this window's right edge
 				stuckleft = 1;
 				stickleft = stickywnd.right;
 				thresholdx = stickywnd.right-*posx;
 			}
-			else if (stickinside_cond && state.resize_x == RESIZE_RIGHT && *posx+*wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+*wndwidth+thresholdx) {
+			else if (stickinside_cond && state.resize.x == RESIZE_RIGHT && *posx+*wndwidth-thresholdx < stickywnd.right && stickywnd.right < *posx+*wndwidth+thresholdx) {
 				//The right edge of the dragged window will stick to this window's right edge
 				stuckright = 1;
 				stickright = stickywnd.right;
 				thresholdx = stickywnd.right-(*posx+*wndwidth);
 			}
-			else if (stickinside_cond && state.resize_x == RESIZE_LEFT && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
+			else if (stickinside_cond && state.resize.x == RESIZE_LEFT && *posx-thresholdx < stickywnd.left && stickywnd.left < *posx+thresholdx) {
 				//The left edge of the dragged window will stick to this window's left edge
 				stuckleft = 1;
 				stickleft = stickywnd.left;
 				thresholdx = stickywnd.left-*posx;
 			}
-			else if (state.resize_x == RESIZE_RIGHT && *posx+*wndwidth-thresholdx < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdx) {
+			else if (state.resize.x == RESIZE_RIGHT && *posx+*wndwidth-thresholdx < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdx) {
 				//The right edge of the dragged window will stick to this window's left edge
 				stuckright = 1;
 				stickright = stickywnd.left;
@@ -449,25 +450,25 @@ void ResizeStick(int *posx, int *posy, int *wndwidth, int *wndheight) {
 		if ((stickywnd.left-thresholdy < *posx && *posx < stickywnd.right+thresholdy)
 		 || (*posx-thresholdy < stickywnd.left && stickywnd.left < *posx+*wndwidth+thresholdy)) {
 			int stickinside_cond = (stickinside || *posx+*wndwidth-thresholdy < stickywnd.left || stickywnd.right < *posx+thresholdy);
-			if (state.resize_y == RESIZE_TOP && *posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
+			if (state.resize.y == RESIZE_TOP && *posy-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+thresholdy) {
 				//The top edge of the dragged window will stick to this window's bottom edge
 				stucktop = 1;
 				sticktop = stickywnd.bottom;
 				thresholdy = stickywnd.bottom-*posy;
 			}
-			else if (stickinside_cond && state.resize_y == RESIZE_BOTTOM && *posy+*wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+*wndheight+thresholdy) {
+			else if (stickinside_cond && state.resize.y == RESIZE_BOTTOM && *posy+*wndheight-thresholdy < stickywnd.bottom && stickywnd.bottom < *posy+*wndheight+thresholdy) {
 				//The bottom edge of the dragged window will stick to this window's bottom edge
 				stuckbottom = 1;
 				stickbottom = stickywnd.bottom;
 				thresholdy = stickywnd.bottom-(*posy+*wndheight);
 			}
-			else if (stickinside_cond && state.resize_y == RESIZE_TOP && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
+			else if (stickinside_cond && state.resize.y == RESIZE_TOP && *posy-thresholdy < stickywnd.top && stickywnd.top < *posy+thresholdy) {
 				//The top edge of the dragged window will stick to this window's top edge
 				stucktop = 1;
 				sticktop = stickywnd.top;
 				thresholdy = stickywnd.top-*posy;
 			}
-			else if (state.resize_y == RESIZE_BOTTOM && *posy+*wndheight-thresholdy < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdy) {
+			else if (state.resize.y == RESIZE_BOTTOM && *posy+*wndheight-thresholdy < stickywnd.top && stickywnd.top < *posy+*wndheight+thresholdy) {
 				//The bottom edge of the dragged window will stick to this window's top edge
 				stuckbottom = 1;
 				stickbottom = stickywnd.top;
@@ -566,84 +567,84 @@ void MouseMove() {
 			MONITORINFO monitorinfo;
 			monitorinfo.cbSize = sizeof(MONITORINFO);
 			GetMonitorInfo(monitor, &monitorinfo);
-			RECT mon = monitorinfo.rcMonitor;
-			RECT wmon = monitorinfo.rcWork;
+			RECT mon = monitorinfo.rcWork;
+			RECT fmon = monitorinfo.rcMonitor;
 			
 			//Restore window?
-			if (maximized && (pt.y > mon.top+AERO_THRESHOLD
-			 || ((mon.left < pt.x && pt.x < mon.left+2*AERO_THRESHOLD)
-			  || (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < mon.right)))) {
+			if (maximized && (pt.y > fmon.top+AERO_THRESHOLD
+			 || ((fmon.left < pt.x && pt.x < fmon.left+2*AERO_THRESHOLD)
+			  || (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right)))) {
 				//Restore window
 				wndpl.showCmd = SW_RESTORE;
 				SetWindowPlacement(state.hwnd, &wndpl);
 			}
 			
 			//Move window
-			if (mon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
-			 && mon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
+			if (fmon.left <= pt.x && pt.x < fmon.left+2*AERO_THRESHOLD
+			 && fmon.top <= pt.y && pt.y < fmon.top+2*AERO_THRESHOLD) {
 				//Topleft
 				state.aero = 1;
-				wndwidth = (wmon.right-wmon.left)/2;
-				wndheight = (wmon.bottom-wmon.top)/2;
-				posx = wmon.left;
-				posy = wmon.top;
+				wndwidth = (mon.right-mon.left)/2;
+				wndheight = (mon.bottom-mon.top)/2;
+				posx = mon.left;
+				posy = mon.top;
 			}
-			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < mon.right
-			      && mon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
+			else if (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
+			      && fmon.top <= pt.y && pt.y < fmon.top+2*AERO_THRESHOLD) {
 				//Topright
 				state.aero = 1;
-				wndwidth = (wmon.right-wmon.left)/2;
-				wndheight = (wmon.bottom-wmon.top)/2;
-				posx = wmon.right-wndwidth;
-				posy = wmon.top;
+				wndwidth = (mon.right-mon.left)/2;
+				wndheight = (mon.bottom-mon.top)/2;
+				posx = mon.right-wndwidth;
+				posy = mon.top;
 			}
-			else if (mon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
-			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < mon.bottom) {
+			else if (fmon.left <= pt.x && pt.x < fmon.left+2*AERO_THRESHOLD
+			      && fmon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
 				//Bottomleft
 				state.aero = 1;
-				wndwidth = (wmon.right-wmon.left)/2;
-				wndheight = (wmon.bottom-wmon.top)/2;
-				posx = wmon.left;
-				posy = wmon.bottom-wndheight;
+				wndwidth = (mon.right-mon.left)/2;
+				wndheight = (mon.bottom-mon.top)/2;
+				posx = mon.left;
+				posy = mon.bottom-wndheight;
 			}
-			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < mon.right
-			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < mon.bottom) {
+			else if (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
+			      && fmon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
 				//Bottomright
 				state.aero = 1;
-				wndwidth = (wmon.right-wmon.left)/2;
-				wndheight = (wmon.bottom-wmon.top)/2;
-				posx = wmon.right-wndwidth;
-				posy = wmon.bottom-wndheight;
+				wndwidth = (mon.right-mon.left)/2;
+				wndheight = (mon.bottom-mon.top)/2;
+				posx = mon.right-wndwidth;
+				posy = mon.bottom-wndheight;
 			}
-			else if (mon.top <= pt.y && pt.y < mon.top+AERO_THRESHOLD) {
+			else if (fmon.top <= pt.y && pt.y < fmon.top+AERO_THRESHOLD) {
 				//Top
 				if (!maximized) {
 					state.aero = 1;
-					//Move window to screen and maximize it
-					wndpl.rcNormalPosition.left = wmon.left;
-					wndpl.rcNormalPosition.top = wmon.top;
-					wndpl.rcNormalPosition.right = wmon.left+state.origin.width;
-					wndpl.rcNormalPosition.bottom = wmon.top+state.origin.height;
+					//Center window on monitor and maximize it
+					wndpl.rcNormalPosition.left = mon.left+(mon.right-mon.left)/2-state.origin.width/2;
+					wndpl.rcNormalPosition.top = mon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
+					wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
+					wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
 					wndpl.showCmd = SW_MAXIMIZE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 				}
 				return;
 			}
-			else if (mon.left <= pt.x && pt.x < mon.left+AERO_THRESHOLD) {
+			else if (fmon.left <= pt.x && pt.x < fmon.left+AERO_THRESHOLD) {
 				//Left
 				state.aero = 1;
-				wndwidth = (wmon.right-wmon.left)/2;
-				wndheight = (wmon.bottom-wmon.top);
-				posx = wmon.left;
-				posy = wmon.top;
+				wndwidth = (mon.right-mon.left)/2;
+				wndheight = (mon.bottom-mon.top);
+				posx = mon.left;
+				posy = mon.top;
 			}
-			else if (mon.right-AERO_THRESHOLD < pt.x && pt.x < mon.right) {
+			else if (fmon.right-AERO_THRESHOLD < pt.x && pt.x < fmon.right) {
 				//Right
 				state.aero = 1;
-				wndwidth = (wmon.right-wmon.left)/2;
-				wndheight = (wmon.bottom-wmon.top);
-				posx = wmon.right-wndwidth;
-				posy = wmon.top;
+				wndwidth = (mon.right-mon.left)/2;
+				wndheight = (mon.bottom-mon.top);
+				posx = mon.right-wndwidth;
+				posy = mon.top;
 			}
 			else if (state.aero) {
 				//Restore original window size
@@ -670,14 +671,14 @@ void MouseMove() {
 			monitorinfo.cbSize = sizeof(MONITORINFO);
 			GetMonitorInfo(monitor, &monitorinfo);
 			RECT mon = monitorinfo.rcWork;
-			//Move window to monitor and maximize it
+			//Center window on monitor and maximize it
 			WINDOWPLACEMENT wndpl;
 			wndpl.length = sizeof(WINDOWPLACEMENT);
 			GetWindowPlacement(state.hwnd, &wndpl);
-			wndpl.rcNormalPosition.left = mon.left;
-			wndpl.rcNormalPosition.top = mon.top;
-			wndpl.rcNormalPosition.right = mon.left+wndwidth;
-			wndpl.rcNormalPosition.bottom = mon.top+wndheight;
+			wndpl.rcNormalPosition.left = mon.left+(mon.right-mon.left)/2-wndwidth/2;
+			wndpl.rcNormalPosition.top = mon.top+(mon.bottom-mon.top)/2-wndheight/2;
+			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
+			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
 			wndpl.showCmd = SW_MAXIMIZE;
 			SetWindowPlacement(state.hwnd, &wndpl);
 			//Set this monitor as the origin
@@ -695,43 +696,43 @@ void MouseMove() {
 		}
 	}
 	else if (sharedstate.resize) {
-		if (state.resize_x == RESIZE_CENTER && state.resize_y == RESIZE_CENTER) {
-			posx = wnd.left-(pt.x-state.resize_offset.x);
-			posy = wnd.top-(pt.y-state.resize_offset.y);
-			wndwidth = wnd.right-wnd.left+2*(pt.x-state.resize_offset.x);
-			wndheight = wnd.bottom-wnd.top+2*(pt.y-state.resize_offset.y);
-			state.resize_offset.x = pt.x;
-			state.resize_offset.y = pt.y;
+		if (state.resize.x == RESIZE_CENTER && state.resize.y == RESIZE_CENTER) {
+			posx = wnd.left-(pt.x-state.offset.x);
+			posy = wnd.top-(pt.y-state.offset.y);
+			wndwidth = wnd.right-wnd.left+2*(pt.x-state.offset.x);
+			wndheight = wnd.bottom-wnd.top+2*(pt.y-state.offset.y);
+			state.offset.x = pt.x;
+			state.offset.y = pt.y;
 		}
 		else {
-			if (state.resize_y == RESIZE_TOP) {
-				posy = pt.y-state.resize_offset.y;
-				wndheight = wnd.bottom-pt.y+state.resize_offset.y;
+			if (state.resize.y == RESIZE_TOP) {
+				posy = pt.y-state.offset.y;
+				wndheight = wnd.bottom-pt.y+state.offset.y;
 			}
-			else if (state.resize_y == RESIZE_CENTER) {
+			else if (state.resize.y == RESIZE_CENTER) {
 				posy = wnd.top;
 				wndheight = wnd.bottom-wnd.top;
 			}
-			else if (state.resize_y == RESIZE_BOTTOM) {
+			else if (state.resize.y == RESIZE_BOTTOM) {
 				posy = wnd.top;
-				wndheight = pt.y-wnd.top+state.resize_offset.y;
+				wndheight = pt.y-wnd.top+state.offset.y;
 			}
-			if (state.resize_x == RESIZE_LEFT) {
-				posx = pt.x-state.resize_offset.x;
-				wndwidth = wnd.right-pt.x+state.resize_offset.x;
+			if (state.resize.x == RESIZE_LEFT) {
+				posx = pt.x-state.offset.x;
+				wndwidth = wnd.right-pt.x+state.offset.x;
 			}
-			else if (state.resize_x == RESIZE_CENTER) {
+			else if (state.resize.x == RESIZE_CENTER) {
 				posx = wnd.left;
 				wndwidth = wnd.right-wnd.left;
 			}
-			else if (state.resize_x == RESIZE_RIGHT) {
+			else if (state.resize.x == RESIZE_RIGHT) {
 				posx = wnd.left;
-				wndwidth = pt.x-wnd.left+state.resize_offset.x;
+				wndwidth = pt.x-wnd.left+state.offset.x;
 			}
 		}
 		
 		//Check if the window will stick anywhere
-		if ((sharedstate.shift || sharedsettings.AutoStick) && (state.resize_x != RESIZE_CENTER || state.resize_y != RESIZE_CENTER)) {
+		if ((sharedstate.shift || sharedsettings.AutoStick) && (state.resize.x != RESIZE_CENTER || state.resize.y != RESIZE_CENTER)) {
 			ResizeStick(&posx, &posy, &wndwidth, &wndheight);
 		}
 	}
@@ -752,32 +753,22 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				state.clicktime = 0; //Reset double-click time
 				//Don't hook the mouse if the foreground window is fullscreen
 				HWND window = GetForegroundWindow();
-				if (!(GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION)) {
-					if (!IsWindow(progman)) {
-						progman = FindWindow(L"Progman",L"Program Manager");
+				progman = FindWindow(L"Progman", L"Program Manager");
+				if (window != progman && !(GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION)) {
+					//Get window size
+					RECT wnd;
+					if (GetWindowRect(window,&wnd) == 0) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
-					if (window != progman) {
-						//Get window size
-						RECT wnd;
-						if (GetWindowRect(window,&wnd) == 0) {
-							//Error(L"GetWindowRect(&wnd)", L"LowLevelKeyboardProc()", GetLastError(), TEXT(__FILE__), __LINE__);
-							return CallNextHookEx(NULL, nCode, wParam, lParam);
-						}
-						/*
-						if (nummonitors == 1) {
-							//Return if the window is fullscreen
-							if (wnd.left == monitors[0].left && wnd.top == monitors[0].top && wnd.right == monitors[0].right && wnd.bottom == monitors[0].bottom) {
-								return CallNextHookEx(NULL, nCode, wParam, lParam);
-							}
-						}
-						*/
-						//Return if the window is fullscreen
-						int i;
-						for (i=0; i < nummonitors; i++) {
-							if (wnd.left == monitors[i].left && wnd.top == monitors[i].top && wnd.right == monitors[i].right && wnd.bottom == monitors[i].bottom) {
-								return CallNextHookEx(NULL, nCode, wParam, lParam);
-							}
-						}
+					//Get monitor size
+					HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+					MONITORINFO monitorinfo;
+					monitorinfo.cbSize = sizeof(MONITORINFO);
+					GetMonitorInfo(monitor, &monitorinfo);
+					RECT mon = monitorinfo.rcMonitor;
+					//Return if the window is fullscreen
+					if (wnd.left == mon.left && wnd.top == mon.top && wnd.right == mon.right && wnd.bottom == mon.bottom) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
 				}
 				//Hook mouse
@@ -788,7 +779,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					sharedstate.shift = 1;
 					MouseMove();
 				}
-				if (state.alt && state.blockshift) {
+				if (state.alt && (sharedstate.move || sharedstate.resize)) {
 					//Block keypress to prevent Windows from changing keyboard layout
 					return 1;
 				}
@@ -812,7 +803,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				
 				//Block the alt keyup to prevent the window menu to be selected.
 				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup.
-				//For more information, see issue 20
+				//For more information, see issue 20.
 				if (state.blockaltup) {
 					KEYBDINPUT ctrl[2];
 					ctrl[0].wVk = ctrl[1].wVk = VK_CONTROL;
@@ -833,7 +824,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				sharedstate.shift = 0;
-				state.blockshift = 0;
 				MouseMove();
 			}
 		}
@@ -908,8 +898,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 			}
 			
-			//Store window size
+			//Update state
+			state.blockaltup = 1;
+			state.locked = 0;
+			state.aero = 0;
 			state.wndentry = NULL;
+			state.origin.maximized = IsZoomed(state.hwnd);
 			state.origin.width = wnd.right-wnd.left;
 			state.origin.height = wnd.bottom-wnd.top;
 			
@@ -922,11 +916,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (IsButton(button,ACTION_MOVE)) {
 				//Ready to move window
 				sharedstate.move = 1;
-				state.blockshift = 1;
-				state.blockaltup = 1;
-				state.locked = 0;
-				state.aero = 0;
-				state.origin.maximized = IsZoomed(state.hwnd);
 				
 				//Check if window is in the wnddb database
 				for (i=0; i < NUMWNDDB; i++) {
@@ -969,9 +958,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Restore the window if it's maximized
 				if (state.origin.maximized) {
 					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
-					//state.origin.monitor = (pt.x > 1920/2)?1:0;
 					
-					//Get maximized rect
+					//Get maximized size
 					RECT wndmax;
 					GetWindowRect(state.hwnd, &wndmax);
 					
@@ -1010,6 +998,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				return 1;
 			}
 			else if (IsButton(button,ACTION_RESIZE)) {
+				//Ready to resize window
+				sharedstate.resize = 1;
+				
 				//Remove window from wnddb if present
 				for (i=0; i < NUMWNDDB; i++) {
 					if (wnddb.items[i].hwnd == state.hwnd) {
@@ -1019,7 +1010,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				
 				//Move this window to the left or right side of the monitor if this is a double-click
-				if (GetTickCount()-state.clicktime <= GetDoubleClickTime() || sharedstate.resize) {
+				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					//Store window in wnddb
 					state.wndentry = wnddb.pos;
 					wnddb.pos->hwnd = state.hwnd;
@@ -1050,80 +1041,68 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					return 1;
 				}
 				
+				//Remember time of this click so we can check for double-click
+				state.clicktime = GetTickCount();
+				
 				//Restore the window if it's maximized
-				if (IsZoomed(state.hwnd)) {
+				if (state.origin.maximized) {
 					//Restore window
 					wndpl.showCmd = SW_RESTORE;
 					//Get new size
 					HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					MONITORINFO monitorinfo;
 					monitorinfo.cbSize = sizeof(MONITORINFO);
-					if (GetMonitorInfo(monitor,&monitorinfo) == FALSE) {
-						Error(L"GetMonitorInfo(monitor)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
-					}
-					wndpl.rcNormalPosition = monitorinfo.rcWork;
-					//Update window
-					SetWindowPlacement(state.hwnd, &wndpl);
+					GetMonitorInfo(monitor, &monitorinfo);
 					wnd = monitorinfo.rcWork;
+					//Update window
+					wndpl.rcNormalPosition = wnd;
+					SetWindowPlacement(state.hwnd, &wndpl);
 				}
+				
 				//Set edge and offset
-				if (wnd.bottom-wnd.top < 60) {
-					//This is a very thin window
-					state.resize_y = RESIZE_BOTTOM;
-					state.resize_offset.y = wnd.bottom-pt.y;
-					if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
-						state.resize_x = RESIZE_LEFT;
-						state.resize_offset.x = pt.x-wnd.left;
-					}
-					else {
-						state.resize_x = RESIZE_RIGHT;
-						state.resize_offset.x = wnd.right-pt.x;
-					}
+				//Think of the window as nine boxes
+				if (pt.y-wnd.top < (wnd.bottom-wnd.top)/3) {
+					state.resize.y = RESIZE_TOP;
+					state.offset.y = pt.y-wnd.top;
+				}
+				else if (pt.y-wnd.top < (wnd.bottom-wnd.top)*2/3) {
+					state.resize.y = RESIZE_CENTER;
+					state.offset.y = pt.y; //Used only if both x and y are CENTER
 				}
 				else {
-					//Think of the window as nine boxes
-					if (pt.y-wnd.top < (wnd.bottom-wnd.top)/3) {
-						state.resize_y = RESIZE_TOP;
-						state.resize_offset.y = pt.y-wnd.top;
-					}
-					else if (pt.y-wnd.top < (wnd.bottom-wnd.top)*2/3) {
-						state.resize_y = RESIZE_CENTER;
-						state.resize_offset.y = pt.y; //Used only if both x and y are CENTER
-					}
-					else {
-						state.resize_y = RESIZE_BOTTOM;
-						state.resize_offset.y = wnd.bottom-pt.y;
-					}
-					if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
-						state.resize_x = RESIZE_LEFT;
-						state.resize_offset.x = pt.x-wnd.left;
-					}
-					else if (pt.x-wnd.left < (wnd.right-wnd.left)*2/3) {
-						state.resize_x = RESIZE_CENTER;
-						state.resize_offset.x = pt.x; //Used only if both x and y are CENTER
-					}
-					else {
-						state.resize_x = RESIZE_RIGHT;
-						state.resize_offset.x = wnd.right-pt.x;
-					}
+					state.resize.y = RESIZE_BOTTOM;
+					state.offset.y = wnd.bottom-pt.y;
 				}
+				if (pt.x-wnd.left < (wnd.right-wnd.left)/3) {
+					state.resize.x = RESIZE_LEFT;
+					state.offset.x = pt.x-wnd.left;
+				}
+				else if (pt.x-wnd.left < (wnd.right-wnd.left)*2/3) {
+					state.resize.x = RESIZE_CENTER;
+					state.offset.x = pt.x; //Used only if both x and y are CENTER
+				}
+				else {
+					state.resize.x = RESIZE_RIGHT;
+					state.offset.x = wnd.right-pt.x;
+				}
+				
 				//Show cursorwnd
 				if (sharedsettings.Performance.Cursor) {
 					//Determine shape of cursor
-					if ((state.resize_y == RESIZE_TOP && state.resize_x == RESIZE_LEFT)
-					 || (state.resize_y == RESIZE_BOTTOM && state.resize_x == RESIZE_RIGHT)) {
+					if ((state.resize.y == RESIZE_TOP && state.resize.x == RESIZE_LEFT)
+					 || (state.resize.y == RESIZE_BOTTOM && state.resize.x == RESIZE_RIGHT)) {
 						resizecursor = SIZENWSE;
 					}
-					else if ((state.resize_y == RESIZE_TOP && state.resize_x == RESIZE_RIGHT)
-					 || (state.resize_y == RESIZE_BOTTOM && state.resize_x == RESIZE_LEFT)) {
+					else if ((state.resize.y == RESIZE_TOP && state.resize.x == RESIZE_RIGHT)
+					 || (state.resize.y == RESIZE_BOTTOM && state.resize.x == RESIZE_LEFT)) {
 						resizecursor = SIZENESW;
 					}
-					else if ((state.resize_y == RESIZE_TOP && state.resize_x == RESIZE_CENTER)
-					 || (state.resize_y == RESIZE_BOTTOM && state.resize_x == RESIZE_CENTER)) {
+					else if ((state.resize.y == RESIZE_TOP && state.resize.x == RESIZE_CENTER)
+					 || (state.resize.y == RESIZE_BOTTOM && state.resize.x == RESIZE_CENTER)) {
 						resizecursor = SIZENS;
 					}
-					else if ((state.resize_y == RESIZE_CENTER && state.resize_x == RESIZE_LEFT)
-					 || (state.resize_y == RESIZE_CENTER && state.resize_x == RESIZE_RIGHT)) {
+					else if ((state.resize.y == RESIZE_CENTER && state.resize.x == RESIZE_LEFT)
+					 || (state.resize.y == RESIZE_CENTER && state.resize.x == RESIZE_RIGHT)) {
 						resizecursor = SIZEWE;
 					}
 					else {
@@ -1138,20 +1117,13 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 					ShowWindowAsync(cursorwnd, SW_SHOWNA);
 				}
-				//Remember time of this click so we can check for double-click
-				state.clicktime = GetTickCount();
-				//Ready to resize window
-				sharedstate.resize = 1;
-				//Block alt keyup
-				state.blockaltup = 1;
+				
 				//Prevent mousedown from propagating
 				return 1;
 			}
 			else if (IsButton(button,ACTION_MINIMIZE)) {
 				//Minimize window
 				SendMessage(state.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-				//Block alt keyup
-				state.blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
@@ -1160,13 +1132,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 				MONITORINFO monitorinfo;
 				monitorinfo.cbSize = sizeof(MONITORINFO);
-				if (GetMonitorInfo(monitor,&monitorinfo) == FALSE) {
-					Error(L"GetMonitorInfo(monitor)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
-				}
+				GetMonitorInfo(monitor, &monitorinfo);
 				RECT mon = monitorinfo.rcWork;
 				MoveWindow(state.hwnd, mon.left+(mon.right-mon.left)/2-(wnd.right-wnd.left)/2, mon.top+(mon.bottom-mon.top)/2-(wnd.bottom-wnd.top)/2, wnd.right-wnd.left, wnd.bottom-wnd.top, TRUE);
-				//Block alt keyup
-				state.blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
@@ -1174,16 +1142,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Toggle always on top
 				int topmost = GetWindowLongPtr(state.hwnd,GWL_EXSTYLE)&WS_EX_TOPMOST;
 				SetWindowPos(state.hwnd, (topmost?HWND_NOTOPMOST:HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
-				//Block alt keyup
-				state.blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
 			else if (IsButton(button,ACTION_CLOSE)) {
 				//Close window
 				SendMessage(state.hwnd, WM_CLOSE, 0, 0);
-				//Block alt keyup
-				state.blockaltup = 1;
 				//Prevent mousedown from propagating
 				return 1;
 			}
@@ -1408,28 +1372,28 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				msgaction = RESIZE;
 				int edge = msg->wParam&0x000F; //These are the undocumented bits (compatible with WMSZ_*)
 				//Set offset
-				//resize_x
+				//resize.x
 				if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
-					state.resize_x = RESIZE_CENTER;
+					state.resize.x = RESIZE_CENTER;
 				}
 				if (edge == WMSZ_LEFT || edge == WMSZ_TOPLEFT || edge == WMSZ_BOTTOMLEFT) {
-					state.resize_x = RESIZE_LEFT;
+					state.resize.x = RESIZE_LEFT;
 				}
 				else if (edge == WMSZ_RIGHT || edge == WMSZ_TOPRIGHT || edge == WMSZ_BOTTOMRIGHT) {
-					state.resize_x = RESIZE_RIGHT;
+					state.resize.x = RESIZE_RIGHT;
 				}
-				//resize_y
+				//resize.y
 				if (edge == WMSZ_LEFT || edge == WMSZ_RIGHT) {
-					state.resize_y = RESIZE_CENTER;
+					state.resize.y = RESIZE_CENTER;
 				}
 				if (edge == WMSZ_TOP || edge == WMSZ_TOPLEFT || edge == WMSZ_TOPRIGHT) {
-					state.resize_y = RESIZE_TOP;
+					state.resize.y = RESIZE_TOP;
 				}
 				else if (edge == WMSZ_BOTTOM || edge == WMSZ_BOTTOMLEFT || edge == WMSZ_BOTTOMRIGHT) {
-					state.resize_y = RESIZE_BOTTOM;
+					state.resize.y = RESIZE_BOTTOM;
 				}
-				state.resize_offset.x = 0;
-				state.resize_offset.y = 0;
+				state.offset.x = 0;
+				state.offset.y = 0;
 			}
 		}
 		else if (msg->message == WM_EXITSIZEMOVE) {
