@@ -3,16 +3,21 @@
 
 = Introduction =
 
-This is a list of features I want to implement. Feel free to add suggestions in the comments.
+This is a list of features I want to implement.
+
 
 = Version 1.0 =
 I want to finish this before I release 1.0:
-  * Mimic Aero Snap (issue 21)
+  * Option to specify snap threshold.
 
-= Other stuff =
-I also want to take care of this:
-  * Be able to resize troublesome windows such as PuTTY.
-  * Be able to drag and resize windows that have problems right now, such as Steam and Winamp.
-  * Be able to detect if a window is partially overlapped by other windows and only stick to the visible borders. This will require heavy refactoring of the stick code. I'm not even sure if everyone want this so it's a low priority issue until a discussion can start about it.
 
-If you know of more programs that have problems, please let me I know in the comments.
+= Wishlist =
+This is a list of feature suggestions by you guys. I'm not promising to implement them just because they are on this list.
+  * Option to scroll the window you mouse hovers.
+  * Reduce lag and CPU usage.
+  * Dragging should start after a threshold.
+
+
+= Suggest a feature =
+If you got a great idea then add it in the comments below.
+You might want to read the [FAQ] first, though.
