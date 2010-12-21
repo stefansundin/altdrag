@@ -3,18 +3,17 @@ Made by Stefan Sundin
 
 Drag windows with the mouse when pressing the alt key.
 You can use the middle or right mouse button to resize windows.
-If you press the shift key while you drag or resize, the window will stick to other windows.
-Double-click windows to maximize them.
+If you press the shift key while you drag or resize, the window will snap to other windows.
 AltDrag will mimic Windows 7 Aero Snap behavior (even if you don't run Windows 7).
+Double-click windows to maximize them.
 
 You can edit more settings in AltDrag.ini:
+* Enable AutoFocus to bring windows to the front when dragging them.
+* Enable AutoSnap to make windows always snap without needing to press shift.
 * Enable HookWindows to be able to use the shift key when normally moving windows.
-* Enable AutoStick to make windows always stick without needing to press shift.
-* Enable Autofocus to bring windows to the front when dragging them.
 * Change mouse button actions. You can make any mouse button move, resize, minimize or center the window you click on.
 * Edit the blacklist, a list where you can specify windows that shouldn't be dragged.
 
-Fullscreen windows, such as games, will not be affected.
 If you experience lag when you move or resize windows, try disabling the mouse cursor in AltDrag.ini.
 AltDrag will automatically check for updates. You can disable this in AltDrag.ini.
 
@@ -28,8 +27,10 @@ AltDrag is open source, licensed under GPL.
 Changelog
 ---------
 0.9:
-Added Aero option.
-Replaced roll-up behavior with Aero behavior.
+Added Aero option. Alt-drag windows to the left, right and top of the screen. Corners work too!
+Added new mouse actions: AlwaysOnTop and Close.
+Replaced roll-up behavior with Aero behavior. Double-click with middle/right mouse button.
+Renamed "stick" to "snap" as people seem to "get" that term better.
 Fixed some bugs that prevented HookWindows from working properly.
 Tweaked the blacklist (see wiki).
 
