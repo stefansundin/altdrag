@@ -29,6 +29,7 @@ int InitTray() {
 	tray.hWnd = g_hwnd;
 	tray.uCallbackMessage = WM_TRAY;
 	tray.hIcon = icon;
+	wcsncpy(tray.szTip, APP_NAME, sizeof(tray.szTip)/sizeof(wchar_t));
 	//Balloon tooltip
 	tray.uTimeout = 10000;
 	wcsncpy(tray.szInfoTitle, APP_NAME, sizeof(tray.szInfoTitle)/sizeof(wchar_t));
