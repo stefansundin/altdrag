@@ -21,16 +21,16 @@
 //App
 #define APP_NAME L"AltDrag"
 #define SNAP_THRESHOLD 20
-#define AERO_THRESHOLD   5
+#define AERO_THRESHOLD 5
 
 //Timers
 HWND g_hwnd;
 #define UNLOCK_TIMER WM_APP+1
 
 //Enumerators
-enum action {ACTION_NOTHING, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE};
-enum button {BUTTON_NONE, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
-enum resize {RESIZE_NONE, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
+enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE};
+enum button {BUTTON_NONE=0, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
+enum resize {RESIZE_NONE=0, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
 enum cursor {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
 
 //Some variables must be shared so that CallWndProc hooks can access them
@@ -56,30 +56,28 @@ struct {
 //State
 struct {
 	HWND hwnd;
-	int alt;
+	short alt;
 	unsigned int clicktime;
 	POINT offset;
 	struct {
 		enum resize x, y;
 	} resize;
-	int blockaltup;
-	int updatecount;
-	int locked;
-	int aero;
+	short blockaltup;
+	short locked;
+	short aero;
 	struct wnddata *wndentry;
 	struct {
 		HMONITOR monitor;
-		int maximized;
+		short maximized;
 		int width;
 		int height;
 	} origin;
 } state;
 
 struct {
-	int shift;
-	int move;
-	int resize;
-} sharedstate shareattr = {0, 0, 0};
+	short shift;
+	enum action action;
+} sharedstate shareattr = {0, ACTION_NONE};
 
 //Snap
 RECT *monitors = NULL;
@@ -105,7 +103,7 @@ struct {
 		enum action LMB, MMB, RMB, MB4, MB5;
 	} Mouse;
 } sharedsettings shareattr;
-int sharedsettings_loaded shareattr = 0;
+short sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
 
 //Blacklist
@@ -121,7 +119,7 @@ struct blacklist {
 struct {
 	struct blacklist Blacklist;
 	struct blacklist Blacklist_Snap;
-	struct blacklist Whitelist_Snap;
+	struct blacklist Snaplist;
 } settings = {{NULL,0}, {NULL,0}, {NULL,0}};
 
 //Cursor data
@@ -134,7 +132,7 @@ HHOOK mousehook = NULL;
 
 //Msghook data
 BOOL subclassed = FALSE;
-enum {MOVE, RESIZE, NONE} msgaction = NONE;
+enum action msgaction = ACTION_NONE;
 
 //Error()
 #ifdef DEBUG
@@ -194,7 +192,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	if (window != state.hwnd && window != progman
 	 && IsWindowVisible(window) && !IsIconic(window)
 	 && !blacklisted(window,&settings.Blacklist_Snap)
-	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION || blacklisted(window,&settings.Whitelist_Snap))
+	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION || blacklisted(window,&settings.Snaplist))
 	 && GetWindowRect(window,&wnd) != 0
 	) {
 		//Maximized?
@@ -504,7 +502,7 @@ int GetAction(int button) {
 	if (button == BUTTON_RMB) return sharedsettings.Mouse.RMB;
 	if (button == BUTTON_MB4) return sharedsettings.Mouse.MB4;
 	if (button == BUTTON_MB5) return sharedsettings.Mouse.MB5;
-	return ACTION_NOTHING;
+	return ACTION_NONE;
 }
 
 //Check if key is assigned
@@ -520,14 +518,13 @@ int IsHotkey(int key) {
 
 void MouseMove() {
 	//Make sure we got something to do
-	if (state.locked || (!sharedstate.move && !sharedstate.resize)) {
+	if (state.locked || (sharedstate.action != ACTION_MOVE && sharedstate.action != ACTION_RESIZE)) {
 		return;
 	}
 	
 	//Check if window still exists
 	if (!IsWindow(state.hwnd)) {
-		sharedstate.move = 0;
-		sharedstate.resize = 0;
+		sharedstate.action = ACTION_NONE;
 		UnhookMouse();
 		return;
 	}
@@ -548,7 +545,7 @@ void MouseMove() {
 	POINT pt;
 	GetCursorPos(&pt);
 	int posx, posy, wndwidth, wndheight;
-	if (sharedstate.move) {
+	if (sharedstate.action == ACTION_MOVE) {
 		posx = pt.x-state.offset.x;
 		posy = pt.y-state.offset.y;
 		wndwidth = wnd.right-wnd.left;
@@ -718,7 +715,7 @@ void MouseMove() {
 			MoveSnap(&posx, &posy, wndwidth, wndheight);
 		}
 	}
-	else if (sharedstate.resize) {
+	else if (sharedstate.action == ACTION_RESIZE) {
 		//Clear restore flag in wnddb if present
 		if (state.wndentry != NULL) {
 			state.wndentry->restore = 0;
@@ -779,6 +776,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				state.alt = 1;
 				state.blockaltup = 0;
 				state.clicktime = 0; //Reset double-click time
+				
 				//Don't hook the mouse if the foreground window is fullscreen
 				HWND window = GetForegroundWindow();
 				progman = FindWindow(L"Progman", L"Program Manager");
@@ -799,20 +797,20 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
 				}
+				
 				//Hook mouse
 				HookMouse();
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
-				if (!sharedstate.shift) {
-					sharedstate.shift = 1;
-					MouseMove();
-				}
-				if (state.alt && (sharedstate.move || sharedstate.resize)) {
-					//Block keypress to prevent Windows from changing keyboard layout
+				sharedstate.shift = 1;
+				MouseMove();
+				
+				//Block keydown to prevent Windows from changing keyboard layout
+				if (state.alt && sharedstate.action) {
 					return 1;
 				}
 			}
-			else if (sharedstate.move && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
+			else if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
 				SetForegroundWindow(state.hwnd);
 			}
 		}
@@ -847,7 +845,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				}
 				
 				//Unhook mouse if not moving or resizing
-				if (!sharedstate.move && !sharedstate.resize) {
+				if (!sharedstate.action) {
 					UnhookMouse();
 				}
 			}
@@ -876,9 +874,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			(wParam==WM_LBUTTONUP||wParam==WM_MBUTTONUP||wParam==WM_RBUTTONUP||wParam==WM_XBUTTONUP)?STATE_UP:STATE_NONE;
 		int action = GetAction(button);
 		
-		//Return if mouse isn't bound to any action and we are not moving the mouse
-		if (action == ACTION_NOTHING && wParam != WM_MOUSEMOVE) {
-			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		//Return if button isn't bound to any action or if we are already busy with another action
+		if ((!action && wParam != WM_MOUSEMOVE)
+		 || (sharedstate.action && buttonstate == STATE_DOWN)) {
+			return 1; //Block mousedown so AltDrag.exe does not remove cursorwnd
 		}
 		
 		if (state.alt && buttonstate == STATE_DOWN) {
@@ -895,14 +894,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 			}
 			
-			//Return if already moving/resizing a window
-			if ((sharedstate.move || sharedstate.resize) && (action == ACTION_MOVE || action == ACTION_RESIZE)) {
-				return 1; //Block mousedown so AltDrag.exe does not remove cursorwnd
-			}
-			
 			//Okay, at least one trigger key is being pressed
 			POINT pt = msg->pt;
-			HCURSOR cursor;
+			HCURSOR cursor = NULL;
 			
 			//Make sure cursorwnd isn't in the way
 			if (sharedsettings.Performance.Cursor) {
@@ -927,7 +921,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			GetWindowPlacement(state.hwnd, &wndpl);
 			RECT wnd = wndpl.rcNormalPosition;
 			
-			//Return if the window is fullscreen and has no border
+			//Return if the window is a fullscreen window (and has no border)
 			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)) {
 				HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 				MONITORINFO monitorinfo;
@@ -940,6 +934,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Update state
+			sharedstate.action = action;
 			state.blockaltup = 1;
 			state.locked = 0;
 			state.aero = 0;
@@ -963,17 +958,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Do things depending on what button was pressed
 			if (action == ACTION_MOVE) {
-				//Ready to move window
-				sharedstate.move = 1;
-				cursor = cursors[HAND];
-				
 				//Maximize window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					//Stop move action
-					sharedstate.move = 0;
+					sharedstate.action = ACTION_NONE;
+					
 					//Maximize window
 					wndpl.showCmd = SW_MAXIMIZE;
 					SetWindowPlacement(state.hwnd, &wndpl);
+					
 					//Prevent mousedown from propagating
 					return 1;
 				}
@@ -1013,35 +1006,30 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						//Set offset
 						state.offset.x = (float)(pt.x-wnd.left)/state.origin.width*state.wndentry->width;
 						state.offset.y = (float)(pt.y-wnd.top)/state.origin.height*state.wndentry->height;
-						//Restore old window size
-						MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, state.wndentry->width, state.wndentry->height, TRUE);
-						//Remember time of this click so we can check for double-click
-						state.clicktime = GetTickCount();
+						
 						//Correct origin width/height
 						state.origin.width = state.wndentry->width;
 						state.origin.height = state.wndentry->height;
+						
+						//Restore old window size
+						MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, state.wndentry->width, state.wndentry->height, TRUE);
 					}
 				}
 				
-				//Remember time of this click so we can check for double-click
-				state.clicktime = GetTickCount();
+				cursor = cursors[HAND];
 			}
 			else if (action == ACTION_RESIZE) {
-				//Ready to resize window
-				sharedstate.resize = 1;
-				
 				//Restore the window if it's maximized
 				if (state.origin.maximized) {
 					//Restore window
 					wndpl.showCmd = SW_RESTORE;
-					//Get new size
+					
+					//Get and set new position
 					HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					MONITORINFO monitorinfo;
 					monitorinfo.cbSize = sizeof(MONITORINFO);
 					GetMonitorInfo(monitor, &monitorinfo);
-					wnd = monitorinfo.rcWork;
-					//Update window
-					wndpl.rcNormalPosition = wnd;
+					wnd = wndpl.rcNormalPosition = monitorinfo.rcWork;
 					SetWindowPlacement(state.hwnd, &wndpl);
 				}
 				
@@ -1075,7 +1063,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Aero-move this window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					//Stop resize action
-					sharedstate.resize = 0;
+					sharedstate.action = ACTION_NONE;
+					
 					//Get monitor info
 					HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 					MONITORINFO monitorinfo;
@@ -1144,9 +1133,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						cursor = cursors[SIZEALL];
 					}
 				}
-				
-				//Remember time of this click so we can check for double-click
-				state.clicktime = GetTickCount();
 			}
 			else if (action == ACTION_MINIMIZE) {
 				SendMessage(state.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -1167,8 +1153,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SendMessage(state.hwnd, WM_CLOSE, 0, 0);
 			}
 			
+			//Remember time of this click so we can check for double-click
+			state.clicktime = GetTickCount();
+			
 			//Update cursor
-			if (sharedsettings.Performance.Cursor && (action == ACTION_MOVE || action == ACTION_RESIZE)) {
+			if (sharedsettings.Performance.Cursor && cursor != NULL) {
 				MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, FALSE);
 				SetClassLongPtr(cursorwnd, GCLP_HCURSOR, (LONG_PTR)cursor);
 				ShowWindowAsync(cursorwnd, SW_SHOWNA);
@@ -1177,22 +1166,16 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Prevent mousedown from propagating
 			return 1;
 		}
-		else if (buttonstate == STATE_UP) {
-			if (sharedstate.move && action == ACTION_MOVE) {
-				sharedstate.move = 0;
-				if (!state.alt) {
-					UnhookMouse();
-				}
-			}
-			else if (sharedstate.resize && action == ACTION_RESIZE) {
-				sharedstate.resize = 0;
-				if (!state.alt) {
-					UnhookMouse();
-				}
+		else if (buttonstate == STATE_UP && sharedstate.action == action) {
+			sharedstate.action = ACTION_NONE;
+			
+			//Unhook mouse?
+			if (!state.alt) {
+				UnhookMouse();
 			}
 			
 			//Hide cursorwnd
-			if (sharedsettings.Performance.Cursor && !sharedstate.move && !sharedstate.resize) {
+			if (sharedsettings.Performance.Cursor && !sharedstate.action) {
 				ShowWindowAsync(cursorwnd, SW_HIDE);
 			}
 			
@@ -1202,7 +1185,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		else if (wParam == WM_MOUSEMOVE) {
 			//Reset double-click time
 			state.clicktime = 0; //This prevents me from double-clicking when running Windows virtualized.
-			if (sharedstate.move || sharedstate.resize) {
+			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
 				//Move cursorwnd
 				if (sharedsettings.Performance.Cursor) {
 					POINT pt = msg->pt;
@@ -1259,7 +1242,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		KillTimer(g_hwnd, UNLOCK_TIMER);
 		state.locked = 0;
 		
-		if (sharedstate.move) {
+		if (sharedstate.action == ACTION_MOVE) {
 			//Restore window
 			WINDOWPLACEMENT wndpl;
 			wndpl.length = sizeof(WINDOWPLACEMENT);
@@ -1280,10 +1263,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
 	if (msg == WM_WINDOWPOSCHANGING && (sharedstate.shift || sharedsettings.AutoSnap)) {
 		WINDOWPOS *wndpos = (WINDOWPOS*)lParam;
-		if (msgaction == MOVE && !(wndpos->flags&SWP_NOMOVE)) {
+		if (msgaction == ACTION_MOVE && !(wndpos->flags&SWP_NOMOVE)) {
 			MoveSnap(&wndpos->x, &wndpos->y, wndpos->cx, wndpos->cy);
 		}
-		else if (msgaction == RESIZE && !(wndpos->flags&SWP_NOSIZE)) {
+		else if (msgaction == ACTION_RESIZE && !(wndpos->flags&SWP_NOSIZE)) {
 			ResizeSnap(&wndpos->x, &wndpos->y, &wndpos->cx, &wndpos->cy);
 		}
 	}
@@ -1294,7 +1277,7 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 			return DefSubclassProc(hwnd, msg, wParam, lParam);
 		}
 		hwnd = NULL;
-		msgaction = NONE;
+		msgaction = ACTION_NONE;
 	}
 	
 	/*
@@ -1323,7 +1306,7 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (e.g. sharedstate)
 //Variables that are not shared, e.g. the blacklist, are loaded individually for each process.
 __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && !sharedstate.move && !sharedstate.resize) {
+	if (nCode == HC_ACTION && !sharedstate.action) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
 		
 		if (msg->message == WM_ENTERSIZEMOVE
@@ -1364,7 +1347,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			}
 		}
 		else if (msg->message == WM_WINDOWPOSCHANGING
-		 && !subclassed && state.hwnd == msg->hwnd && msgaction != NONE
+		 && !subclassed && state.hwnd == msg->hwnd && msgaction != ACTION_NONE
 		 && (sharedstate.shift || sharedsettings.AutoSnap)) {
 			
 			//Subclass window
@@ -1376,10 +1359,10 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 		else if (msg->message == WM_SYSCOMMAND) {
 			WPARAM action = msg->wParam&0xFFF0;
 			if (action == SC_MOVE) {
-				msgaction = MOVE;
+				msgaction = ACTION_MOVE;
 			}
 			else if (action == SC_SIZE) {
-				msgaction = RESIZE;
+				msgaction = ACTION_RESIZE;
 				int edge = msg->wParam&0x000F; //These are the undocumented bits (compatible with WMSZ_*)
 				//Set offset
 				//resize.x
@@ -1407,7 +1390,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			}
 		}
 		else if (msg->message == WM_EXITSIZEMOVE) {
-			msgaction = NONE;
+			msgaction = ACTION_NONE;
 		}
 	}
 	
@@ -1509,7 +1492,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				else if (!wcsicmp(txt,L"Center"))      *buttons[i].ptr = ACTION_CENTER;
 				else if (!wcsicmp(txt,L"AlwaysOnTop")) *buttons[i].ptr = ACTION_ALWAYSONTOP;
 				else if (!wcsicmp(txt,L"Close"))       *buttons[i].ptr = ACTION_CLOSE;
-				else                                   *buttons[i].ptr = ACTION_NOTHING;
+				else                                   *buttons[i].ptr = ACTION_NONE;
 			}
 			//Zero-out wnddb hwnds
 			for (i=0; i < NUMWNDDB; i++) {
@@ -1568,15 +1551,15 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				blacklist->length++;
 			}
 			//Switch gears?
-			if (pos == NULL && blacklist != &settings.Whitelist_Snap) {
+			if (pos == NULL && blacklist != &settings.Snaplist) {
 				blacklist_alloc = 0;
 				if (blacklist == &settings.Blacklist) {
 					blacklist = &settings.Blacklist_Snap;
 					GetPrivateProfileString(L"Blacklist", L"Blacklist_Snap", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
 				else {
-					blacklist = &settings.Whitelist_Snap;
-					GetPrivateProfileString(L"Blacklist", L"Whitelist_Snap", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+					blacklist = &settings.Snaplist;
+					GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
 				blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 				wcscpy(blacklist->data, txt);

@@ -31,7 +31,6 @@ Drag windows with the mouse when pressing the alt key.\n\
 You can use the middle or right mouse button to resize windows.\n\
 If you press the shift key while you drag or resize, the window will snap to other windows.\n\
 Double-click windows to maximize them.\n\
-Fullscreen windows, such as games, will not be affected.\n\
 \n\
 Visit the website at "APP_URL"\n\
 Visit the author's website at http://stefansundin.com/"
