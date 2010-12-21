@@ -389,9 +389,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return 0;
 	}
 	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
-		//Hide the window if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
+		//Hide cursorwnd if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
 		ShowWindow(hwnd, SW_HIDE);
 		SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+	}
+	else if (msg == WM_SHOWWINDOW) {
+		//I'm not sure if this is really needed...
+		if (wParam) {
+			//cursorwnd is being shown
+			SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+			SetLayeredWindowAttributes(hwnd, 0, 1, LWA_ALPHA); //Almost transparent
+		}
+		else {
+			//cursorwnd is being hidden
+			SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+		}
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
