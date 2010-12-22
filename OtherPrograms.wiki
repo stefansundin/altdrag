@@ -1,6 +1,7 @@
 #summary Other programs that do the same thing
 #labels Phase-QA
 
+
 = Open source =
   * [http://virtuawin.sourceforge.net/modules.php Win32WM], a module for [http://virtuawin.sourceforge.net/ VirtuaWin], but can also be used independently.
   * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], an AutoHotkey script.
@@ -13,14 +14,22 @@
   * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
   * [http://www.palma.com.au/winroll/ WinRoll] (Rollups)
 
+
 = Freeware =
   * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes something similar to WindowFinder)
   * [http://www.ivanheckman.com/allsnap/ allSnap] (Identical to `HookWindows`)
   * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
 
+
+= Commercial =
+  * [http://coderage-software.com/zooom/ Zooom/2] for Mac
+
+
 = Related =
   * [http://www.mouseimp.com/ MouseImp]
+  * [http://www.donationcoder.com/Software/Skrommel/#DragLock DragLock]
+
 
 = Other =
   * [http://www.techsupportalert.com/content/best-free-window-manager-resizer-arranger.htm List of window management programs]
