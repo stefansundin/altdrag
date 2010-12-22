@@ -3,11 +3,17 @@
 
 = Introduction =
 
-There are two blacklists in AltDrag. In them you can list windows which AltDrag should ignore. The first list specifies windows which shouldn't be dragged, and the second list specifies windows which shouldn't be stuck to with the shift button. So if you don't want to be able to alt-drag a specific window, you can add it to the first blacklist and AltDrag will ignore it. Similarly, if you don't want to be able to stick to specific windows when dragging them, add the window to the second blacklist.
+There are three lists in AltDrag. Here is a brief explanation of them:
 
-I realized that the ability to customize the blacklists is important since we are all running different applications on our computers. I made the blacklists so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, so it is not normally visible. To help build your custom blacklist, I've made a tool called WindowFinder. The entries are in the format `title|classname`, and they are comma separated. You should not use spaces when separating the entries, since the space will end up being included in the title. Note that the matching is case-sensitive.
+|| `Blacklist`      || Specifies windows that *should not* be affected by dragging and other actions. It is here you specify windows that you don't want AltDrag to touch. ||
+|| `Blacklist_Snap` || Specifies windows that *should not* be snapped to. Previously known as `Blacklist_Sticky`. ||
+|| `Snaplist`       || Specifies windows that *should* be snapped to. You should only need to specify windows that do not have a normal border here (like Winamp). ||
+
+I realized that the ability to customize the blacklists is important since we are all running different applications on our computers. I made the blacklists so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, so it is normally not visible. To help build your custom blacklist, I've made a tool called WindowFinder. The entries are in the format `title|classname`, and they are comma separated. You should not use spaces when separating the entries, since the space will end up being included in the title. Note that the matching is case-sensitive.
 
 Omitting the title or classname will make it match an empty string. To make it ignore the title or classname, use the string "`*`". This does not enable you to use wildcards, `*` is only valid when you want to completely ignore matching the title or the classname. Omitting the pipe character will also make it ignore the classname. This is a new behavior since 0.8.
+
+Since 0.9, borderless windows are not snapped to by default. These windows have to be specified in `Snaplist`. Because of this change, `Blacklist_Snap` is empty by default. Because I no longer see any use for it, I am planning to remove `Blacklist_Snap` in a future version. If you have any use for it, get in touch with me and we'll talk about it.
 
 I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
@@ -16,30 +22,24 @@ I want to mention that when AltDrag conflicts with other applications, you can o
 Here is an explanation of the default entries:
 
 || *Blacklist rule*           || *Explanation* ||
-|| `*|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista+. ||
-|| `*|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista+. ||
-|| *Blacklist_Sticky rule*    || *Explanation* ||
-|| `*|AltDrag`                || This is the AltDrag cursor overlay window. Since an application must own the window the cursor is currently hovering to be able to change the mouse cursor, AltDrag puts a small invisible window over the cursor to change it. ||
-|| `Start|Button`             || This is the Windows Vista start menu orb. ||
-|| `|tooltips_class32`        || A tooltip window. ||
-|| `|SysShadow`               || Another tooltip window. ||
-|| `|SideBar_HTMLHostWindow`  || Windows 7 gadgets are hosted in windows such as this one. ||
-|| `*|BasicWindow`            || Windows 7 gadgets, again. ||
-|| `*|KbxLabelClass`          || Windows 7 ribbon interface window. ||
-|| `|Chrome_WidgetWin_0`      || This is a strange window that follows the [http://www.google.com/chrome Chrome browser] window everywhere. Without this entry it looks very funny when trying to sticky-move a Chrome window. This window is in Chrome 3.0. ||
-|| `|Chrome_WindowImpl_0`     || This is same window as above, but for Chrome 4.0. Why do they keep changing this? This is the second time I have to update this rule! ||
-|| `*|SpotifyShadow`          || There are several windows that produce the shadow to the [http://www.spotify.com/ Spotify music player] window. They make it almost impossible to sticky-move Spotify properly. ||
-|| `Notifier|BaseWindow_RootWnd` || This is the notify window that Winamp pops up. ||
+|| `*|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista and Windows 7. ||
+|| `*|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista and Windows 7. ||
+|| *Snaplist rule*            || *Explanation* ||
+|| `*|BaseWindow_RootWnd`     || The Winamp window. ||
+|| `*|SkinWnd`                || The Xfire main window. ||
+|| `*|ChatSkinWnd`            || The Xfire chat window. ||
+|| `*|SpotifyMainWindow`      || The Spotify window. ||
+|| `*|USurface_35953`         || The Steam windows. ||
 
-You shouldn't need to edit or remove any of these entries.
+You should not need to edit or remove any of these entries. 
 
 = List of applications =
 
-Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it. Add the rule to `Blacklist_Sticky` if you don't want to be able to stick to it with other windows.
+Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it.
 
 || *Application* || *Blacklist rule* ||
-|| Photoshop     || `*|Photoshop`    ||
-|| Illutrator    || `*|illustrator`  ||
-|| PuTTY         || `*|PuTTY`        ||
+|| Photoshop     || `*|Photoshop,*|OWL.DocumentWindow`    ||
+|| Illustrator   || `*|illustrator` ||
+|| PuTTY         || `*|PuTTY` ||
 
 If know of an application you think others might want to blacklist, leave a comment with the blacklist rule!
