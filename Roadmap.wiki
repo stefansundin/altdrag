@@ -16,6 +16,7 @@ This is a list of feature suggestions by you guys. I'm not promising to implemen
   * Option to scroll the window you mouse hovers.
   * Reduce lag and CPU usage.
   * Dragging should start after a threshold.
+  * Drag windows by only using the mouse.
 
 
 = Suggest a feature =
