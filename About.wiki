@@ -5,7 +5,7 @@
 
 In addition to simply dragging windows, you can double-click a window to maximize it.
 
-When dragging windows, you can press the shift key to make it snap to the edges of other windows.
+When dragging a window, you can press the shift key to make it snap to the edges of other windows.
 
 If you still have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=22OaiP_HPXY this short video] that one of my users have posted to YouTube.
 
