@@ -19,7 +19,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "0.9"
+#define APP_VERSION         "0.9b1"
 #define APP_URL             L"http://altdrag.googlecode.com/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
@@ -95,7 +95,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 	RegisterClassEx(&wnd);
-	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
+	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
+	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
 	
 	//Load settings
 	wchar_t path[MAX_PATH];
@@ -391,19 +392,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
 		//Hide cursorwnd if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
 		ShowWindow(hwnd, SW_HIDE);
-		SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-	}
-	else if (msg == WM_SHOWWINDOW) {
-		//I'm not sure if this is really needed...
-		if (wParam) {
-			//cursorwnd is being shown
-			SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-			SetLayeredWindowAttributes(hwnd, 0, 1, LWA_ALPHA); //Almost transparent
-		}
-		else {
-			//cursorwnd is being hidden
-			SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-		}
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }

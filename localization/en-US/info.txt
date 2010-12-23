@@ -10,8 +10,8 @@ Double-click windows to maximize them.
 You can edit more settings in AltDrag.ini:
 * Enable AutoFocus to bring windows to the front when dragging them.
 * Enable AutoSnap to make windows always snap without needing to press shift.
-* Enable HookWindows to be able to use the shift key when normally moving windows.
-* Change mouse button actions. You can make any mouse button move, resize, minimize or center the window you click on.
+* Enable HookWindows to be able to use the shift key when moving windows without AltDrag.
+* Configure mouse buttons. The available actions are: Minimize, AlwaysOnTop, Center and Close.
 * Edit the blacklist, a list where you can specify windows that shouldn't be dragged.
 
 If you experience lag when you move or resize windows, try disabling the mouse cursor in AltDrag.ini.
@@ -26,8 +26,8 @@ AltDrag is open source, licensed under GPL.
 
 Changelog
 ---------
-0.9:
-Added Aero option. Alt-drag windows to the left, right and top of the screen. Corners work too!
+0.9 beta - 2010-12-23:
+Added Aero option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
 Added new mouse actions: AlwaysOnTop and Close.
 Replaced roll-up behavior with Aero behavior. Double-click with middle/right mouse button.
 Renamed "stick" to "snap" as people seem to "get" that term better.

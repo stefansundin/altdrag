@@ -1153,6 +1153,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SendMessage(state.hwnd, WM_CLOSE, 0, 0);
 			}
 			
+			//Send WM_ENTERSIZEMOVE
+			SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
+			
 			//Remember time of this click so we can check for double-click
 			state.clicktime = GetTickCount();
 			
@@ -1168,6 +1171,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		}
 		else if (buttonstate == STATE_UP && sharedstate.action == action) {
 			sharedstate.action = ACTION_NONE;
+			
+			//Send WM_EXITSIZEMOVE
+			SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
 			
 			//Unhook mouse?
 			if (!state.alt) {
