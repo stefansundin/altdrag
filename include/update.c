@@ -88,7 +88,8 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	}
 	
 	//New version available?
-	if (strcmp(data,APP_VERSION) > 0) {
+	int cmp = strcmp(data, APP_VERSION);
+	if (cmp > 0 || (beta && cmp != 0)) {
 		update = 1;
 		if (verbose) {
 			SendMessage(g_hwnd, WM_COMMAND, SWM_UPDATE, 0);
