@@ -2,6 +2,14 @@
 
 Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt may contain changes for upcoming versions.
 
+*0.9 beta* - 2010-12-23:
+  * Added `Aero` option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
+  * Added new mouse actions: `AlwaysOnTop` and `Close`.
+  * Replaced roll-up behavior with Aero behavior. Double-click with middle/right mouse button.
+  * Renamed "stick" to "snap" as people seem to "get" that term better.
+  * Fixed some bugs that prevented `HookWindows` from working properly.
+  * Tweaked the blacklist (see [Blacklist wiki]).
+
 *0.8* - 2009-11-15:
   * Added `AutoStick`, enable it to make windows always stick without needing to press shift. This replaces `StickyScreen`.
   * Renamed `ExperimentalFeatures` to `HookWindows`, also improved it so resizing is now supported and windows should no longer flicker. 64-bit programs also work now. I no longer consider it experimental!
@@ -21,7 +29,7 @@ Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.
   * Sticky behavior now works with resize (except when resizing in all directions).
   * Fixed tray not being hidden by `-hide`.
   * Fixed mouse cursor not changing when Aero was disabled in Vista.
-  * Language can now be changed in AltDrag.ini.
+  * Language can now be changed in `AltDrag.ini`.
 
 *0.5* - 2009-01-12:
   * You can now resize windows with the middle or right mouse button.
@@ -31,7 +39,7 @@ Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.
   * Sticky-blacklisted by default: the Vista start menu orb.
   * The mouse cursor will now change when you move and resize windows.
   * Only one instance of AltDrag can now be run. Starting AltDrag again will make the first copy add its tray icon.
-  * Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. ~~Doesn't work on all windows in Vista.~~ Doesn't work with 64-bit processes.
+  * Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista. Doesn't work with 64-bit processes.
 
 *0.4* - 2008-09-14:
   * You can now press the shift key to make the window stick to other windows.
