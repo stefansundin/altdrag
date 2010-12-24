@@ -13,6 +13,7 @@
   * [http://winxmove.sourceforge.net/ Win-X-Move]
   * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
   * [http://www.palma.com.au/winroll/ WinRoll] (Rollups)
+  * [http://code.google.com/p/wmove/ wmove]
 
 
 = Freeware =
@@ -21,6 +22,7 @@
   * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
   * [http://ehiti.de/katmouse/ KatMouse] (Scroll inactive windows)
+  * [http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml EasyMove]
 
 
 = Commercial =
