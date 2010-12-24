@@ -17,13 +17,14 @@
 
 = Freeware =
   * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes something similar to WindowFinder)
-  * [http://www.ivanheckman.com/allsnap/ allSnap] (Identical to `HookWindows`)
+  * [http://www.ivanheckman.com/allsnap/ allSnap] (Window snapping)
   * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
 
 
 = Commercial =
   * [http://coderage-software.com/zooom/ Zooom/2] for Mac
+  * [http://www.actualtools.com/multiplemonitors/ Actual Multiple Monitors] (Window snapping)
 
 
 = Related =
