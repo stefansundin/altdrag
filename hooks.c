@@ -943,10 +943,22 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			state.origin.height = wnd.bottom-wnd.top;
 			
 			//Check if window is in the wnddb database
+			int restore = 0;
 			state.wndentry = NULL;
 			for (i=0; i < NUMWNDDB; i++) {
 				if (wnddb.items[i].hwnd == state.hwnd) {
 					state.wndentry = &wnddb.items[i];
+					
+					//Restore old width/height?
+					if (state.wndentry->restore
+					 && state.wndentry->last.width == state.origin.width
+					 && state.wndentry->last.height == state.origin.height) {
+						restore = 1;
+						state.origin.width = state.wndentry->width;
+						state.origin.height = state.wndentry->height;
+					}
+					state.wndentry->restore = 0;
+					
 					break;
 				}
 			}
@@ -979,16 +991,24 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					RECT wndmax;
 					GetWindowRect(state.hwnd, &wndmax);
 					
-					//Restore window
-					wndpl.showCmd = SW_RESTORE;
-					SetWindowPlacement(state.hwnd, &wndpl);
-					
 					//Set offset
 					state.offset.x = (float)(pt.x-wndmax.left)/(wndmax.right-wndmax.left)*state.origin.width;
 					state.offset.y = (float)(pt.y-wndmax.top)/(wndmax.bottom-wndmax.top)*state.origin.height;
 					
-					//Move
-					MouseMove();
+					//Restore window
+					wndpl.rcNormalPosition.left = pt.x-state.offset.x;
+					wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
+					wndpl.rcNormalPosition.top = pt.y-state.offset.y;
+					wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
+					wndpl.showCmd = SW_RESTORE;
+					SetWindowPlacement(state.hwnd, &wndpl);
+				}
+				else if (restore) {
+					//Set offset
+					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
+					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
+					//Restore old window size
+					MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, state.origin.width, state.origin.height, TRUE);
 				}
 				else {
 					//Set offset
@@ -996,40 +1016,17 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					state.offset.y = pt.y-wnd.top;
 				}
 				
-				//Restore old window size?
-				if (state.wndentry != NULL) {
-					int restore = state.wndentry->restore;
-					state.wndentry->restore = 0;
-					if (restore && !state.origin.maximized
-					 && state.wndentry->last.width == state.origin.width
-					 && state.wndentry->last.height == state.origin.height) {
-						//Set offset
-						state.offset.x = (float)(pt.x-wnd.left)/state.origin.width*state.wndentry->width;
-						state.offset.y = (float)(pt.y-wnd.top)/state.origin.height*state.wndentry->height;
-						
-						//Correct origin width/height
-						state.origin.width = state.wndentry->width;
-						state.origin.height = state.wndentry->height;
-						
-						//Restore old window size
-						MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, state.wndentry->width, state.wndentry->height, TRUE);
-					}
-				}
-				
 				cursor = cursors[HAND];
 			}
 			else if (action == ACTION_RESIZE) {
-				//Restore the window if it's maximized
+				//Restore the window (to monitor size) if it's maximized
 				if (state.origin.maximized) {
-					//Restore window
-					wndpl.showCmd = SW_RESTORE;
-					
-					//Get and set new position
 					HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					MONITORINFO monitorinfo;
 					monitorinfo.cbSize = sizeof(MONITORINFO);
 					GetMonitorInfo(monitor, &monitorinfo);
 					wnd = wndpl.rcNormalPosition = monitorinfo.rcWork;
+					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 				}
 				
