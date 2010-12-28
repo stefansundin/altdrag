@@ -64,7 +64,6 @@ struct {
 	} resize;
 	short blockaltup;
 	short locked;
-	short aero;
 	struct wnddata *wndentry;
 	struct {
 		HMONITOR monitor;
@@ -575,7 +574,7 @@ void MouseMove() {
 			if (fmon.left <= pt.x && pt.x < fmon.left+2*AERO_THRESHOLD
 			 && fmon.top <= pt.y && pt.y < fmon.top+2*AERO_THRESHOLD) {
 				//Topleft
-				state.aero = 1;
+				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.left;
@@ -584,7 +583,7 @@ void MouseMove() {
 			else if (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
 			      && fmon.top <= pt.y && pt.y < fmon.top+2*AERO_THRESHOLD) {
 				//Topright
-				state.aero = 1;
+				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.right-wndwidth;
@@ -593,7 +592,7 @@ void MouseMove() {
 			else if (fmon.left <= pt.x && pt.x < fmon.left+2*AERO_THRESHOLD
 			      && fmon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
 				//Bottomleft
-				state.aero = 1;
+				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.left;
@@ -602,7 +601,7 @@ void MouseMove() {
 			else if (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
 			      && fmon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
 				//Bottomright
-				state.aero = 1;
+				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.right-wndwidth;
@@ -611,9 +610,7 @@ void MouseMove() {
 			else if (fmon.top <= pt.y && pt.y < fmon.top+AERO_THRESHOLD) {
 				//Top
 				if (!maximized) {
-					if (state.wndentry != NULL) {
-						state.wndentry->restore = 0;
-					}
+					state.wndentry->restore = 0;
 					//Center window on monitor and maximize it
 					wndpl.rcNormalPosition.left = mon.left+(mon.right-mon.left)/2-state.origin.width/2;
 					wndpl.rcNormalPosition.top = mon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
@@ -626,7 +623,7 @@ void MouseMove() {
 			}
 			else if (fmon.left <= pt.x && pt.x < fmon.left+AERO_THRESHOLD) {
 				//Left
-				state.aero = 1;
+				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top);
 				posx = mon.left;
@@ -634,47 +631,33 @@ void MouseMove() {
 			}
 			else if (fmon.right-AERO_THRESHOLD < pt.x && pt.x < fmon.right) {
 				//Right
-				state.aero = 1;
+				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top);
 				posx = mon.right-wndwidth;
 				posy = mon.top;
 			}
-			else if (state.aero) {
+			else if (state.wndentry->restore) {
 				//Restore original window size
-				state.aero = 0;
-				if (state.wndentry != NULL) {
-					state.wndentry->restore = 0;
-				}
+				state.wndentry->restore = 0;
 				wndwidth = state.origin.width;
 				wndheight = state.origin.height;
 			}
 			
-			//Store in wnddb
-			if (state.aero) {
-				if (state.wndentry == NULL) {
-					//Find a nice spot in the database
-					int i;
-					for (i=0; i < NUMWNDDB+1 && wnddb.pos->restore == 1; i++) {
-						wnddb.pos = (wnddb.pos == &wnddb.items[NUMWNDDB-1])?&wnddb.items[0]:wnddb.pos+1;
-					}
-					state.wndentry = wnddb.pos;
-					state.wndentry->hwnd = state.hwnd;
-				}
+			//Update wndentry
+			if (state.wndentry->restore) {
 				state.wndentry->width = state.origin.width;
 				state.wndentry->height = state.origin.height;
-				state.wndentry->restore = 1;
 				state.wndentry->last.width = wndwidth;
 				state.wndentry->last.height = wndheight;
 			}
 			
 			/*
-			//Use this to print wnddb to file
 			FILE *f = fopen("C:\\altdrag-wnddb.txt", "wb");
 			int k;
 			for (k=0; k < NUMWNDDB; k++) {
 				struct wnddata *wnd = &wnddb.items[k];
-				fprintf(f, "%02d: hwnd:%d, restore:%d, %dx%d", k, wnd->hwnd, wnd->restore, wnd->width, wnd->height);
+				fprintf(f, "%02d: hwnd:%10d, restore:%d, origin:%4dx%4d, last:%4dx%4d", k, wnd->hwnd, wnd->restore, wnd->width, wnd->height, wnd->last.width, wnd->last.height);
 				if (wnd == wnddb.pos) {
 					fprintf(f, " <--");
 				}
@@ -716,10 +699,8 @@ void MouseMove() {
 		}
 	}
 	else if (sharedstate.action == ACTION_RESIZE) {
-		//Clear restore flag in wnddb if present
-		if (state.wndentry != NULL) {
-			state.wndentry->restore = 0;
-		}
+		//Clear restore flag
+		state.wndentry->restore = 0;
 		
 		//Figure out new placement
 		if (state.resize.x == RESIZE_CENTER && state.resize.y == RESIZE_CENTER) {
@@ -937,30 +918,28 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			sharedstate.action = action;
 			state.blockaltup = 1;
 			state.locked = 0;
-			state.aero = 0;
 			state.origin.maximized = IsZoomed(state.hwnd);
 			state.origin.width = wnd.right-wnd.left;
 			state.origin.height = wnd.bottom-wnd.top;
 			
 			//Check if window is in the wnddb database
-			int restore = 0;
 			state.wndentry = NULL;
 			for (i=0; i < NUMWNDDB; i++) {
 				if (wnddb.items[i].hwnd == state.hwnd) {
 					state.wndentry = &wnddb.items[i];
-					
-					//Restore old width/height?
-					if (state.wndentry->restore
-					 && state.wndentry->last.width == state.origin.width
-					 && state.wndentry->last.height == state.origin.height) {
-						restore = 1;
-						state.origin.width = state.wndentry->width;
-						state.origin.height = state.wndentry->height;
-					}
-					state.wndentry->restore = 0;
-					
 					break;
 				}
+			}
+			
+			//Find a nice place in wnddb if not already present
+			if (state.wndentry == NULL) {
+				int i;
+				for (i=0; i < NUMWNDDB+1 && wnddb.pos->restore == 1; i++) {
+					wnddb.pos = (wnddb.pos == &wnddb.items[NUMWNDDB-1])?&wnddb.items[0]:wnddb.pos+1;
+				}
+				state.wndentry = wnddb.pos;
+				state.wndentry->hwnd = state.hwnd;
+				state.wndentry->restore = 0;
 			}
 			
 			//AutoFocus
@@ -982,6 +961,17 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					//Prevent mousedown from propagating
 					return 1;
 				}
+				
+				//Restore old width/height?
+				int restore = 0;
+				if (state.wndentry->restore
+				 && state.wndentry->last.width == state.origin.width
+				 && state.wndentry->last.height == state.origin.height) {
+					restore = 1;
+					state.origin.width = state.wndentry->width;
+					state.origin.height = state.wndentry->height;
+				}
+				state.wndentry->restore = 0;
 				
 				//Restore the window if it's maximized
 				if (state.origin.maximized) {
@@ -1086,23 +1076,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 					
-					//Store window in wnddb
-					if (state.wndentry == NULL) {
-						//Find a nice spot in the database
-						int i;
-						for (i=0; i < NUMWNDDB+1 && wnddb.pos->restore == 1; i++) {
-							wnddb.pos = (wnddb.pos == &wnddb.items[NUMWNDDB-1])?&wnddb.items[0]:wnddb.pos+1;
-						}
-						state.wndentry = wnddb.pos;
-						state.wndentry->hwnd = state.hwnd;
-					}
+					//Update wndentry
+					state.wndentry->last.width = wndwidth;
+					state.wndentry->last.height = wndheight;
 					if (!state.wndentry->restore) {
 						state.wndentry->width = state.origin.width;
 						state.wndentry->height = state.origin.height;
 						state.wndentry->restore = 1;
 					}
-					state.wndentry->last.width = wndwidth;
-					state.wndentry->last.height = wndheight;
 					
 					//Prevent mousedown from propagating
 					return 1;
@@ -1430,13 +1411,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			//Detect if Aero Snap is enabled
 			if (sharedsettings.Aero == 2) {
 				HKEY key;
-				wchar_t aero[2] = L"";
-				DWORD len = sizeof(aero);
+				DWORD len = sizeof(txt);
 				RegOpenKeyEx(HKEY_CURRENT_USER, L"Control Panel\\Desktop", 0, KEY_QUERY_VALUE, &key);
-				int error = RegQueryValueEx(key, L"WindowArrangementActive", NULL, NULL, (LPBYTE)aero, &len);
+				int error = RegQueryValueEx(key, L"WindowArrangementActive", NULL, NULL, (LPBYTE)txt, &len);
 				RegCloseKey(key);
 				if (error == ERROR_SUCCESS) {
-					sharedsettings.Aero = _wtoi(aero);
+					swscanf(txt, L"%d", &sharedsettings.Aero);
 				}
 			}
 			
