@@ -83,7 +83,7 @@ Function ${un}AddTray
 	IntCmp $0 0 done
 		DetailPrint "Adding tray icon."
 		System::Call "user32::RegisterWindowMessage(t 'AddTray') i .r1"
-		SendMessage $0 $1 0 0
+		SendMessage $0 $1 0 0 /TIMEOUT=500
 	done:
 FunctionEnd
 !macroend
@@ -103,7 +103,7 @@ Function ${un}CloseApp
 			MessageBox MB_ICONINFORMATION|MB_YESNO "$1" /SD IDYES IDNO done
 		${EndIf}
 		DetailPrint "Closing running ${APP_NAME}."
-		SendMessage $0 ${WM_CLOSE} 0 0
+		SendMessage $0 ${WM_CLOSE} 0 0 /TIMEOUT=500
 		waitloop:
 			Sleep 10
 			FindWindow $0 "${APP_NAME}" ""
