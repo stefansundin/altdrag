@@ -4,12 +4,28 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2010-12-23T21:20:00Z</updated>
+	<updated>2010-12-30T21:20:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<uri>http://stefansundin.com/</uri>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:242a3189-6873-4a13-be72-f8fe1cab5279</id>
+		<title>How to compile my programs</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2010-12-30T21:20:00Z</updated>
+		<author><name>Stefan Sundin</name></author>
+		<content type="html">
+I have made a video explaining how to compile SuperF4, which is another program of mine. The instructions also work just as well with AltDrag. This might be of interest if you are learning programming and want to make your own modifications to AltDrag. Go to the &lt;a href="http://code.google.com/p/altdrag/wiki/Build">Build&lt;/a> wiki page to see it.&lt;br/>
+&lt;br/>
+&lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the website&lt;/a>&lt;br/>
+&lt;a href="http://www.youtube.com/watch?v=4ENwQxSr_So">&lt;img src="http://www.youtube.com/favicon.ico"/> Watch the video on YouTube&lt;/a>&lt;br/>
+&lt;a href="http://groups.google.com/group/recovers-tools">&lt;img src="http://altdrag.googlecode.com/svn/wiki/groups.png"/> Discuss in the forum&lt;/a> (no registration required)&lt;br/>
+&lt;a href="http://stefansundin.com/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the author's website&lt;/a>
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:1c626523-0bc5-4276-b1b0-514a70de4482</id>
