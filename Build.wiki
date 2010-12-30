@@ -51,4 +51,11 @@ Note that `AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bi
 
 To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and put it in PATH as well, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
 
+
+= Video walkthrough =
+
+If you don't get it working, it might help to watch [http://www.youtube.com/watch?v=4ENwQxSr_So this video]. In it I explain how to compile another program of mine, SuperF4. These instructions should work just as well with AltDrag.
+
+<wiki:gadget border="0" url="http://stefansundin.com/stuff/youtube-iframe.xml" up_id="4ENwQxSr_So" width="640" height="385" />
+
 Add a comment if you need help.
