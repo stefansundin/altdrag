@@ -86,6 +86,7 @@ int numwnds = 0;
 HWND progman = NULL;
 
 //Settings
+#define MAXKEYS 10
 struct {
 	int AutoFocus;
 	int AutoSnap;
@@ -95,7 +96,7 @@ struct {
 		int Cursor;
 	} Performance;
 	struct {
-		unsigned char *keys;
+		unsigned char keys[MAXKEYS];
 		int length;
 	} Hotkeys;
 	struct {
@@ -855,9 +856,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			(wParam==WM_LBUTTONUP||wParam==WM_MBUTTONUP||wParam==WM_RBUTTONUP||wParam==WM_XBUTTONUP)?STATE_UP:STATE_NONE;
 		int action = GetAction(button);
 		
-		//Return if button isn't bound to any action or if we are already busy with another action
-		if ((!action && wParam != WM_MOUSEMOVE)
-		 || (sharedstate.action && buttonstate == STATE_DOWN)) {
+		//Return if button isn't bound to any action
+		if (!action && wParam != WM_MOUSEMOVE) {
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+		//Block mousedown if we are busy with another action
+		if (sharedstate.action && buttonstate == STATE_DOWN) {
 			return 1; //Block mousedown so AltDrag.exe does not remove cursorwnd
 		}
 		
@@ -1132,7 +1136,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Send WM_ENTERSIZEMOVE
-			SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
+			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
+				SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
+			}
 			
 			//Remember time of this click so we can check for double-click
 			state.clicktime = GetTickCount();
@@ -1151,7 +1157,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			sharedstate.action = ACTION_NONE;
 			
 			//Send WM_EXITSIZEMOVE
-			SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
+			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
+				SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
+			}
 			
 			//Unhook mouse?
 			if (!state.alt) {
@@ -1159,7 +1167,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Hide cursorwnd
-			if (sharedsettings.Performance.Cursor && !sharedstate.action) {
+			if (sharedsettings.Performance.Cursor) {
 				ShowWindowAsync(cursorwnd, SW_HIDE);
 			}
 			
@@ -1394,6 +1402,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		//Settings shared with CallWndProc hook
 		if (!sharedsettings_loaded) {
 			sharedsettings_loaded = 1;
+			sharedsettings.Hotkeys.length = 0;
+			
 			//Store path to ini file at initial load so CallWndProc hooks can find it
 			GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
 			PathRemoveFileSpec(inipath);
@@ -1435,24 +1445,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				#endif
 			}
 			
-			//[Keyboard]
-			int keys_alloc = 0;
-			unsigned char temp;
-			int numread;
-			sharedsettings.Hotkeys.length = 0;
-			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			wchar_t *pos = txt;
-			while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
-				//Make sure we have enough space
-				if (sharedsettings.Hotkeys.length == keys_alloc) {
-					keys_alloc += 10;
-					sharedsettings.Hotkeys.keys = realloc(sharedsettings.Hotkeys.keys, keys_alloc*sizeof(int));
-				}
-				//Store key
-				sharedsettings.Hotkeys.keys[sharedsettings.Hotkeys.length++] = temp;
-				pos += numread;
-			}
-			
 			//[Mouse]
 			struct {
 				wchar_t *key;
@@ -1477,13 +1469,30 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				else if (!wcsicmp(txt,L"Close"))       *buttons[i].ptr = ACTION_CLOSE;
 				else                                   *buttons[i].ptr = ACTION_NONE;
 			}
+			
+			//[Keyboard]
+			unsigned char temp;
+			int numread;
+			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			wchar_t *pos = txt;
+			while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
+				//Bail if we are out of space
+				if (sharedsettings.Hotkeys.length == MAXKEYS) {
+					break;
+				}
+				//Store key
+				sharedsettings.Hotkeys.keys[sharedsettings.Hotkeys.length++] = temp;
+				pos += numread;
+			}
+			
 			//Zero-out wnddb hwnds
 			for (i=0; i < NUMWNDDB; i++) {
 				wnddb.items[i].hwnd = NULL;
 			}
 			wnddb.pos = &wnddb.items[0];
-			#ifndef _WIN64
+			
 			//Create window for timers
+			#ifndef _WIN64
 			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME, NULL};
 			RegisterClassEx(&wnd);
 			g_hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInst, NULL);
@@ -1572,6 +1581,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		free(settings.Blacklist.data);
 		free(settings.Blacklist_Snap.items);
 		free(settings.Blacklist_Snap.data);
+		free(settings.Snaplist.items);
+		free(settings.Snaplist.data);
 		free(wnds);
 	}
 	return TRUE;
