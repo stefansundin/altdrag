@@ -61,6 +61,8 @@ struct {
 	POINT offset;
 	struct {
 		enum resize x, y;
+		int minwidth;
+		int minheight;
 	} resize;
 	short blockaltup;
 	short locked;
@@ -70,6 +72,8 @@ struct {
 		short maximized;
 		int width;
 		int height;
+		int right;
+		int bottom;
 	} origin;
 } state;
 
@@ -563,9 +567,10 @@ void MouseMove() {
 			RECT fmon = monitorinfo.rcMonitor;
 			
 			//Restore window?
-			if (maximized && (pt.y > fmon.top+AERO_THRESHOLD
-			 || ((fmon.left < pt.x && pt.x < fmon.left+2*AERO_THRESHOLD)
-			  || (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right)))) {
+			if (maximized
+			 && ((pt.y > fmon.top+AERO_THRESHOLD)
+			  || (fmon.left < pt.x && pt.x < fmon.left+2*AERO_THRESHOLD)
+			  || (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right))) {
 				//Restore window
 				wndpl.showCmd = SW_RESTORE;
 				SetWindowPlacement(state.hwnd, &wndpl);
@@ -677,16 +682,13 @@ void MouseMove() {
 			GetMonitorInfo(monitor, &monitorinfo);
 			RECT mon = monitorinfo.rcWork;
 			//Center window on monitor and maximize it
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(state.hwnd, &wndpl);
 			wndpl.rcNormalPosition.left = mon.left+(mon.right-mon.left)/2-wndwidth/2;
 			wndpl.rcNormalPosition.top = mon.top+(mon.bottom-mon.top)/2-wndheight/2;
 			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
 			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
 			wndpl.showCmd = SW_MAXIMIZE;
 			SetWindowPlacement(state.hwnd, &wndpl);
-			//Set this monitor as the origin
+			//Set this monitor as the origin (dirty hack maybe)
 			state.origin.monitor = monitor;
 			//Lock the current state, but restore window after a timeout
 			state.locked = 1;
@@ -737,11 +739,30 @@ void MouseMove() {
 				posx = wnd.left;
 				wndwidth = pt.x-wnd.left+state.offset.x;
 			}
-		}
-		
-		//Check if the window will snap anywhere
-		if ((sharedstate.shift || sharedsettings.AutoSnap) && (state.resize.x != RESIZE_CENTER || state.resize.y != RESIZE_CENTER)) {
-			ResizeSnap(&posx, &posy, &wndwidth, &wndheight);
+			
+			//Check if the window will snap anywhere
+			if (sharedstate.shift || sharedsettings.AutoSnap) {
+				ResizeSnap(&posx, &posy, &wndwidth, &wndheight);
+			}
+			
+			//Check if we have reached minwidth or minheight
+			if (state.resize.x == RESIZE_LEFT && state.resize.minwidth == 0 && state.origin.right != wnd.right) {
+				state.resize.minwidth = wnd.right-wnd.left;
+			}
+			if (state.resize.y == RESIZE_TOP && state.resize.minheight == 0 && state.origin.bottom != wnd.bottom) {
+				state.resize.minheight = wnd.bottom-wnd.top;
+			}
+			
+			//Make sure we don't try to make the window too small
+			//This is only needed to prevent the window from drifting when resizing it to the right or downwards
+			if (wndwidth <= state.resize.minwidth) {
+				wndwidth = state.resize.minwidth;
+				posx = state.origin.right-wndwidth;
+			}
+			if (wndheight <= state.resize.minheight) {
+				wndheight = state.resize.minheight;
+				posy = state.origin.bottom-wndheight;
+			}
 		}
 	}
 	
@@ -857,7 +878,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		int action = GetAction(button);
 		
 		//Return if button isn't bound to any action
-		if (!action && wParam != WM_MOUSEMOVE) {
+		if (button && !action) {
 			return CallNextHookEx(NULL, nCode, wParam, lParam);
 		}
 		//Block mousedown if we are busy with another action
@@ -1022,6 +1043,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					wnd = wndpl.rcNormalPosition = monitorinfo.rcWork;
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
+					//Update origin width/height
+					state.origin.width = wnd.right-wnd.left;
+					state.origin.height = wnd.bottom-wnd.top;
 				}
 				
 				//Set edge and offset
@@ -1050,6 +1074,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					state.resize.x = RESIZE_RIGHT;
 					state.offset.x = wnd.right-pt.x;
 				}
+				
+				//Set window right/bottom origin
+				state.origin.right = wnd.right;
+				state.origin.bottom = wnd.bottom;
+				state.resize.minwidth = 0;
+				state.resize.minheight = 0;
 				
 				//Aero-move this window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
