@@ -540,10 +540,10 @@ void MouseMove() {
 	
 	//Get state
 	int maximized = IsZoomed(state.hwnd);
-	WINDOWPLACEMENT wndpl;
-	wndpl.length = sizeof(WINDOWPLACEMENT);
-	GetWindowPlacement(state.hwnd, &wndpl);
-	RECT wnd = wndpl.rcNormalPosition;
+	RECT wnd;
+	if (GetWindowRect(state.hwnd,&wnd) == 0) {
+		return;
+	}
 	
 	//Get new position for window
 	POINT pt;
@@ -568,17 +568,23 @@ void MouseMove() {
 			
 			//Restore window?
 			if (maximized
-			 && ((pt.y > fmon.top+AERO_THRESHOLD)
-			  || (fmon.left < pt.x && pt.x < fmon.left+2*AERO_THRESHOLD)
-			  || (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right))) {
+			 && ((pt.y >= mon.top+AERO_THRESHOLD)
+			  || (fmon.left < pt.x && pt.x < mon.left+2*AERO_THRESHOLD)
+			  || (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right))) {
 				//Restore window
+				WINDOWPLACEMENT wndpl;
+				wndpl.length = sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(state.hwnd, &wndpl);
 				wndpl.showCmd = SW_RESTORE;
 				SetWindowPlacement(state.hwnd, &wndpl);
+				//Update wndwidth and wndheight
+				wndwidth = wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
+				wndheight = wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
 			}
 			
 			//Move window
-			if (fmon.left <= pt.x && pt.x < fmon.left+2*AERO_THRESHOLD
-			 && fmon.top <= pt.y && pt.y < fmon.top+2*AERO_THRESHOLD) {
+			if (fmon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
+			 && fmon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Topleft
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -586,8 +592,8 @@ void MouseMove() {
 				posx = mon.left;
 				posy = mon.top;
 			}
-			else if (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
-			      && fmon.top <= pt.y && pt.y < fmon.top+2*AERO_THRESHOLD) {
+			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
+			      && fmon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Topright
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -595,8 +601,8 @@ void MouseMove() {
 				posx = mon.right-wndwidth;
 				posy = mon.top;
 			}
-			else if (fmon.left <= pt.x && pt.x < fmon.left+2*AERO_THRESHOLD
-			      && fmon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
+			else if (fmon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
+			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
 				//Bottomleft
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -604,8 +610,8 @@ void MouseMove() {
 				posx = mon.left;
 				posy = mon.bottom-wndheight;
 			}
-			else if (fmon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
-			      && fmon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
+			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
+			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
 				//Bottomright
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -613,13 +619,16 @@ void MouseMove() {
 				posx = mon.right-wndwidth;
 				posy = mon.bottom-wndheight;
 			}
-			else if (fmon.top <= pt.y && pt.y < fmon.top+AERO_THRESHOLD) {
+			else if (fmon.top <= pt.y && pt.y < mon.top+AERO_THRESHOLD) {
 				//Top
 				if (!maximized) {
 					state.wndentry->restore = 0;
 					//Center window on monitor and maximize it
-					wndpl.rcNormalPosition.left = mon.left+(mon.right-mon.left)/2-state.origin.width/2;
-					wndpl.rcNormalPosition.top = mon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
+					WINDOWPLACEMENT wndpl;
+					wndpl.length = sizeof(WINDOWPLACEMENT);
+					GetWindowPlacement(state.hwnd, &wndpl);
+					wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-state.origin.width/2;
+					wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
 					wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
 					wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
 					wndpl.showCmd = SW_MAXIMIZE;
@@ -627,7 +636,7 @@ void MouseMove() {
 				}
 				return;
 			}
-			else if (fmon.left <= pt.x && pt.x < fmon.left+AERO_THRESHOLD) {
+			else if (fmon.left <= pt.x && pt.x < mon.left+AERO_THRESHOLD) {
 				//Left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -635,7 +644,7 @@ void MouseMove() {
 				posx = mon.left;
 				posy = mon.top;
 			}
-			else if (fmon.right-AERO_THRESHOLD < pt.x && pt.x < fmon.right) {
+			else if (mon.right-AERO_THRESHOLD < pt.x && pt.x < fmon.right) {
 				//Right
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -681,9 +690,13 @@ void MouseMove() {
 			monitorinfo.cbSize = sizeof(MONITORINFO);
 			GetMonitorInfo(monitor, &monitorinfo);
 			RECT mon = monitorinfo.rcWork;
+			RECT fmon = monitorinfo.rcMonitor;
 			//Center window on monitor and maximize it
-			wndpl.rcNormalPosition.left = mon.left+(mon.right-mon.left)/2-wndwidth/2;
-			wndpl.rcNormalPosition.top = mon.top+(mon.bottom-mon.top)/2-wndheight/2;
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-wndwidth/2;
+			wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-wndheight/2;
 			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
 			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
 			wndpl.showCmd = SW_MAXIMIZE;
@@ -746,10 +759,10 @@ void MouseMove() {
 			}
 			
 			//Check if we have reached minwidth or minheight
-			if (state.resize.x == RESIZE_LEFT && state.resize.minwidth == 0 && state.origin.right != wnd.right) {
+			if (state.resize.x == RESIZE_LEFT && state.resize.minwidth == 0 && wnd.right > state.origin.right) {
 				state.resize.minwidth = wnd.right-wnd.left;
 			}
-			if (state.resize.y == RESIZE_TOP && state.resize.minheight == 0 && state.origin.bottom != wnd.bottom) {
+			if (state.resize.y == RESIZE_TOP && state.resize.minheight == 0 && wnd.bottom > state.origin.bottom) {
 				state.resize.minheight = wnd.bottom-wnd.top;
 			}
 			
@@ -925,7 +938,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			WINDOWPLACEMENT wndpl;
 			wndpl.length = sizeof(WINDOWPLACEMENT);
 			GetWindowPlacement(state.hwnd, &wndpl);
-			RECT wnd = wndpl.rcNormalPosition;
+			RECT wnd;
+			if (GetWindowRect(state.hwnd,&wnd) == 0) {
+				return;
+			}
 			
 			//Return if the window is a fullscreen window (and has no border)
 			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)) {
@@ -944,8 +960,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			state.blockaltup = 1;
 			state.locked = 0;
 			state.origin.maximized = IsZoomed(state.hwnd);
-			state.origin.width = wnd.right-wnd.left;
-			state.origin.height = wnd.bottom-wnd.top;
+			state.origin.width = wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
+			state.origin.height = wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
 			
 			//Check if window is in the wnddb database
 			state.wndentry = NULL;
@@ -1002,21 +1018,16 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				if (state.origin.maximized) {
 					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					
-					//Get maximized size
-					RECT wndmax;
-					GetWindowRect(state.hwnd, &wndmax);
-					
 					//Set offset
-					state.offset.x = (float)(pt.x-wndmax.left)/(wndmax.right-wndmax.left)*state.origin.width;
-					state.offset.y = (float)(pt.y-wndmax.top)/(wndmax.bottom-wndmax.top)*state.origin.height;
+					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
+					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
 					
 					//Restore window
-					wndpl.rcNormalPosition.left = pt.x-state.offset.x;
-					wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
-					wndpl.rcNormalPosition.top = pt.y-state.offset.y;
-					wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
+					
+					//Set new position
+					MouseMove();
 				}
 				else if (restore) {
 					//Set offset
@@ -1040,12 +1051,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					MONITORINFO monitorinfo;
 					monitorinfo.cbSize = sizeof(MONITORINFO);
 					GetMonitorInfo(monitor, &monitorinfo);
-					wnd = wndpl.rcNormalPosition = monitorinfo.rcWork;
+					wndpl.rcNormalPosition = monitorinfo.rcMonitor; //Set size to full monitor to prevent flickering
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					//Update origin width/height
+					wnd = monitorinfo.rcWork;
 					state.origin.width = wnd.right-wnd.left;
 					state.origin.height = wnd.bottom-wnd.top;
+					//Move window
+					MoveWindow(state.hwnd, wnd.left, wnd.top, state.origin.width, state.origin.height, TRUE);
 				}
 				
 				//Set edge and offset
