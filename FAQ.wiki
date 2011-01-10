@@ -4,13 +4,16 @@
 = FAQ =
 
 *AltDrag does not work in VirtualBox when using Linux as a host OS. Why?*
-  * AltDrag does not work since your window manager is intercepting the alt keypress so you can move the VirtualBox window. You can reassign the hotkey for AltDrag as a workaround. For more information, read issue 23.
+ AltDrag does not work since your window manager is intercepting the alt keypress so you can move the VirtualBox window. You can reassign the hotkey for AltDrag as a workaround. For more information, read issue 23.
 
 *I can't resize PuTTY!! FIX IT PLZ!*
-  * This is due to a combination of bugs that were present in both AltDrag and PuTTY. Since 0.9, you can resize PuTTY, but *only* if you are using a key other than Alt! If you want to use the Alt button, then you have to run [http://tartarus.org/~simon/putty-snapshots/x86/putty.exe a development version of PuTTY] (at least `r9045`). For more information, read issue 27.
+ This is due to a combination of bugs that were present in both AltDrag and PuTTY. Since 0.9, you can resize PuTTY, but *only* if you are using a key other than Alt! If you want to use the Alt button, then you have to run [http://tartarus.org/~simon/putty-snapshots/x86/putty.exe a development version of PuTTY] (at least `r9045`). For more information, read issue 27.
 
 *I can't drag or resize window X. Why?*
-  * Some programs implement their own window handlers which may interfere with AltDrag (e.g. Winamp). The problem most likely lies with the program you are trying to drag. They did not expect that another program might want to move it and thus they didn't code for that scenario. If you encounter a program that is having troubles, I suggest that you send a bug report to its developers. If you still think the problem lies with AltDrag, please file a bug report.
+ Some programs implement their own window handlers which may interfere with AltDrag (e.g. Winamp). The problem most likely lies with the program you are trying to drag. They did not expect that another program might want to move it and thus they didn't code for that scenario. If you encounter a program that is having troubles, I suggest that you send a bug report to its developers. If you still think the problem lies with AltDrag, please file a bug report.
+
+*I am having trouble dragging some windows. I have UAC enabled.*
+ The keyboard hook that AltDrag uses to detect the Alt keypress does not forward keypresses if an elevated program has keyboard focus. Thus if AltDrag is not running with administrator privileges, then it won't detect Alt keypresses when an elevated program has keyboard focus. For AltDrag to pick up this, it too has to run with administrator privileges. See [About#UAC the about page] for details on how to solve this.
 
 
 = This doesn't answer my question! =
