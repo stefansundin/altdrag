@@ -583,43 +583,39 @@ void MouseMove() {
 			}
 			
 			//Move window
-			if (fmon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
-			 && fmon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
-				//Topleft
+			if (pt.x < mon.left+2*AERO_THRESHOLD && pt.y < mon.top+2*AERO_THRESHOLD) {
+				//Top left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.left;
 				posy = mon.top;
 			}
-			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
-			      && fmon.top <= pt.y && pt.y < mon.top+2*AERO_THRESHOLD) {
-				//Topright
+			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.y < mon.top+2*AERO_THRESHOLD) {
+				//Top right
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.right-wndwidth;
 				posy = mon.top;
 			}
-			else if (fmon.left <= pt.x && pt.x < mon.left+2*AERO_THRESHOLD
-			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
-				//Bottomleft
+			else if (pt.x < mon.left+2*AERO_THRESHOLD && mon.bottom-2*AERO_THRESHOLD < pt.y) {
+				//Bottom left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.left;
 				posy = mon.bottom-wndheight;
 			}
-			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right
-			      && mon.bottom-2*AERO_THRESHOLD < pt.y && pt.y < fmon.bottom) {
-				//Bottomright
+			else if (mon.right-2*AERO_THRESHOLD < pt.x && mon.bottom-2*AERO_THRESHOLD < pt.y) {
+				//Bottom right
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.right-wndwidth;
 				posy = mon.bottom-wndheight;
 			}
-			else if (fmon.top <= pt.y && pt.y < mon.top+AERO_THRESHOLD) {
+			else if (pt.y < mon.top+AERO_THRESHOLD) {
 				//Top
 				if (!maximized) {
 					state.wndentry->restore = 0;
@@ -636,7 +632,23 @@ void MouseMove() {
 				}
 				return;
 			}
-			else if (fmon.left <= pt.x && pt.x < mon.left+AERO_THRESHOLD) {
+			else if (pt.y < mon.top+2*AERO_THRESHOLD) {
+				//Top
+				state.wndentry->restore = 1;
+				wndwidth = (mon.right-mon.left);
+				wndheight = (mon.bottom-mon.top)/2;
+				posx = mon.left;
+				posy = mon.top;
+			}
+			else if (mon.bottom-AERO_THRESHOLD < pt.y) {
+				//Bottom
+				state.wndentry->restore = 1;
+				wndwidth = (mon.right-mon.left);
+				wndheight = (mon.bottom-mon.top)/2;
+				posx = mon.left;
+				posy = mon.bottom-wndheight;
+			}
+			else if (pt.x < mon.left+AERO_THRESHOLD) {
 				//Left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -644,7 +656,7 @@ void MouseMove() {
 				posx = mon.left;
 				posy = mon.top;
 			}
-			else if (mon.right-AERO_THRESHOLD < pt.x && pt.x < fmon.right) {
+			else if (mon.right-AERO_THRESHOLD < pt.x) {
 				//Right
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
@@ -683,8 +695,7 @@ void MouseMove() {
 		}
 		
 		//Maximize window again if moved from another monitor
-		if (sharedsettings.AutoRemaximize && state.origin.maximized
-		 && !state.locked && monitor != state.origin.monitor) {
+		if (sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
 			//Get monitor rect
 			MONITORINFO monitorinfo;
 			monitorinfo.cbSize = sizeof(MONITORINFO);
@@ -1110,17 +1121,24 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
 					wndwidth = (mon.right-mon.left)/2;
-					wndheight = (mon.bottom-mon.top);
+					wndheight = (mon.bottom-mon.top)/2;
 					posx = mon.left;
 					posy = mon.top;
-					if (state.resize.y != RESIZE_CENTER) {
-						wndheight = (mon.bottom-mon.top)/2;
+					if (state.resize.y == RESIZE_CENTER) {
+						wndheight = mon.bottom-mon.top;
 					}
-					if (pt.x-wnd.left > state.origin.width/2) {
-						posx = mon.right-wndwidth;
-					}
-					if (state.resize.y == RESIZE_BOTTOM) {
+					else if (state.resize.y == RESIZE_BOTTOM) {
 						posy = mon.bottom-wndheight;
+					}
+					if (state.resize.x == RESIZE_CENTER) {
+						posx = wnd.left;
+						if (state.resize.y != RESIZE_CENTER) {
+							wndwidth = mon.right-mon.left;
+							posx = mon.left;
+						}
+					}
+					else if (state.resize.x == RESIZE_RIGHT) {
+						posx = mon.right-wndwidth;
 					}
 					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 					
