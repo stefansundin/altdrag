@@ -4,7 +4,7 @@
 	If you still can't override hooks.dll, use Process Explorer to search for hooks.dll.
 	This also applies to hooks_x64.dll.
 	
-	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
