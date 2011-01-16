@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -75,7 +75,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 	wnd.hCursor = LoadImage(hInst, L"find", IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 	RegisterClassEx(&wnd);
-	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL); //WS_EX_LAYERED
+	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
+	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
 	
 	//Tray icon
 	InitTray();
@@ -222,7 +223,6 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 			
 			//Make sure cursorwnd isn't in the way
 			ShowWindow(g_hwnd, SW_HIDE);
-			SetWindowLongPtr(g_hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 			
 			//Print window info
 			POINT *p_pt = malloc(sizeof(pt));
@@ -271,8 +271,6 @@ int HookMouse() {
 	int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	MoveWindow(g_hwnd, left, top, width, height, FALSE);
-	SetWindowLongPtr(g_hwnd, GWL_EXSTYLE, WS_EX_LAYERED|WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
-	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
 	ShowWindowAsync(g_hwnd, SW_SHOWNA);
 	
 	//Success
@@ -316,7 +314,6 @@ int DisableMouse() {
 	
 	//Hide cursor
 	ShowWindow(g_hwnd, SW_HIDE);
-	SetWindowLongPtr(g_hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -365,7 +362,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
 		//Hide the window if clicked on, this might happen if it wasn't hidden by the hooks for some reason
 		ShowWindow(hwnd, SW_HIDE);
-		SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW); //Workaround for http://support.microsoft.com/kb/270624/
+		//Since we take away the cursor, make sure the mouse is unhooked
+		UnhookMouse();
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }

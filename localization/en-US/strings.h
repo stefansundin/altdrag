@@ -32,6 +32,8 @@ You can use the middle or right mouse button to resize windows.\n\
 If you press the shift key while you drag or resize, the window will snap to other windows.\n\
 Double-click windows to maximize them.\n\
 \n\
+A more thorough explanation of "APP_NAME" is available on the website.\n\
+\n\
 Visit the website at "APP_URL"\n\
 Visit the author's website at http://stefansundin.com/"
 };

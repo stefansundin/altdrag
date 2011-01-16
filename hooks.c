@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2010  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 //Timers
 HWND g_hwnd;
-#define UNLOCK_TIMER WM_APP+1
+#define RESTORE_TIMER WM_APP+1
 
 //Enumerators
 enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE};
@@ -65,6 +65,7 @@ struct {
 		int minheight;
 	} resize;
 	short blockaltup;
+	short ignorectrl;
 	short locked;
 	struct wnddata *wndentry;
 	struct {
@@ -714,9 +715,12 @@ void MouseMove() {
 			SetWindowPlacement(state.hwnd, &wndpl);
 			//Set this monitor as the origin (dirty hack maybe)
 			state.origin.monitor = monitor;
-			//Lock the current state, but restore window after a timeout
+			//Lock the current state
 			state.locked = 1;
-			SetTimer(g_hwnd, UNLOCK_TIMER, 1000, NULL);
+			//Restore window after a timeout if AutoRemaximize=2
+			if (sharedsettings.AutoRemaximize == 2) {
+				SetTimer(g_hwnd, RESTORE_TIMER, 1000, NULL);
+			}
 			return;
 		}
 		
@@ -837,7 +841,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					return 1;
 				}
 			}
-			else if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
+			else if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
 				SetForegroundWindow(state.hwnd);
 			}
 		}
@@ -857,7 +861,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				//Block the alt keyup to prevent the window menu to be selected.
 				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup.
 				//For more information, see issue 20.
-				if (state.blockaltup) {
+				if (state.blockaltup || sharedstate.action) {
+					state.ignorectrl = 1;
 					KEYBDINPUT ctrl[2];
 					ctrl[0].wVk = ctrl[1].wVk = VK_CONTROL;
 					ctrl[0].wScan = ctrl[0].time = ctrl[1].wScan = ctrl[1].time = 0;
@@ -869,6 +874,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					input[0].ki = ctrl[0];
 					input[1].ki = ctrl[1];
 					SendInput(2, input, sizeof(INPUT));
+					state.ignorectrl = 0;
 				}
 				
 				//Unhook mouse if not moving or resizing
@@ -905,6 +911,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		if (button && !action) {
 			return CallNextHookEx(NULL, nCode, wParam, lParam);
 		}
+		
+		//Toggle maximized state if move+resize is clicked
+		if (buttonstate == STATE_DOWN && sharedstate.action == ACTION_MOVE && action == ACTION_RESIZE) {
+			//Toggle maximized state
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			wndpl.showCmd = (wndpl.showCmd==SW_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE;
+			state.locked = (wndpl.showCmd==SW_MAXIMIZE); //Set locked flag
+			SetWindowPlacement(state.hwnd, &wndpl);
+			return 1;
+		}
+		
 		//Block mousedown if we are busy with another action
 		if (sharedstate.action && buttonstate == STATE_DOWN) {
 			return 1; //Block mousedown so AltDrag.exe does not remove cursorwnd
@@ -969,6 +988,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Update state
 			sharedstate.action = action;
 			state.blockaltup = 1;
+			state.ignorectrl = 0;
 			state.locked = 0;
 			state.origin.maximized = IsZoomed(state.hwnd);
 			state.origin.width = wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
@@ -1293,7 +1313,7 @@ int UnhookMouse() {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_TIMER) {
-		KillTimer(g_hwnd, UNLOCK_TIMER);
+		KillTimer(g_hwnd, RESTORE_TIMER);
 		state.locked = 0;
 		
 		if (sharedstate.action == ACTION_MOVE) {

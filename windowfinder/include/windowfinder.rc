@@ -24,7 +24,7 @@ BEGIN
 			VALUE "InternalName", "windowfinder"
 			VALUE "OriginalFilename", "WindowFinder.exe"
 			VALUE "CompanyName", "Stefan Sundin"
-			VALUE "LegalCopyright", "© Stefan Sundin 2010"
+			VALUE "LegalCopyright", "© Stefan Sundin 2011"
 		END
 	END
 	BLOCK "VarFileInfo"
