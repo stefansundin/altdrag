@@ -11,6 +11,7 @@ You can edit more settings in AltDrag.ini:
 * Enable AutoFocus to bring windows to the front when dragging them.
 * Enable AutoSnap to make windows always snap without needing to press shift.
 * Enable HookWindows to be able to use the shift key when moving windows without AltDrag.
+* Enable InactiveScroll to be to scroll inactive windows with the mouse wheel.
 * Configure mouse buttons. The additional actions are: Minimize, AlwaysOnTop, Center and Close.
 * Edit the blacklist, a list where you can specify windows that shouldn't be dragged.
 
@@ -29,6 +30,7 @@ AltDrag is open source, licensed under GPL.
 Changelog
 ---------
 0.9 rc:
+Added InactiveScroll. Enable it to scroll inactive windows.
 Fixed bug with custom taskbar locations.
 Expanded Aero option.
 Expanded AutoRemaximized option.

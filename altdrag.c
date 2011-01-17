@@ -62,6 +62,7 @@ struct {
 //Cool stuff
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
+HHOOK mousehook = NULL;
 HHOOK msghook = NULL;
 BOOL x64 = FALSE;
 
@@ -145,7 +146,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 }
 
 int HookSystem() {
-	if (keyhook && msghook) {
+	if (keyhook && mousehook && msghook) {
 		//System already hooked
 		return 1;
 	}
@@ -175,6 +176,21 @@ int HookSystem() {
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
 			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
+			return 1;
+		}
+	}
+	
+	if (!mousehook) {
+		//Get address to keyboard hook (beware name mangling)
+		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelMouseProc@12");
+		if (procaddr == NULL) {
+			Error(L"GetProcAddress('LowLevelMouseProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			return 1;
+		}
+		//Set up the keyboard hook
+		mousehook = SetWindowsHookEx(WH_MOUSE_LL, procaddr, hinstDLL, 0);
+		if (mousehook == NULL) {
+			Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -215,7 +231,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 }
 
 int UnhookSystem() {
-	if (!keyhook && !msghook) {
+	if (!keyhook && !mousehook && !msghook) {
 		//System not hooked
 		return 1;
 	}
@@ -227,6 +243,14 @@ int UnhookSystem() {
 			return 1;
 		}
 		keyhook = NULL;
+	}
+	
+	if (mousehook) {
+		if (UnhookWindowsHookEx(mousehook) == 0) {
+			Error(L"UnhookWindowsHookEx(mousehook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			return 1;
+		}
+		mousehook = NULL;
 	}
 	
 	if (msghook) {
@@ -268,7 +292,7 @@ int UnhookSystem() {
 }
 
 int enabled() {
-	return keyhook || msghook;
+	return keyhook || mousehook || msghook;
 }
 
 void ToggleState() {
