@@ -522,8 +522,10 @@ int IsHotkey(int key) {
 }
 
 void MouseMove() {
+	int posx, posy, wndwidth, wndheight;
+	
 	//Make sure we got something to do
-	if (state.locked || (sharedstate.action != ACTION_MOVE && sharedstate.action != ACTION_RESIZE)) {
+	if (sharedstate.action != ACTION_MOVE && sharedstate.action != ACTION_RESIZE) {
 		return;
 	}
 	
@@ -533,31 +535,68 @@ void MouseMove() {
 		return;
 	}
 	
-	//Double check if the shift is being pressed
-	if (sharedstate.shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-		sharedstate.shift = 0;
-	}
+	//Get cursor
+	POINT pt;
+	GetCursorPos(&pt);
 	
-	//Get state
+	//Get window state
 	int maximized = IsZoomed(state.hwnd);
+	HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 	RECT wnd;
 	if (GetWindowRect(state.hwnd,&wnd) == 0) {
 		return;
 	}
 	
-	//Get new position for window
-	POINT pt;
-	GetCursorPos(&pt);
-	int posx, posy, wndwidth, wndheight;
+	//AutoRemaximize has priority over locked flag
 	if (sharedstate.action == ACTION_MOVE) {
 		posx = pt.x-state.offset.x;
 		posy = pt.y-state.offset.y;
 		wndwidth = wnd.right-wnd.left;
 		wndheight = wnd.bottom-wnd.top;
 		
-		//Get monitor
-		HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		
+		//Maximize window again if moved from another monitor
+		if (sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
+			//Get monitor rect
+			MONITORINFO monitorinfo;
+			monitorinfo.cbSize = sizeof(MONITORINFO);
+			GetMonitorInfo(monitor, &monitorinfo);
+			RECT mon = monitorinfo.rcWork;
+			RECT fmon = monitorinfo.rcMonitor;
+			//Center window on monitor and maximize it
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			GetWindowPlacement(state.hwnd, &wndpl);
+			wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-wndwidth/2;
+			wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-wndheight/2;
+			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
+			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
+			wndpl.showCmd = SW_MAXIMIZE;
+			SetWindowPlacement(state.hwnd, &wndpl);
+			//Set this monitor as the origin (dirty hack maybe)
+			state.origin.monitor = monitor;
+			//Lock the current state
+			state.locked = 1;
+			//Restore window after a timeout if AutoRemaximize=2
+			if (sharedsettings.AutoRemaximize == 2) {
+				SetTimer(g_hwnd, RESTORE_TIMER, 1000, NULL);
+			}
+			return;
+		}
+	}
+	
+	//Return if state is locked
+	if (state.locked) {
+		return;
+	}
+	
+	//Double check if the shift is being pressed
+	if (sharedstate.shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
+		sharedstate.shift = 0;
+	}
+	
+	//Get new position for window
+	if (sharedstate.action == ACTION_MOVE) {
+		//Aero Snap
 		if (sharedsettings.Aero) {
 			//Get monitor info
 			MONITORINFO monitorinfo;
@@ -671,12 +710,22 @@ void MouseMove() {
 				wndheight = state.origin.height;
 			}
 			
-			//Update wndentry
+			//Move the window?
 			if (state.wndentry->restore) {
 				state.wndentry->width = state.origin.width;
 				state.wndentry->height = state.origin.height;
-				state.wndentry->last.width = wndwidth;
-				state.wndentry->last.height = wndheight;
+				
+				//Move
+				MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
+				
+				//Get new size after move
+				//Doing this since wndwidth and wndheight might be wrong if this window has a min/max size
+				GetWindowRect(state.hwnd, &wnd);
+				state.wndentry->last.width = wnd.right-wnd.left;
+				state.wndentry->last.height = wnd.bottom-wnd.top;
+				
+				//We are done
+				return;
 			}
 			
 			/*
@@ -692,35 +741,6 @@ void MouseMove() {
 			}
 			fclose(f);
 			*/
-		}
-		
-		//Maximize window again if moved from another monitor
-		if (sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
-			//Get monitor rect
-			MONITORINFO monitorinfo;
-			monitorinfo.cbSize = sizeof(MONITORINFO);
-			GetMonitorInfo(monitor, &monitorinfo);
-			RECT mon = monitorinfo.rcWork;
-			RECT fmon = monitorinfo.rcMonitor;
-			//Center window on monitor and maximize it
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(state.hwnd, &wndpl);
-			wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-wndwidth/2;
-			wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-wndheight/2;
-			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
-			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
-			wndpl.showCmd = SW_MAXIMIZE;
-			SetWindowPlacement(state.hwnd, &wndpl);
-			//Set this monitor as the origin (dirty hack maybe)
-			state.origin.monitor = monitor;
-			//Lock the current state
-			state.locked = 1;
-			//Restore window after a timeout if AutoRemaximize=2
-			if (sharedsettings.AutoRemaximize == 2) {
-				SetTimer(g_hwnd, RESTORE_TIMER, 1000, NULL);
-			}
-			return;
 		}
 		
 		//Check if the window will snap anywhere
