@@ -25,7 +25,7 @@ LangString L10N_AUTOSTART_HIDE    ${LANG} "Hide tray"
 
 LangString L10N_ALTSHIFT_TITLE    ${LANG} "Keyboard Shortcut"
 LangString L10N_ALTSHIFT_SUBTITLE ${LANG} "The shortcut Alt + Shift conflicts with ${APP_NAME}."
-LangString L10N_ALTSHIFT_HEADER   ${LANG} "The installer has detected that you have more than one keyboard layout installed, and that the shortcut to toggle the current keyboard layout is Alt + Shift.$\n$\nWhen using ${APP_NAME}, you can press Shift while dragging windows to make them stick to other windows. This means you are likely to press Alt + Shift, the same combination which toggles your keyboard layout. While ${APP_NAME} internally tries to block accidentally switching the keyboard layout, it might not always succeed.$\n$\nYou can disable or change the shortcut which toggles the keyboard layout by pressing this button. Click Next to continue."
+LangString L10N_ALTSHIFT_HEADER   ${LANG} "The installer has detected that the Windows shortcut to toggle the current keyboard layout is Alt + Shift.$\n$\nWhen using ${APP_NAME}, you can press Shift while dragging windows to make them snap to other windows. This means you are likely to press Alt + Shift, the same combination which toggles your keyboard layout. While ${APP_NAME} internally tries to block accidentally switching the keyboard layout, it will not succeed if you press Shift before you start dragging a window.$\n$\nYou can disable or change the shortcut which toggles the keyboard layout by pressing this button. Click Next to continue."
 LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Open keyboard settings"
 
 !undef LANG

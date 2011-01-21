@@ -133,7 +133,7 @@ Function PageUpgrade
 	
 	${NSD_CreateRadioButton} 0 45 100% 10u "$(L10N_UPGRADE_UPGRADE)"
 	Pop $Upgradebox
-	${NSD_CreateLabel} 16 60 100% 20u "$(L10N_UPGRADE_INI)"
+	${NSD_CreateLabel} 16 62 100% 20u "$(L10N_UPGRADE_INI)"
 	
 	${NSD_CreateRadioButton} 0 95 100% 10u "$(L10N_UPGRADE_INSTALL)"
 	Pop $0
@@ -239,30 +239,18 @@ FunctionEnd
 Function PageAltShift
 	ClearErrors
 	ReadRegStr $0 HKCU "Keyboard Layout\Toggle" "Language Hotkey"
-	IfErrors check
+	IfErrors prompt
 	ReadRegStr $1 HKCU "Keyboard Layout\Toggle" "Layout Hotkey"
 	${If} $0 != "1"
 	${AndIf} $1 != "1"
 		Abort
 	${EndIf}
 	
-	check:
-	StrCpy $0 0
-	loop:
-		ClearErrors
-		EnumRegValue $1 HKCU "Keyboard Layout\Preload" $0
-		IfErrors done
-		IntOp $0 $0 + 1
-		Goto loop
-	done:
-	${If} $0 == 1
-		Abort
-	${EndIf}
-	
+	prompt:
 	nsDialogs::Create 1018
 	!insertmacro MUI_HEADER_TEXT "$(L10N_ALTSHIFT_TITLE)" "$(L10N_ALTSHIFT_SUBTITLE)"
 	${NSD_CreateLabel} 0 0 100% 143 "$(L10N_ALTSHIFT_HEADER)"
-	${NSD_CreateButton} 0 144 90u 17u "$(L10N_ALTSHIFT_BUTTON)"
+	${NSD_CreateButton} 0 144 92u 17u "$(L10N_ALTSHIFT_BUTTON)"
 	Pop $0
 	${NSD_OnClick} $0 OpenKeyboardSettings
 	

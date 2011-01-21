@@ -960,7 +960,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			GetWindowPlacement(state.hwnd, &wndpl);
 			RECT wnd;
 			if (GetWindowRect(state.hwnd,&wnd) == 0) {
-				return;
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
 			//Return if the window is a fullscreen window (and has no border)
@@ -1035,15 +1035,13 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				state.wndentry->restore = 0;
 				
-				//Restore the window if it's maximized
+				//Set offset
 				if (state.origin.maximized) {
-					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
-					
-					//Set offset
 					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
 					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
 					
-					//Restore window
+					//Restore the window if it's maximized
+					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					
@@ -1051,14 +1049,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					MouseMove();
 				}
 				else if (restore) {
-					//Set offset
 					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
 					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
 					//Restore old window size
 					MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, state.origin.width, state.origin.height, TRUE);
 				}
 				else {
-					//Set offset
 					state.offset.x = pt.x-wnd.left;
 					state.offset.y = pt.y-wnd.top;
 				}
@@ -1416,7 +1412,6 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			else if (action == SC_SIZE) {
 				msgaction = ACTION_RESIZE;
 				int edge = msg->wParam&0x000F; //These are the undocumented bits (compatible with WMSZ_*)
-				//Set offset
 				//resize.x
 				if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
 					state.resize.x = RESIZE_CENTER;
@@ -1437,6 +1432,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 				else if (edge == WMSZ_BOTTOM || edge == WMSZ_BOTTOMLEFT || edge == WMSZ_BOTTOMRIGHT) {
 					state.resize.y = RESIZE_BOTTOM;
 				}
+				//Set offset
 				state.offset.x = 0;
 				state.offset.y = 0;
 			}
