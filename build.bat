@@ -8,7 +8,7 @@ set prefix32=i686-w64-mingw32-
 set prefix64=x86_64-w64-mingw32-
 set l10n=en-US es-ES gl-ES ru-RU
 
-taskkill /IM AltDrag.exe /F
+taskkill /IM AltDrag.exe
 
 if not exist build. mkdir build
 

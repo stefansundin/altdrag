@@ -224,7 +224,7 @@ int HookSystem() {
 	return 0;
 }
 
-//Force processes to unhook hooks.dll by sending them a dummy message
+//Force processes to unload hooks.dll by sending them a dummy message
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	PostMessage(hwnd, WM_NULL, 0, 0);
 	return TRUE;
@@ -236,30 +236,34 @@ int UnhookSystem() {
 		return 1;
 	}
 	
+	//Remove keyboard hook
 	if (keyhook) {
-		//Remove keyboard hook
-		if (UnhookWindowsHookEx(keyhook) == 0) {
+		if (UnhookWindowsHookEx(keyhook) != 0) {
+			keyhook = NULL;
+		}
+		else {
 			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
 		}
-		keyhook = NULL;
 	}
 	
+	//Remove mouse hook
 	if (mousehook) {
-		if (UnhookWindowsHookEx(mousehook) == 0) {
-			Error(L"UnhookWindowsHookEx(mousehook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
+		if (UnhookWindowsHookEx(mousehook) != 0) {
+			mousehook = NULL;
 		}
-		mousehook = NULL;
+		else {
+			Error(L"UnhookWindowsHookEx(mousehook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+		}
 	}
 	
+	//Remove message hook
 	if (msghook) {
-		//Remove message hook
 		if (UnhookWindowsHookEx(msghook) == 0) {
-			Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
+			msghook = NULL;
 		}
-		msghook = NULL;
+		else {
+			Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+		}
 		
 		//Close HookWindows_x64.exe
 		if (x64) {
@@ -269,7 +273,7 @@ int UnhookSystem() {
 			}
 		}
 		
-		//Send dummy messages to all processes to make them unhook hooks.dll
+		//Send dummy messages to all processes to make them unload hooks.dll
 		EnumWindows(EnumWindowsProc, 0);
 	}
 	
@@ -277,13 +281,14 @@ int UnhookSystem() {
 	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
 	ClearSettings();
 	
+	//Unload library
 	if (hinstDLL) {
-		//Unload library
-		if (FreeLibrary(hinstDLL) == 0) {
-			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
+		if (FreeLibrary(hinstDLL) != 0) {
+			hinstDLL = NULL;
 		}
-		hinstDLL = NULL;
+		else {
+			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+		}
 	}
 	
 	//Success
@@ -292,7 +297,7 @@ int UnhookSystem() {
 }
 
 int enabled() {
-	return keyhook || mousehook || msghook;
+	return (keyhook || mousehook || msghook);
 }
 
 void ToggleState() {

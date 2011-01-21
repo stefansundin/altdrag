@@ -29,7 +29,7 @@ AltDrag is open source, licensed under GPL.
 
 Changelog
 ---------
-0.9 rc:
+0.9 release candidate:
 Added InactiveScroll. Enable it to scroll inactive windows.
 Fixed bug with custom taskbar locations.
 Expanded Aero option.
