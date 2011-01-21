@@ -20,7 +20,6 @@
 
 //App
 #define APP_NAME L"AltDrag"
-#define SNAP_THRESHOLD 20
 #define AERO_THRESHOLD 5
 
 //WM_MOUSEHWHEEL is only defined for >= Vista
@@ -101,6 +100,7 @@ struct {
 	int AutoRemaximize;
 	int Aero;
 	int InactiveScroll;
+	int SnapThreshold;
 	struct {
 		int Cursor;
 	} Performance;
@@ -288,7 +288,7 @@ void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
 	
 	//thresholdx and thresholdy will shrink to make sure the dragged window will snap to the closest windows
 	int i, j, thresholdx, thresholdy, stuckx=0, stucky=0, stickx=0, sticky=0;
-	thresholdx = thresholdy = SNAP_THRESHOLD;
+	thresholdx = thresholdy = sharedsettings.SnapThreshold;
 	//Loop monitors and windows
 	for (i=0, j=0; i < nummonitors || j < numwnds; ) {
 		RECT snapwnd;
@@ -382,7 +382,7 @@ void ResizeSnap(int *posx, int *posy, int *wndwidth, int *wndheight) {
 	
 	//thresholdx and thresholdy will shrink to make sure the dragged window will snap to the closest windows
 	int i, j, thresholdx, thresholdy, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
-	thresholdx = thresholdy = SNAP_THRESHOLD;
+	thresholdx = thresholdy = sharedsettings.SnapThreshold;
 	//Loop monitors and windows
 	for (i=0, j=0; i < nummonitors || j < numwnds; ) {
 		RECT snapwnd;
@@ -1475,6 +1475,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.Aero);
 			GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.InactiveScroll);
+			GetPrivateProfileString(APP_NAME, L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.SnapThreshold);
+			
 			//Detect if Aero Snap is enabled
 			if (sharedsettings.Aero == 2) {
 				HKEY key;
