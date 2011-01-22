@@ -37,6 +37,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	fwprintf(f, L"%s\n\n", msg);
 	fclose(f);
 	#else
+	//Tip: You can also press Ctrl+C in a MessageBox window to copy the text
 	HHOOK hhk = SetWindowsHookEx(WH_CBT, &ErrorMsgProc, 0, GetCurrentThreadId());
 	int response = MessageBox(NULL, msg, APP_NAME" Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
