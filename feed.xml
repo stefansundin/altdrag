@@ -4,12 +4,36 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2010-12-30T21:20:00Z</updated>
+	<updated>2011-01-22T20:00:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<uri>http://stefansundin.com/</uri>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:c15d52ef-142a-4ca5-85cf-4eed24edc313</id>
+		<title>AltDrag - 0.9 release candidate 1</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2011-01-22T20:00:00Z</updated>
+		<author><name>Stefan Sundin</name></author>
+		<content type="html">
+&lt;p>Released 0.9 release candidate. This update fixes a number of bugs that were present in the beta, including one major bug if you had the taskbar oriented at a non-default location. It also adds a new feature that allows you to use the mouse wheel to scroll inactive windows. You can enable it by setting &lt;tt>InactiveScroll=1&lt;/tt> in the settings. For a complete list of changes, see the changelog below. I expect to release a proper version in January. In any case, I believe that this is the best version of AltDrag yet! The beta is only available as a 7z archive.&lt;/p>
+&lt;p>&lt;b>I want those of you who have multiple monitors to see if there are any issues. Try obscure configurations.&lt;/b> I only own one monitor myself so you can understand that I have troubles testing multi-monitor setups.&lt;/p>
+&lt;p>&lt;u>Changelog:&lt;/u>&lt;/p>
+&lt;ul>
+&lt;li>Added &lt;tt>InactiveScroll&lt;/tt>. Enable it to scroll inactive windows.&lt;/li>
+&lt;li>Fixed major bug with custom taskbar locations (bug only present in the beta).&lt;/li>
+&lt;li>Expanded &lt;tt>Aero&lt;/tt> option.&lt;/li>
+&lt;li>Expanded &lt;tt>AutoRemaximized&lt;/tt> option.&lt;/li>
+&lt;li>It is now possible to toggle the maximized state with a resize button while dragging.&lt;/li>
+&lt;/ul>
+&lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the website&lt;/a>&lt;br/>
+&lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.9rc1.7z">&lt;img src="http://altdrag.googlecode.com/svn/wiki/down.png"/> Download the release candidate&lt;/a>&lt;br/>
+&lt;a href="http://groups.google.com/group/recovers-tools">&lt;img src="http://altdrag.googlecode.com/svn/wiki/groups.png"/> Discuss in the forum&lt;/a> (no registration required)&lt;br/>
+&lt;a href="http://stefansundin.com/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the author's website&lt;/a>&lt;br/>
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:242a3189-6873-4a13-be72-f8fe1cab5279</id>
