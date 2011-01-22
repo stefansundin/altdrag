@@ -9,6 +9,7 @@ This is a list of features I want to implement.
 = Version 1.0 =
 I want to finish this before I release 1.0:
   * Option to specify snap threshold.
+  * Blacklist by process name (issue 45).
 
 
 = Wishlist =
