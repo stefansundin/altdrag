@@ -19,7 +19,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "0.9b1"
+#define APP_VERSION         "0.9rc1"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
@@ -238,32 +238,26 @@ int UnhookSystem() {
 	
 	//Remove keyboard hook
 	if (keyhook) {
-		if (UnhookWindowsHookEx(keyhook) != 0) {
-			keyhook = NULL;
-		}
-		else {
+		if (UnhookWindowsHookEx(keyhook) == 0) {
 			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		}
+		keyhook = NULL;
 	}
 	
 	//Remove mouse hook
 	if (mousehook) {
-		if (UnhookWindowsHookEx(mousehook) != 0) {
-			mousehook = NULL;
-		}
-		else {
+		if (UnhookWindowsHookEx(mousehook) == 0) {
 			Error(L"UnhookWindowsHookEx(mousehook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		}
+		mousehook = NULL;
 	}
 	
 	//Remove message hook
 	if (msghook) {
 		if (UnhookWindowsHookEx(msghook) == 0) {
-			msghook = NULL;
-		}
-		else {
 			Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		}
+		msghook = NULL;
 		
 		//Close HookWindows_x64.exe
 		if (x64) {
@@ -283,12 +277,10 @@ int UnhookSystem() {
 	
 	//Unload library
 	if (hinstDLL) {
-		if (FreeLibrary(hinstDLL) != 0) {
-			hinstDLL = NULL;
-		}
-		else {
+		if (FreeLibrary(hinstDLL) == 0) {
 			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		}
+		hinstDLL = NULL;
 	}
 	
 	//Success
