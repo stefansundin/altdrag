@@ -2,6 +2,13 @@
 
 Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt may contain changes for upcoming versions.
 
+*0.9 release candidate* - 2011-01-22:
+  * Added InactiveScroll. Enable it to scroll inactive windows.
+  * Fixed major bug with custom taskbar locations (bug only present in the beta).
+  * Expanded Aero option.
+  * Expanded AutoRemaximized option.
+  * It is now possible to toggle the maximized state with a resize button while dragging.
+
 *0.9 beta* - 2010-12-23:
   * Added `Aero` option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
   * Added new mouse actions: `AlwaysOnTop` and `Close`.
