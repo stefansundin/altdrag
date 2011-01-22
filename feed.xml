@@ -18,7 +18,7 @@
 		<updated>2011-01-22T20:00:00Z</updated>
 		<author><name>Stefan Sundin</name></author>
 		<content type="html">
-&lt;p>Released 0.9 release candidate. This update fixes a number of bugs that were present in the beta, including one major bug if you had the taskbar oriented at a non-default location. It also adds a new feature that allows you to use the mouse wheel to scroll inactive windows. You can enable it by setting &lt;tt>InactiveScroll=1&lt;/tt> in the settings. For a complete list of changes, see the changelog below. I expect to release a proper version in January. In any case, I believe that this is the best version of AltDrag yet! The beta is only available as a 7z archive.&lt;/p>
+&lt;p>Released 0.9 release candidate. This update fixes a number of bugs that were present in the beta, including one major bug if you had the taskbar oriented at a non-default location. It also adds a new feature that allows you to use the mouse wheel to scroll inactive windows. You can enable it by setting &lt;tt>InactiveScroll=1&lt;/tt> in the settings. For a complete list of changes, see the changelog below. The release candidate is only available as a 7z archive.&lt;/p>
 &lt;p>&lt;b>I want those of you who have multiple monitors to see if there are any issues. Try obscure configurations.&lt;/b> I only own one monitor myself so you can understand that I have troubles testing multi-monitor setups.&lt;/p>
 &lt;p>&lt;u>Changelog:&lt;/u>&lt;/p>
 &lt;ul>
