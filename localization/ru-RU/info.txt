@@ -30,6 +30,17 @@ AltDrag - программа с открытым исходным кодом, п
 
 История изменений
 ---------
+0.9:
+Added Aero option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
+Added AutoFocus and AutoRemaximize options.
+Added InactiveScroll. Enable it to scroll inactive windows.
+Added new mouse actions: AlwaysOnTop and Close.
+It is now possible to toggle the maximized state with a resize button while dragging.
+Replaced roll-up behavior with Aero behavior.
+Renamed "stick" to "snap" as people seem to "get" that term better.
+Fixed some bugs that prevented HookWindows from working properly.
+Tweaked the blacklist (see wiki).
+
 0.8 - 2009-11-15:
 Добавлен параметре AutoStick, чтобы окна всегда прилипали к краям экрана без необходимости удерживать Shift. Этот параметр заменяет StickyScreen.
 Переименование ExperimentalFeatures к HookWindows, а также его улучшение, позволяющее окнам больше не мерцать. 64-разрядные приложения также должны работать сейчас. Я больше не считаю эти функции экспериментальными!
