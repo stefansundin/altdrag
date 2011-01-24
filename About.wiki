@@ -1,6 +1,8 @@
 #summary A more in-depth introduction
 #labels Featured,Phase-Deploy
 
+<wiki:toc max_depth="2" />
+
 = Introduction =
 
 In addition to simply dragging windows, you can double-click a window to maximize it.
