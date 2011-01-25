@@ -24,55 +24,57 @@ http://altdrag.googlecode.com/svn/wiki/resize.png
 There are more features that you can configure in the configuration file called `AltDrag.ini`. The simplest way to open it is through the tray menu.
 
 
-== AltDrag ==
+== `[AltDrag]` ==
 
-=== AutoFocus ===
-Automatically raise and focus the windows you drag.
+These settings affect general AltDrag behavior.
 
-=== AutoSnap ===
-As explained earlier, you can use the shift key to make the window you are dragging attach itself to other windows. A nifty extension to this is the option `AutoSnap`, which will make AltDrag do this by default.
+==== AutoFocus ====
+ Automatically raise and focus the windows you drag.
 
-List of settings:
+==== AutoSnap ====
+ As explained earlier, you can use the shift key to make the window you are dragging attach itself to other windows. A nifty extension to this is the option `AutoSnap`, which will make AltDrag do this by default.
+
+ List of settings:
   * *0*: Disabled.
   * *1*: Automatically stick windows to the screen borders and the taskbar.
   * *2*: Also automatically stick windows to the outside of all other windows.
   * *3*: Also automatically stick windows to the inside of all other windows.
 
-=== AutoRemaximize ===
-Automatically re-maximize windows when you move them between monitors.
+==== AutoRemaximize ====
+ Automatically re-maximize windows when you move them between monitors.
 
-=== Aero ===
-Make AltDrag mimic the Windows 7 Aero Snap behavior. Drag windows to the left, right or top side of the monitor. Corners work too!
+==== Aero ====
+ Make AltDrag mimic the Windows 7 Aero Snap behavior. Drag windows to the left, right or top side of the monitor. Corners work too!
 
-This works great even with Windows XP and with multiple monitors.
+ This works great even with Windows XP and with multiple monitors.
 
-=== InactiveScroll ===
-Enable this option to be able to scroll inactive windows.
+==== InactiveScroll ====
+ Enable this option to be able to scroll inactive windows.
 
-=== HookWindows ===
-You can enable an option called `HookWindows` which enables you to use the shift key when you are normally moving windows.
+==== HookWindows ====
+ You can enable an option called `HookWindows` which enables you to use the shift key when you are normally moving windows.
 
-If you enable both `HookWindows` and `AutoSnap` then your windows will automatically stick to each other when you drag them normally. This works really well and will likely surprise your friends. :-)
+ If you enable both `HookWindows` and `AutoSnap` then your windows will automatically stick to each other when you drag them normally. This works really well and will likely surprise your friends. :-)
 
-=== Language ===
-This settings lets you change the language of AltDrag. You can currently choose between English, Spanish, Galician and Russian.
+==== Language ====
+ This settings lets you change the language of AltDrag. You can currently choose between English, Spanish, Galician and Russian.
 
-If you want to translate AltDrag, feel free to email me, but please only do this if you want to commit to keeping your translation up to date in the future.
+ If you want to translate AltDrag, feel free to email me, but please only do this if you want to commit to keeping your translation up to date in the future.
 
 
-== Blacklist ==
+== `[Blacklist]` ==
 Here you will see the blacklists. They let you disable AltDrag from affecting some windows. This is a pretty advanced option and even has [Blacklist its own wiki page]. I recommend you to skip this option until you have learned more about AltDrag.
 
 
-== Performance ==
+== `[Performance]` ==
 The `Cursor` option gives you a way to disable the cursor change that happens during drag/resize. This option exists purely for performance reasons. You should have it enabled unless dragging windows lags for you.
 
 
-== Keyboard ==
+== `[Keyboard]` ==
 Here you can configure what keys should trigger the alt-dragging. There is [Hotkeys a separate wiki page] about this where you can read more.
 
 
-== Mouse ==
+== `[Mouse]` ==
 In this section you can configure what the mouse buttons do. You can re-arrange them however you'd like, and even use mouse 4 and mouse 5 which doesn't do anything by default.
 
 The actions that exists now are `Move`, `Resize`, `Minimize`, `AlwaysOnTop`, `Center`, `Close` and `Nothing`.
@@ -80,7 +82,7 @@ The actions that exists now are `Move`, `Resize`, `Minimize`, `AlwaysOnTop`, `Ce
 If you have a great idea for a new mouse action, then send me an email.
 
 
-== Update ==
+== `[Update]` ==
 AltDrag will by default check if there is a newer version available when it is started. It will only notify you if it finds a new version, it will not download anything for you. If you do not like this behavior, you can disable it here. You can check for update manually in the tray menu, regardless of this setting. 
 
 Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml the rss feed] for new releases.
