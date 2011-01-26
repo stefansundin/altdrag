@@ -570,6 +570,10 @@ void MouseMove() {
 			wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-wndheight/2;
 			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
 			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
+			if (maximized) {
+				wndpl.showCmd = SW_RESTORE;
+				SetWindowPlacement(state.hwnd, &wndpl);
+			}
 			wndpl.showCmd = SW_MAXIMIZE;
 			SetWindowPlacement(state.hwnd, &wndpl);
 			//Set this monitor as the origin (dirty hack maybe)
