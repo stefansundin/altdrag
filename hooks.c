@@ -99,7 +99,6 @@ struct {
 	int AutoSnap;
 	int AutoRemaximize;
 	int Aero;
-	int InactiveScroll;
 	int SnapThreshold;
 	struct {
 		int Cursor;
@@ -134,6 +133,10 @@ struct {
 //Cursor data
 HWND cursorwnd shareattr = NULL;
 HCURSOR cursors[6];
+
+//Mousehook data
+HINSTANCE hinstDLL = NULL;
+HHOOK mousehook = NULL;
 
 //Msghook data
 BOOL subclassed = FALSE;
@@ -532,6 +535,7 @@ void MouseMove() {
 	//Check if window still exists
 	if (!IsWindow(state.hwnd)) {
 		sharedstate.action = ACTION_NONE;
+		UnhookMouse();
 		return;
 	}
 	
@@ -830,6 +834,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				state.alt = 1;
 				state.blockaltup = 0;
 				state.clicktime = 0; //Reset double-click time
+				
+				//Hook mouse
+				HookMouse();
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				sharedstate.shift = 1;
@@ -874,6 +881,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					input[1].ki = ctrl[1];
 					SendInput(2, input, sizeof(INPUT));
 					state.ignorectrl = 0;
+				}
+				
+				//Unhook mouse if not moving or resizing
+				if (!sharedstate.action) {
+					UnhookMouse();
 				}
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
@@ -933,6 +945,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				else if (i+1 == sharedsettings.Hotkeys.length) {
 					state.alt = 0;
+					UnhookMouse();
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -1233,6 +1246,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
 			}
 			
+			//Unhook mouse?
+			if (!state.alt) {
+				UnhookMouse();
+			}
+			
 			//Hide cursorwnd
 			if (sharedsettings.Performance.Cursor) {
 				ShowWindowAsync(cursorwnd, SW_HIDE);
@@ -1255,38 +1273,80 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				MouseMove();
 			}
 		}
-		else if ((wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL) && sharedsettings.InactiveScroll) {
-			POINT pt = msg->pt;
-			
-			//Get window and foreground window
-			HWND window = WindowFromPoint(pt);
-			HWND foreground = GetForegroundWindow();
-			//Return if no window, or if foreground window is blacklisted
-			if (window == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Get wheel info
-			WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
-			LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
-			//Add button information since we don't get it with the hook
-			if (GetAsyncKeyState(VK_CONTROL)&0x8000)  wp |= MK_CONTROL;
-			if (GetAsyncKeyState(VK_LBUTTON)&0x8000)  wp |= MK_LBUTTON;
-			if (GetAsyncKeyState(VK_MBUTTON)&0x8000)  wp |= MK_MBUTTON;
-			if (GetAsyncKeyState(VK_RBUTTON)&0x8000)  wp |= MK_RBUTTON;
-			if (GetAsyncKeyState(VK_SHIFT)&0x8000)    wp |= MK_SHIFT;
-			if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
-			if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
-			
-			//Forward scroll message
-			SendMessage(window, wParam, wp, lp);
-			
-			//Block original scroll event
-			return 1;
-		}
 	}
 	
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+__declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode == HC_ACTION && (wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL)) {
+		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
+		POINT pt = msg->pt;
+		
+		//Get window and foreground window
+		HWND window = WindowFromPoint(pt);
+		HWND foreground = GetForegroundWindow();
+		//Return if no window, or if foreground window is blacklisted
+		if (window == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+		
+		//Get wheel info
+		WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
+		LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
+		//Add button information since we don't get it with the hook
+		if (GetAsyncKeyState(VK_CONTROL)&0x8000)  wp |= MK_CONTROL;
+		if (GetAsyncKeyState(VK_LBUTTON)&0x8000)  wp |= MK_LBUTTON;
+		if (GetAsyncKeyState(VK_MBUTTON)&0x8000)  wp |= MK_MBUTTON;
+		if (GetAsyncKeyState(VK_RBUTTON)&0x8000)  wp |= MK_RBUTTON;
+		if (GetAsyncKeyState(VK_SHIFT)&0x8000)    wp |= MK_SHIFT;
+		if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
+		if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
+		
+		//Forward scroll message
+		SendMessage(window, wParam, wp, lp);
+		
+		//Block original scroll event
+		return 1;
+	}
+
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+int HookMouse() {
+	if (mousehook) {
+		//Mouse already hooked
+		return 1;
+	}
+	
+	//Set up the mouse hook
+	mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, hinstDLL, 0);
+	if (mousehook == NULL) {
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"HookMouse()", GetLastError(), TEXT(__FILE__), __LINE__);
+		return 1;
+	}
+	
+	//Success
+	return 0;
+}
+
+int UnhookMouse() {
+	if (!mousehook) {
+		//Mouse not hooked
+		return 1;
+	}
+	
+	//Remove mouse hook
+	if (UnhookWindowsHookEx(mousehook) == 0) {
+		Error(L"UnhookWindowsHookEx(mousehook)", L"", GetLastError(), TEXT(__FILE__), __LINE__);
+		mousehook = NULL;
+		return 1;
+	}
+	
+	//Success
+	mousehook = NULL;
+	state.clicktime = 0;
+	return 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -1456,6 +1516,7 @@ __declspec(dllexport) void ClearSettings() {
 
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 	if (reason == DLL_PROCESS_ATTACH) {
+		hinstDLL = hInst;
 		//Load settings
 		wchar_t txt[1000];
 		//Settings shared with CallWndProc hooks
@@ -1477,8 +1538,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.AutoRemaximize);
 			GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Aero);
-			GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.InactiveScroll);
 			GetPrivateProfileString(APP_NAME, L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.SnapThreshold);
 			
