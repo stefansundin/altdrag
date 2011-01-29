@@ -1155,9 +1155,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 					if (state.resize.x == RESIZE_CENTER) {
 						posx = wnd.left;
+						wndwidth = wnd.right-wnd.left;
 						if (state.resize.y != RESIZE_CENTER) {
-							wndwidth = mon.right-mon.left;
 							posx = mon.left;
+							wndwidth = mon.right-mon.left;
 						}
 					}
 					else if (state.resize.x == RESIZE_RIGHT) {
