@@ -2,20 +2,16 @@
 
 Check [http://altdrag.googlecode.com/svn/trunk/localization/en-US/info.txt info.txt] if there seems to be something missing. Note that info.txt may contain changes for upcoming versions.
 
-*0.9 release candidate* - 2011-01-22:
-  * Added `InactiveScroll`. Enable it to scroll inactive windows.
-  * Fixed major bug with custom taskbar locations (bug only present in the beta).
-  * Expanded `Aero` option.
-  * Expanded `AutoRemaximized` option.
-  * It is now possible to toggle the maximized state with a resize button while dragging.
-
-*0.9 beta* - 2010-12-23:
+*0.9* - 2011-02-01:
   * Added `Aero` option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
+  * Added `AutoFocus` and `AutoRemaximize` options.
+  * Added `InactiveScroll`. Enable it to scroll inactive windows.
   * Added new mouse actions: `AlwaysOnTop` and `Close`.
-  * Replaced roll-up behavior with Aero behavior. Double-click with middle/right mouse button.
+  * It is now possible to toggle the maximized state with a resize button while dragging.
+  * Replaced roll-up behavior with Aero behavior.
   * Renamed "stick" to "snap" as people seem to "get" that term better.
   * Fixed some bugs that prevented `HookWindows` from working properly.
-  * Tweaked the blacklist (see [Blacklist wiki]).
+  * Tweaked the blacklist ([Blacklist see wiki]).
 
 *0.8* - 2009-11-15:
   * Added `AutoStick`, enable it to make windows always stick without needing to press shift. This replaces `StickyScreen`.
