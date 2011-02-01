@@ -4,12 +4,44 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2011-01-22T20:00:00Z</updated>
+	<updated>2011-02-01T20:20:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<uri>http://stefansundin.com/</uri>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:9f71f90a-2a21-4e9e-8ba0-f41708ca91d1</id>
+		<title>AltDrag - 0.9</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2011-02-01T20:20:00Z</updated>
+		<author><name>Stefan Sundin</name></author>
+		<content type="html">
+&lt;p>Released 0.9. The new version adds a couple of very nice features. Among them are an option to mimic Aero Snap in Windows 7. This will work even if you run Windows XP or Vista. I've also added an option to automatically focus windows when you start dragging them. Another option I've added allows you to use the scroll wheel on windows that do not have keyboard focus. There are a few more new features and a few bug fixes, read all the details in the changelog below.&lt;/p>
+&lt;p>With this version I have taken extra care to deliver a beta test period to eliminate bugs. I believe this version is the best one so far and delivers a lot of new functionality. I have already begun planning some new features for the next version.&lt;/p>
+&lt;img src="http://altdrag.googlecode.com/svn/wiki/money.png"/> I hope you recognize the work, effort and time that I have put on AltDrag and take a few minutes to think about &lt;a href="http://code.google.com/p/altdrag/wiki/Donate">donating money&lt;/a>. I don't ask for much, any amount will do. Remember that AltDrag will always be free and open source no matter what.&lt;/p>
+&lt;p>&lt;u>Changelog:&lt;/u>&lt;/p>
+&lt;ul>
+ &lt;li>Added &lt;tt>Aero&lt;/tt> option. Alt-drag windows to the left, right and top side of the screen. Corners work too!&lt;/li>
+ &lt;li>Added &lt;tt>AutoFocus&lt;/tt> and &lt;tt>AutoRemaximize&lt;/tt> options.&lt;/li>
+ &lt;li>Added &lt;tt>InactiveScroll&lt;/tt>. Enable it to scroll inactive windows.&lt;/li>
+ &lt;li>Added new mouse actions: &lt;tt>AlwaysOnTop&lt;/tt> and &lt;tt>Close&lt;/tt>.&lt;/li>
+ &lt;li>It is now possible to toggle the maximized state with a resize button while dragging.&lt;/li>
+ &lt;li>Replaced roll-up behavior with Aero behavior.&lt;/li>
+ &lt;li>Renamed "stick" to "snap" as people seem to "get" that term better.&lt;/li>
+ &lt;li>Fixed some bugs that prevented &lt;tt>HookWindows&lt;/tt> from working properly.&lt;/li>
+ &lt;li>Tweaked the blacklist (&lt;a href="http://code.google.com/p/altdrag/wiki/Blacklist">see wiki&lt;/a>).&lt;/li>
+&lt;/ul>
+&lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the website&lt;/a>&lt;br/>
+&lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.9.exe">&lt;img src="http://altdrag.googlecode.com/svn/wiki/down.png"/> Download installer&lt;/a>
+ - Archive: &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.9.7z">English&lt;/a>
+ - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.9%20%28Spanish%29.7z">Spanish&lt;/a>
+ - &lt;a href="http://altdrag.googlecode.com/files/AltDrag-0.9%20%28Galician%29.7z">Galician&lt;/a>&lt;br/>
+&lt;a href="http://groups.google.com/group/recovers-tools">&lt;img src="http://altdrag.googlecode.com/svn/wiki/groups.png"/> Discuss in the forum&lt;/a> (no registration required)&lt;br/>
+&lt;a href="http://stefansundin.com/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the author's website&lt;/a>&lt;br/>
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:c15d52ef-142a-4ca5-85cf-4eed24edc313</id>
