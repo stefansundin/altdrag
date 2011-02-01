@@ -25,7 +25,7 @@ LangString L10N_AUTOSTART_HIDE    ${LANG} "Esconder a icona na bandexa do sistem
 
 LangString L10N_ALTSHIFT_TITLE    ${LANG} "Atallo no teclado"
 LangString L10N_ALTSHIFT_SUBTITLE ${LANG} "O atallo Alt + Shift interfire con ${APP_NAME}."
-LangString L10N_ALTSHIFT_HEADER   ${LANG} "O instalador detectou que tes máis de unha configuración de teclado instalada, e que o atallo para cambiar de teclado é Alt + Shift.$\n$\nCando usas ${APP_NAME}, podes premer Shift mentras moves ventás para facer que se peguen a outras ventás. Isto significa que é probable que premas Alt + Shift, a mesma combinación que activa o cambio de distribución do teclado. ${APP_NAME} trata de bloquear o cambio accidental de teclado internamente, pero pode que non sempre sexa posible.$\n$\nPodes desactivar ou cambiar o atallo que activa o cambio de teclado premendo este botón. Preme Seguinte para continuar."
+LangString L10N_ALTSHIFT_HEADER   ${LANG} "O instalador detectou que o atallo para cambiar de esquema de teclado é Alt + Shift.$\n$\nCando usas ${APP_NAME}, podes premer Shift mentras moves ventás para facer que se peguen a outras ventás. Isto significa que é probable que premas Alt + Shift, a mesma combinación que activa o cambio de distribución do teclado. ${APP_NAME} trata de bloquear o cambio accidental de teclado internamente, non será posible se premes Shift antes de comezar a mover a ventá.$\n$\nPodes desactivar ou cambiar o atallo que activa o cambio de teclado premendo este botón. Preme Seguinte para continuar."
 LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Config. do teclado"
 
 !undef LANG

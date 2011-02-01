@@ -1,45 +1,47 @@
 AltDrag
-Por Stefan Sundin
-Traducido por Fabrizio Ferri (algernon@gmail.com)
+Hecho por Stefan Sundin
+Traducido por Alexander De Sousa
 
 Arrastra ventanas con el ratón al pulsar la tecla Alt.
 Puedes usar el botón central o derecho para redimensionar las ventanas.
-Si pulsas mayúsculas mientras arrastras o cambias el tamaño, la ventana se pegará a otras.
-Hacer doble-clic en una ventana la maximizará.
-Puedes enrollar ventanas haciendo doble-clic con el botón central del ratón.
+Si pulsas Mayús mientras arrastras o cambias el tamaño, la ventana se pegará a otras.
+AltDrag imitará el comportamiento de Aero Snap de Windows 7 (incluso si no estás en Windows 7).
+Hacer doble clic en una ventana la maximizará.
 
 Puedes editar más opciones en AltDrag.ini:
-* Habilita HookWindows para poder usar la tecla Mayús. al mover normalmente las ventanas.
-* Habilita AutoStick para hacer que las ventanas se peguen siempre sin necesidad de pulsar Mayús.
-* Cambiar las acciones de los botones del ratón. Puedes hacer que cualquier botón del ratón sirva para mover, redimensionar, minimizar o centrar la ventana sobre la cual hagas clic.
-* Edita la blacklist, un listado en el que puedes especificar qué ventanas no deben ser arrastradas.
+* Activa AutoFocus para traer adelante las ventanas cuando las estés moviendo.
+* Activa HookWindows para poder usar la tecla Mayús al mover normalmente las ventanas.
+* Activa AutoSnap para hacer que las ventanas se peguen a otras sin tener que pulsar Shift.
 
-Las ventanas a pantalla completa, como los juegos, no pueden ser arrastradas o cambiadas de tamaño.
-Si hay retraso al mover y cambiar de tamaño a las ventanas, prueba a desabilitar el switch del cursor del ratón en AltDrag.ini
+* Activa InactiveScroll para subir o bajar en las ventanas inactivas con la rueda del ratón.
+* Configura los botones del ratón. Acciones adicionales: Minimize, AlwaysOnTop, Center e Close.
+* Edita la lista negra, un listado en el que puedes especificar qué ventanas no deben ser arrastradas.
+
+Puedes encontrar en la página web una explicación de AltDrag más elaborada.
+
+Si hay retraso al mover y cambiar de tamaño a las ventanas, prueba a deshabilitar el cursor del ratón en AltDrag.ini
 AltDrag comprobará automáticamente si hay actualizacionas. Puedes desactivar esto en el AltDrag.ini.
 
-Puedes usar el parámetro -hide para ocultar el icono del área de notificación.
-
 Visita la página web en http://altdrag.googlecode.com/
-Envía comentarios a recover89@gmail.com
+Visita la página web del autor en http://stefansundin.com/
 
-Si opinas que este programa es útil, por favor, toma en consideración realizar un donativo. 
+Si este programa te resulta útil, considera realizar una donación por favor. 
 Encontrarás las instrucciones en la página web.
 
 AltDrag es un programa de código abierto bajo licencia GPL.
 
 Historial de cambios
 --------------------
-0.9:
-Added Aero option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
-Added AutoFocus and AutoRemaximize options.
-Added InactiveScroll. Enable it to scroll inactive windows.
-Added new mouse actions: AlwaysOnTop and Close.
-It is now possible to toggle the maximized state with a resize button while dragging.
-Replaced roll-up behavior with Aero behavior.
-Renamed "stick" to "snap" as people seem to "get" that term better.
-Fixed some bugs that prevented HookWindows from working properly.
-Tweaked the blacklist (see wiki).
+0.9 - 2011-02-01:
+Se añadió la opción Aero. Mueve las ventanas al lado izquierdo o derecho de la pantalla y arriba del todo. Las esquinas también!
+Se añadieron las opciones AutoFocus y AutoRemaximize.
+Se añadió InactiveScroll. Actívalo para subir y bajar en las ventanas inactivas.
+Se añadieron nuevas acciones para el ratón: AlwaysOnTop y Close.
+Ahora es posible cambiar el estado de maximizado con el botón de redimensión mientras se arrastra.
+Se reemplazó el comportamiento de roll-up con el de Aero.
+Se renombró "stick" por "snap" ya que la gente parece "entender" mejor el término.
+Se arreglaron algunos errores que impedían que HookWindows funcionase correctamente.
+Mejorada la lista negra (mira el wiki).
 
 0.8 - 2009-11-15:
 Añadido AutoStick, que permite que las ventanas se peguen siempre sin necesidad de mantener la tecla Mayús. pulsada. Esto reemplaza StickyScreen.

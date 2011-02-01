@@ -207,7 +207,7 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang ${LANG_SPANISH}      es-ES
 	!insertmacro Lang ${LANG_GALICIAN}     gl-ES
 	;!insertmacro Lang ${LANG_KOREAN}       ko-KR
-	!insertmacro Lang ${LANG_RUSSIAN}      ru-RU
+	;!insertmacro Lang ${LANG_RUSSIAN}      ru-RU
 	
 	;Create uninstaller
 	WriteUninstaller "Uninstall.exe"

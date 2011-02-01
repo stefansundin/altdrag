@@ -22,7 +22,7 @@ struct strings {
 #include "en-US/strings.h"
 #include "es-ES/strings.h"
 #include "gl-ES/strings.h"
-#include "ru-RU/strings.h"
+//#include "ru-RU/strings.h"
 
 struct {
 	wchar_t *code;
@@ -31,7 +31,7 @@ struct {
 	{L"en-US", &en_US},
 	{L"es-ES", &es_ES},
 	{L"gl-ES", &gl_ES},
-	{L"ru-RU", &ru_RU},
+	//{L"ru-RU", &ru_RU},
 	{NULL}
 };
 
