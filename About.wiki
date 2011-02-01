@@ -57,7 +57,7 @@ These settings affect general AltDrag behavior.
  If you enable both `HookWindows` and `AutoSnap` then your windows will automatically stick to each other when you drag them normally. This works really well and will likely surprise your friends. :-)
 
 ==== Language ====
- This settings lets you change the language of AltDrag. You can currently choose between English, Spanish, Galician and Russian.
+ This settings lets you change the language of AltDrag. You can currently choose between English, Spanish and Galician. I used to offer translations for Russian and Korean, but they have been discontinued because they are out of date.
 
  If you want to translate AltDrag, feel free to email me, but please only do this if you want to commit to keeping your translation up to date in the future.
 
