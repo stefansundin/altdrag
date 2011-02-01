@@ -12,7 +12,7 @@ struct strings gl_ES = {
  /* menu_disable   */ L"Desactivar",
  /* menu_hide      */ L"Esconder a icona",
  /* menu_options   */ L"Preferencias",
- /* menu_autostart */ L"Arrancar ó inicio",
+ /* menu_autostart */ L"Iniciar co Windows",
  /* menu_settings  */ L"Abrir configuración",
  /* menu_chkupdate */ L"Comprobar actualizacións",
  /* menu_update    */ L"Actualización dispoñíbel",
@@ -21,7 +21,7 @@ struct strings gl_ES = {
  /* tray_enabled   */ APP_NAME " (activado)",
  /* tray_disabled  */ APP_NAME " (desactivado)",
  /* update_balloon */ L"Nova versión dispoñíbel!",
- /* update_dialog  */ L"Unha nova versión está dispoñíbel.\nQueres ir á páxina web?\n\nPodes desactivar a comprobación de actualizacións na configuración.",
+ /* update_dialog  */ L"Unha nova versión está dispoñíbel.\nQueres ir á páxina web?\n\nPodes desactivar a comprobación automática de actualizacións na configuración.",
  /* update_nonew   */ L"Non hai actualizacións.",
  /* about_title    */ L"Acerca de " APP_NAME,
  /* about          */ APP_NAME " - " APP_VERSION "\n\
@@ -32,7 +32,8 @@ Move as ventás co rato cando premas a tecla Alt.\n\
 Podes usar o botón dereito ou o botón do medio do rato para cambiar o tamaño das ventás.\n\
 Se premes a tecla Shift mentres esteas movendo ou cambiando o tamaño, a ventá pegarase ás outras.\n\
 Podes facer dobre clic nunha ventá para maximizala.\n\
-Podes facer dobre clic co botón do medio do rato para enrolar as ventás.\n\
+\n\
+Podes atopar no sitio web unha explicación de "APP_NAME" máis elaborada.\n\
 \n\
 Visita a páxina web en "APP_URL"\n\
 Visita a web do autor en http://stefansundin.com/"

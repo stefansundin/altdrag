@@ -5,41 +5,43 @@ Traducido por Alexander De Sousa
 Move as ventás co rato cando premas a tecla Alt.
 Podes usar o botón dereito ou o botón do medio do rato para cambiar o tamaño das ventás.
 Se premes a tecla Shift mentres esteas movendo ou cambiando o tamaño, a ventá pegarase ás outras.
+AltDrag imitará o comportamento de Aero Snap de Windows 7 (mesmo se non estás en Windows 7).
 Podes facer dobre clic nunha ventá para maximizala.
-Podes facer dobre clic co botón do medio do rato para enrolar as ventás.
 
 Podes cambiar máis opcións en AltDrag.ini:
+* Activa AutoFocus para traer as ventás para adiante cando as estés movendo.
 * Activa HookWindows para poder usar a tecla Shift ó mover ventás normalmente.
-* Activa AutoStick para facer que as ventás se peguen ás outras sen ter que premer Shift.
-* Cambia as accións dos botóns do rato. Podes facer que calquera botón do rato mova, cambie o tamaño, minimice ou centre a ventá na que fas clic.
+* Activa AutoSnap para facer que as ventás se peguen ás outras sen ter que premer Shift.
+
+* Activa InactiveScroll para subir ou baixar en ventás inactivas ca roda do rato.
+* Configura os botóns do rato. Accións adicionais: Minimize, AlwaysOnTop, Center e Close.
 * Editar a lista negra, unha lista na que podes escoller que ventás non se moverán.
 
-Ás ventás de pantalla completa, coma os xogos, non se lles poderá cambiar o tamaño ou mover.
-Se notas que vai lento ó mover as ventás ou ó cambiarlles o tamaño proba a desactivar que apareza o rato en AltDrag.ini.
-AltDrag ha comprobar automaticamente se hai actualizacións. Podes desactivar isto en AltDrag.ini poñendo CheckForUpdate=0 no apartado [Update].
+Podes atopar no sitio web unha explicación de AltDrag máis elaborada.
 
-Podes usar -hide como parámetro para esconder a icona na bandexa do sistema.
+Se notas que vai lento ó mover as ventás ou ó cambiarlles o tamaño proba a desactivar que apareza o rato en AltDrag.ini.
+AltDrag ha comprobar automaticamente se hai actualizacións. Podes desactivar isto en AltDrag.ini.
 
 Visita a páxina web en http://altdrag.googlecode.com/
-Envía a túa opinión ou comentarios (en inglés ou senón poñendo "Galician" ó comezo) a recover89@gmail.com
+Visita a páxina web do autor en http://stefansundin.com/
 
 Se este programa é útil para ti, considera doar diñeiro por favor.
 Podes atopar como doar na páxina web.
 
 AltDrag é un programa de código fonte aberto, baixo a licencia GPL.
 
-Listaxe de Cambios:
--------------------
-0.9:
-Added Aero option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
-Added AutoFocus and AutoRemaximize options.
-Added InactiveScroll. Enable it to scroll inactive windows.
-Added new mouse actions: AlwaysOnTop and Close.
-It is now possible to toggle the maximized state with a resize button while dragging.
-Replaced roll-up behavior with Aero behavior.
-Renamed "stick" to "snap" as people seem to "get" that term better.
-Fixed some bugs that prevented HookWindows from working properly.
-Tweaked the blacklist (see wiki).
+Listaxe de Cambios
+------------------
+0.9 - 2011-02-01:
+Engadiuse a opción Aero. Move ventás ó lado esquerdo ou dereito da pantalla e arriba de todo. As esquinas tamén funcionan!
+Engadíronse as opcións AutoFocus e AutoRemaximize.
+Engadiuse InactiveScroll. Actívaa e sube ou baixa en ventás inactivas.
+Novas accións para o rato: AlwaysOnTop e Close.
+Agora é posible cambiar o estado de maximizado co botón de cambiar o tamaño mentres arrastra.
+Reemprazouse o efecto de roll-up co comportamento de Aero.
+Cambiouse "stick" por "snap", a xente parece "entender" mellor o término.
+Arranxáronse algúns erros que impedían que HookWindows funcionase correctamente.
+Mellorada a lista negra (mira o wiki).
 
 0.8 - 2009-11-15:
 Engadido AutoStick, actívao para facer que a ventá sempre se pegue sen precisar premer Shift. Substitúe a StickyScreen.

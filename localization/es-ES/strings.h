@@ -26,14 +26,14 @@ struct strings es_ES = {
  /* about_title    */ L"Acerca de " APP_NAME,
  /* about          */ APP_NAME " - " APP_VERSION "\n\
 Por Stefan Sundin\n\
-Traducido por Fabrizio Ferri (algernon@gmail.com)\n\
+Traducido por Alexander De Sousa\n\
 \n\
 Arrastra ventanas con el ratón al pulsar la tecla Alt.\n\
 Puedes usar el botón central o derecho para redimensionar las ventanas.\n\
 Si pulsas mayúsculas mientras arrastras o cambias el tamaño, la ventana se pegará a otras.\n\
 Hacer doble-clic en una ventana la maximizará.\n\
 \n\
-Ventanas a pantalla completa, como los juegos, no pueden moverse o redimensionarse.\n\
+Puedes encontrar en la página web una explicación de "APP_NAME" más elaborada.\n\
 \n\
 Visita la página web en "APP_URL"\n\
 Visita la página web del autor en http://stefansundin.com/"
