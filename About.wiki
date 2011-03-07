@@ -90,11 +90,9 @@ Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml t
 
 = UAC =
 
-AltDrag should not require administrator privileges. The only case it needs administrator privileges is when you are trying to drag an elevated program. If you installed AltDrag in `C:\Program Files\`, then you need administrator privileges to edit `AltDrag.ini`. The easiest way to fix this is by right clicking on `AltDrag.ini`, click _Properties_, then go to the _Security_ tab and give the Users group _Full control_ to the file.
+AltDrag does not require administrator privileges. The only case it needs administrator privileges is when you are trying to drag an elevated program. If you installed AltDrag in `C:\Program Files\`, then you need administrator privileges to edit `AltDrag.ini`. The easiest way to fix this is by right clicking on `AltDrag.ini`, click _Properties_, then go to the _Security_ tab and give the _Users_ group _Full control_ to the file.
 
-You can configure AltDrag to launch with administrator privileges by right clicking `AltDrag.exe`, click _Properties_, then go to the _Compatibility_ tab and check _Run this program as an administrator_. If you check this box and have AltDrag on autostart, then this will unfortunately break the autostart. AltDrag will not be launched when you log in.
-
-If you want AltDrag to launch with administrator privileges on startup, then you have to configure the task scheduler to launch AltDrag on log in. Read [http://botsikas.blogspot.com/2010/05/autostart-application-that-requires-uac.html this blog post] for a tutorial. There is one caveat though, you need to configure *a delay of 30 seconds* before the task is started. Otherwise the tray icon won't be added properly and AltDrag will not work. You must also disable the ordinary autostart option. Successfully configuring a task like this will allow AltDrag to be launched on startup with administrator privileges without a UAC prompt.
+If you want AltDrag to launch with administrator privileges on startup, then you have to configure the task scheduler to launch AltDrag on log in. Read [http://botsikas.blogspot.com/2010/05/autostart-application-that-requires-uac.html this blog post] for a tutorial. There is one caveat though, you need to configure *a delay of 30 seconds* before the task is started. Otherwise the tray icon won't be added properly and AltDrag will not work. You must also disable the autostart option in the tray menu. Successfully configuring a task like this will allow AltDrag to be launched on startup with administrator privileges without a UAC prompt.
 
 
 = About the author =
