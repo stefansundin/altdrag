@@ -12,7 +12,6 @@ Puedes editar más opciones en AltDrag.ini:
 * Activa AutoFocus para traer adelante las ventanas cuando las estés moviendo.
 * Activa HookWindows para poder usar la tecla Mayús al mover normalmente las ventanas.
 * Activa AutoSnap para hacer que las ventanas se peguen a otras sin tener que pulsar Shift.
-
 * Activa InactiveScroll para subir o bajar en las ventanas inactivas con la rueda del ratón.
 * Configura los botones del ratón. Acciones adicionales: Minimize, AlwaysOnTop, Center e Close.
 * Edita la lista negra, un listado en el que puedes especificar qué ventanas no deben ser arrastradas.

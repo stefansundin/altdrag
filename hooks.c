@@ -532,6 +532,9 @@ void MouseMove() {
 		return;
 	}
 	
+	//Reset double-click time
+	state.clicktime = 0;
+	
 	//Check if window still exists
 	if (!IsWindow(state.hwnd)) {
 		sharedstate.action = ACTION_NONE;
@@ -1030,8 +1033,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (action == ACTION_MOVE) {
 				//Maximize window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
-					//Stop move action
-					sharedstate.action = ACTION_NONE;
+					sharedstate.action = ACTION_NONE; //Stop move action
+					state.clicktime = 0; //Reset double-click time
 					
 					//Maximize window
 					wndpl.showCmd = SW_MAXIMIZE;
@@ -1131,8 +1134,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				
 				//Aero-move this window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
-					//Stop resize action
-					sharedstate.action = ACTION_NONE;
+					sharedstate.action = ACTION_NONE; //Stop resize action
+					state.clicktime = 0; //Reset double-click time
 					
 					//Get monitor info
 					HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
@@ -1260,19 +1263,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if (wParam == WM_MOUSEMOVE) {
-			//Reset double-click time
-			state.clicktime = 0; //This prevents me from double-clicking when running Windows virtualized.
-			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
-				//Move cursorwnd
-				if (sharedsettings.Performance.Cursor) {
-					POINT pt = msg->pt;
-					MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
-					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
-				}
-				//Move window
-				MouseMove();
+		else if (wParam == WM_MOUSEMOVE && (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE)) {
+			//Move cursorwnd
+			if (sharedsettings.Performance.Cursor) {
+				POINT pt = msg->pt;
+				MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
+				//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
 			}
+			//Move window
+			MouseMove();
 		}
 	}
 	
