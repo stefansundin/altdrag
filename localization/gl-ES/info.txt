@@ -12,7 +12,6 @@ Podes cambiar máis opcións en AltDrag.ini:
 * Activa AutoFocus para traer as ventás para adiante cando as estés movendo.
 * Activa HookWindows para poder usar a tecla Shift ó mover ventás normalmente.
 * Activa AutoSnap para facer que as ventás se peguen ás outras sen ter que premer Shift.
-
 * Activa InactiveScroll para subir ou baixar en ventás inactivas ca roda do rato.
 * Configura os botóns do rato. Accións adicionais: Minimize, AlwaysOnTop, Center e Close.
 * Editar a lista negra, unha lista na que podes escoller que ventás non se moverán.
