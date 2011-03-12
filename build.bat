@@ -22,7 +22,7 @@ if "%1" == "all" (
 	%prefix32%gcc -o build\ini.exe include\ini.c -lshlwapi
 	
 	@echo.
-	echo Building binaries
+	echo Building release build
 	%prefix32%gcc -o "build\AltDrag.exe" altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -O2 -s
 	if not exist "build\AltDrag.exe". exit /b
 	%prefix32%gcc -o "build\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -O2 -s

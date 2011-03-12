@@ -60,6 +60,7 @@ struct {
 	HWND hwnd;
 	short alt;
 	unsigned int clicktime;
+	POINT prevpt;
 	POINT offset;
 	struct {
 		enum resize x, y;
@@ -532,9 +533,6 @@ void MouseMove() {
 		return;
 	}
 	
-	//Reset double-click time
-	state.clicktime = 0;
-	
 	//Check if window still exists
 	if (!IsWindow(state.hwnd)) {
 		sharedstate.action = ACTION_NONE;
@@ -836,7 +834,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			if (!state.alt && IsHotkey(vkey)) {
 				state.alt = 1;
 				state.blockaltup = 0;
-				state.clicktime = 0; //Reset double-click time
 				
 				//Hook mouse
 				HookMouse();
@@ -1263,15 +1260,23 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Prevent mouseup from propagating
 			return 1;
 		}
-		else if (wParam == WM_MOUSEMOVE && (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE)) {
-			//Move cursorwnd
-			if (sharedsettings.Performance.Cursor) {
-				POINT pt = msg->pt;
-				MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
-				//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
-			}
+		else if (wParam == WM_MOUSEMOVE) {
+			POINT pt = msg->pt;
 			//Move window
-			MouseMove();
+			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
+				if (sharedsettings.Performance.Cursor) {
+					MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
+					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+				}
+				MouseMove();
+			}
+			//Reset double-click time
+			//Unfortunately, we have to remember the previous pointer position since WM_MOUSEMOVE can be sent even if
+			//the mouse hasn't moved, e.g. when running Windows virtualized or when connecting to a remote desktop.
+			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
+				state.clicktime = 0;
+				state.prevpt = pt;
+			}
 		}
 	}
 	
