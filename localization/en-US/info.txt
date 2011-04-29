@@ -29,6 +29,9 @@ AltDrag is open source, licensed under GPL.
 
 Changelog
 ---------
+1.0:
+You can now press escape to stop AltDrag. Useful if AltDrag gets in a weird state.
+
 0.9 - 2011-02-01:
 Added Aero option. Alt-drag windows to the left, right and top side of the screen. Corners work too!
 Added AutoFocus and AutoRemaximize options.

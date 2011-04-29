@@ -535,7 +535,6 @@ void MouseMove() {
 	
 	//Check if window still exists
 	if (!IsWindow(state.hwnd)) {
-		sharedstate.action = ACTION_NONE;
 		UnhookMouse();
 		return;
 	}
@@ -849,6 +848,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
 				SetForegroundWindow(state.hwnd);
+			}
+			else if (vkey == VK_ESCAPE) {
+				UnhookMouse();
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
@@ -1341,6 +1343,13 @@ int UnhookMouse() {
 		return 1;
 	}
 	
+	//Stop action
+	sharedstate.action = ACTION_NONE;
+	state.clicktime = 0;
+	if (sharedsettings.Performance.Cursor) {
+		ShowWindowAsync(cursorwnd, SW_HIDE);
+	}
+	
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
 		Error(L"UnhookWindowsHookEx(mousehook)", L"", GetLastError(), TEXT(__FILE__), __LINE__);
@@ -1350,7 +1359,6 @@ int UnhookMouse() {
 	
 	//Success
 	mousehook = NULL;
-	state.clicktime = 0;
 	return 0;
 }
 
