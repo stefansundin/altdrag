@@ -25,7 +25,7 @@ if "%1" == "all" (
 	echo Building release build
 	%prefix32%gcc -o "build\AltDrag.exe" altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -O2 -s
 	if not exist "build\AltDrag.exe". exit /b
-	%prefix32%gcc -o "build\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -O2 -s
+	%prefix32%gcc -o "build\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
 	if not exist "build\hooks.dll". exit /b
 	
 	if "%2" == "x64" (
@@ -33,7 +33,7 @@ if "%1" == "all" (
 		%prefix64%windres -o build\hooks_x64.o include\hooks.rc
 		%prefix64%gcc -o "build\HookWindows_x64.exe" hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -O2 -s
 		if not exist "build\HookWindows_x64.exe". exit /b
-		%prefix64%gcc -o "build\hooks_x64.dll" hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -O2 -s
+		%prefix64%gcc -o "build\hooks_x64.dll" hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
 		if not exist "build\hooks_x64.dll". exit /b
 	)
 	
@@ -57,7 +57,7 @@ if "%1" == "all" (
 	makensis /V2 installer.nsi
 ) else (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -g -DDEBUG
-	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -g -DDEBUG
+	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -g -DDEBUG
 	
 	if "%1" == "x64" (
 		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
@@ -66,7 +66,7 @@ if "%1" == "all" (
 		%prefix64%windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
 		%prefix64%windres -o build\hooks_x64.o include\hooks.rc
 		%prefix64%gcc -o HookWindows_x64.exe hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -g -DDEBUG
-		%prefix64%gcc -o hooks_x64.dll hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -g -DDEBUG
+		%prefix64%gcc -o hooks_x64.dll hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -g -DDEBUG
 	)
 	
 	if "%1" == "run" (
