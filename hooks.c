@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <shlwapi.h>
 #include <commctrl.h>
+#include <psapi.h>
 
 //App
 #define APP_NAME L"AltDrag"
@@ -126,10 +127,11 @@ struct blacklist {
 	wchar_t *data;
 };
 struct {
+	struct blacklist ProcessBlacklist;
 	struct blacklist Blacklist;
 	struct blacklist Blacklist_Snap;
 	struct blacklist Snaplist;
-} settings = {{NULL,0}, {NULL,0}, {NULL,0}};
+} settings = {{NULL,0}, {NULL,0}, {NULL,0}, {NULL,0}};
 
 //Cursor data
 HWND cursorwnd shareattr = NULL;
@@ -153,9 +155,19 @@ enum action msgaction = ACTION_NONE;
 
 //Blacklist
 int blacklisted(HWND hwnd, struct blacklist *list) {
-	wchar_t title[256], classname[256];
-	GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
-	GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+	wchar_t title[256]=L"", classname[256]=L"";
+	if (list == &settings.ProcessBlacklist) {
+		DWORD pid;
+		GetWindowThreadProcessId(hwnd, &pid);
+		HANDLE proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+		GetProcessImageFileName(proc, title, sizeof(title)/sizeof(wchar_t));
+		CloseHandle(proc);
+		PathStripPath(title);
+	}
+	else {
+		GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
+		GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+	}
 	int i;
 	for (i=0; i < list->length; i++) {
 		if ((list->items[i].title == NULL && !wcscmp(classname,list->items[i].classname))
@@ -969,7 +981,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			state.hwnd = GetAncestor(state.hwnd, GA_ROOT);
 			
 			//Return if window is blacklisted
-			if (blacklisted(state.hwnd,&settings.Blacklist)) {
+			if (blacklisted(state.hwnd,&settings.ProcessBlacklist)
+			 || blacklisted(state.hwnd,&settings.Blacklist)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
@@ -1637,9 +1650,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		
 		//[Blacklist]
 		int blacklist_alloc = 0;
-		struct blacklist *blacklist = &settings.Blacklist;
-		//Process Blacklist first
-		GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		struct blacklist *blacklist = &settings.ProcessBlacklist;
+		//Process ProcessBlacklist first
+		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 		wcscpy(blacklist->data, txt);
 		wchar_t *pos = blacklist->data;
@@ -1681,7 +1694,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			//Switch gears?
 			if (pos == NULL && blacklist != &settings.Snaplist) {
 				blacklist_alloc = 0;
-				if (blacklist == &settings.Blacklist) {
+				if (blacklist == &settings.ProcessBlacklist) {
+					blacklist = &settings.Blacklist;
+					GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				}
+				else if (blacklist == &settings.Blacklist) {
 					blacklist = &settings.Blacklist_Snap;
 					GetPrivateProfileString(L"Blacklist", L"Blacklist_Snap", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
