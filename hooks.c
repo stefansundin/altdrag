@@ -131,9 +131,8 @@ struct blacklist {
 struct {
 	struct blacklist ProcessBlacklist;
 	struct blacklist Blacklist;
-	struct blacklist Blacklist_Snap;
 	struct blacklist Snaplist;
-} settings = {{NULL,0}, {NULL,0}, {NULL,0}, {NULL,0}};
+} settings = {{NULL,0}, {NULL,0}, {NULL,0}};
 
 //Cursor data
 HWND cursorwnd shareattr = NULL;
@@ -188,10 +187,6 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMoni
 	if (nummonitors == monitors_alloc) {
 		monitors_alloc++;
 		monitors = realloc(monitors, monitors_alloc*sizeof(RECT));
-		if (monitors == NULL) {
-			Error(L"realloc(monitors)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
-			return FALSE;
-		}
 	}
 	//Add monitor
 	monitors[nummonitors++] = *lprcMonitor;
@@ -204,17 +199,12 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	if (numwnds == wnds_alloc) {
 		wnds_alloc += 20;
 		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
-		if (wnds == NULL) {
-			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
-			return FALSE;
-		}
 	}
 	
 	//Only store window if it's visible, not minimized to taskbar, not the window we are dragging and not blacklisted
 	RECT wnd;
 	if (window != state.hwnd && window != progman
 	 && IsWindowVisible(window) && !IsIconic(window)
-	 && !blacklisted(window,&settings.Blacklist_Snap)
 	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION || blacklisted(window,&settings.Snaplist))
 	 && GetWindowRect(window,&wnd) != 0
 	) {
@@ -262,10 +252,6 @@ BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
 	if (numhwnds == hwnds_alloc) {
 		hwnds_alloc += 20;
 		hwnds = realloc(hwnds, hwnds_alloc*sizeof(HWND));
-		if (hwnds == NULL) {
-			Error(L"realloc(hwnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
-			return FALSE;
-		}
 	}
 	
 	//Only store window if it's visible, not minimized to taskbar and on the same monitor as the cursor
@@ -1736,9 +1722,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				if (blacklist->length == blacklist_alloc) {
 					blacklist_alloc += 15;
 					blacklist->items = realloc(blacklist->items, blacklist_alloc*sizeof(struct blacklistitem));
-					if (blacklist->items == NULL) {
-						Error(L"realloc(blacklist->items)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
-					}
 				}
 				//Store item
 				blacklist->items[blacklist->length].title = title;
@@ -1753,10 +1736,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 					GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
 				else if (blacklist == &settings.Blacklist) {
-					blacklist = &settings.Blacklist_Snap;
-					GetPrivateProfileString(L"Blacklist", L"Blacklist_Snap", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-				}
-				else {
 					blacklist = &settings.Snaplist;
 					GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				}
@@ -1769,10 +1748,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		//Allocate space for wnds
 		wnds_alloc += 20;
 		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
-		if (wnds == NULL) {
-			Error(L"realloc(wnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
-			return FALSE;
-		}
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
 		//Remove subclassing if a window is currently subclassed
@@ -1784,10 +1759,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		}
 		//Free memory
 		//Do not free any shared variables
+		free(settings.ProcessBlacklist.items);
+		free(settings.ProcessBlacklist.data);
 		free(settings.Blacklist.items);
 		free(settings.Blacklist.data);
-		free(settings.Blacklist_Snap.items);
-		free(settings.Blacklist_Snap.data);
 		free(settings.Snaplist.items);
 		free(settings.Snaplist.data);
 		free(wnds);
