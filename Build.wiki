@@ -49,7 +49,7 @@ Note that `AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bi
 
 = Installer =
 
-To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and put it in PATH as well, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
+To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and the [http://nsis.sourceforge.net/AccessControl_plug-in AccessControl plug-in]. Put NSIS in PATH, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
 
 
 = Video walkthrough =
