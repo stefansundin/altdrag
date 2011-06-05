@@ -5,6 +5,8 @@
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
 
+;Requires AccessControl plug-in
+;http://nsis.sourceforge.net/AccessControl_plug-in
 
 !define APP_NAME      "AltDrag"
 !define APP_VERSION   "0.9"
@@ -208,6 +210,9 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang ${LANG_GALICIAN}     gl-ES
 	;!insertmacro Lang ${LANG_KOREAN}       ko-KR
 	;!insertmacro Lang ${LANG_RUSSIAN}      ru-RU
+	
+	;Grant write rights to ini file to all users
+	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
 	
 	;Create uninstaller
 	WriteUninstaller "Uninstall.exe"
