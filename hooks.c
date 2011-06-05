@@ -92,6 +92,8 @@ RECT *monitors = NULL;
 int nummonitors = 0;
 RECT *wnds = NULL;
 int numwnds = 0;
+HWND *hwnds = NULL;
+int numhwnds = 0;
 HWND progman = NULL;
 
 //Settings
@@ -250,6 +252,29 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		GetClassNameA(window, classname, 100);
 		fprintf(f, "window: %s|%s\n", title, classname);
 		fclose(f);*/
+	}
+	return TRUE;
+}
+
+int hwnds_alloc = 0;
+BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
+	//Make sure we have enough space allocated
+	if (numhwnds == hwnds_alloc) {
+		hwnds_alloc += 20;
+		hwnds = realloc(hwnds, hwnds_alloc*sizeof(HWND));
+		if (hwnds == NULL) {
+			Error(L"realloc(hwnds)", L"Out of memory?", -1, TEXT(__FILE__), __LINE__);
+			return FALSE;
+		}
+	}
+	
+	//Only store window if it's visible, not minimized to taskbar and on the same monitor as the cursor
+	if (IsWindowVisible(window) && !IsIconic(window)
+	 && GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION
+	 && state.origin.monitor == MonitorFromWindow(window,MONITOR_DEFAULTTONULL)
+	) {
+		//Add window
+		hwnds[numhwnds++] = window;
 	}
 	return TRUE;
 }
@@ -1276,6 +1301,31 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Prevent mouseup from propagating
+			return 1;
+		}
+		else if (wParam == WM_MOUSEWHEEL) {
+			POINT pt = msg->pt;
+			state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+			
+			//Enumerate windows
+			numhwnds = 0;
+			EnumWindows(EnumAltTabWindows, 0);
+			if (numhwnds < 2) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Reorder windows
+			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
+			if (delta > 0) {
+				SetForegroundWindow(hwnds[numhwnds-1]);
+			}
+			else {
+				SetWindowPos(hwnds[0], HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				SetForegroundWindow(hwnds[1]);
+			}
+			
+			//Block original scroll event
+			state.blockaltup = 1;
 			return 1;
 		}
 		else if (wParam == WM_MOUSEMOVE) {
