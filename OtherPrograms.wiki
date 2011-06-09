@@ -35,6 +35,7 @@
 = Related =
   * [http://www.mouseimp.com/ MouseImp]
   * [http://www.donationcoder.com/Software/Skrommel/#DragLock DragLock]
+  * [http://fy.chalmers.se/~appro/nt/TXMouse/ True X-Mouse]
 
 
 = Other =
