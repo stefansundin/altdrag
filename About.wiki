@@ -88,6 +88,10 @@ AltDrag will by default check if there is a newer version available when it is s
 Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml the rss feed] for new releases.
 
 
+= Other tricks =
+There is a hidden setting in Windows that allows for window activation on mouse hovering. This setting is first exposed in the control panel in Windows 7. For previous Windows versions you have to use the [http://windows.microsoft.com/en-US/windows/downloads/windows-xp TweakUI utility] and enable the "X-Mouse" setting. You can find out what registry settings that does this [http://blogs.msdn.com/b/oldnewthing/archive/2011/06/02/10170483.aspx here]. I expect to add functionality in a later version so you can configure this in AltDrag.
+
+
 = UAC =
 
 AltDrag does not require administrator privileges. The only case it needs administrator privileges is when you are trying to drag an elevated program. If you installed AltDrag in `C:\Program Files\`, then you need administrator privileges to edit `AltDrag.ini`. The easiest way to fix this is by right clicking on `AltDrag.ini`, click _Properties_, then go to the _Security_ tab and give the _Users_ group _Full control_ to the file.
