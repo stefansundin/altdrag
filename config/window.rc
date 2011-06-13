@@ -13,41 +13,58 @@
 //
 // Dialog resources
 //
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-IDD_PROPPAGE1 DIALOGEX 0, 0, 221, 190
+IDD_ABOUTPAGE DIALOGEX 0, 0, 219, 188
+STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
+CAPTION "About"
+FONT 8, "Ms Shell Dlg", 400, 0, 1
+{
+    GROUPBOX        "About AltDrag", IDC_STATIC, 7, 7, 200, 80
+    LTEXT           "Version 1.0", IDC_STATIC, 82, 22, 40, 8, SS_LEFT
+    LTEXT           "Created by Stefan Sundin", IDC_STATIC, 82, 32, 85, 8, SS_LEFT
+    LTEXT           "Please redistribute!", IDC_STATIC, 17, 67, 65, 8, SS_LEFT
+    LTEXT           "AltDrag is free and open source software!", IDC_STATIC, 17, 57, 150, 8, SS_LEFT
+    LTEXT           "Please recognize the work I've put on AltDrag by donating.", IDC_STATIC, 12, 127, 190, 8, SS_LEFT
+    LTEXT           "I don't ask for much, any amount will do.", IDC_STATIC, 12, 137, 130, 8, SS_LEFT
+    DEFPUSHBUTTON   "Donate", IDC_DONATE, 12, 147, 45, 14
+    ICON            IDI_MONEY, IDC_STATIC, 62, 147, 11, 10, SS_ICON | 0x00000800
+}
+
+
+
+IDD_GENERALPAGE DIALOGEX 0, 0, 221, 190
 STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
 EXSTYLE WS_EX_WINDOWEDGE
 CAPTION "General"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    DEFPUSHBUTTON   "OK", IDOK, 129, 7, 50, 14
-    PUSHBUTTON      "Cancel", IDCANCEL, 129, 24, 50, 14
-    EDITTEXT        IDC_EDIT1, 39, 66, 89, 17, ES_AUTOHSCROLL
+    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 22, 17, 145, 8
+    AUTOCHECKBOX    "Mimic Aero Snap", IDC_AERO, 22, 62, 145, 8
+    COMBOBOX        IDC_AUTOSNAP, 22, 42, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "AutoSnap:", IDC_STATIC, 22, 32, 34, 8, SS_LEFT
+    AUTOCHECKBOX    "Scroll inactive windows", IDC_INACTIVESCROLL, 22, 77, 145, 8
+    AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 22, 92, 145, 8
+    LTEXT           "Language:", IDC_STATIC, 22, 107, 35, 8, SS_LEFT
+    COMBOBOX        IDC_LANGUAGE, 22, 117, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
 }
 
 
 
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-IDD_PROPPAGE2 DIALOGEX 0, 0, 186, 95
+IDD_MOUSEPAGE DIALOGEX 0, 0, 220, 188
 STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
-CAPTION "Keyboard"
+CAPTION "Mouse"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    DEFPUSHBUTTON   "Heeej!", IDC_BUTTON1, 67, 47, 85, 25
-    EDITTEXT        IDC_EDIT2, 37, 27, 103, 14, ES_AUTOHSCROLL
-}
-
-
-
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-IDD_PROPPAGE3 DIALOGEX 0, 0, 186, 95
-STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
-CAPTION "About"
-FONT 8, "Ms Shell Dlg", 400, 0, 1
-{
-    DEFPUSHBUTTON   "OK", IDOK, 102, 57, 50, 14
-    PUSHBUTTON      "Cancel", IDCANCEL, 72, 52, 50, 14
-    EDITTEXT        IDC_EDIT3, 32, 22, 100, 15, ES_AUTOHSCROLL
+    LTEXT           "Left mouse button:", IDC_STATIC, 17, 17, 90, 8, SS_LEFT
+    LTEXT           "Right mouse button:", IDC_STATIC, 17, 47, 85, 8, SS_LEFT
+    LTEXT           "Middle mouse button:", IDC_STATIC, 17, 32, 90, 8, SS_LEFT
+    LTEXT           "Mouse button 4:", IDC_STATIC, 17, 62, 90, 8, SS_LEFT
+    LTEXT           "Mouse button 5:", IDC_STATIC, 17, 77, 90, 8, SS_LEFT
+    COMBOBOX        IDC_LMB, 122, 12, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_RMB, 122, 42, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MMB, 122, 27, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB4, 122, 57, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB5, 122, 72, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "If you get a great idea for a mouse action, put in a request on the website!", IDC_STATIC, 17, 107, 190, 30, SS_LEFT
 }
 
 
@@ -55,5 +72,14 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
 //
 // Icon resources
 //
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 IDI_ICON1          ICON           "wrench.ico"
+
+
+IDI_MONEY          ICON           "money.ico"
+
+
+
+//
+// Manifest resources
+//
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST    "../include/AltDrag.exe.manifest"

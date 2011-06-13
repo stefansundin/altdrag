@@ -27,7 +27,9 @@
 
 //Boring stuff
 BOOL CALLBACK PropSheetProc(HWND, UINT, LPARAM);
-BOOL CALLBACK DialogProcOptions(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK GeneralPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK MousePageDialogProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hinst = NULL;
 HWND g_hwnd = NULL;
 UINT WM_UPDATESETTINGS = 0;
@@ -75,13 +77,22 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	IsWow64Process(GetCurrentProcess(), &x64);
 	
 	// Define the property pages...
+	struct {
+		int pszTemplate;
+		DLGPROC pfnDlgProc;
+	} pages[] = {
+		{ IDD_GENERALPAGE, GeneralPageDialogProc },
+		{ IDD_MOUSEPAGE,   MousePageDialogProc },
+		{ IDD_ABOUTPAGE,   AboutPageDialogProc },
+	};
+	
 	PROPSHEETPAGE psp[3] = {0};
-	for (i = 0; i < sizeof(psp)/sizeof(PROPSHEETPAGE); i++) {
+	for (i=0; i < sizeof(psp)/sizeof(PROPSHEETPAGE); i++) {
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
 		psp[i].hInstance   = hInst;
-		psp[i].pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE1+i);
+		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
 		//psp[i].lParam      = (LPARAM)&settings;
-		psp[i].pfnDlgProc  = DialogProcOptions;
+		psp[i].pfnDlgProc  = pages[i].pfnDlgProc;
 	}
 	// Define the property sheet...
 	PROPSHEETHEADER psh = {0};
@@ -111,47 +122,69 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 		SendMessage(PropSheet_GetTabControl(hwnd), WM_SETFONT, (WPARAM)hFont, TRUE);
 		SendMessage(GetDlgItem(hwnd,IDOK),         WM_SETFONT, (WPARAM)hFont, TRUE);
 		SendMessage(GetDlgItem(hwnd,IDCANCEL),     WM_SETFONT, (WPARAM)hFont, TRUE);
+		
 		return TRUE;
 	}
 	return 0;
 }
 
-BOOL CALLBACK DialogProcOptions(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	//static PSETTINGS pSettings;
+BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		//pSettings = (PSETTINGS)((LPPROPSHEETPAGE)lParam)->lParam;
+		HWND item = GetDlgItem(hwnd, IDC_AUTOSNAP);
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Disabled");
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"To screen borders");
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"+ outside of windows");
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"+ inside of windows");
+		SendMessage(item, CB_SETCURSEL, 0, 0);
+		
+		item = GetDlgItem(hwnd, IDC_LANGUAGE);
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"English (en-US)");
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Spanish (es-ES)");
+		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Galician (gl-ES)");
+		SendMessage(item, CB_SETCURSEL, 0, 0);
+		
 		return TRUE;
 	}
 	else if (msg == WM_NOTIFY) {
-		int index = PropSheet_HwndToIndex(GetParent(hwnd), hwnd);
-		switch (((LPNMHDR)lParam)->code) {
-			case PSN_SETACTIVE:
-				switch (index) {
-					case 0:
-						//SetWindowText(GetDlgItem(hwnd,IDC_EDIT1), pSettings->szEdit1);
-						break;
-					case 1:
-						//SetWindowText(GetDlgItem(hwnd,IDC_EDIT2), pSettings->szEdit2);
-						break;
-					case 2:
-						//SetWindowText(GetDlgItem(hwnd,IDC_EDIT3), pSettings->szEdit3);
-						break;
-				}
-				break;
-			case PSN_APPLY:
-				switch (index) {
-					case 0:
-						//GetWindowText(GetDlgItem(hwnd,IDC_EDIT1), pSettings->szEdit1, sizeof(pSettings->szEdit1)/sizeof(TCHAR));
-						break;
-					case 1:
-						//GetWindowText(GetDlgItem(hwnd,IDC_EDIT2), pSettings->szEdit2, sizeof(pSettings->szEdit2)/sizeof(TCHAR));
-						break;
-					case 2:
-						//GetWindowText(GetDlgItem(hwnd,IDC_EDIT3), pSettings->szEdit3, sizeof(pSettings->szEdit3)/sizeof(TCHAR));
-						break;
-				}
-				break;
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_APPLY) {
+			//Store stuff
 		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL CALLBACK MousePageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_INITDIALOG) {
+		int items[] = {IDC_LMB, IDC_MMB, IDC_RMB, IDC_MB4, IDC_MB5};
+		int i;
+		for (i=0; i < sizeof(items)/sizeof(int); i++) {
+			HWND item = GetDlgItem(hwnd, items[i]);
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Move");
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Resize");
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Minimize");
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"AlwaysOnTop");
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Center");
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Close");
+			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Nothing");
+			SendMessage(item, CB_SETCURSEL, 0, 0);
+		}
+		return TRUE;
+	}
+	else if (msg == WM_NOTIFY) {
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_APPLY) {
+			//Store stuff
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_INITDIALOG) {
+		
 		return TRUE;
 	}
 	return FALSE;
