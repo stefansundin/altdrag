@@ -45,6 +45,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 22, 92, 145, 8
     LTEXT           "Language:", IDC_STATIC, 22, 107, 35, 8, SS_LEFT
     COMBOBOX        IDC_LANGUAGE, 22, 117, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "Feel free to submit translations, but only if you are prepared to update it in the future!", IDC_STATIC, 22, 132, 145, 20, SS_LEFT
 }
 
 
