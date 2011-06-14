@@ -10,8 +10,8 @@ set prefix64=x86_64-w64-mingw32-
 taskkill /IM Config.exe
 
 %prefix32%windres -o window.o window.rc
-%prefix32%gcc -o Config.exe config.c window.o -mwindows -lshlwapi -lwininet -lcomctl32 -g -DDEBUG
+%prefix32%gcc -o "..\Config.exe" config.c window.o -mwindows -lshlwapi -lwininet -lcomctl32 -g -DDEBUG
 
 if "%1" == "run" (
-	start Config.exe
+	start ..\Config.exe
 )

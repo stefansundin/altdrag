@@ -36,18 +36,32 @@ UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
 struct {
-	int InactiveScroll;
-	int HookWindows;
-} settings = {0, 0};
+	struct {
+		int AutoFocus;
+		int AutoSnap;
+		int AutoRemaximize;
+		int Aero;
+		int InactiveScroll;
+		int HookWindows;
+	} AltDrag;
+	struct {
+		int Cursor;
+	} Performance;
+	struct {
+		wchar_t LMB[20];
+		wchar_t MMB[20];
+		wchar_t RMB[20];
+		wchar_t MB4[20];
+		wchar_t MB5[20];
+	} Mouse;
+} settings;
 
 //Cool stuff
 BOOL x64 = FALSE;
 
 //Include stuff
-#include "../localization/strings.h"
+#include "localization/strings.h"
 #include "../include/error.c"
-#include "../include/autostart.c"
-//#include "../include/update.c"
 #include "window.h"
 
 //Entry point
@@ -65,6 +79,27 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	PathRemoveFileSpec(path);
 	wcscat(path, L"\\"APP_NAME".ini");
 	wchar_t txt[10];
+	//[AltDrag]
+	GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	settings.AltDrag.AutoFocus = _wtoi(txt);
+	GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	settings.AltDrag.AutoSnap = _wtoi(txt);
+	GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"1", txt, sizeof(txt)/sizeof(wchar_t), path);
+	settings.AltDrag.AutoRemaximize = _wtoi(txt);
+	GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), path);
+	settings.AltDrag.Aero = _wtoi(txt);
+	GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"2", txt, sizeof(txt)/sizeof(wchar_t), path);
+	settings.AltDrag.InactiveScroll = _wtoi(txt);
+	GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	settings.AltDrag.HookWindows = _wtoi(txt);
+	//[Mouse]
+	GetPrivateProfileString(L"Mouse", L"LMB", L"Move", settings.Mouse.LMB, sizeof(settings.Mouse.LMB)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Mouse", L"MMB", L"Move", settings.Mouse.MMB, sizeof(settings.Mouse.MMB)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Mouse", L"RMB", L"Move", settings.Mouse.RMB, sizeof(settings.Mouse.RMB)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Mouse", L"MB4", L"Move", settings.Mouse.MB4, sizeof(settings.Mouse.MB4)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Mouse", L"MB5", L"Move", settings.Mouse.MB5, sizeof(settings.Mouse.MB5)/sizeof(wchar_t), path);
+	
+	
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
 	int i;
 	for (i=0; languages[i].code != NULL; i++) {
@@ -73,7 +108,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 			break;
 		}
 	}
-	SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
+	//SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 	IsWow64Process(GetCurrentProcess(), &x64);
 	
 	// Define the property pages...
@@ -106,7 +141,20 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	if (PropertySheet(&psh)) {
-		//SaveSettings(&settings);
+		//[AltDrag]
+		WritePrivateProfileString(APP_NAME, L"AutoFocus",      _itow(settings.AltDrag.AutoFocus,txt,10), path);
+		WritePrivateProfileString(APP_NAME, L"AutoSnap",       _itow(settings.AltDrag.AutoSnap,txt,10), path);
+		WritePrivateProfileString(APP_NAME, L"Aero",           _itow(settings.AltDrag.Aero,txt,10), path);
+		WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), path);
+		WritePrivateProfileString(APP_NAME, L"HookWindows",    _itow(settings.AltDrag.HookWindows,txt,10), path);
+		WritePrivateProfileString(APP_NAME, L"Language",       l10n->code, path);
+		
+		//[Mouse]
+		WritePrivateProfileString(L"Mouse", L"LMB", settings.Mouse.LMB, path);
+		WritePrivateProfileString(L"Mouse", L"MMB", settings.Mouse.MMB, path);
+		WritePrivateProfileString(L"Mouse", L"RMB", settings.Mouse.RMB, path);
+		WritePrivateProfileString(L"Mouse", L"MB4", settings.Mouse.MB4, path);
+		WritePrivateProfileString(L"Mouse", L"MB5", settings.Mouse.MB5, path);
 	}
 	
 	return 0;
@@ -130,25 +178,40 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 
 BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		HWND item = GetDlgItem(hwnd, IDC_AUTOSNAP);
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Disabled");
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"To screen borders");
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"+ outside of windows");
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"+ inside of windows");
-		SendMessage(item, CB_SETCURSEL, 0, 0);
+		SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_SETCHECK, settings.AltDrag.AutoFocus?BST_CHECKED:BST_UNCHECKED, 0);
 		
-		item = GetDlgItem(hwnd, IDC_LANGUAGE);
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"English (en-US)");
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Spanish (es-ES)");
-		SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Galician (gl-ES)");
-		SendMessage(item, CB_SETCURSEL, 0, 0);
+		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)L"Disabled");
+		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)L"To screen borders");
+		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)L"+ outside of windows");
+		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)L"+ inside of windows");
+		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_SETCURSEL, settings.AltDrag.AutoSnap, 0);
+		
+		SendDlgItemMessage(hwnd, IDC_AERO, BM_SETCHECK, settings.AltDrag.Aero?BST_CHECKED:BST_UNCHECKED, 0);
+		SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_SETCHECK, settings.AltDrag.InactiveScroll?BST_CHECKED:BST_UNCHECKED, 0);
+		SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_SETCHECK, settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED, 0);
+		
+		int i;
+		for (i=0; languages[i].code != NULL; i++) {
+			wchar_t txt[20];
+			wsprintf(txt, L"%s (%s)", languages[i].language, languages[i].code);
+			SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_ADDSTRING, 0, (LPARAM)txt);
+			if (l10n == languages[i].strings) {
+				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i, 0);
+			}
+		}
 		
 		return TRUE;
 	}
 	else if (msg == WM_NOTIFY) {
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_APPLY) {
-			//Store stuff
+			settings.AltDrag.AutoFocus = SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_GETCHECK, 0, 0);
+			settings.AltDrag.AutoSnap = SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_GETCURSEL, 0, 0);
+			settings.AltDrag.Aero = SendDlgItemMessage(hwnd, IDC_AERO, BM_GETCHECK, 0, 0);
+			settings.AltDrag.InactiveScroll = SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_GETCHECK, 0, 0);
+			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
+			int i = SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, 0);
+			l10n = languages[i].strings;
 		}
 		return TRUE;
 	}
@@ -157,25 +220,43 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 BOOL CALLBACK MousePageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		int items[] = {IDC_LMB, IDC_MMB, IDC_RMB, IDC_MB4, IDC_MB5};
-		int i;
-		for (i=0; i < sizeof(items)/sizeof(int); i++) {
-			HWND item = GetDlgItem(hwnd, items[i]);
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Move");
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Resize");
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Minimize");
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"AlwaysOnTop");
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Center");
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Close");
-			SendMessage(item, CB_ADDSTRING, 0, (LPARAM)L"Nothing");
-			SendMessage(item, CB_SETCURSEL, 0, 0);
+		struct {
+			int item;
+			wchar_t *setting;
+		} items[] = {
+			{IDC_LMB, settings.Mouse.LMB},
+			{IDC_MMB, settings.Mouse.MMB},
+			{IDC_RMB, settings.Mouse.RMB},
+			{IDC_MB4, settings.Mouse.MB4},
+			{IDC_MB5, settings.Mouse.MB5},
+			{-1}
+		};
+		wchar_t *actions[] = {L"Move", L"Resize", L"Minimize", L"AlwaysOnTop", L"Center", L"Close", L"Nothing", NULL};
+		int i, j;
+		for (i=0; items[i].item != -1; i++) {
+			for (j=0; actions[j] != NULL; j++) {
+				SendDlgItemMessage(hwnd, items[i].item, CB_ADDSTRING, 0, (LPARAM)actions[j]);
+				if (!wcscmp(items[i].setting,actions[j])) {
+					SendDlgItemMessage(hwnd, items[i].item, CB_SETCURSEL, j, 0);
+				}
+			}
 		}
 		return TRUE;
 	}
 	else if (msg == WM_NOTIFY) {
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_APPLY) {
-			//Store stuff
+			int i;
+			i = SendDlgItemMessage(hwnd, IDC_LMB, CB_GETCURSEL, 0, 0);
+			SendDlgItemMessage(hwnd, IDC_LMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.LMB);
+			i = SendDlgItemMessage(hwnd, IDC_MMB, CB_GETCURSEL, 0, 0);
+			SendDlgItemMessage(hwnd, IDC_MMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MMB);
+			i = SendDlgItemMessage(hwnd, IDC_RMB, CB_GETCURSEL, 0, 0);
+			SendDlgItemMessage(hwnd, IDC_RMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.RMB);
+			i = SendDlgItemMessage(hwnd, IDC_MB4, CB_GETCURSEL, 0, 0);
+			SendDlgItemMessage(hwnd, IDC_MB4, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MB4);
+			i = SendDlgItemMessage(hwnd, IDC_MB5, CB_GETCURSEL, 0, 0);
+			SendDlgItemMessage(hwnd, IDC_MB5, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MB5);
 		}
 		return TRUE;
 	}
