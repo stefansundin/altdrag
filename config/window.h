@@ -7,6 +7,7 @@
 #define IDD_GENERALPAGE                         201
 #define IDD_MOUSEPAGE                           202
 #define IDD_ABOUTPAGE                           203
+#define IDI_ALTDRAG                             205
 #define IDC_AUTOFOCUS                           1102
 #define IDC_AUTOSNAP                            1105
 #define IDC_AERO                                1106

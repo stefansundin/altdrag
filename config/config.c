@@ -207,7 +207,10 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		if (pnmh->code == PSN_APPLY) {
 			settings.AltDrag.AutoFocus = SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_GETCHECK, 0, 0);
 			settings.AltDrag.AutoSnap = SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_GETCURSEL, 0, 0);
-			settings.AltDrag.Aero = SendDlgItemMessage(hwnd, IDC_AERO, BM_GETCHECK, 0, 0);
+			int temp = SendDlgItemMessage(hwnd, IDC_AERO, BM_GETCHECK, 0, 0);
+			if (temp != !!settings.AltDrag.Aero) { //Don't destroy Aero=2
+				settings.AltDrag.Aero = temp;
+			}
 			settings.AltDrag.InactiveScroll = SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_GETCHECK, 0, 0);
 			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
 			int i = SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, 0);
@@ -267,6 +270,11 @@ BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	if (msg == WM_INITDIALOG) {
 		
 		return TRUE;
+	}
+	else if (msg == WM_COMMAND) {
+		if (wParam == IDC_DONATE) {
+			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);
+		}
 	}
 	return FALSE;
 }
