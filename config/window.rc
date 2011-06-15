@@ -13,59 +13,61 @@
 //
 // Dialog resources
 //
-IDD_ABOUTPAGE DIALOGEX 0, 0, 219, 188
+IDD_ABOUTPAGE DIALOGEX 0, 0, 220, 190
 STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
 CAPTION "About"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    GROUPBOX        "About AltDrag", IDC_STATIC, 7, 7, 200, 80
-    LTEXT           "Version 1.0", IDC_STATIC, 82, 22, 40, 8, SS_LEFT
-    LTEXT           "Created by Stefan Sundin", IDC_STATIC, 82, 32, 85, 8, SS_LEFT
-    LTEXT           "Please redistribute!", IDC_STATIC, 17, 67, 65, 8, SS_LEFT
-    LTEXT           "AltDrag is free and open source software!", IDC_STATIC, 17, 57, 150, 8, SS_LEFT
-    LTEXT           "Please recognize the work I've put on AltDrag by donating.", IDC_STATIC, 12, 127, 190, 8, SS_LEFT
-    LTEXT           "I don't ask for much, any amount will do.", IDC_STATIC, 12, 137, 130, 8, SS_LEFT
-    DEFPUSHBUTTON   "Donate", IDC_DONATE, 12, 147, 45, 14
-    ICON            IDI_MONEY, IDC_STATIC, 62, 147, 11, 10, SS_ICON | 0x00000800
+    GROUPBOX        "About AltDrag", IDC_STATIC, 7, 7, 205, 80
+    LTEXT           "Version 1.0", IDC_STATIC, 72, 22, 40, 8, SS_LEFT
+    LTEXT           "Created by Stefan Sundin", IDC_STATIC, 72, 32, 85, 8, SS_LEFT
+    LTEXT           "Please redistribute!", IDC_STATIC, 17, 72, 65, 8, SS_LEFT
+    LTEXT           "AltDrag is free and open source software!", IDC_STATIC, 17, 62, 150, 8, SS_LEFT
+    LTEXT           "Recognize the work I've put on AltDrag by donating. I don't ask for much, any amount will do.", IDC_STATIC, 27, 122, 170, 17, SS_LEFT
+    DEFPUSHBUTTON   "Donate", IDC_DONATE, 37, 142, 45, 14
+    GROUPBOX        "       Donations", IDC_STATIC, 20, 110, 182, 52
+    ICON            IDI_MONEY, IDC_STATIC, 27, 108, 11, 10, SS_ICON | 0x00000800
+    ICON            IDI_ALTDRAG, IDC_STATIC, 22, 17, 45, 42, SS_ICON | 0x00000800
+    LTEXT           "http://stefansundin.com/", IDC_STATIC, 72, 42, 80, 8, SS_LEFT
 }
 
 
 
-IDD_GENERALPAGE DIALOGEX 0, 0, 221, 190
+IDD_GENERALPAGE DIALOGEX 0, 0, 220, 190
 STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
 EXSTYLE WS_EX_WINDOWEDGE
 CAPTION "General"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 22, 17, 145, 8
-    AUTOCHECKBOX    "Mimic Aero Snap", IDC_AERO, 22, 62, 145, 8
-    COMBOBOX        IDC_AUTOSNAP, 22, 42, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    LTEXT           "AutoSnap:", IDC_STATIC, 22, 32, 34, 8, SS_LEFT
-    AUTOCHECKBOX    "Scroll inactive windows", IDC_INACTIVESCROLL, 22, 77, 145, 8
-    AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 22, 92, 145, 8
-    LTEXT           "Language:", IDC_STATIC, 22, 107, 35, 8, SS_LEFT
-    COMBOBOX        IDC_LANGUAGE, 22, 117, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    LTEXT           "Feel free to submit translations, but only if you are prepared to update it in the future!", IDC_STATIC, 22, 132, 145, 20, SS_LEFT
+    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 7, 7, 145, 8
+    AUTOCHECKBOX    "Mimic Aero Snap", IDC_AERO, 7, 52, 145, 8
+    COMBOBOX        IDC_AUTOSNAP, 7, 32, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "AutoSnap:", IDC_STATIC, 7, 22, 34, 8, SS_LEFT
+    AUTOCHECKBOX    "Scroll inactive windows", IDC_INACTIVESCROLL, 7, 67, 145, 8
+    AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 7, 82, 145, 8
+    LTEXT           "Language:", IDC_STATIC, 7, 97, 35, 8, SS_LEFT
+    COMBOBOX        IDC_LANGUAGE, 7, 107, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "Feel free to submit translations, but only if you are prepared to update it in the future!", IDC_STATIC, 7, 122, 145, 20, SS_LEFT
 }
 
 
 
-IDD_MOUSEPAGE DIALOGEX 0, 0, 220, 188
+IDD_MOUSEPAGE DIALOGEX 0, 0, 220, 190
 STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CHILDWINDOW | WS_SYSMENU
 CAPTION "Mouse"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    LTEXT           "Left mouse button:", IDC_STATIC, 17, 17, 90, 8, SS_LEFT
-    LTEXT           "Right mouse button:", IDC_STATIC, 17, 47, 85, 8, SS_LEFT
-    LTEXT           "Middle mouse button:", IDC_STATIC, 17, 32, 90, 8, SS_LEFT
-    LTEXT           "Mouse button 4:", IDC_STATIC, 17, 62, 90, 8, SS_LEFT
-    LTEXT           "Mouse button 5:", IDC_STATIC, 17, 77, 90, 8, SS_LEFT
-    COMBOBOX        IDC_LMB, 122, 12, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_RMB, 122, 42, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MMB, 122, 27, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MB4, 122, 57, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MB5, 122, 72, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    LTEXT           "If you get a great idea for a mouse action, put in a request on the website!", IDC_STATIC, 17, 107, 190, 30, SS_LEFT
+    LTEXT           "Left mouse button:", IDC_STATIC, 7, 7, 75, 8, SS_LEFT
+    LTEXT           "Middle mouse button:", IDC_STATIC, 7, 22, 75, 8, SS_LEFT
+    LTEXT           "Right mouse button:", IDC_STATIC, 7, 37, 75, 8, SS_LEFT
+    LTEXT           "Mouse button 4:", IDC_STATIC, 7, 52, 75, 8, SS_LEFT
+    LTEXT           "Mouse button 5:", IDC_STATIC, 7, 67, 75, 8, SS_LEFT
+    COMBOBOX        IDC_LMB, 93, 6, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MMB, 93, 21, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_RMB, 93, 36, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB4, 93, 51, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB5, 93, 66, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "If you have a great idea for a mouse action, put in a request on the website!", IDC_STATIC, 17, 97, 175, 20, SS_LEFT
 }
 
 
@@ -73,6 +75,9 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
 //
 // Icon resources
 //
+IDI_ALTDRAG        ICON           "altdrag.ico"
+
+
 IDI_ICON1          ICON           "wrench.ico"
 
 
