@@ -98,8 +98,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	GetPrivateProfileString(L"Mouse", L"RMB", L"Move", settings.Mouse.RMB, sizeof(settings.Mouse.RMB)/sizeof(wchar_t), path);
 	GetPrivateProfileString(L"Mouse", L"MB4", L"Move", settings.Mouse.MB4, sizeof(settings.Mouse.MB4)/sizeof(wchar_t), path);
 	GetPrivateProfileString(L"Mouse", L"MB5", L"Move", settings.Mouse.MB5, sizeof(settings.Mouse.MB5)/sizeof(wchar_t), path);
-	
-	
+	//Language
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
 	int i;
 	for (i=0; languages[i].code != NULL; i++) {
@@ -140,6 +139,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.nPages          = sizeof(psp)/sizeof(PROPSHEETPAGE);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
+	
+	//Open the property sheet
 	if (PropertySheet(&psh)) {
 		//[AltDrag]
 		WritePrivateProfileString(APP_NAME, L"AutoFocus",      _itow(settings.AltDrag.AutoFocus,txt,10), path);
@@ -155,6 +156,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		WritePrivateProfileString(L"Mouse", L"RMB", settings.Mouse.RMB, path);
 		WritePrivateProfileString(L"Mouse", L"MB4", settings.Mouse.MB4, path);
 		WritePrivateProfileString(L"Mouse", L"MB5", settings.Mouse.MB5, path);
+		
+		//Make AltDrag update its settings
+		HWND inst = FindWindow(APP_NAME, NULL);
+		if (inst != NULL) {
+			PostMessage(inst, WM_UPDATESETTINGS, 0, 0);
+		}
 	}
 	
 	return 0;
