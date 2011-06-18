@@ -28,13 +28,17 @@
 //Boring stuff
 BOOL CALLBACK PropSheetProc(HWND, UINT, LPARAM);
 BOOL CALLBACK GeneralPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK MousePageDialogProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK InputPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK BlacklistPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-HINSTANCE g_hinst = NULL;
-HWND g_hwnd = NULL;
 UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
+wchar_t inipath[MAX_PATH];
+
+//Cool stuff
+#define MAXKEYS 10
 struct {
 	struct {
 		int AutoFocus;
@@ -54,9 +58,16 @@ struct {
 		wchar_t MB4[20];
 		wchar_t MB5[20];
 	} Mouse;
+	struct {
+		int LeftAlt;
+		int RightAlt;
+		int LeftWinkey;
+		int RightWinkey;
+		int LeftCtrl;
+		int RightCtrl;
+		wchar_t OtherKeys[30];
+	} Keyboard;
 } settings;
-
-//Cool stuff
 BOOL x64 = FALSE;
 
 //Include stuff
@@ -66,40 +77,65 @@ BOOL x64 = FALSE;
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
-	g_hinst = hInst;
-	
 	//Look for instance
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
 	
 	//Load settings
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	PathRemoveFileSpec(path);
-	wcscat(path, L"\\"APP_NAME".ini");
-	wchar_t txt[10];
+	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
+	PathRemoveFileSpec(inipath);
+	wcscat(inipath, L"\\"APP_NAME".ini");
+	wchar_t txt[1000];
 	//[AltDrag]
-	GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	settings.AltDrag.AutoFocus = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	settings.AltDrag.AutoSnap = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"1", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	settings.AltDrag.AutoRemaximize = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	settings.AltDrag.Aero = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"2", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	settings.AltDrag.InactiveScroll = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	settings.AltDrag.HookWindows = _wtoi(txt);
 	//[Mouse]
-	GetPrivateProfileString(L"Mouse", L"LMB", L"Move", settings.Mouse.LMB, sizeof(settings.Mouse.LMB)/sizeof(wchar_t), path);
-	GetPrivateProfileString(L"Mouse", L"MMB", L"Move", settings.Mouse.MMB, sizeof(settings.Mouse.MMB)/sizeof(wchar_t), path);
-	GetPrivateProfileString(L"Mouse", L"RMB", L"Move", settings.Mouse.RMB, sizeof(settings.Mouse.RMB)/sizeof(wchar_t), path);
-	GetPrivateProfileString(L"Mouse", L"MB4", L"Move", settings.Mouse.MB4, sizeof(settings.Mouse.MB4)/sizeof(wchar_t), path);
-	GetPrivateProfileString(L"Mouse", L"MB5", L"Move", settings.Mouse.MB5, sizeof(settings.Mouse.MB5)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Mouse", L"LMB", L"Move", settings.Mouse.LMB, sizeof(settings.Mouse.LMB)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Mouse", L"MMB", L"Move", settings.Mouse.MMB, sizeof(settings.Mouse.MMB)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Mouse", L"RMB", L"Move", settings.Mouse.RMB, sizeof(settings.Mouse.RMB)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Mouse", L"MB4", L"Move", settings.Mouse.MB4, sizeof(settings.Mouse.MB4)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Mouse", L"MB5", L"Move", settings.Mouse.MB5, sizeof(settings.Mouse.MB5)/sizeof(wchar_t), inipath);
+	//[Keyboard]
+	settings.Keyboard.LeftAlt = 0;
+	settings.Keyboard.RightAlt = 0;
+	settings.Keyboard.LeftWinkey = 0;
+	settings.Keyboard.RightWinkey = 0;
+	settings.Keyboard.LeftCtrl = 0;
+	settings.Keyboard.RightCtrl = 0;
+	settings.Keyboard.OtherKeys[0] = '\0';
+	unsigned char temp;
+	int numread;
+	GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	wchar_t *pos = txt;
+	while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
+		//Bail if we are out of space
+		if (wcslen(settings.Keyboard.OtherKeys) > 25) {
+			break;
+		}
+		//Store key
+		pos += numread;
+		//What key was that?
+		if      (temp == VK_LMENU)    settings.Keyboard.LeftAlt = 1;
+		else if (temp == VK_RMENU)    settings.Keyboard.RightAlt = 1;
+		else if (temp == VK_LWIN)     settings.Keyboard.LeftWinkey = 1;
+		else if (temp == VK_RWIN)     settings.Keyboard.RightWinkey = 1;
+		else if (temp == VK_LCONTROL) settings.Keyboard.LeftCtrl = 1;
+		else if (temp == VK_RCONTROL) settings.Keyboard.RightCtrl = 1;
+		else swprintf(settings.Keyboard.OtherKeys, L"%s %02X", settings.Keyboard.OtherKeys, temp);
+	}
 	//Language
-	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int i;
 	for (i=0; languages[i].code != NULL; i++) {
 		if (!wcsicmp(txt,languages[i].code)) {
@@ -107,28 +143,31 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 			break;
 		}
 	}
-	//SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 	IsWow64Process(GetCurrentProcess(), &x64);
 	
-	// Define the property pages...
+	//Define the pages
 	struct {
 		int pszTemplate;
 		DLGPROC pfnDlgProc;
 	} pages[] = {
-		{ IDD_GENERALPAGE, GeneralPageDialogProc },
-		{ IDD_MOUSEPAGE,   MousePageDialogProc },
-		{ IDD_ABOUTPAGE,   AboutPageDialogProc },
+		{ IDD_GENERALPAGE,   GeneralPageDialogProc },
+		{ IDD_INPUTPAGE,     InputPageDialogProc },
+		{ IDD_BLACKLISTPAGE, BlacklistPageDialogProc },
+		{ IDD_ADVANCEDPAGE,  AdvancedPageDialogProc },
+		{ IDD_ABOUTPAGE,     AboutPageDialogProc },
 	};
+	#define NUMPAGES sizeof(pages)/sizeof(pages[0])
 	
-	PROPSHEETPAGE psp[3] = {0};
-	for (i=0; i < sizeof(psp)/sizeof(PROPSHEETPAGE); i++) {
+	PROPSHEETPAGE psp[NUMPAGES] = {0};
+	for (i=0; i < NUMPAGES; i++) {
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
 		psp[i].hInstance   = hInst;
 		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
 		//psp[i].lParam      = (LPARAM)&settings;
 		psp[i].pfnDlgProc  = pages[i].pfnDlgProc;
 	}
-	// Define the property sheet...
+	
+	//Define the property sheet
 	PROPSHEETHEADER psh = {0};
 	psh.dwSize          = sizeof(PROPSHEETHEADER);
 	psh.dwFlags         = PSH_USEICONID | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
@@ -136,26 +175,37 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.hInstance       = hInst;
 	psh.pszIcon         = MAKEINTRESOURCE(IDI_ICON1);
 	psh.pszCaption      = APP_NAME L" Configuration";
-	psh.nPages          = sizeof(psp)/sizeof(PROPSHEETPAGE);
+	psh.nPages          = NUMPAGES;
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	
 	//Open the property sheet
 	if (PropertySheet(&psh)) {
 		//[AltDrag]
-		WritePrivateProfileString(APP_NAME, L"AutoFocus",      _itow(settings.AltDrag.AutoFocus,txt,10), path);
-		WritePrivateProfileString(APP_NAME, L"AutoSnap",       _itow(settings.AltDrag.AutoSnap,txt,10), path);
-		WritePrivateProfileString(APP_NAME, L"Aero",           _itow(settings.AltDrag.Aero,txt,10), path);
-		WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), path);
-		WritePrivateProfileString(APP_NAME, L"HookWindows",    _itow(settings.AltDrag.HookWindows,txt,10), path);
-		WritePrivateProfileString(APP_NAME, L"Language",       l10n->code, path);
+		WritePrivateProfileString(APP_NAME, L"AutoFocus",      _itow(settings.AltDrag.AutoFocus,txt,10), inipath);
+		WritePrivateProfileString(APP_NAME, L"AutoSnap",       _itow(settings.AltDrag.AutoSnap,txt,10), inipath);
+		WritePrivateProfileString(APP_NAME, L"Aero",           _itow(settings.AltDrag.Aero,txt,10), inipath);
+		WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), inipath);
+		WritePrivateProfileString(APP_NAME, L"HookWindows",    _itow(settings.AltDrag.HookWindows,txt,10), inipath);
+		WritePrivateProfileString(APP_NAME, L"Language",       l10n->code, inipath);
 		
 		//[Mouse]
-		WritePrivateProfileString(L"Mouse", L"LMB", settings.Mouse.LMB, path);
-		WritePrivateProfileString(L"Mouse", L"MMB", settings.Mouse.MMB, path);
-		WritePrivateProfileString(L"Mouse", L"RMB", settings.Mouse.RMB, path);
-		WritePrivateProfileString(L"Mouse", L"MB4", settings.Mouse.MB4, path);
-		WritePrivateProfileString(L"Mouse", L"MB5", settings.Mouse.MB5, path);
+		WritePrivateProfileString(L"Mouse", L"LMB", settings.Mouse.LMB, inipath);
+		WritePrivateProfileString(L"Mouse", L"MMB", settings.Mouse.MMB, inipath);
+		WritePrivateProfileString(L"Mouse", L"RMB", settings.Mouse.RMB, inipath);
+		WritePrivateProfileString(L"Mouse", L"MB4", settings.Mouse.MB4, inipath);
+		WritePrivateProfileString(L"Mouse", L"MB5", settings.Mouse.MB5, inipath);
+		
+		//[Keyboard]
+		txt[0] = '\0';
+		if (settings.Keyboard.LeftAlt)     swprintf(txt, L" %02X",         VK_LMENU);
+		if (settings.Keyboard.RightAlt)    swprintf(txt, L"%s %02X", txt, VK_RMENU);
+		if (settings.Keyboard.LeftWinkey)  swprintf(txt, L"%s %02X", txt, VK_LWIN);
+		if (settings.Keyboard.RightWinkey) swprintf(txt, L"%s %02X", txt, VK_RWIN);
+		if (settings.Keyboard.LeftCtrl)    swprintf(txt, L"%s %02X", txt, VK_LCONTROL);
+		if (settings.Keyboard.RightCtrl)   swprintf(txt, L"%s %02X", txt, VK_RCONTROL);
+		wcscat(txt, settings.Keyboard.OtherKeys);
+		WritePrivateProfileString(L"Keyboard", L"Hotkeys", txt+1, inipath); //Skip prefix space
 		
 		//Make AltDrag update its settings
 		HWND inst = FindWindow(APP_NAME, NULL);
@@ -195,7 +245,6 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		
 		SendDlgItemMessage(hwnd, IDC_AERO, BM_SETCHECK, settings.AltDrag.Aero?BST_CHECKED:BST_UNCHECKED, 0);
 		SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_SETCHECK, settings.AltDrag.InactiveScroll?BST_CHECKED:BST_UNCHECKED, 0);
-		SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_SETCHECK, settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED, 0);
 		
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
@@ -219,7 +268,6 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				settings.AltDrag.Aero = temp;
 			}
 			settings.AltDrag.InactiveScroll = SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_GETCHECK, 0, 0);
-			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
 			int i = SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, 0);
 			l10n = languages[i].strings;
 		}
@@ -228,8 +276,9 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	return FALSE;
 }
 
-BOOL CALLBACK MousePageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
+		//Mouse actions
 		struct {
 			int item;
 			wchar_t *setting;
@@ -241,7 +290,7 @@ BOOL CALLBACK MousePageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			{IDC_MB5, settings.Mouse.MB5},
 			{-1}
 		};
-		wchar_t *actions[] = {L"Move", L"Resize", L"Minimize", L"AlwaysOnTop", L"Center", L"Close", L"Nothing", NULL};
+		wchar_t *actions[] = {L"Move", L"Resize", L"Close", L"Minimize", L"Lower", L"AlwaysOnTop", L"Center", L"Nothing", NULL};
 		int i, j;
 		for (i=0; items[i].item != -1; i++) {
 			for (j=0; actions[j] != NULL; j++) {
@@ -251,11 +300,21 @@ BOOL CALLBACK MousePageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 				}
 			}
 		}
+		
+		//Hotkeys
+		if (settings.Keyboard.LeftAlt)     SendDlgItemMessage(hwnd, IDC_LEFTALT, BM_SETCHECK, BST_CHECKED, 0);
+		if (settings.Keyboard.RightAlt)    SendDlgItemMessage(hwnd, IDC_RIGHTALT, BM_SETCHECK, BST_CHECKED, 0);
+		if (settings.Keyboard.LeftWinkey)  SendDlgItemMessage(hwnd, IDC_LEFTWINKEY, BM_SETCHECK, BST_CHECKED, 0);
+		if (settings.Keyboard.RightWinkey) SendDlgItemMessage(hwnd, IDC_RIGHTWINKEY, BM_SETCHECK, BST_CHECKED, 0);
+		if (settings.Keyboard.LeftCtrl)    SendDlgItemMessage(hwnd, IDC_LEFTCTRL, BM_SETCHECK, BST_CHECKED, 0);
+		if (settings.Keyboard.RightCtrl)   SendDlgItemMessage(hwnd, IDC_RIGHTCTRL, BM_SETCHECK, BST_CHECKED, 0);
+		
 		return TRUE;
 	}
 	else if (msg == WM_NOTIFY) {
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_APPLY) {
+			//Mouse actions
 			int i;
 			i = SendDlgItemMessage(hwnd, IDC_LMB, CB_GETCURSEL, 0, 0);
 			SendDlgItemMessage(hwnd, IDC_LMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.LMB);
@@ -267,8 +326,49 @@ BOOL CALLBACK MousePageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SendDlgItemMessage(hwnd, IDC_MB4, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MB4);
 			i = SendDlgItemMessage(hwnd, IDC_MB5, CB_GETCURSEL, 0, 0);
 			SendDlgItemMessage(hwnd, IDC_MB5, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MB5);
+			
+			//Hotkeys
+			settings.Keyboard.LeftAlt     = SendDlgItemMessage(hwnd, IDC_LEFTALT, BM_GETCHECK, 0, 0);
+			settings.Keyboard.RightAlt    = SendDlgItemMessage(hwnd, IDC_RIGHTALT, BM_GETCHECK, 0, 0);
+			settings.Keyboard.LeftWinkey  = SendDlgItemMessage(hwnd, IDC_LEFTWINKEY, BM_GETCHECK, 0, 0);
+			settings.Keyboard.RightWinkey = SendDlgItemMessage(hwnd, IDC_RIGHTWINKEY, BM_GETCHECK, 0, 0);
+			settings.Keyboard.LeftCtrl    = SendDlgItemMessage(hwnd, IDC_LEFTCTRL, BM_GETCHECK, 0, 0);
+			settings.Keyboard.RightCtrl   = SendDlgItemMessage(hwnd, IDC_RIGHTCTRL, BM_GETCHECK, 0, 0);
 		}
 		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_INITDIALOG) {
+		
+		return TRUE;
+	}
+	else if (msg == WM_COMMAND) {
+		if (wParam == IDC_DONATE) {
+			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);
+		}
+	}
+	return FALSE;
+}
+
+BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_INITDIALOG) {
+		
+		SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_SETCHECK, settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED, 0);
+		return TRUE;
+	}
+	else if (msg == WM_NOTIFY) {
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_APPLY) {
+			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
+		}
+	}
+	else if (msg == WM_COMMAND) {
+		if (wParam == IDC_OPENINI) {
+			ShellExecute(NULL, L"open", inipath, NULL, NULL, SW_SHOWNORMAL);
+		}
 	}
 	return FALSE;
 }
