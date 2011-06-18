@@ -54,3 +54,10 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	}
 	#endif
 }
+
+#define DBG(fmt, arg) { \
+	wchar_t txt[100]; \
+	wsprintf(txt, TEXT(fmt), arg); \
+	MessageBox(NULL, txt, APP_NAME" Debug", MB_ICONINFORMATION|MB_OK); \
+}
+//DBG("%d", 5);

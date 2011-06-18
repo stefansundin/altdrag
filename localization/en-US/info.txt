@@ -30,6 +30,7 @@ AltDrag is open source, licensed under GPL.
 Changelog
 ---------
 1.0:
+Added configuration GUI.
 Added ability to scroll through windows with the scrollwheel (like Alt+Tab!).
 You can now press escape to stop AltDrag. Useful if AltDrag gets in a weird state.
 
