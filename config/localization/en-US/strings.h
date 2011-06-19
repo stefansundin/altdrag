@@ -8,5 +8,12 @@
 */
 
 struct strings en_US = {
- /* code           */ L"en-US",
+ /* code              */ L"en-US",
+ /* title             */ APP_NAME L" Configuration",
+ /* tab_general       */ L"General",
+ /* tab_input         */ L"Mouse and keyboard",
+ /* tab_blacklist     */ L"Blacklist",
+ /* tab_advanced      */ L"Advanced",
+ /* tab_about         */ L"About",
+ /* general_autofocus */ L"Focus windows when dragging.\nYou can also press Control to focus windows.",
 };

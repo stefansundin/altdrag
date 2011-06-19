@@ -8,5 +8,12 @@
 */
 
 struct strings es_ES = {
- /* code           */ L"es-ES",
+ /* code              */ L"es-ES",
+ /* title             */ APP_NAME L" Configurationé",
+ /* tab_general       */ L"Generallé",
+ /* tab_input         */ L"Muse and lè keybord",
+ /* tab_blacklist     */ L"Blacklisté",
+ /* tab_advanced      */ L"Advancé",
+ /* tab_about         */ L"Abouté",
+ /* general_autofocus */ L"Le focus.\nEyy, Controlle to focuse.",
 };

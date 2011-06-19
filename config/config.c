@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <shlwapi.h>
+#include <commctrl.h>
 #include <prsht.h>
 
 //App
@@ -36,6 +37,7 @@ UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
 wchar_t inipath[MAX_PATH];
+HWND g_hwnd = NULL;
 
 //Cool stuff
 #define MAXKEYS 10
@@ -156,10 +158,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		{ IDD_ADVANCEDPAGE,  AdvancedPageDialogProc },
 		{ IDD_ABOUTPAGE,     AboutPageDialogProc },
 	};
-	#define NUMPAGES sizeof(pages)/sizeof(pages[0])
 	
-	PROPSHEETPAGE psp[NUMPAGES] = {0};
-	for (i=0; i < NUMPAGES; i++) {
+	PROPSHEETPAGE psp[sizeof(pages)/sizeof(pages[0])] = {0};
+	for (i=0; i < sizeof(pages)/sizeof(pages[0]); i++) {
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
 		psp[i].hInstance   = hInst;
 		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
@@ -175,65 +176,40 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.hInstance       = hInst;
 	psh.pszIcon         = MAKEINTRESOURCE(IDI_ICON1);
 	psh.pszCaption      = APP_NAME L" Configuration";
-	psh.nPages          = NUMPAGES;
+	psh.nPages          = sizeof(pages)/sizeof(pages[0]);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	
 	//Open the property sheet
-	if (PropertySheet(&psh)) {
-		//[AltDrag]
-		WritePrivateProfileString(APP_NAME, L"AutoFocus",      _itow(settings.AltDrag.AutoFocus,txt,10), inipath);
-		WritePrivateProfileString(APP_NAME, L"AutoSnap",       _itow(settings.AltDrag.AutoSnap,txt,10), inipath);
-		WritePrivateProfileString(APP_NAME, L"Aero",           _itow(settings.AltDrag.Aero,txt,10), inipath);
-		WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), inipath);
-		WritePrivateProfileString(APP_NAME, L"HookWindows",    _itow(settings.AltDrag.HookWindows,txt,10), inipath);
-		WritePrivateProfileString(APP_NAME, L"Language",       l10n->code, inipath);
-		
-		//[Mouse]
-		WritePrivateProfileString(L"Mouse", L"LMB", settings.Mouse.LMB, inipath);
-		WritePrivateProfileString(L"Mouse", L"MMB", settings.Mouse.MMB, inipath);
-		WritePrivateProfileString(L"Mouse", L"RMB", settings.Mouse.RMB, inipath);
-		WritePrivateProfileString(L"Mouse", L"MB4", settings.Mouse.MB4, inipath);
-		WritePrivateProfileString(L"Mouse", L"MB5", settings.Mouse.MB5, inipath);
-		
-		//[Keyboard]
-		txt[0] = '\0';
-		if (settings.Keyboard.LeftAlt)     swprintf(txt, L" %02X",         VK_LMENU);
-		if (settings.Keyboard.RightAlt)    swprintf(txt, L"%s %02X", txt, VK_RMENU);
-		if (settings.Keyboard.LeftWinkey)  swprintf(txt, L"%s %02X", txt, VK_LWIN);
-		if (settings.Keyboard.RightWinkey) swprintf(txt, L"%s %02X", txt, VK_RWIN);
-		if (settings.Keyboard.LeftCtrl)    swprintf(txt, L"%s %02X", txt, VK_LCONTROL);
-		if (settings.Keyboard.RightCtrl)   swprintf(txt, L"%s %02X", txt, VK_RCONTROL);
-		wcscat(txt, settings.Keyboard.OtherKeys);
-		WritePrivateProfileString(L"Keyboard", L"Hotkeys", txt+1, inipath); //Skip prefix space
-		
-		//Make AltDrag update its settings
-		HWND inst = FindWindow(APP_NAME, NULL);
-		if (inst != NULL) {
-			PostMessage(inst, WM_UPDATESETTINGS, 0, 0);
-		}
-	}
+	PropertySheet(&psh);
 	
 	return 0;
 }
 
+void UpdateSettings() {
+	//Make AltDrag update its settings
+	HWND inst = FindWindow(APP_NAME, NULL);
+	if (inst != NULL) {
+		PostMessage(inst, WM_UPDATESETTINGS, 0, 0);
+	}
+}
+
 BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	if (msg == PSCB_INITIALIZED) {
-		LOGFONT lf = {0};
-		lf.lfCharSet = DEFAULT_CHARSET;
-		lf.lfHeight = 13;
-		lstrcpy(lf.lfFaceName, TEXT("Tahoma"));
-		HFONT hFont = CreateFontIndirect(&lf);
-		SendMessage(PropSheet_GetTabControl(hwnd), WM_SETFONT, (WPARAM)hFont, TRUE);
-		SendMessage(GetDlgItem(hwnd,IDOK),         WM_SETFONT, (WPARAM)hFont, TRUE);
-		SendMessage(GetDlgItem(hwnd,IDCANCEL),     WM_SETFONT, (WPARAM)hFont, TRUE);
+		g_hwnd = hwnd;
 		
-		return TRUE;
+		//OK button replaces Cancel button
+		SendMessage(g_hwnd, PSM_CANCELTOCLOSE, 0, 0);
+		WINDOWPLACEMENT wndpl;
+		wndpl.length = sizeof(WINDOWPLACEMENT);
+		GetWindowPlacement(GetDlgItem(g_hwnd,IDCANCEL), &wndpl);
+		SetWindowPlacement(GetDlgItem(g_hwnd,IDOK), &wndpl);
+		ShowWindow(GetDlgItem(g_hwnd,IDCANCEL), SW_HIDE);
 	}
-	return 0;
 }
 
 BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	int updatel10n = 0;
 	if (msg == WM_INITDIALOG) {
 		SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_SETCHECK, settings.AltDrag.AutoFocus?BST_CHECKED:BST_UNCHECKED, 0);
 		
@@ -255,87 +231,136 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i, 0);
 			}
 		}
-		
-		return TRUE;
 	}
-	else if (msg == WM_NOTIFY) {
-		LPNMHDR pnmh = (LPNMHDR)lParam;
-		if (pnmh->code == PSN_APPLY) {
+	else if (msg == WM_COMMAND) {
+		wchar_t txt[1000];
+		if (wParam == IDC_AUTOFOCUS) {
 			settings.AltDrag.AutoFocus = SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_GETCHECK, 0, 0);
+			WritePrivateProfileString(APP_NAME, L"AutoFocus", _itow(settings.AltDrag.AutoFocus,txt,10), inipath);
+		}
+		else if (LOWORD(wParam) == IDC_AUTOSNAP && HIWORD(wParam) == CBN_SELCHANGE) {
 			settings.AltDrag.AutoSnap = SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_GETCURSEL, 0, 0);
+			WritePrivateProfileString(APP_NAME, L"AutoSnap", _itow(settings.AltDrag.AutoSnap,txt,10), inipath);
+		}
+		else if (wParam == IDC_AERO) {
 			int temp = SendDlgItemMessage(hwnd, IDC_AERO, BM_GETCHECK, 0, 0);
 			if (temp != !!settings.AltDrag.Aero) { //Don't destroy Aero=2
 				settings.AltDrag.Aero = temp;
 			}
+			WritePrivateProfileString(APP_NAME, L"Aero", _itow(settings.AltDrag.Aero,txt,10), inipath);
+		}
+		else if (wParam == IDC_INACTIVESCROLL) {
 			settings.AltDrag.InactiveScroll = SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_GETCHECK, 0, 0);
+			WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), inipath);
+		}
+		else if (LOWORD(wParam) == IDC_LANGUAGE && HIWORD(wParam) == CBN_SELCHANGE) {
 			int i = SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, 0);
 			l10n = languages[i].strings;
+			WritePrivateProfileString(APP_NAME, L"Language", l10n->code, inipath);
+			updatel10n = 1;
 		}
-		return TRUE;
+		UpdateSettings();
+	}
+	else if (msg == WM_NOTIFY) {
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_SETACTIVE) {
+			updatel10n = 1;
+		}
+	}
+	if (updatel10n) {
+		//Update window title
+		PropSheet_SetTitle(g_hwnd, 0, l10n->title);
+		
+		//Update tab titles
+		HWND tc = PropSheet_GetTabControl(g_hwnd);
+		wchar_t *titles[] = { l10n->tab_general, l10n->tab_input, l10n->tab_blacklist, l10n->tab_advanced, l10n->tab_about };
+		int i;
+		for (i=0; i < sizeof(titles)/sizeof(titles[0]); i++) {
+			TCITEM ti;
+			ti.mask = TCIF_TEXT;
+			ti.pszText = titles[i];
+			TabCtrl_SetItem(tc, i, &ti);
+		}
+		
+		//Update text
+		SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, WM_SETTEXT, 0, (LPARAM)l10n->general_autofocus);
 	}
 	return FALSE;
 }
 
 BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	//Mouse actions
+	struct {
+		int control;
+		wchar_t *setting;
+		wchar_t *option;
+	} mouse_buttons[] = {
+		{IDC_LMB, settings.Mouse.LMB, L"LMB"},
+		{IDC_MMB, settings.Mouse.MMB, L"MMB"},
+		{IDC_RMB, settings.Mouse.RMB, L"RMB"},
+		{IDC_MB4, settings.Mouse.MB4, L"MB4"},
+		{IDC_MB5, settings.Mouse.MB5, L"MB5"},
+	};
+	wchar_t *mouse_actions[] = {L"Move", L"Resize", L"Close", L"Minimize", L"Lower", L"AlwaysOnTop", L"Center", L"Nothing"};
+	
+	//Hotkeys
+	struct {
+		int control;
+		int *setting;
+		int vkey;
+	} hotkeys[] = {
+		{IDC_LEFTALT,     &settings.Keyboard.LeftAlt,     VK_LMENU   },
+		{IDC_RIGHTALT,    &settings.Keyboard.RightAlt,    VK_RMENU   },
+		{IDC_LEFTWINKEY,  &settings.Keyboard.LeftWinkey,  VK_LWIN    },
+		{IDC_RIGHTWINKEY, &settings.Keyboard.RightWinkey, VK_RWIN    },
+		{IDC_LEFTCTRL,    &settings.Keyboard.LeftCtrl,    VK_LCONTROL},
+		{IDC_RIGHTCTRL,   &settings.Keyboard.RightCtrl,   VK_RCONTROL},
+	};
+	
 	if (msg == WM_INITDIALOG) {
 		//Mouse actions
-		struct {
-			int item;
-			wchar_t *setting;
-		} items[] = {
-			{IDC_LMB, settings.Mouse.LMB},
-			{IDC_MMB, settings.Mouse.MMB},
-			{IDC_RMB, settings.Mouse.RMB},
-			{IDC_MB4, settings.Mouse.MB4},
-			{IDC_MB5, settings.Mouse.MB5},
-			{-1}
-		};
-		wchar_t *actions[] = {L"Move", L"Resize", L"Close", L"Minimize", L"Lower", L"AlwaysOnTop", L"Center", L"Nothing", NULL};
 		int i, j;
-		for (i=0; items[i].item != -1; i++) {
-			for (j=0; actions[j] != NULL; j++) {
-				SendDlgItemMessage(hwnd, items[i].item, CB_ADDSTRING, 0, (LPARAM)actions[j]);
-				if (!wcscmp(items[i].setting,actions[j])) {
-					SendDlgItemMessage(hwnd, items[i].item, CB_SETCURSEL, j, 0);
+		for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
+			for (j=0; j < sizeof(mouse_actions)/sizeof(mouse_actions[0]); j++) {
+				SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_ADDSTRING, 0, (LPARAM)mouse_actions[j]);
+				if (!wcscmp(mouse_buttons[i].setting,mouse_actions[j])) {
+					SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_SETCURSEL, j, 0);
 				}
 			}
 		}
 		
 		//Hotkeys
-		if (settings.Keyboard.LeftAlt)     SendDlgItemMessage(hwnd, IDC_LEFTALT, BM_SETCHECK, BST_CHECKED, 0);
-		if (settings.Keyboard.RightAlt)    SendDlgItemMessage(hwnd, IDC_RIGHTALT, BM_SETCHECK, BST_CHECKED, 0);
-		if (settings.Keyboard.LeftWinkey)  SendDlgItemMessage(hwnd, IDC_LEFTWINKEY, BM_SETCHECK, BST_CHECKED, 0);
-		if (settings.Keyboard.RightWinkey) SendDlgItemMessage(hwnd, IDC_RIGHTWINKEY, BM_SETCHECK, BST_CHECKED, 0);
-		if (settings.Keyboard.LeftCtrl)    SendDlgItemMessage(hwnd, IDC_LEFTCTRL, BM_SETCHECK, BST_CHECKED, 0);
-		if (settings.Keyboard.RightCtrl)   SendDlgItemMessage(hwnd, IDC_RIGHTCTRL, BM_SETCHECK, BST_CHECKED, 0);
-		
-		return TRUE;
-	}
-	else if (msg == WM_NOTIFY) {
-		LPNMHDR pnmh = (LPNMHDR)lParam;
-		if (pnmh->code == PSN_APPLY) {
-			//Mouse actions
-			int i;
-			i = SendDlgItemMessage(hwnd, IDC_LMB, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_LMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.LMB);
-			i = SendDlgItemMessage(hwnd, IDC_MMB, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_MMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MMB);
-			i = SendDlgItemMessage(hwnd, IDC_RMB, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_RMB, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.RMB);
-			i = SendDlgItemMessage(hwnd, IDC_MB4, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_MB4, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MB4);
-			i = SendDlgItemMessage(hwnd, IDC_MB5, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hwnd, IDC_MB5, CB_GETLBTEXT, i, (LPARAM)settings.Mouse.MB5);
-			
-			//Hotkeys
-			settings.Keyboard.LeftAlt     = SendDlgItemMessage(hwnd, IDC_LEFTALT, BM_GETCHECK, 0, 0);
-			settings.Keyboard.RightAlt    = SendDlgItemMessage(hwnd, IDC_RIGHTALT, BM_GETCHECK, 0, 0);
-			settings.Keyboard.LeftWinkey  = SendDlgItemMessage(hwnd, IDC_LEFTWINKEY, BM_GETCHECK, 0, 0);
-			settings.Keyboard.RightWinkey = SendDlgItemMessage(hwnd, IDC_RIGHTWINKEY, BM_GETCHECK, 0, 0);
-			settings.Keyboard.LeftCtrl    = SendDlgItemMessage(hwnd, IDC_LEFTCTRL, BM_GETCHECK, 0, 0);
-			settings.Keyboard.RightCtrl   = SendDlgItemMessage(hwnd, IDC_RIGHTCTRL, BM_GETCHECK, 0, 0);
+		for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
+			if (*hotkeys[i].setting) {
+				SendDlgItemMessage(hwnd, hotkeys[i].control, BM_SETCHECK, BST_CHECKED, 0);
+			}
 		}
-		return TRUE;
+	}
+	else if (msg == WM_COMMAND) {
+		int i;
+		if (HIWORD(wParam) == CBN_SELCHANGE) {
+			//Mouse actions
+			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
+				if (LOWORD(wParam) == mouse_buttons[i].control) {
+					int index = SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_GETCURSEL, 0, 0);
+					SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_GETLBTEXT, index, (LPARAM)mouse_buttons[i].setting);
+					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, mouse_buttons[i].setting, inipath);
+				}
+			}
+		}
+		else {
+			//Hotkeys
+			wchar_t txt[100] = {'\0', '\0'}; //Second \0 needed if no keys are selected
+			for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
+				*hotkeys[i].setting = SendDlgItemMessage(hwnd, hotkeys[i].control, BM_GETCHECK, 0, 0);
+				if (*hotkeys[i].setting) {
+					swprintf(txt, L"%s %02X", txt, hotkeys[i].vkey);
+				}
+			}
+			wcscat(txt, settings.Keyboard.OtherKeys);
+			WritePrivateProfileString(L"Keyboard", L"Hotkeys", txt+1, inipath); //Skip prefix space
+		}
+		UpdateSettings();
 	}
 	return FALSE;
 }
@@ -343,31 +368,25 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		
-		return TRUE;
 	}
 	else if (msg == WM_COMMAND) {
-		if (wParam == IDC_DONATE) {
-			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);
-		}
 	}
 	return FALSE;
 }
 
 BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		
 		SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_SETCHECK, settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED, 0);
-		return TRUE;
-	}
-	else if (msg == WM_NOTIFY) {
-		LPNMHDR pnmh = (LPNMHDR)lParam;
-		if (pnmh->code == PSN_APPLY) {
-			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
-		}
 	}
 	else if (msg == WM_COMMAND) {
 		if (wParam == IDC_OPENINI) {
 			ShellExecute(NULL, L"open", inipath, NULL, NULL, SW_SHOWNORMAL);
+		}
+		else {
+			wchar_t txt[10];
+			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
+			WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(settings.AltDrag.HookWindows,txt,10), inipath);
+			UpdateSettings();
 		}
 	}
 	return FALSE;
@@ -376,7 +395,6 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		
-		return TRUE;
 	}
 	else if (msg == WM_COMMAND) {
 		if (wParam == IDC_DONATE) {
