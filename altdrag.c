@@ -55,12 +55,12 @@ UINT WM_TASKBARCREATED = 0;
 UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
+
+//Cool stuff
 struct {
 	int InactiveScroll;
 	int HookWindows;
 } settings = {0, 0};
-
-//Cool stuff
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK scrollhook = NULL;
