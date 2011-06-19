@@ -157,6 +157,9 @@ enum action msgaction = ACTION_NONE;
 //Blacklist
 int blacklisted(HWND hwnd, struct blacklist *list) {
 	wchar_t title[256]=L"", classname[256]=L"";
+	int i;
+	
+	//ProcessBlacklist is case-insensitive
 	if (list == &settings.ProcessBlacklist) {
 		DWORD pid;
 		GetWindowThreadProcessId(hwnd, &pid);
@@ -164,12 +167,16 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 		GetProcessImageFileName(proc, title, sizeof(title)/sizeof(wchar_t));
 		CloseHandle(proc);
 		PathStripPath(title);
+		for (i=0; i < list->length; i++) {
+			if (!wcsicmp(title,list->items[i].title)) {
+				return 1;
+			}
+		}
+		return 0;
 	}
-	else {
-		GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
-		GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
-	}
-	int i;
+	
+	GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
+	GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
 	for (i=0; i < list->length; i++) {
 		if ((list->items[i].title == NULL && !wcscmp(classname,list->items[i].classname))
 		 || (list->items[i].classname == NULL && !wcscmp(title,list->items[i].title))
