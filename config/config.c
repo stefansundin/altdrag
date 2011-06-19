@@ -18,6 +18,7 @@
 #include <shlwapi.h>
 #include <commctrl.h>
 #include <prsht.h>
+#include <windowsx.h>
 
 //App
 #define APP_NAME            L"AltDrag"
@@ -36,8 +37,12 @@ BOOL CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
-wchar_t inipath[MAX_PATH];
+HINSTANCE g_hinst = NULL;
 HWND g_hwnd = NULL;
+wchar_t inipath[MAX_PATH];
+
+//Blacklist
+LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 
 //Cool stuff
 #define MAXKEYS 10
@@ -69,6 +74,11 @@ struct {
 		int RightCtrl;
 		wchar_t OtherKeys[30];
 	} Keyboard;
+	struct {
+		wchar_t ProcessBlacklist[1000];
+		wchar_t Blacklist[1000];
+		wchar_t Snaplist[1000];
+	} Blacklist;
 } settings;
 BOOL x64 = FALSE;
 
@@ -79,6 +89,8 @@ BOOL x64 = FALSE;
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+	g_hinst = hInst;
+	
 	//Look for instance
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
@@ -136,6 +148,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		else if (temp == VK_RCONTROL) settings.Keyboard.RightCtrl = 1;
 		else swprintf(settings.Keyboard.OtherKeys, L"%s %02X", settings.Keyboard.OtherKeys, temp);
 	}
+	//[Blacklist]
+	GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", settings.Blacklist.ProcessBlacklist, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", settings.Blacklist.Blacklist, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", settings.Blacklist.Snaplist, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t), inipath);
 	//Language
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int i;
@@ -200,6 +216,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 		
 		//OK button replaces Cancel button
 		SendMessage(g_hwnd, PSM_CANCELTOCLOSE, 0, 0);
+		EnableWindow(GetDlgItem(g_hwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
 		WINDOWPLACEMENT wndpl;
 		wndpl.length = sizeof(WINDOWPLACEMENT);
 		GetWindowPlacement(GetDlgItem(g_hwnd,IDCANCEL), &wndpl);
@@ -340,8 +357,9 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		int i;
 		if (HIWORD(wParam) == CBN_SELCHANGE) {
 			//Mouse actions
+			int control = LOWORD(wParam);
 			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
-				if (LOWORD(wParam) == mouse_buttons[i].control) {
+				if (control == mouse_buttons[i].control) {
 					int index = SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_GETCURSEL, 0, 0);
 					SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_GETLBTEXT, index, (LPARAM)mouse_buttons[i].setting);
 					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, mouse_buttons[i].setting, inipath);
@@ -367,11 +385,68 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		
+		SendDlgItemMessage(hwnd, IDC_PROCESSBLACKLIST, WM_SETTEXT, 0, (LPARAM)settings.Blacklist.ProcessBlacklist);
+		SendDlgItemMessage(hwnd, IDC_BLACKLIST, WM_SETTEXT, 0, (LPARAM)settings.Blacklist.Blacklist);
+		SendDlgItemMessage(hwnd, IDC_SNAPLIST, WM_SETTEXT, 0, (LPARAM)settings.Blacklist.Snaplist);
 	}
 	else if (msg == WM_COMMAND) {
+		int control = LOWORD(wParam);
+		if (HIWORD(wParam) == EN_KILLFOCUS) {
+			if (control == IDC_PROCESSBLACKLIST) {
+				SendDlgItemMessage(hwnd, IDC_PROCESSBLACKLIST, WM_GETTEXT, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t), (LPARAM)settings.Blacklist.ProcessBlacklist);
+				WritePrivateProfileString(L"Blacklist", L"ProcessBlacklist", settings.Blacklist.ProcessBlacklist, inipath);
+			}
+			else if (control == IDC_BLACKLIST) {
+				SendDlgItemMessage(hwnd, IDC_BLACKLIST, WM_GETTEXT, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t), (LPARAM)settings.Blacklist.Blacklist);
+				WritePrivateProfileString(L"Blacklist", L"Blacklist", settings.Blacklist.Blacklist, inipath);
+			}
+			else if (control == IDC_SNAPLIST) {
+				SendDlgItemMessage(hwnd, IDC_SNAPLIST, WM_GETTEXT, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t), (LPARAM)settings.Blacklist.Snaplist);
+				WritePrivateProfileString(L"Blacklist", L"Snaplist", settings.Blacklist.Snaplist, inipath);
+			}
+			UpdateSettings();
+		}
+		else if (HIWORD(wParam) == STN_CLICKED && control == IDC_FINDWINDOW) {
+			//Get size of workspace
+			int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+			int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+			int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+			int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+			
+			//Create window
+			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
+			wnd.hCursor = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_FIND), IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
+			RegisterClassEx(&wnd);
+			HWND findhwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, left, top, width, height, NULL, NULL, g_hinst, NULL);
+			SetLayeredWindowAttributes(findhwnd, 0, 1, LWA_ALPHA); //Almost transparent
+			ShowWindowAsync(findhwnd, SW_SHOWNA);
+		}
 	}
 	return FALSE;
+}
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
+		ShowWindow(hwnd, SW_HIDE);
+		if (msg == WM_LBUTTONDOWN) {
+			POINT pt;
+			pt.x = GET_X_LPARAM(lParam);
+			pt.y = GET_Y_LPARAM(lParam);
+			
+			HWND window = WindowFromPoint(pt);
+			window = GetAncestor(window, GA_ROOT);
+			
+			wchar_t title[256], classname[256];
+			GetWindowText(window, title, sizeof(title)/sizeof(wchar_t));
+			GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+			
+			wchar_t txt[1000];
+			swprintf(txt, L"%s|%s", title, classname);
+			SendDlgItemMessage(PropSheet_GetCurrentPageHwnd(g_hwnd), IDC_NEWRULE, WM_SETTEXT, 0, (LPARAM)txt);
+		}
+		DestroyWindow(hwnd);
+	}
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
