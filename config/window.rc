@@ -18,17 +18,17 @@ STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CH
 CAPTION "About"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    GROUPBOX        "About AltDrag", IDC_STATIC, 7, 7, 205, 80
-    LTEXT           "Version 1.0", IDC_STATIC, 72, 22, 40, 8, SS_LEFT
-    LTEXT           "Created by Stefan Sundin", IDC_STATIC, 72, 32, 85, 8, SS_LEFT
-    LTEXT           "Please redistribute!", IDC_STATIC, 17, 72, 65, 8, SS_LEFT
-    LTEXT           "AltDrag is free and open source software!", IDC_STATIC, 17, 62, 150, 8, SS_LEFT
+    GROUPBOX        "About AltDrag", IDC_STATIC, 7, 7, 205, 85
+    LTEXT           "Version 1.0", IDC_STATIC, 82, 17, 125, 8, SS_LEFT
+    LTEXT           "Created by Stefan Sundin", IDC_STATIC, 82, 42, 85, 8, SS_LEFT
+    LTEXT           "AltDrag is free and open source software!\nPlease redistribute!", IDC_STATIC, 17, 67, 190, 16, SS_LEFT
     LTEXT           "Recognize the work I've put on AltDrag by donating. I don't ask for much, any amount will do.", IDC_STATIC, 27, 122, 170, 17, SS_LEFT
     DEFPUSHBUTTON   "Donate", IDC_DONATE, 37, 142, 45, 14
     GROUPBOX        "       Donations", IDC_STATIC, 20, 110, 182, 52
     ICON            IDI_MONEY, IDC_STATIC, 27, 108, 11, 10, SS_ICON | 0x00000800
     ICON            IDI_ALTDRAG, IDC_STATIC, 22, 17, 45, 42, SS_ICON | 0x00000800
-    LTEXT           "http://stefansundin.com/", IDC_STATIC, 72, 42, 80, 8, SS_LEFT
+    CONTROL         "<a href=""http://stefansundin.com/"">http://stefansundin.com/</a>", IDC_STATIC, "SysLink", 0x50020000, 82, 52, 125, 10
+    CONTROL         "<a href=""http://code.google.com/p/altdrag/"">http://code.google.com/p/altdrag/</a>", IDC_STATIC, "SysLink", 0x50020000, 82, 27, 125, 10
 }
 
 
@@ -55,10 +55,10 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     EDITTEXT        IDC_BLACKLIST, 7, 47, 206, 14, ES_AUTOHSCROLL
     LTEXT           "Snaplist:", IDC_STATIC, 7, 67, 206, 8, SS_LEFT
     EDITTEXT        IDC_SNAPLIST, 7, 77, 206, 14, ES_AUTOHSCROLL
-    GROUPBOX        "Add window", IDC_STATIC, 7, 125, 206, 58
-    LTEXT           "Read the wiki on the website for a thorough explanation of how the blacklist works!", IDC_STATIC, 7, 97, 205, 20, SS_LEFT
+    GROUPBOX        "Find window", IDC_STATIC, 7, 125, 206, 58
     ICON            IDI_MONEY, IDC_FINDWINDOW, 17, 142, 11, 10, SS_ICON | SS_NOTIFY | 0x00000800
-    EDITTEXT        IDC_NEWRULE, 7, 157, 206, 14, ES_AUTOHSCROLL
+    EDITTEXT        IDC_NEWRULE, 17, 157, 185, 14, ES_AUTOHSCROLL
+    CONTROL         "Read <a href=""http://code.google.com/p/altdrag/wiki/Blacklist"">the wiki</a> on the website for a thorough explanation of how the blacklist works!", IDC_STATIC, "SysLink", 0x50020000, 7, 97, 205, 20
 }
 
 
@@ -69,15 +69,18 @@ EXSTYLE WS_EX_WINDOWEDGE
 CAPTION "General"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 7, 7, 206, 20, BS_VCENTER | BS_MULTILINE
-    AUTOCHECKBOX    "Aero", IDC_AERO, 7, 62, 150, 8
-    COMBOBOX        IDC_AUTOSNAP, 7, 42, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    LTEXT           "AutoSnap:", IDC_STATIC, 7, 32, 85, 8, SS_LEFT
-    AUTOCHECKBOX    "InactiveScroll", IDC_INACTIVESCROLL, 7, 77, 150, 8
-    LTEXT           "Language:", IDC_STATIC, 7, 97, 35, 8, SS_LEFT
-    COMBOBOX        IDC_LANGUAGE, 7, 107, 85, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    LTEXT           "Feel free to submit translations, but only if you are prepared to update it in the future!", IDC_STATIC, 7, 122, 145, 25, SS_LEFT
-    LTEXT           "Note: Settings are saved and applied instantly!", IDC_STATIC, 7, 177, 160, 8, SS_LEFT
+    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 7, 7, 206, 20, BS_TOP | BS_MULTILINE
+    AUTOCHECKBOX    "Aero", IDC_AERO, 7, 32, 150, 8
+    AUTOCHECKBOX    "InactiveScroll", IDC_INACTIVESCROLL, 7, 47, 150, 8
+    COMBOBOX        IDC_AUTOSNAP, 7, 67, 100, 30, WS_TABSTOP | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_LANGUAGE, 7, 92, 100, 30, WS_TABSTOP | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    AUTOCHECKBOX    "Autostart", IDC_AUTOSTART, 12, 147, 135, 8
+    AUTOCHECKBOX    "Hide tray", IDC_AUTOSTART_HIDE, 12, 157, 135, 8
+    LTEXT           "AutoSnap:", IDC_AUTOSNAP_HEADER, 7, 57, 85, 8, SS_LEFT
+    LTEXT           "Language:", IDC_LANGUAGE_HEADER, 7, 82, 35, 8, SS_LEFT
+    LTEXT           "Feel free to submit translations, but only if you are prepared to update it in the future!", IDC_SUBMITTRANSLATION, 7, 107, 175, 20, SS_LEFT
+    GROUPBOX        "Autostart", IDC_AUTOSTART_HEADER, 7, 137, 145, 35
+    LTEXT           "Note: Settings are saved and applied instantly!", IDC_AUTOSAVE, 7, 177, 160, 8, SS_LEFT
 }
 
 
@@ -87,26 +90,26 @@ STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CH
 CAPTION "Mouse and keyboard"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    GROUPBOX        "Mouse actions", IDC_STATIC, 7, 7, 206, 115
-    LTEXT           "Left mouse button:", IDC_STATIC, 15, 18, 75, 8, SS_LEFT
-    LTEXT           "Middle mouse button:", IDC_STATIC, 15, 33, 75, 8, SS_LEFT
-    LTEXT           "Right mouse button:", IDC_STATIC, 15, 48, 75, 8, SS_LEFT
-    LTEXT           "Mouse button 4:", IDC_STATIC, 15, 63, 75, 8, SS_LEFT
-    LTEXT           "Mouse button 5:", IDC_STATIC, 15, 78, 75, 8, SS_LEFT
-    COMBOBOX        IDC_LMB, 101, 17, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MMB, 101, 32, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_RMB, 101, 47, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MB4, 101, 62, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MB5, 101, 77, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    LTEXT           "If you have a great idea for a mouse action, put in a request on the website!", IDC_STATIC, 17, 97, 175, 20, SS_LEFT
-    GROUPBOX        "Hotkeys", IDC_STATIC, 7, 130, 206, 50
+    GROUPBOX        "Mouse actions", IDC_MOUSE_HEADER, 7, 7, 206, 115
+    LTEXT           "Left mouse button:", IDC_LMB_HEADER, 15, 18, 95, 8, SS_LEFT
+    LTEXT           "Middle mouse button:", IDC_MMB_HEADER, 15, 33, 95, 8, SS_LEFT
+    LTEXT           "Right mouse button:", IDC_RMB_HEADER, 15, 48, 95, 8, SS_LEFT
+    LTEXT           "Mouse button 4:", IDC_MB4_HEADER, 15, 63, 95, 8, SS_LEFT
+    LTEXT           "Mouse button 5:", IDC_MB5_HEADER, 15, 78, 95, 8, SS_LEFT
+    COMBOBOX        IDC_LMB, 122, 17, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MMB, 122, 32, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_RMB, 122, 47, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB4, 122, 62, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB5, 122, 77, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    GROUPBOX        "Hotkeys", IDC_HOTKEYS_HEADER, 7, 130, 206, 50
     AUTOCHECKBOX    "Left Alt", IDC_LEFTALT, 17, 142, 55, 8
     AUTOCHECKBOX    "Right Alt", IDC_RIGHTALT, 17, 152, 55, 8
     AUTOCHECKBOX    "Left Winkey", IDC_LEFTWINKEY, 82, 142, 60, 8
     AUTOCHECKBOX    "Right Winkey", IDC_RIGHTWINKEY, 82, 152, 60, 8
     AUTOCHECKBOX    "Left Ctrl", IDC_LEFTCTRL, 147, 142, 55, 8
     AUTOCHECKBOX    "Right Ctrl", IDC_RIGHTCTRL, 147, 152, 55, 8
-    LTEXT           "You can add any key by editing the ini file!", IDC_STATIC, 17, 163, 190, 8, SS_LEFT
+    LTEXT           "You can add any key by editing the ini file!", IDC_HOTKEYS_MORE, 17, 163, 190, 8, SS_LEFT
+    CONTROL         "If you have a great idea for a mouse action, put in a request <a href=""http://code.google.com/p/altdrag/issues/list"">on the website</a>!", IDC_MOUSE_IDEA, "SysLink", 0x50020000, 17, 97, 180, 20
 }
 
 

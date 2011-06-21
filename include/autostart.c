@@ -22,6 +22,10 @@ void CheckAutostart(int *on, int *hidden) {
 	//Compare
 	wchar_t path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+	#ifdef APP_CONFIG
+	PathRemoveFileSpec(path);
+	wcscat(path, L"\\"APP_NAME".exe");
+	#endif
 	wchar_t compare[MAX_PATH+10];
 	swprintf(compare, L"\"%s\"", path);
 	if (!wcscmp(compare,value)) {
@@ -48,6 +52,10 @@ void SetAutostart(int on, int hide) {
 		//Get path
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+		#ifdef APP_CONFIG
+		PathRemoveFileSpec(path);
+		wcscat(path, L"\\"APP_NAME".exe");
+		#endif
 		//Set autostart
 		wchar_t value[MAX_PATH+10];
 		swprintf(value, (hide?L"\"%s\" -hide":L"\"%s\""), path);
