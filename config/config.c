@@ -287,9 +287,16 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 		else if (LOWORD(wParam) == IDC_LANGUAGE && HIWORD(wParam) == CBN_SELCHANGE) {
 			int i = SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, 0);
-			l10n = languages[i].strings;
-			WritePrivateProfileString(APP_NAME, L"Language", l10n->code, inipath);
-			updatel10n = 1;
+			if (languages[i].code == NULL) {
+				ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Translate", NULL, NULL, SW_SHOWNORMAL);
+				for (i=0; l10n != languages[i].strings; i++) {}
+				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i, 0);
+			}
+			else {
+				l10n = languages[i].strings;
+				WritePrivateProfileString(APP_NAME, L"Language", l10n->code, inipath);
+				updatel10n = 1;
+			}
 		}
 		else if (wParam == IDC_AUTOSTART) {
 			int autostart = SendDlgItemMessage(hwnd, IDC_AUTOSTART, BM_GETCHECK, 0, 0);
@@ -345,12 +352,17 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE, l10n->general_autostart_hide);
 		SetDlgItemText(hwnd, IDC_AUTOSAVE, l10n->general_autosave);
 		
+		//AutoSnap
 		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_RESETCONTENT, 0, 0);
 		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap0);
 		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap1);
 		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap2);
 		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap3);
 		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_SETCURSEL, settings.AltDrag.AutoSnap, 0);
+		
+		//Language
+		SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_DELETESTRING, sizeof(languages)/sizeof(languages[0])-1, 0);
+		SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_ADDSTRING, 0, (LPARAM)l10n->general_helptranslate);
 	}
 	return FALSE;
 }
