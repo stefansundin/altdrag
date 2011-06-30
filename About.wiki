@@ -59,7 +59,7 @@ These settings affect general AltDrag behavior.
 ==== Language ====
  This settings lets you change the language of AltDrag. You can currently choose between English, Spanish and Galician. I used to offer translations for Russian and Korean, but they have been discontinued because they are out of date.
 
- If you want to translate AltDrag, feel free to email me, but please only do this if you want to commit to keeping your translation up to date in the future.
+ Do you want to translate AltDrag? Read how to do that [http://code.google.com/p/altdrag/wiki/Translate here].
 
 
 == `[Blacklist]` ==
