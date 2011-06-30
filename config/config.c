@@ -22,7 +22,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "0.9"
+#define APP_VERSION         "1.0"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_CONFIG
 
@@ -79,6 +79,10 @@ struct {
 		wchar_t Blacklist[1000];
 		wchar_t Snaplist[1000];
 	} Blacklist;
+	struct {
+		int CheckOnStartup;
+		int Beta;
+	} Update;
 } settings;
 BOOL x64 = FALSE;
 int startpage = -1;
@@ -87,7 +91,7 @@ int startpage = -1;
 #include "localization/strings.h"
 #include "../include/error.c"
 #include "../include/autostart.c"
-#include "window.h"
+#include "resource.h"
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
@@ -159,6 +163,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", settings.Blacklist.ProcessBlacklist, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t), inipath);
 	GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", settings.Blacklist.Blacklist, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t), inipath);
 	GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", settings.Blacklist.Snaplist, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t), inipath);
+	//[Update]
+	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	settings.Update.CheckOnStartup = _wtoi(txt);
+	GetPrivateProfileString(L"Update", L"Beta", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	settings.Update.Beta = _wtoi(txt);
 	//Language
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int i;
@@ -325,13 +334,13 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 		
 		//Update text
+		SetDlgItemText(hwnd, IDC_GENERAL_BOX, l10n->general_box);
 		SetDlgItemText(hwnd, IDC_AUTOFOCUS, l10n->general_autofocus);
 		SetDlgItemText(hwnd, IDC_AERO, l10n->general_aero);
 		SetDlgItemText(hwnd, IDC_INACTIVESCROLL, l10n->general_inactivescroll);
 		SetDlgItemText(hwnd, IDC_AUTOSNAP_HEADER, l10n->general_autosnap);
 		SetDlgItemText(hwnd, IDC_LANGUAGE_HEADER, l10n->general_language);
-		SetDlgItemText(hwnd, IDC_SUBMITTRANSLATION, l10n->general_submittranslation);
-		SetDlgItemText(hwnd, IDC_AUTOSTART_HEADER, l10n->general_autostart_header);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX, l10n->general_autostart_box);
 		SetDlgItemText(hwnd, IDC_AUTOSTART, l10n->general_autostart);
 		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE, l10n->general_autostart_hide);
 		SetDlgItemText(hwnd, IDC_AUTOSAVE, l10n->general_autosave);
@@ -425,14 +434,14 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			//Update text
-			SetDlgItemText(hwnd, IDC_MOUSE_HEADER,   l10n->input_mouse_header);
+			SetDlgItemText(hwnd, IDC_MOUSE_BOX,      l10n->input_mouse_box);
 			SetDlgItemText(hwnd, IDC_LMB_HEADER,     l10n->input_mouse_lmb);
 			SetDlgItemText(hwnd, IDC_MMB_HEADER,     l10n->input_mouse_mmb);
 			SetDlgItemText(hwnd, IDC_RMB_HEADER,     l10n->input_mouse_rmb);
 			SetDlgItemText(hwnd, IDC_MB4_HEADER,     l10n->input_mouse_mb4);
 			SetDlgItemText(hwnd, IDC_MB5_HEADER,     l10n->input_mouse_mb5);
 			SetDlgItemText(hwnd, IDC_MOUSE_IDEA,     l10n->input_mouse_idea);
-			SetDlgItemText(hwnd, IDC_HOTKEYS_HEADER, l10n->input_hotkeys_header);
+			SetDlgItemText(hwnd, IDC_HOTKEYS_BOX,    l10n->input_hotkeys_box);
 			SetDlgItemText(hwnd, IDC_LEFTALT,        l10n->input_hotkeys_leftalt);
 			SetDlgItemText(hwnd, IDC_RIGHTALT,       l10n->input_hotkeys_rightalt);
 			SetDlgItemText(hwnd, IDC_LEFTWINKEY,     l10n->input_hotkeys_leftwinkey);
@@ -442,7 +451,7 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SetDlgItemText(hwnd, IDC_HOTKEYS_MORE,   l10n->input_hotkeys_more);
 		}
 	}
-			
+	
 	LinkProc(hwnd, msg, wParam, lParam);
 	return FALSE;
 }
@@ -489,6 +498,20 @@ BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 			ShowWindowAsync(GetDlgItem(hwnd,IDC_FINDWINDOW), SW_HIDE);
 		}
 	}
+	else if (msg == WM_NOTIFY) {
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_SETACTIVE) {
+			//Update text
+			SetDlgItemText(hwnd, IDC_BLACKLIST_BOX,           l10n->blacklist_box);
+			SetDlgItemText(hwnd, IDC_PROCESSBLACKLIST_HEADER, l10n->blacklist_processblacklist);
+			SetDlgItemText(hwnd, IDC_BLACKLIST_HEADER,        l10n->blacklist_blacklist);
+			SetDlgItemText(hwnd, IDC_SNAPLIST_HEADER,         l10n->blacklist_snaplist);
+			SetDlgItemText(hwnd, IDC_BLACKLIST_EXPLANATION,   l10n->blacklist_explanation);
+			SetDlgItemText(hwnd, IDC_FINDWINDOW_BOX,          l10n->blacklist_findwindow_box);
+			SetDlgItemText(hwnd, IDC_FINDWINDOW_EXPLANATION,  l10n->blacklist_findwindow_explanation);
+		}
+	}
+	
 	LinkProc(hwnd, msg, wParam, lParam);
 	return FALSE;
 }
@@ -526,6 +549,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_SETCHECK, settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED, 0);
+		SendDlgItemMessage(hwnd, IDC_CHECKONSTARTUP, BM_SETCHECK, settings.Update.CheckOnStartup?BST_CHECKED:BST_UNCHECKED, 0);
+		SendDlgItemMessage(hwnd, IDC_BETA, BM_SETCHECK, settings.Update.Beta?BST_CHECKED:BST_UNCHECKED, 0);
 	}
 	else if (msg == WM_COMMAND) {
 		if (wParam == IDC_OPENINI) {
@@ -533,9 +558,30 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		}
 		else {
 			wchar_t txt[10];
-			settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
-			WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(settings.AltDrag.HookWindows,txt,10), inipath);
+			if (wParam == IDC_HOOKWINDOWS) {
+				settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
+				WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(settings.AltDrag.HookWindows,txt,10), inipath);
+			}
+			else if (wParam == IDC_CHECKONSTARTUP) {
+				settings.Update.CheckOnStartup = SendDlgItemMessage(hwnd, IDC_CHECKONSTARTUP, BM_GETCHECK, 0, 0);
+				WritePrivateProfileString(L"Update", L"CheckOnStartup", _itow(settings.Update.CheckOnStartup,txt,10), inipath);
+			}
+			else if (wParam == IDC_BETA) {
+				settings.Update.Beta = SendDlgItemMessage(hwnd, IDC_BETA, BM_GETCHECK, 0, 0);
+				WritePrivateProfileString(L"Update", L"Beta", _itow(settings.Update.Beta,txt,10), inipath);
+			}
 			UpdateSettings();
+		}
+	}
+	else if (msg == WM_NOTIFY) {
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_SETACTIVE) {
+			//Update text
+			SetDlgItemText(hwnd, IDC_ADVANCED_BOX,    l10n->advanced_box);
+			SetDlgItemText(hwnd, IDC_HOOKWINDOWS,     l10n->advanced_hookwindows);
+			SetDlgItemText(hwnd, IDC_CHECKONSTARTUP,  l10n->advanced_checkonstartup);
+			SetDlgItemText(hwnd, IDC_BETA,            l10n->advanced_beta);
+			SetDlgItemText(hwnd, IDC_OPENINI,         l10n->advanced_openini);
 		}
 	}
 	return FALSE;
@@ -550,6 +596,17 @@ BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);
 		}
 	}
+	else if (msg == WM_NOTIFY) {
+		LPNMHDR pnmh = (LPNMHDR)lParam;
+		if (pnmh->code == PSN_SETACTIVE) {
+			//Update text
+			SetDlgItemText(hwnd, IDC_ABOUT_BOX, l10n->about_box);
+			SetDlgItemText(hwnd, IDC_VERSION,   l10n->about_version);
+			SetDlgItemText(hwnd, IDC_AUTHOR,    l10n->about_author);
+			SetDlgItemText(hwnd, IDC_LICENSE,   l10n->about_license);
+		}
+	}
+	
 	LinkProc(hwnd, msg, wParam, lParam);
 	return FALSE;
 }
