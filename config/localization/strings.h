@@ -17,6 +17,7 @@ struct strings {
 	wchar_t *general_autosnap2;
 	wchar_t *general_autosnap3;
 	wchar_t *general_language;
+	wchar_t *general_helptranslate;
 	wchar_t *general_autostart_box;
 	wchar_t *general_autostart;
 	wchar_t *general_autostart_hide;
