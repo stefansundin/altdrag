@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <richedit.h>
-#include "window.h"
+#include "resource.h"
 
 
 
@@ -18,17 +18,17 @@ STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CH
 CAPTION "About"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    GROUPBOX        "About AltDrag", IDC_STATIC, 7, 7, 205, 85
-    LTEXT           "Version 1.0", IDC_STATIC, 82, 17, 125, 8, SS_LEFT
-    LTEXT           "Created by Stefan Sundin", IDC_STATIC, 82, 42, 85, 8, SS_LEFT
-    LTEXT           "AltDrag is free and open source software!\nPlease redistribute!", IDC_STATIC, 17, 67, 190, 16, SS_LEFT
+    GROUPBOX        "About", IDC_ABOUT_BOX, 3, 1, 212, 90
+    ICON            IDI_ALTDRAG, IDC_STATIC, 15, 15, 45, 42, SS_ICON | 0x00000800
+    LTEXT           "Version", IDC_VERSION, 75, 15, 130, 8, SS_LEFT
+    CONTROL         "<a href=""http://code.google.com/p/altdrag/"">http://code.google.com/p/altdrag/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 25, 130, 10
+    LTEXT           "Created by Stefan Sundin", IDC_AUTHOR, 75, 40, 130, 8, SS_LEFT
+    CONTROL         "<a href=""http://stefansundin.com/"">http://stefansundin.com/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 50, 130, 10
+    LTEXT           "Free and open source software!", IDC_LICENSE, 10, 65, 195, 20, SS_LEFT
     LTEXT           "Recognize the work I've put on AltDrag by donating. I don't ask for much, any amount will do.", IDC_STATIC, 27, 122, 170, 17, SS_LEFT
     DEFPUSHBUTTON   "Donate", IDC_DONATE, 37, 142, 45, 14
     GROUPBOX        "       Donations", IDC_STATIC, 20, 110, 182, 52
     ICON            IDI_MONEY, IDC_STATIC, 27, 108, 11, 10, SS_ICON | 0x00000800
-    ICON            IDI_ALTDRAG, IDC_STATIC, 22, 17, 45, 42, SS_ICON | 0x00000800
-    CONTROL         "<a href=""http://stefansundin.com/"">http://stefansundin.com/</a>", IDC_STATIC, "SysLink", 0x50020000, 82, 52, 125, 10
-    CONTROL         "<a href=""http://code.google.com/p/altdrag/"">http://code.google.com/p/altdrag/</a>", IDC_STATIC, "SysLink", 0x50020000, 82, 27, 125, 10
 }
 
 
@@ -38,8 +38,14 @@ STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VIS
 CAPTION "Advanced"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    PUSHBUTTON      "Open ini file", IDC_OPENINI, 32, 107, 55, 14
-    AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 12, 52, 145, 8
+    GROUPBOX        "Advanced settings", IDC_ADVANCED_BOX, 3, 1, 212, 120
+    AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 10, 15, 195, 35, BS_TOP | BS_MULTILINE
+    AUTOCHECKBOX    "Update", IDC_CHECKONSTARTUP, 10, 55, 195, 8
+    AUTOCHECKBOX    "Beta", IDC_BETA, 10, 70, 195, 8
+    LTEXT           "blablabla -hide", IDC_STATIC, 10, 95, 46, 8, SS_LEFT
+    GROUPBOX        "AltDrag.ini", IDC_STATIC, 3, 125, 212, 58
+    LTEXT           "AltDrag's settings are saved in AltDrag.ini.", IDC_STATIC, 10, 135, 200, 20, SS_LEFT
+    PUSHBUTTON      "Open ini file", IDC_OPENINI, 10, 165, 55, 14
 }
 
 
@@ -49,16 +55,18 @@ STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VIS
 CAPTION "Blacklist"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    LTEXT           "ProcessBlacklist:", IDC_STATIC, 7, 7, 206, 8, SS_LEFT
-    EDITTEXT        IDC_PROCESSBLACKLIST, 7, 17, 206, 14, ES_AUTOHSCROLL
-    LTEXT           "Blacklist:", IDC_STATIC, 7, 37, 206, 8, SS_LEFT
-    EDITTEXT        IDC_BLACKLIST, 7, 47, 206, 14, ES_AUTOHSCROLL
-    LTEXT           "Snaplist:", IDC_STATIC, 7, 67, 206, 8, SS_LEFT
-    EDITTEXT        IDC_SNAPLIST, 7, 77, 206, 14, ES_AUTOHSCROLL
-    GROUPBOX        "Find window", IDC_STATIC, 7, 125, 206, 58
-    ICON            IDI_MONEY, IDC_FINDWINDOW, 17, 142, 11, 10, SS_ICON | SS_NOTIFY | 0x00000800
-    EDITTEXT        IDC_NEWRULE, 17, 157, 185, 14, ES_AUTOHSCROLL
-    CONTROL         "Read <a href=""http://code.google.com/p/altdrag/wiki/Blacklist"">the wiki</a> on the website for a thorough explanation of how the blacklist works!", IDC_STATIC, "SysLink", 0x50020000, 7, 97, 205, 20
+    GROUPBOX        "Blacklist settings", IDC_BLACKLIST_BOX, 3, 1, 212, 120
+    LTEXT           "ProcessBlacklist:", IDC_PROCESSBLACKLIST_HEADER, 10, 15, 190, 8, SS_LEFT
+    EDITTEXT        IDC_PROCESSBLACKLIST, 10, 25, 190, 14, ES_AUTOHSCROLL
+    LTEXT           "Blacklist:", IDC_BLACKLIST_HEADER, 10, 42, 190, 8, SS_LEFT
+    EDITTEXT        IDC_BLACKLIST, 10, 52, 190, 14, ES_AUTOHSCROLL
+    LTEXT           "Snaplist:", IDC_SNAPLIST_HEADER, 10, 69, 190, 8, SS_LEFT
+    EDITTEXT        IDC_SNAPLIST, 10, 79, 190, 14, ES_AUTOHSCROLL
+    CONTROL         "Read <a href=""http://code.google.com/p/altdrag/wiki/Blacklist"">the wiki</a> on the website for a thorough explanation of how the blacklist works!", IDC_BLACKLIST_EXPLANATION, "SysLink", 0x50020000, 10, 97, 195, 20
+    GROUPBOX        "Identify window", IDC_FINDWINDOW_BOX, 3, 125, 212, 58
+    LTEXT           "Use this feature to identify the classname of a window so you can add it to the Blacklist or Snaplist above.", IDC_FINDWINDOW_EXPLANATION, 10, 135, 195, 20, SS_LEFT
+    ICON            IDI_FIND, IDC_FINDWINDOW, 13, 161, 10, 9, SS_ICON | SS_NOTIFY | 0x00000800
+    EDITTEXT        IDC_NEWRULE, 30, 160, 171, 14, ES_AUTOHSCROLL
 }
 
 
@@ -69,18 +77,18 @@ EXSTYLE WS_EX_WINDOWEDGE
 CAPTION "General"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 7, 7, 206, 20, BS_TOP | BS_MULTILINE
-    AUTOCHECKBOX    "Aero", IDC_AERO, 7, 32, 150, 8
-    AUTOCHECKBOX    "InactiveScroll", IDC_INACTIVESCROLL, 7, 47, 150, 8
-    COMBOBOX        IDC_AUTOSNAP, 7, 67, 100, 30, WS_TABSTOP | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_LANGUAGE, 7, 92, 100, 30, WS_TABSTOP | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    AUTOCHECKBOX    "Autostart", IDC_AUTOSTART, 12, 147, 135, 8
-    AUTOCHECKBOX    "Hide tray", IDC_AUTOSTART_HIDE, 12, 157, 135, 8
-    LTEXT           "AutoSnap:", IDC_AUTOSNAP_HEADER, 7, 57, 85, 8, SS_LEFT
-    LTEXT           "Language:", IDC_LANGUAGE_HEADER, 7, 82, 35, 8, SS_LEFT
-    LTEXT           "Feel free to submit translations, but only if you are prepared to update it in the future!", IDC_SUBMITTRANSLATION, 7, 107, 175, 20, SS_LEFT
-    GROUPBOX        "Autostart", IDC_AUTOSTART_HEADER, 7, 137, 145, 35
-    LTEXT           "Note: Settings are saved and applied instantly!", IDC_AUTOSAVE, 7, 177, 160, 8, SS_LEFT
+    GROUPBOX        "General settings", IDC_GENERAL_BOX, 3, 1, 212, 120
+    AUTOCHECKBOX    "AutoFocus", IDC_AUTOFOCUS, 10, 13, 175, 20, BS_TOP | BS_MULTILINE
+    AUTOCHECKBOX    "Aero", IDC_AERO, 10, 35, 175, 8
+    AUTOCHECKBOX    "InactiveScroll", IDC_INACTIVESCROLL, 10, 50, 175, 8
+    LTEXT           "AutoSnap:", IDC_AUTOSNAP_HEADER, 10, 65, 85, 8, SS_LEFT
+    COMBOBOX        IDC_AUTOSNAP, 10, 75, 100, 30, WS_TABSTOP | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "Language:", IDC_LANGUAGE_HEADER, 10, 90, 35, 8, SS_LEFT
+    COMBOBOX        IDC_LANGUAGE, 10, 100, 100, 30, WS_TABSTOP | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    GROUPBOX        "Autostart", IDC_AUTOSTART_BOX, 3, 125, 212, 40
+    AUTOCHECKBOX    "Autostart", IDC_AUTOSTART, 10, 137, 135, 8
+    AUTOCHECKBOX    "Hide tray", IDC_AUTOSTART_HIDE, 10, 150, 135, 8
+    LTEXT           "Note: Settings are saved and applied instantly!", IDC_AUTOSAVE, 3, 180, 160, 8, SS_LEFT
 }
 
 
@@ -90,26 +98,26 @@ STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CH
 CAPTION "Mouse and keyboard"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    GROUPBOX        "Mouse actions", IDC_MOUSE_HEADER, 7, 7, 206, 115
-    LTEXT           "Left mouse button:", IDC_LMB_HEADER, 15, 18, 95, 8, SS_LEFT
-    LTEXT           "Middle mouse button:", IDC_MMB_HEADER, 15, 33, 95, 8, SS_LEFT
-    LTEXT           "Right mouse button:", IDC_RMB_HEADER, 15, 48, 95, 8, SS_LEFT
-    LTEXT           "Mouse button 4:", IDC_MB4_HEADER, 15, 63, 95, 8, SS_LEFT
-    LTEXT           "Mouse button 5:", IDC_MB5_HEADER, 15, 78, 95, 8, SS_LEFT
-    COMBOBOX        IDC_LMB, 122, 17, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MMB, 122, 32, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_RMB, 122, 47, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MB4, 122, 62, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    COMBOBOX        IDC_MB5, 122, 77, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
-    GROUPBOX        "Hotkeys", IDC_HOTKEYS_HEADER, 7, 130, 206, 50
-    AUTOCHECKBOX    "Left Alt", IDC_LEFTALT, 17, 142, 55, 8
-    AUTOCHECKBOX    "Right Alt", IDC_RIGHTALT, 17, 152, 55, 8
-    AUTOCHECKBOX    "Left Winkey", IDC_LEFTWINKEY, 82, 142, 60, 8
-    AUTOCHECKBOX    "Right Winkey", IDC_RIGHTWINKEY, 82, 152, 60, 8
-    AUTOCHECKBOX    "Left Ctrl", IDC_LEFTCTRL, 147, 142, 55, 8
-    AUTOCHECKBOX    "Right Ctrl", IDC_RIGHTCTRL, 147, 152, 55, 8
-    LTEXT           "You can add any key by editing the ini file!", IDC_HOTKEYS_MORE, 17, 163, 190, 8, SS_LEFT
-    CONTROL         "If you have a great idea for a mouse action, put in a request <a href=""http://code.google.com/p/altdrag/issues/list"">on the website</a>!", IDC_MOUSE_IDEA, "SysLink", 0x50020000, 17, 97, 180, 20
+    GROUPBOX        "Mouse actions", IDC_MOUSE_BOX, 3, 1, 212, 120
+    LTEXT           "LMB:", IDC_LMB_HEADER, 10, 15, 85, 8, SS_LEFT
+    LTEXT           "MMB:", IDC_MMB_HEADER, 10, 30, 85, 8, SS_LEFT
+    LTEXT           "RMB:", IDC_RMB_HEADER, 10, 45, 85, 8, SS_LEFT
+    LTEXT           "MB4:", IDC_MB4_HEADER, 10, 60, 85, 8, SS_LEFT
+    LTEXT           "MB5:", IDC_MB5_HEADER, 10, 75, 85, 8, SS_LEFT
+    COMBOBOX        IDC_LMB, 105, 12, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MMB, 105, 27, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_RMB, 105, 42, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB4, 105, 57, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    COMBOBOX        IDC_MB5, 105, 72, 65, 30, CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    GROUPBOX        "Hotkeys", IDC_HOTKEYS_BOX, 3, 125, 212, 58
+    AUTOCHECKBOX    "LeftAlt", IDC_LEFTALT, 10, 137, 55, 8
+    AUTOCHECKBOX    "RightAlt", IDC_RIGHTALT, 10, 150, 55, 8
+    AUTOCHECKBOX    "LeftWinkey", IDC_LEFTWINKEY, 75, 137, 60, 8
+    AUTOCHECKBOX    "RightWinkey", IDC_RIGHTWINKEY, 75, 150, 60, 8
+    AUTOCHECKBOX    "LeftCtrl", IDC_LEFTCTRL, 145, 137, 55, 8
+    AUTOCHECKBOX    "RightCtrl", IDC_RIGHTCTRL, 145, 150, 55, 8
+    LTEXT           "You can add any key by editing the ini file!", IDC_HOTKEYS_MORE, 10, 165, 190, 8, SS_LEFT
+    CONTROL         "http://code.google.com/p/altdrag/issues/list", IDC_MOUSE_IDEA, "SysLink", 0x50020000, 10, 90, 160, 20
 }
 
 
@@ -128,6 +136,9 @@ IDI_ALTDRAG        ICON           "altdrag.ico"
 
 
 IDI_ICON1          ICON           "wrench.ico"
+
+
+IDI_FIND           ICON           "find.ico"
 
 
 IDI_MONEY          ICON           "money.ico"
