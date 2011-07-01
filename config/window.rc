@@ -25,9 +25,9 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     LTEXT           "Created by Stefan Sundin", IDC_AUTHOR, 75, 40, 130, 8, SS_LEFT
     CONTROL         "<a href=""http://stefansundin.com/"">http://stefansundin.com/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 50, 130, 10
     LTEXT           "Free and open source software!", IDC_LICENSE, 10, 65, 195, 20, SS_LEFT
-    LTEXT           "Recognize the work I've put on AltDrag by donating. I don't ask for much, any amount will do.", IDC_STATIC, 27, 122, 170, 17, SS_LEFT
-    DEFPUSHBUTTON   "Donate", IDC_DONATE, 37, 142, 45, 14
-    GROUPBOX        "       Donations", IDC_STATIC, 20, 110, 182, 52
+    LTEXT           "Please donate.", IDC_DONATIONS_PLEA, 27, 122, 170, 17, SS_LEFT
+    DEFPUSHBUTTON   "Donate", IDC_DONATE, 25, 143, 45, 14
+    GROUPBOX        "       Donations", IDC_DONATIONS_BOX, 20, 110, 182, 52
     ICON            IDI_MONEY, IDC_STATIC, 27, 108, 11, 10, SS_ICON | 0x00000800
 }
 
@@ -42,10 +42,9 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     AUTOCHECKBOX    "HookWindows", IDC_HOOKWINDOWS, 10, 15, 195, 35, BS_TOP | BS_MULTILINE
     AUTOCHECKBOX    "Update", IDC_CHECKONSTARTUP, 10, 55, 195, 8
     AUTOCHECKBOX    "Beta", IDC_BETA, 10, 70, 195, 8
-    LTEXT           "blablabla -hide", IDC_STATIC, 10, 95, 46, 8, SS_LEFT
     GROUPBOX        "AltDrag.ini", IDC_STATIC, 3, 125, 212, 58
-    LTEXT           "AltDrag's settings are saved in AltDrag.ini.", IDC_STATIC, 10, 135, 200, 20, SS_LEFT
-    PUSHBUTTON      "Open ini file", IDC_OPENINI, 10, 165, 55, 14
+    LTEXT           "AltDrag.ini", IDC_INI, 10, 135, 200, 20, SS_LEFT
+    PUSHBUTTON      "Open ini file", IDC_OPENINI, 10, 160, 55, 14
 }
 
 
@@ -64,7 +63,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     EDITTEXT        IDC_SNAPLIST, 10, 79, 190, 14, ES_AUTOHSCROLL
     CONTROL         "Read <a href=""http://code.google.com/p/altdrag/wiki/Blacklist"">the wiki</a> on the website for a thorough explanation of how the blacklist works!", IDC_BLACKLIST_EXPLANATION, "SysLink", 0x50020000, 10, 97, 195, 20
     GROUPBOX        "Identify window", IDC_FINDWINDOW_BOX, 3, 125, 212, 58
-    LTEXT           "Use this feature to identify the classname of a window so you can add it to the Blacklist or Snaplist above.", IDC_FINDWINDOW_EXPLANATION, 10, 135, 195, 20, SS_LEFT
+    LTEXT           "WindowFinder", IDC_FINDWINDOW_EXPLANATION, 10, 135, 195, 20, SS_LEFT
     ICON            IDI_FIND, IDC_FINDWINDOW, 13, 161, 10, 9, SS_ICON | SS_NOTIFY | 0x00000800
     EDITTEXT        IDC_NEWRULE, 30, 160, 171, 14, ES_AUTOHSCROLL
 }
@@ -88,7 +87,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     GROUPBOX        "Autostart", IDC_AUTOSTART_BOX, 3, 125, 212, 40
     AUTOCHECKBOX    "Autostart", IDC_AUTOSTART, 10, 137, 135, 8
     AUTOCHECKBOX    "Hide tray", IDC_AUTOSTART_HIDE, 10, 150, 135, 8
-    LTEXT           "Note: Settings are saved and applied instantly!", IDC_AUTOSAVE, 3, 180, 160, 8, SS_LEFT
+    LTEXT           "Note: Instant!", IDC_AUTOSAVE, 3, 180, 160, 8, SS_LEFT
 }
 
 
@@ -116,7 +115,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     AUTOCHECKBOX    "RightWinkey", IDC_RIGHTWINKEY, 75, 150, 60, 8
     AUTOCHECKBOX    "LeftCtrl", IDC_LEFTCTRL, 145, 137, 55, 8
     AUTOCHECKBOX    "RightCtrl", IDC_RIGHTCTRL, 145, 150, 55, 8
-    LTEXT           "You can add any key by editing the ini file!", IDC_HOTKEYS_MORE, 10, 165, 190, 8, SS_LEFT
+    LTEXT           "ini file!", IDC_HOTKEYS_MORE, 10, 165, 190, 8, SS_LEFT
     CONTROL         "http://code.google.com/p/altdrag/issues/list", IDC_MOUSE_IDEA, "SysLink", 0x50020000, 10, 90, 160, 20
 }
 
@@ -135,10 +134,10 @@ IDI_FIND           CURSOR         "find.cur"
 IDI_ALTDRAG        ICON           "altdrag.ico"
 
 
-IDI_ICON1          ICON           "wrench.ico"
-
-
 IDI_FIND           ICON           "find.ico"
+
+
+IDI_ICON1          ICON           "wrench.ico"
 
 
 IDI_MONEY          ICON           "money.ico"

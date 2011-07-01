@@ -48,11 +48,15 @@ struct strings {
 	wchar_t *advanced_hookwindows;
 	wchar_t *advanced_checkonstartup;
 	wchar_t *advanced_beta;
+	wchar_t *advanced_ini;
 	wchar_t *advanced_openini;
 	wchar_t *about_box;
 	wchar_t *about_version;
 	wchar_t *about_author;
 	wchar_t *about_license;
+	wchar_t *about_donations_box;
+	wchar_t *about_donations_plea;
+	wchar_t *about_donate;
 };
 
 #include "en-US/strings.h"

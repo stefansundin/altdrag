@@ -19,7 +19,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "0.9"
+#define APP_VERSION         "1.0"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
@@ -385,13 +385,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		else if (wmId == SWM_AUTOSTART_HIDE_OFF) {
 			SetAutostart(1, 0);
 		}
-		else if (wmId == SWM_SETTINGS) {
-			wchar_t path[MAX_PATH];
-			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-			PathRemoveFileSpec(path);
-			wcscat(path, L"\\"APP_NAME".ini");
-			ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
-		}
 		else if (wmId == SWM_CHECKFORUPDATE) {
 			CheckForUpdate(1);
 		}
@@ -400,8 +393,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
 			}
 		}
-		else if (wmId == SWM_ABOUT) {
-			MessageBox(NULL, l10n->about, l10n->about_title, MB_ICONINFORMATION|MB_OK);
+		else if (wmId == SWM_SETTINGS || wmId == SWM_ABOUT) {
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			PathRemoveFileSpec(path);
+			wcscat(path, L"\\Config.exe");
+			ShellExecute(NULL, L"open", path, (wmId==SWM_ABOUT)?L"4":NULL, NULL, SW_SHOWNORMAL);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hwnd);

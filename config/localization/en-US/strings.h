@@ -58,13 +58,17 @@ struct strings en_US = {
  /* __explanation     */ L"Use this feature to identify the classname of a window so you can add it to the Blacklist or Snaplist above.",
  /* advanced tab */
  /* _box              */ L"Advanced settings",
- /* _hookwindows      */ L"Enable snapping when normally moving windows.\nAlso enable automatic snapping for seamless snapping!\nNote that this is not 100% safe as it hooks into the processes and stuff like that.",
+ /* _hookwindows      */ L"Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!\nNote that this is not 100% safe as it hooks into other processes and stuff like that.",
  /* _checkonstartup   */ L"Automatically check for updates",
  /* _beta             */ L"Check for beta versions",
+ /* _ini              */ L"AltDrag's settings are saved in AltDrag.ini. There are a few things that you can only configure by editing the file manually.",
  /* _openini          */ L"Open ini file",
  /* about tab */
  /* _box              */ L"About "APP_NAME,
  /* _version          */ L"Version "APP_VERSION,
  /* _author           */ L"Created by Stefan Sundin",
  /* _license          */ L"AltDrag is free and open source software!\nPlease redistribute!",
+ /* _donations_box    */ L"Donations",
+ /* _donations_plea   */ L"Recognize the work I've put on AltDrag by donating. I don't ask for much, any amount will do.",
+ /* _donate           */ L"Donate",
 };

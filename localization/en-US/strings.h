@@ -23,17 +23,4 @@ struct strings en_US = {
  /* update_balloon */ L"New version found!",
  /* update_dialog  */ L"A new version is available.\nGo to website?\n\nYou can disable automatic update checking in the settings.",
  /* update_nonew   */ L"No update available.",
- /* about_title    */ L"About " APP_NAME,
- /* about          */ APP_NAME " - " APP_VERSION "\n\
-Made by Stefan Sundin\n\
-\n\
-Drag windows with the mouse when pressing the alt key.\n\
-You can use the middle or right mouse button to resize windows.\n\
-If you press the shift key while you drag or resize, the window will snap to other windows.\n\
-Double-click windows to maximize them.\n\
-\n\
-A more thorough explanation of "APP_NAME" is available on the website.\n\
-\n\
-Visit the website at "APP_URL"\n\
-Visit the author's website at http://stefansundin.com/"
 };
