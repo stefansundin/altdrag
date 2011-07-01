@@ -85,7 +85,6 @@ struct {
 	} Update;
 } settings;
 BOOL x64 = FALSE;
-int startpage = -1;
 
 //Include stuff
 #include "localization/strings.h"
@@ -96,11 +95,6 @@ int startpage = -1;
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
-	
-	//Check command line
-	if (szCmdLine[0] != '\0') {
-		startpage = atoi(szCmdLine);
-	}
 	
 	//Look for instance
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
@@ -212,6 +206,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	
+	//Check command line
+	if (szCmdLine[0] != '\0') {
+		psh.nStartPage = atoi(szCmdLine);
+	}
+	
 	//Open the property sheet
 	PropertySheet(&psh);
 	
@@ -257,11 +256,6 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			if (l10n == languages[i].strings) {
 				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i, 0);
 			}
-		}
-		
-		//Set startpage (this doesn't work in PSCB_INITIALIZED)
-		if (startpage != -1) {
-			PropSheet_SetCurSel(g_hwnd, NULL, startpage);
 		}
 	}
 	else if (msg == WM_COMMAND) {
@@ -593,6 +587,7 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_HOOKWINDOWS,     l10n->advanced_hookwindows);
 			SetDlgItemText(hwnd, IDC_CHECKONSTARTUP,  l10n->advanced_checkonstartup);
 			SetDlgItemText(hwnd, IDC_BETA,            l10n->advanced_beta);
+			SetDlgItemText(hwnd, IDC_INI,             l10n->advanced_ini);
 			SetDlgItemText(hwnd, IDC_OPENINI,         l10n->advanced_openini);
 		}
 	}
@@ -616,6 +611,11 @@ BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SetDlgItemText(hwnd, IDC_VERSION,   l10n->about_version);
 			SetDlgItemText(hwnd, IDC_AUTHOR,    l10n->about_author);
 			SetDlgItemText(hwnd, IDC_LICENSE,   l10n->about_license);
+			wchar_t txt[50] = L"       ";
+			wcscat(txt, l10n->about_donations_box);
+			SetDlgItemText(hwnd, IDC_DONATIONS_BOX, txt);
+			SetDlgItemText(hwnd, IDC_DONATIONS_PLEA, l10n->about_donations_plea);
+			SetDlgItemText(hwnd, IDC_DONATE,         l10n->about_donate);
 		}
 	}
 	

@@ -23,18 +23,4 @@ struct strings es_ES = {
  /* update_balloon */ L"¡Nueva versión disponible!",
  /* update_dialog  */ L"Hay una nueva versión disponible.\n¿Ir a la página web?\n\nPuedes desactivar la comprobación automática de actualizaciones en la configuración.",
  /* update_nonew   */ L"No hay actualizaciones disponibles.",
- /* about_title    */ L"Acerca de " APP_NAME,
- /* about          */ APP_NAME " - " APP_VERSION "\n\
-Por Stefan Sundin\n\
-Traducido por Alexander De Sousa\n\
-\n\
-Arrastra ventanas con el ratón al pulsar la tecla Alt.\n\
-Puedes usar el botón central o derecho para redimensionar las ventanas.\n\
-Si pulsas mayúsculas mientras arrastras o cambias el tamaño, la ventana se pegará a otras.\n\
-Hacer doble-clic en una ventana la maximizará.\n\
-\n\
-Puedes encontrar en la página web una explicación de "APP_NAME" más elaborada.\n\
-\n\
-Visita la página web en "APP_URL"\n\
-Visita la página web del autor en http://stefansundin.com/"
 };

@@ -15,8 +15,6 @@ struct strings {
 	wchar_t *update_balloon;
 	wchar_t *update_dialog;
 	wchar_t *update_nonew;
-	wchar_t *about_title;
-	wchar_t *about;
 };
 
 #include "en-US/strings.h"

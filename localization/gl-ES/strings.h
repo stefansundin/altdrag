@@ -23,18 +23,4 @@ struct strings gl_ES = {
  /* update_balloon */ L"Nova versión dispoñíbel!",
  /* update_dialog  */ L"Unha nova versión está dispoñíbel.\nQueres ir á páxina web?\n\nPodes desactivar a comprobación automática de actualizacións na configuración.",
  /* update_nonew   */ L"Non hai actualizacións.",
- /* about_title    */ L"Acerca de " APP_NAME,
- /* about          */ APP_NAME " - " APP_VERSION "\n\
-Feito por Stefan Sundin\n\
-Traducido por Alexander De Sousa\n\
-\n\
-Move as ventás co rato cando premas a tecla Alt.\n\
-Podes usar o botón dereito ou o botón do medio do rato para cambiar o tamaño das ventás.\n\
-Se premes a tecla Shift mentres esteas movendo ou cambiando o tamaño, a ventá pegarase ás outras.\n\
-Podes facer dobre clic nunha ventá para maximizala.\n\
-\n\
-Podes atopar no sitio web unha explicación de "APP_NAME" máis elaborada.\n\
-\n\
-Visita a páxina web en "APP_URL"\n\
-Visita a web do autor en http://stefansundin.com/"
 };

@@ -1,31 +1,20 @@
 AltDrag
 Made by Stefan Sundin
 
-Drag windows with the mouse when pressing the alt key.
-You can use the middle or right mouse button to resize windows.
-If you press the shift key while you drag or resize, the window will snap to other windows.
-AltDrag will mimic Windows 7 Aero Snap behavior (even if you don't run Windows 7).
+Drag windows when pressing the alt key.
+Use the middle or right mouse button to resize windows.
+Press the shift key to snap to other windows.
+AltDrag mimics Windows 7 Aero Snap behavior (even if you don't run Windows 7).
 Double-click windows to maximize them.
-
-You can edit more settings in AltDrag.ini:
-* Enable AutoFocus to bring windows to the front when dragging them.
-* Enable AutoSnap to make windows always snap without needing to press shift.
-* Enable HookWindows to be able to use the shift key when moving windows without AltDrag.
-* Enable InactiveScroll to be to scroll inactive windows with the mouse wheel.
-* Configure mouse buttons. The additional actions are: Minimize, AlwaysOnTop, Center and Close.
-* Edit the blacklist, a list where you can specify windows that shouldn't be dragged.
 
 A more thorough explanation of AltDrag is available on the website.
 
-If you experience lag when you move or resize windows, try disabling the mouse cursor in AltDrag.ini.
-AltDrag will automatically check for updates. You can disable this in AltDrag.ini.
+If you find AltDrag useful, please consider donating money.
+You can find out how to donate on the website.
+AltDrag is free and open source software. Please redistribute!
 
 Visit the website at http://code.google.com/p/altdrag/
 Visit the author's website at http://stefansundin.com/
-
-If this program is useful for you, please consider donating money.
-You can find out how to donate on the website.
-AltDrag is open source, licensed under GPL.
 
 Changelog
 ---------
@@ -33,6 +22,7 @@ Changelog
 Added configuration GUI.
 Added ability to scroll through windows with the scrollwheel (like Alt+Tab!).
 You can now press escape to stop AltDrag. Useful if AltDrag gets in a weird state.
+Installer now grants access to AltDrag.ini to all users. Should help people who use UAC.
 
 0.9 - 2011-02-01:
 Added Aero option. Alt-drag windows to the left, right and top side of the screen. Corners work too!

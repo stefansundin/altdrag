@@ -12,8 +12,11 @@
 #define IDD_ABOUTPAGE                           205
 #define IDI_FIND                                206
 #define IDC_AUTOSNAP_HEADER                     1000
+#define IDC_DONATIONS_BOX                       1000
 #define IDC_FINDWINDOW                          1000
+#define IDC_DONATIONS_PLEA                      1001
 #define IDC_LANGUAGE_HEADER                     1001
+#define IDC_INI                                 1002
 #define IDC_NEWRULE                             1002
 #define IDC_AUTOSAVE                            1004
 #define IDC_PROCESSBLACKLIST_HEADER             1004

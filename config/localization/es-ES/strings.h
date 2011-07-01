@@ -61,10 +61,14 @@ struct strings es_ES = {
  /* _hookwindows      */ L"Enabli snappy nörmally möving windöws.\n< 100% safei",
  /* _checkonstartup   */ L"Automaticallö checki för updati",
  /* _beta             */ L"Checki für betai versionii",
+ /* _ini              */ L"AltDrag.ini edito manuallo!",
  /* _openini          */ L"Openi inii fili",
  /* about tab */
  /* _box              */ L"Abouti "APP_NAME,
  /* _version          */ L"Versioni "APP_VERSION,
  /* _author           */ L"Createdi by Stefan Sundin",
  /* _license          */ L"AltDragi is fri and öpen söurce söftware!\nPleasi redistributi!1",
+ /* _donations_box    */ L"Donuts",
+ /* _donations_plea   */ L"Buy me some donuts!",
+ /* _donate           */ L"Dönate",
 };
