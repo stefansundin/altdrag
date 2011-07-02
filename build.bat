@@ -17,38 +17,41 @@ rem "build\unhook.exe"
 
 %prefix32%windres -o build\altdrag.o include\altdrag.rc
 %prefix32%windres -o build\hooks.o include\hooks.rc
+%prefix32%windres -o config\window.o config\window.rc
 
 if "%1" == "all" (
 	%prefix32%gcc -o build\ini.exe include\ini.c -lshlwapi
 	
 	@echo.
 	echo Building release build
-	%prefix32%gcc -o "build\AltDrag.exe" altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -O2 -s
-	if not exist "build\AltDrag.exe". exit /b
-	%prefix32%gcc -o "build\hooks.dll" hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
-	if not exist "build\hooks.dll". exit /b
+	%prefix32%gcc -o build\AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -O2 -s
+	if not exist build\AltDrag.exe. exit /b
+	%prefix32%gcc -o build\hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
+	if not exist build\hooks.dll. exit /b
+	%prefix32%gcc -o build\Config.exe config\config.c config\window.o -mwindows -lshlwapi -lcomctl32 -O2 -s
 	
 	if "%2" == "x64" (
 		%prefix64%windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
 		%prefix64%windres -o build\hooks_x64.o include\hooks.rc
-		%prefix64%gcc -o "build\HookWindows_x64.exe" hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -O2 -s
-		if not exist "build\HookWindows_x64.exe". exit /b
-		%prefix64%gcc -o "build\hooks_x64.dll" hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
-		if not exist "build\hooks_x64.dll". exit /b
+		%prefix64%gcc -o build\HookWindows_x64.exe hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -O2 -s
+		if not exist build\HookWindows_x64.exe. exit /b
+		%prefix64%gcc -o build\hooks_x64.dll hooks.c build\hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
+		if not exist build\hooks_x64.dll. exit /b
 	)
 	
 	for %%f in (%l10n%) do (
 		@echo.
 		echo Putting together %%f
 		if not exist "build\%%f\AltDrag". mkdir "build\%%f\AltDrag"
-		copy "build\AltDrag.exe" "build\%%f\AltDrag"
-		copy "build\hooks.dll" "build\%%f\AltDrag"
+		copy build\AltDrag.exe "build\%%f\AltDrag"
+		copy build\hooks.dll "build\%%f\AltDrag"
+		copy build\Config.exe "build\%%f\AltDrag"
 		copy "localization\%%f\info.txt" "build\%%f\AltDrag"
-		copy "AltDrag.ini" "build\%%f\AltDrag"
-		"build\ini.exe" "build\%%f\AltDrag\AltDrag.ini" AltDrag Language %%f
+		copy AltDrag.ini "build\%%f\AltDrag"
+		build\ini "build\%%f\AltDrag\AltDrag.ini" AltDrag Language %%f
 		if "%2" == "x64" (
-			copy "build\HookWindows_x64.exe" "build\%%f\AltDrag"
-			copy "build\hooks_x64.dll" "build\%%f\AltDrag"
+			copy build\HookWindows_x64.exe "build\%%f\AltDrag"
+			copy build\hooks_x64.dll "build\%%f\AltDrag"
 		)
 	)
 	
@@ -58,6 +61,7 @@ if "%1" == "all" (
 ) else (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -g -DDEBUG
 	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -g -DDEBUG
+	%prefix32%gcc -o Config.exe config\config.c config\window.o -mwindows -lshlwapi -lcomctl32 -g -DDEBUG
 	
 	if "%1" == "x64" (
 		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c

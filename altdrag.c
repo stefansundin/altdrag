@@ -19,7 +19,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.0"
+#define APP_VERSION         "1.0b1"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
@@ -307,9 +307,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_TRAY) {
 		if (lParam == WM_LBUTTONDOWN || lParam == WM_LBUTTONDBLCLK) {
 			ToggleState();
+			if (lParam == WM_LBUTTONDBLCLK) {
+				SendMessage(hwnd, WM_COMMAND, SWM_SETTINGS, 0);
+			}
 		}
 		else if (lParam == WM_MBUTTONDOWN) {
-			SendMessage(hwnd, WM_COMMAND, SWM_SETTINGS, 0);
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			PathRemoveFileSpec(path);
+			wcscat(path, L"\\"APP_NAME".ini");
+			ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
 		}
 		else if (lParam == WM_RBUTTONDOWN) {
 			ShowContextMenu(hwnd);
