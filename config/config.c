@@ -87,7 +87,7 @@ struct {
 BOOL x64 = FALSE;
 
 //Include stuff
-#include "localization/strings.h"
+#include "../localization/config.h"
 #include "../include/error.c"
 #include "../include/autostart.c"
 #include "resource.h"

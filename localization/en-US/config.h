@@ -61,14 +61,14 @@ struct strings en_US = {
  /* _hookwindows      */ L"&Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!\nNote that this is not 100% safe as it hooks into other processes and stuff like that.",
  /* _checkonstartup   */ L"Automatically check for &updates",
  /* _beta             */ L"Check for &beta versions",
- /* _ini              */ L"AltDrag's settings are saved in AltDrag.ini. There are a few things that you can only configure by editing the file manually.",
+ /* _ini              */ APP_NAME L"'s settings are saved in "APP_NAME".ini. There are a few things that you can only configure by editing the file manually.",
  /* _openini          */ L"Open &ini file",
  /* about tab */
  /* _box              */ L"About "APP_NAME,
  /* _version          */ L"Version "APP_VERSION,
  /* _author           */ L"Created by Stefan Sundin",
- /* _license          */ L"AltDrag is free and open source software!\nPlease redistribute!",
+ /* _license          */ APP_NAME L" is free and open source software!\nPlease redistribute!",
  /* _donations_box    */ L"Donations",
- /* _donations_plea   */ L"If you find AltDrag useful, please consider donating money. I don't ask for much, any amount will do.",
+ /* _donations_plea   */ L"If you find "APP_NAME" useful, please consider donating money. I don't ask for much, any amount will do.",
  /* _donate           */ L"&Donate",
 };

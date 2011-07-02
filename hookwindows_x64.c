@@ -119,7 +119,7 @@ int HookSystem() {
 		//Set up the message hook
 		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
-			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook windows. Another program might be interfering.",GetLastError(),TEXT(__FILE__),__LINE__);
+			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook windows. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -143,7 +143,7 @@ int UnhookSystem() {
 	
 	//Remove message hook
 	if (UnhookWindowsHookEx(msghook) == 0) {
-		Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".",GetLastError(),TEXT(__FILE__),__LINE__);
+		Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	msghook = NULL;

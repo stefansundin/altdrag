@@ -59,9 +59,9 @@ struct strings {
 	wchar_t *about_donate;
 };
 
-#include "en-US/strings.h"
-#include "es-ES/strings.h"
-#include "gl-ES/strings.h"
+#include "../localization/en-US/config.h"
+#include "../localization/es-ES/config.h"
+#include "../localization/gl-ES/config.h"
 
 struct {
 	wchar_t *code;
