@@ -191,7 +191,8 @@ Section "${APP_NAME}" sec_app
 	SetOutPath "$INSTDIR"
 	
 	;Rename old ini file if it exists
-	IfFileExists "${APP_NAME}.ini" 0 +2
+	IfFileExists "${APP_NAME}.ini" 0 +3
+		Delete "${APP_NAME}-old.ini"
 		Rename "${APP_NAME}.ini" "${APP_NAME}-old.ini"
 	
 	;Install files
