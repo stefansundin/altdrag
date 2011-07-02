@@ -9,7 +9,7 @@
 ;http://nsis.sourceforge.net/AccessControl_plug-in
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "0.9"
+!define APP_VERSION   "1.0"
 !define APP_URL       "http://code.google.com/p/altdrag/"
 !define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 
@@ -190,20 +190,17 @@ Section "${APP_NAME}" sec_app
 	
 	SetOutPath "$INSTDIR"
 	
-	;Store directory and version
-	WriteRegStr HKCU "Software\${APP_NAME}" "Install_Dir" "$INSTDIR"
-	WriteRegStr HKCU "Software\${APP_NAME}" "Version" "${APP_VERSION}"
-	
 	;Rename old ini file if it exists
 	IfFileExists "${APP_NAME}.ini" 0 +2
 		Rename "${APP_NAME}.ini" "${APP_NAME}-old.ini"
 	
 	;Install files
 	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
+	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	File "build\en-US\${APP_NAME}\hooks.dll"
+	File "build\en-US\${APP_NAME}\Config.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
-	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	
 	!insertmacro Lang ${LANG_ENGLISH}      en-US
 	!insertmacro Lang ${LANG_SPANISH}      es-ES
@@ -213,6 +210,10 @@ Section "${APP_NAME}" sec_app
 	
 	;Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
+	
+	;Update registry
+	WriteRegStr HKCU "Software\${APP_NAME}" "Install_Dir" "$INSTDIR"
+	WriteRegStr HKCU "Software\${APP_NAME}" "Version" "${APP_VERSION}"
 	
 	;Create uninstaller
 	WriteUninstaller "Uninstall.exe"

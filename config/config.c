@@ -22,7 +22,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.0"
+#define APP_VERSION         "1.0b1"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_CONFIG
 
@@ -190,7 +190,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
 		psp[i].hInstance   = hInst;
 		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
-		//psp[i].lParam      = (LPARAM)&settings;
 		psp[i].pfnDlgProc  = pages[i].pfnDlgProc;
 	}
 	
@@ -207,7 +206,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.pfnCallback     = PropSheetProc;
 	
 	//Check command line
-	if (szCmdLine[0] != '\0') {
+	if (szCmdLine != NULL) {
 		psh.nStartPage = atoi(szCmdLine);
 	}
 	
@@ -243,48 +242,45 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	int updatel10n = 0;
 	if (msg == WM_INITDIALOG) {
-		SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_SETCHECK, settings.AltDrag.AutoFocus?BST_CHECKED:BST_UNCHECKED, 0);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS), settings.AltDrag.AutoFocus?BST_CHECKED:BST_UNCHECKED);
 		
-		SendDlgItemMessage(hwnd, IDC_AERO, BM_SETCHECK, settings.AltDrag.Aero?BST_CHECKED:BST_UNCHECKED, 0);
-		SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_SETCHECK, settings.AltDrag.InactiveScroll?BST_CHECKED:BST_UNCHECKED, 0);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_AERO), settings.AltDrag.Aero?BST_CHECKED:BST_UNCHECKED);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), settings.AltDrag.InactiveScroll?BST_CHECKED:BST_UNCHECKED);
 		
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
 			wchar_t txt[20];
 			wsprintf(txt, L"%s (%s)", languages[i].language, languages[i].code);
-			SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_ADDSTRING, 0, (LPARAM)txt);
+			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), txt);
 			if (l10n == languages[i].strings) {
-				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i, 0);
+				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
 			}
 		}
 	}
 	else if (msg == WM_COMMAND) {
 		wchar_t txt[1000];
 		if (wParam == IDC_AUTOFOCUS) {
-			settings.AltDrag.AutoFocus = SendDlgItemMessage(hwnd, IDC_AUTOFOCUS, BM_GETCHECK, 0, 0);
+			settings.AltDrag.AutoFocus = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS));
 			WritePrivateProfileString(APP_NAME, L"AutoFocus", _itow(settings.AltDrag.AutoFocus,txt,10), inipath);
 		}
 		else if (LOWORD(wParam) == IDC_AUTOSNAP && HIWORD(wParam) == CBN_SELCHANGE) {
-			settings.AltDrag.AutoSnap = SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_GETCURSEL, 0, 0);
+			settings.AltDrag.AutoSnap = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP));
 			WritePrivateProfileString(APP_NAME, L"AutoSnap", _itow(settings.AltDrag.AutoSnap,txt,10), inipath);
 		}
 		else if (wParam == IDC_AERO) {
-			int temp = SendDlgItemMessage(hwnd, IDC_AERO, BM_GETCHECK, 0, 0);
-			if (temp != !!settings.AltDrag.Aero) { //Don't destroy Aero=2
-				settings.AltDrag.Aero = temp;
-			}
+			settings.AltDrag.Aero = Button_GetCheck(GetDlgItem(hwnd,IDC_AERO));
 			WritePrivateProfileString(APP_NAME, L"Aero", _itow(settings.AltDrag.Aero,txt,10), inipath);
 		}
 		else if (wParam == IDC_INACTIVESCROLL) {
-			settings.AltDrag.InactiveScroll = SendDlgItemMessage(hwnd, IDC_INACTIVESCROLL, BM_GETCHECK, 0, 0);
+			settings.AltDrag.InactiveScroll = Button_GetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL));
 			WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), inipath);
 		}
 		else if (LOWORD(wParam) == IDC_LANGUAGE && HIWORD(wParam) == CBN_SELCHANGE) {
-			int i = SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_GETCURSEL, 0, 0);
+			int i = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE));
 			if (languages[i].code == NULL) {
 				ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Translate", NULL, NULL, SW_SHOWNORMAL);
 				for (i=0; l10n != languages[i].strings; i++) {}
-				SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_SETCURSEL, i, 0);
+				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
 			}
 			else {
 				l10n = languages[i].strings;
@@ -293,15 +289,15 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 		}
 		else if (wParam == IDC_AUTOSTART) {
-			int autostart = SendDlgItemMessage(hwnd, IDC_AUTOSTART, BM_GETCHECK, 0, 0);
+			int autostart = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART));
 			SetAutostart(autostart, 0);
 			EnableWindow(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), autostart);
 			if (!autostart) {
-				SendDlgItemMessage(hwnd, IDC_AUTOSTART_HIDE, BM_SETCHECK, BST_UNCHECKED, 0);
+				Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), BST_UNCHECKED);
 			}
 		}
 		else if (wParam == IDC_AUTOSTART_HIDE) {
-			int hidden = SendDlgItemMessage(hwnd, IDC_AUTOSTART_HIDE, BM_GETCHECK, 0, 0);
+			int hidden = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE));
 			SetAutostart(1, hidden);
 		}
 		UpdateSettings();
@@ -314,9 +310,9 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			//Autostart
 			int autostart=0, hidden=0;
 			CheckAutostart(&autostart, &hidden);
-			SendDlgItemMessage(hwnd, IDC_AUTOSTART, BM_SETCHECK, autostart?BST_CHECKED:BST_UNCHECKED, 0);
-			SendDlgItemMessage(hwnd, IDC_AUTOSTART_HIDE, BM_SETCHECK, hidden?BST_CHECKED:BST_UNCHECKED, 0);
-			EnableWindow(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), autostart);
+			Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART), autostart?BST_CHECKED:BST_UNCHECKED);
+			Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), hidden?BST_CHECKED:BST_UNCHECKED);
+			Button_Enable(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), autostart);
 		}
 	}
 	if (updatel10n) {
@@ -335,28 +331,28 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 		
 		//Update text
-		SetDlgItemText(hwnd, IDC_GENERAL_BOX, l10n->general_box);
-		SetDlgItemText(hwnd, IDC_AUTOFOCUS, l10n->general_autofocus);
-		SetDlgItemText(hwnd, IDC_AERO, l10n->general_aero);
-		SetDlgItemText(hwnd, IDC_INACTIVESCROLL, l10n->general_inactivescroll);
-		SetDlgItemText(hwnd, IDC_AUTOSNAP_HEADER, l10n->general_autosnap);
-		SetDlgItemText(hwnd, IDC_LANGUAGE_HEADER, l10n->general_language);
-		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX, l10n->general_autostart_box);
-		SetDlgItemText(hwnd, IDC_AUTOSTART, l10n->general_autostart);
-		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE, l10n->general_autostart_hide);
-		SetDlgItemText(hwnd, IDC_AUTOSAVE, l10n->general_autosave);
+		SetDlgItemText(hwnd, IDC_GENERAL_BOX,        l10n->general_box);
+		SetDlgItemText(hwnd, IDC_AUTOFOCUS,          l10n->general_autofocus);
+		SetDlgItemText(hwnd, IDC_AERO,               l10n->general_aero);
+		SetDlgItemText(hwnd, IDC_INACTIVESCROLL,     l10n->general_inactivescroll);
+		SetDlgItemText(hwnd, IDC_AUTOSNAP_HEADER,    l10n->general_autosnap);
+		SetDlgItemText(hwnd, IDC_LANGUAGE_HEADER,    l10n->general_language);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX,      l10n->general_autostart_box);
+		SetDlgItemText(hwnd, IDC_AUTOSTART,          l10n->general_autostart);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE,     l10n->general_autostart_hide);
+		SetDlgItemText(hwnd, IDC_AUTOSAVE,           l10n->general_autosave);
 		
 		//AutoSnap
-		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_RESETCONTENT, 0, 0);
-		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap0);
-		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap1);
-		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap2);
-		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_ADDSTRING, 0, (LPARAM)l10n->general_autosnap3);
-		SendDlgItemMessage(hwnd, IDC_AUTOSNAP, CB_SETCURSEL, settings.AltDrag.AutoSnap, 0);
+		ComboBox_ResetContent(GetDlgItem(hwnd,IDC_AUTOSNAP));
+		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap0);
+		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap1);
+		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap2);
+		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap3);
+		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), settings.AltDrag.AutoSnap);
 		
 		//Language
-		SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_DELETESTRING, sizeof(languages)/sizeof(languages[0])-1, 0);
-		SendDlgItemMessage(hwnd, IDC_LANGUAGE, CB_ADDSTRING, 0, (LPARAM)l10n->general_helptranslate);
+		ComboBox_DeleteString(GetDlgItem(hwnd,IDC_LANGUAGE), sizeof(languages)/sizeof(languages[0])-1);
+		ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), l10n->general_helptranslate);
 	}
 	return FALSE;
 }
@@ -368,11 +364,11 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		wchar_t *setting;
 		wchar_t *option;
 	} mouse_buttons[] = {
-		{IDC_LMB, settings.Mouse.LMB, L"LMB"},
-		{IDC_MMB, settings.Mouse.MMB, L"MMB"},
-		{IDC_RMB, settings.Mouse.RMB, L"RMB"},
-		{IDC_MB4, settings.Mouse.MB4, L"MB4"},
-		{IDC_MB5, settings.Mouse.MB5, L"MB5"},
+		{ IDC_LMB, settings.Mouse.LMB, L"LMB" },
+		{ IDC_MMB, settings.Mouse.MMB, L"MMB" },
+		{ IDC_RMB, settings.Mouse.RMB, L"RMB" },
+		{ IDC_MB4, settings.Mouse.MB4, L"MB4" },
+		{ IDC_MB5, settings.Mouse.MB5, L"MB5" },
 	};
 	wchar_t *mouse_actions[] = {L"Move", L"Resize", L"Close", L"Minimize", L"Lower", L"AlwaysOnTop", L"Center", L"Nothing"};
 	
@@ -382,12 +378,12 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		int *setting;
 		int vkey;
 	} hotkeys[] = {
-		{IDC_LEFTALT,     &settings.Keyboard.LeftAlt,     VK_LMENU   },
-		{IDC_RIGHTALT,    &settings.Keyboard.RightAlt,    VK_RMENU   },
-		{IDC_LEFTWINKEY,  &settings.Keyboard.LeftWinkey,  VK_LWIN    },
-		{IDC_RIGHTWINKEY, &settings.Keyboard.RightWinkey, VK_RWIN    },
-		{IDC_LEFTCTRL,    &settings.Keyboard.LeftCtrl,    VK_LCONTROL},
-		{IDC_RIGHTCTRL,   &settings.Keyboard.RightCtrl,   VK_RCONTROL},
+		{ IDC_LEFTALT,     &settings.Keyboard.LeftAlt,     VK_LMENU },
+		{ IDC_RIGHTALT,    &settings.Keyboard.RightAlt,    VK_RMENU },
+		{ IDC_LEFTWINKEY,  &settings.Keyboard.LeftWinkey,  VK_LWIN },
+		{ IDC_RIGHTWINKEY, &settings.Keyboard.RightWinkey, VK_RWIN },
+		{ IDC_LEFTCTRL,    &settings.Keyboard.LeftCtrl,    VK_LCONTROL },
+		{ IDC_RIGHTCTRL,   &settings.Keyboard.RightCtrl,   VK_RCONTROL },
 	};
 	
 	if (msg == WM_INITDIALOG) {
@@ -395,9 +391,9 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		int i, j;
 		for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
 			for (j=0; j < sizeof(mouse_actions)/sizeof(mouse_actions[0]); j++) {
-				SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_ADDSTRING, 0, (LPARAM)mouse_actions[j]);
+				ComboBox_AddString(GetDlgItem(hwnd,mouse_buttons[i].control), mouse_actions[j]);
 				if (!wcscmp(mouse_buttons[i].setting,mouse_actions[j])) {
-					SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_SETCURSEL, j, 0);
+					ComboBox_SetCurSel(GetDlgItem(hwnd,mouse_buttons[i].control), j);
 				}
 			}
 		}
@@ -405,7 +401,7 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		//Hotkeys
 		for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
 			if (*hotkeys[i].setting) {
-				SendDlgItemMessage(hwnd, hotkeys[i].control, BM_SETCHECK, BST_CHECKED, 0);
+				Button_SetCheck(GetDlgItem(hwnd,hotkeys[i].control), BST_CHECKED);
 			}
 		}
 	}
@@ -416,8 +412,7 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			int control = LOWORD(wParam);
 			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
 				if (control == mouse_buttons[i].control) {
-					int index = SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_GETCURSEL, 0, 0);
-					SendDlgItemMessage(hwnd, mouse_buttons[i].control, CB_GETLBTEXT, index, (LPARAM)mouse_buttons[i].setting);
+					ComboBox_GetText(GetDlgItem(hwnd,mouse_buttons[i].control), mouse_buttons[i].setting, sizeof(settings.Mouse.LMB)/sizeof(wchar_t));
 					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, mouse_buttons[i].setting, inipath);
 				}
 			}
@@ -426,7 +421,7 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			//Hotkeys
 			wchar_t txt[100] = {'\0', '\0'}; //Second \0 needed if no keys are selected
 			for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
-				*hotkeys[i].setting = SendDlgItemMessage(hwnd, hotkeys[i].control, BM_GETCHECK, 0, 0);
+				*hotkeys[i].setting = Button_GetCheck(GetDlgItem(hwnd,hotkeys[i].control));
 				if (*hotkeys[i].setting) {
 					swprintf(txt, L"%s %02X", txt, hotkeys[i].vkey);
 				}
@@ -472,15 +467,15 @@ BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 		int control = LOWORD(wParam);
 		if (HIWORD(wParam) == EN_KILLFOCUS) {
 			if (control == IDC_PROCESSBLACKLIST) {
-				SendDlgItemMessage(hwnd, IDC_PROCESSBLACKLIST, WM_GETTEXT, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t), (LPARAM)settings.Blacklist.ProcessBlacklist);
+				Edit_GetText(GetDlgItem(hwnd,IDC_PROCESSBLACKLIST), settings.Blacklist.ProcessBlacklist, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t));
 				WritePrivateProfileString(L"Blacklist", L"ProcessBlacklist", settings.Blacklist.ProcessBlacklist, inipath);
 			}
 			else if (control == IDC_BLACKLIST) {
-				SendDlgItemMessage(hwnd, IDC_BLACKLIST, WM_GETTEXT, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t), (LPARAM)settings.Blacklist.Blacklist);
+				Edit_GetText(GetDlgItem(hwnd,IDC_BLACKLIST), settings.Blacklist.Blacklist, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t));
 				WritePrivateProfileString(L"Blacklist", L"Blacklist", settings.Blacklist.Blacklist, inipath);
 			}
 			else if (control == IDC_SNAPLIST) {
-				SendDlgItemMessage(hwnd, IDC_SNAPLIST, WM_GETTEXT, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t), (LPARAM)settings.Blacklist.Snaplist);
+				Edit_GetText(GetDlgItem(hwnd,IDC_SNAPLIST), settings.Blacklist.Snaplist, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t));
 				WritePrivateProfileString(L"Blacklist", L"Snaplist", settings.Blacklist.Snaplist, inipath);
 			}
 			UpdateSettings();
@@ -554,9 +549,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_SETCHECK, settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED, 0);
-		SendDlgItemMessage(hwnd, IDC_CHECKONSTARTUP, BM_SETCHECK, settings.Update.CheckOnStartup?BST_CHECKED:BST_UNCHECKED, 0);
-		SendDlgItemMessage(hwnd, IDC_BETA, BM_SETCHECK, settings.Update.Beta?BST_CHECKED:BST_UNCHECKED, 0);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP), settings.Update.CheckOnStartup?BST_CHECKED:BST_UNCHECKED);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_BETA), settings.Update.Beta?BST_CHECKED:BST_UNCHECKED);
 	}
 	else if (msg == WM_COMMAND) {
 		if (wParam == IDC_OPENINI) {
@@ -565,18 +560,18 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		else {
 			wchar_t txt[10];
 			if (wParam == IDC_HOOKWINDOWS) {
-				settings.AltDrag.HookWindows = SendDlgItemMessage(hwnd, IDC_HOOKWINDOWS, BM_GETCHECK, 0, 0);
+				settings.AltDrag.HookWindows = Button_GetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS));
 				WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(settings.AltDrag.HookWindows,txt,10), inipath);
+				UpdateSettings();
 			}
 			else if (wParam == IDC_CHECKONSTARTUP) {
-				settings.Update.CheckOnStartup = SendDlgItemMessage(hwnd, IDC_CHECKONSTARTUP, BM_GETCHECK, 0, 0);
+				settings.Update.CheckOnStartup = Button_GetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP));
 				WritePrivateProfileString(L"Update", L"CheckOnStartup", _itow(settings.Update.CheckOnStartup,txt,10), inipath);
 			}
 			else if (wParam == IDC_BETA) {
-				settings.Update.Beta = SendDlgItemMessage(hwnd, IDC_BETA, BM_GETCHECK, 0, 0);
+				settings.Update.Beta = Button_GetCheck(GetDlgItem(hwnd,IDC_BETA));
 				WritePrivateProfileString(L"Update", L"Beta", _itow(settings.Update.Beta,txt,10), inipath);
 			}
-			UpdateSettings();
 		}
 	}
 	else if (msg == WM_NOTIFY) {
@@ -595,10 +590,7 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 }
 
 BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (msg == WM_INITDIALOG) {
-		
-	}
-	else if (msg == WM_COMMAND) {
+	if (msg == WM_COMMAND) {
 		if (wParam == IDC_DONATE) {
 			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);
 		}
