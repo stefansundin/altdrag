@@ -196,10 +196,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	//Define the property sheet
 	PROPSHEETHEADER psh = {0};
 	psh.dwSize          = sizeof(PROPSHEETHEADER);
-	psh.dwFlags         = PSH_USEICONID | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
+	psh.dwFlags         = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
 	psh.hwndParent      = NULL;
 	psh.hInstance       = hInst;
-	psh.pszIcon         = MAKEINTRESOURCE(IDI_ICON1);
+	psh.hIcon           = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR); //PSH_USEHICON
 	psh.pszCaption      = APP_NAME L" Configuration";
 	psh.nPages          = sizeof(pages)/sizeof(pages[0]);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
