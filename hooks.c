@@ -1794,15 +1794,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
 			}
 		}
-		//Free memory
-		//Do not free any shared variables
-		free(settings.ProcessBlacklist.items);
-		free(settings.ProcessBlacklist.data);
-		free(settings.Blacklist.items);
-		free(settings.Blacklist.data);
-		free(settings.Snaplist.items);
-		free(settings.Snaplist.data);
-		free(wnds);
 	}
 	return TRUE;
 }
