@@ -29,6 +29,7 @@
 //Timers
 HWND g_hwnd;
 #define RESTORE_TIMER WM_APP+1
+#define MOVE_TIMER WM_APP+2
 
 //Enumerators
 enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER};
@@ -106,6 +107,7 @@ struct {
 	int SnapThreshold;
 	struct {
 		int Cursor;
+		int UpdateRate;
 	} Performance;
 	struct {
 		unsigned char keys[MAXKEYS];
@@ -117,6 +119,7 @@ struct {
 } sharedsettings shareattr;
 short sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
+int updaterate = 0;
 
 //Blacklist
 struct blacklistitem {
@@ -840,11 +843,11 @@ void MouseMove() {
 			
 			//Make sure we don't try to make the window too small
 			//This is only needed to prevent the window from drifting when resizing it to the right or downwards
-			if (wndwidth <= state.resize.minwidth) {
+			if (wndwidth <= state.resize.minwidth && state.resize.minwidth > 0) {
 				wndwidth = state.resize.minwidth;
 				posx = state.origin.right-wndwidth;
 			}
-			if (wndheight <= state.resize.minheight) {
+			if (wndheight <= state.resize.minheight && state.resize.minheight > 0) {
 				wndheight = state.resize.minheight;
 				posy = state.origin.bottom-wndheight;
 			}
@@ -1325,11 +1328,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			POINT pt = msg->pt;
 			//Move window
 			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
-				if (sharedsettings.Performance.Cursor) {
-					MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
-					//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+				if (updaterate > sharedsettings.Performance.UpdateRate) {
+					updaterate=0;
+					KillTimer(g_hwnd, MOVE_TIMER);
+					if (sharedsettings.Performance.Cursor) {
+						MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
+						//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+					}
+					MouseMove();
 				}
-				MouseMove();
+				else {
+					SetTimer(g_hwnd, MOVE_TIMER, 100, NULL);
+				}
+				updaterate++;
 			}
 			//Reset double-click time
 			//Unfortunately, we have to remember the previous pointer position since WM_MOUSEMOVE can be sent even if
@@ -1423,18 +1434,23 @@ int UnhookMouse() {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_TIMER) {
-		KillTimer(g_hwnd, RESTORE_TIMER);
-		state.locked = 0;
-		
-		if (sharedstate.action == ACTION_MOVE) {
-			//Restore window
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(state.hwnd, &wndpl);
-			wndpl.showCmd = SW_RESTORE;
-			SetWindowPlacement(state.hwnd, &wndpl);
+		if (wParam == RESTORE_TIMER) {
+			KillTimer(g_hwnd, RESTORE_TIMER);
+			state.locked = 0;
 			
-			//Move
+			if (sharedstate.action == ACTION_MOVE) {
+				//Restore window
+				WINDOWPLACEMENT wndpl;
+				wndpl.length = sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(state.hwnd, &wndpl);
+				wndpl.showCmd = SW_RESTORE;
+				SetWindowPlacement(state.hwnd, &wndpl);
+				
+				//Move
+				MouseMove();
+			}
+		}
+		else if (wParam == MOVE_TIMER) {
 			MouseMove();
 		}
 	}
@@ -1639,6 +1655,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				cursors[SIZEALL]  = LoadImage(NULL, IDC_SIZEALL,  IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				#endif
 			}
+			GetPrivateProfileString(L"Performance", L"UpdateRate", L"5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Performance.UpdateRate);
 			
 			//[Mouse]
 			struct {
