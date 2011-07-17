@@ -105,6 +105,7 @@ struct {
 	int AutoRemaximize;
 	int Aero;
 	int SnapThreshold;
+	int FocusOnTyping;
 	struct {
 		int Cursor;
 		int UpdateRate;
@@ -867,6 +868,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				state.alt = 1;
 				state.blockaltup = 0;
 				
+				//Ctrl as hotkey should not trigger Ctrl-focusing when starting dragging, releasing and pressing it again will focus though
+				if (!sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
+					state.ignorectrl = 1;
+				}
+				
 				//Hook mouse
 				HookMouse();
 			}
@@ -879,11 +885,24 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					return 1;
 				}
 			}
-			else if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
-				SetForegroundWindow(state.hwnd);
-			}
 			else if (vkey == VK_ESCAPE) {
 				UnhookMouse();
+			}
+			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
+				SetForegroundWindow(state.hwnd);
+			}
+			
+			if (sharedsettings.FocusOnTyping && !sharedstate.action && !state.alt) {
+				POINT pt;
+				GetCursorPos(&pt);
+				HWND hoverwnd = WindowFromPoint(pt);
+				if (hoverwnd == NULL) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				hoverwnd = GetAncestor(hoverwnd, GA_ROOT);
+				if (GetForegroundWindow() != hoverwnd) {
+					SetForegroundWindow(hoverwnd);
+				}
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
@@ -896,27 +915,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					}
 				}
 				
+				//Block the alt keyup to prevent the window menu to be selected.
+				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup (see issue 20).
+				if (vkey == VK_LMENU && (state.blockaltup || sharedstate.action)) {
+					state.ignorectrl = 1;
+					KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
+					ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
+					INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
+					SendInput(2, input, sizeof(INPUT));
+				}
+				state.ignorectrl = 0;
+				
 				//Okay, all hotkeys have been released
 				state.alt = 0;
-				
-				//Block the alt keyup to prevent the window menu to be selected.
-				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup.
-				//For more information, see issue 20.
-				if (state.blockaltup || sharedstate.action) {
-					state.ignorectrl = 1;
-					KEYBDINPUT ctrl[2];
-					ctrl[0].wVk = ctrl[1].wVk = VK_CONTROL;
-					ctrl[0].wScan = ctrl[0].time = ctrl[1].wScan = ctrl[1].time = 0;
-					ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
-					ctrl[0].dwFlags = 0;
-					ctrl[1].dwFlags = KEYEVENTF_KEYUP;
-					INPUT input[2];
-					input[0].type = input[1].type = INPUT_KEYBOARD;
-					input[0].ki = ctrl[0];
-					input[1].ki = ctrl[1];
-					SendInput(2, input, sizeof(INPUT));
-					state.ignorectrl = 0;
-				}
 				
 				//Unhook mouse if not moving or resizing
 				if (!sharedstate.action) {
@@ -1031,7 +1042,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Update state
 			sharedstate.action = action;
 			state.blockaltup = 1;
-			state.ignorectrl = 0;
 			state.locked = 0;
 			state.origin.maximized = IsZoomed(state.hwnd);
 			state.origin.width = wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
@@ -1628,6 +1638,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.Aero);
 			GetPrivateProfileString(APP_NAME, L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.SnapThreshold);
+			GetPrivateProfileString(APP_NAME, L"FocusOnTyping", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.FocusOnTyping);
 			
 			//Detect if Aero Snap is enabled
 			if (sharedsettings.Aero == 2) {
