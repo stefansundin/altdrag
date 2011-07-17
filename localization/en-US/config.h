@@ -69,6 +69,6 @@ struct strings en_US = {
  /* _author           */ L"Created by Stefan Sundin",
  /* _license          */ APP_NAME L" is free and open source software!\nPlease redistribute!",
  /* _donations_box    */ L"Donations",
- /* _donations_plea   */ L"If you find "APP_NAME" useful, please consider donating money. I don't ask for much, any amount will do.",
+ /* _donations_plea   */ L"If you find "APP_NAME" useful, please consider donating money. Any amount will do.",
  /* _donate           */ L"&Donate",
 };

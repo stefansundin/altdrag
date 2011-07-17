@@ -1270,9 +1270,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SetWindowPos(state.hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
 			}
 			
-			//Send WM_ENTERSIZEMOVE
+			//Send WM_ENTERSIZEMOVE and prepare update timer
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
 				SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
+				if (sharedsettings.Performance.UpdateRate > 0) {
+					SetTimer(g_hwnd, MOVE_TIMER, 100, NULL);
+				}
 			}
 			
 			//Remember time of this click so we can check for double-click
@@ -1290,6 +1293,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		}
 		else if (buttonstate == STATE_UP && sharedstate.action == action) {
 			sharedstate.action = ACTION_NONE;
+			KillTimer(g_hwnd, MOVE_TIMER);
 			
 			//Send WM_EXITSIZEMOVE
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
@@ -1340,15 +1344,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
 				if (updaterate > sharedsettings.Performance.UpdateRate) {
 					updaterate=0;
-					KillTimer(g_hwnd, MOVE_TIMER);
 					if (sharedsettings.Performance.Cursor) {
 						MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
 						//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
 					}
 					MouseMove();
-				}
-				else {
-					SetTimer(g_hwnd, MOVE_TIMER, 100, NULL);
 				}
 				updaterate++;
 			}
@@ -1445,7 +1445,7 @@ int UnhookMouse() {
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_TIMER) {
 		if (wParam == RESTORE_TIMER) {
-			KillTimer(g_hwnd, RESTORE_TIMER);
+			KillTimer(g_hwnd, wParam);
 			state.locked = 0;
 			
 			if (sharedstate.action == ACTION_MOVE) {
