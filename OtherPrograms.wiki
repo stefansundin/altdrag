@@ -3,39 +3,39 @@
 
 
 = Open source =
+  * [http://taekwindow.net/ Taekwindow]
   * [http://virtuawin.sourceforge.net/modules.php Win32WM], a module for [http://virtuawin.sourceforge.net/ VirtuaWin], but can also be used independently.
+  * [http://winxmove.sourceforge.net/ Win-X-Move]
+  * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
+  * [http://code.google.com/p/wmove/ wmove]
   * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], an AutoHotkey script.
   * [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/ AltWindowDrag], another AutoHotkey script.
   * [http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm EasyWindowDrag], a third AutoHotkey script.
   * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotkey script.
   * [http://www.donationcoder.com/Software/Skrommel/index.html#MoveInactiveWin MoveInactiveWin], a fifth AutoHotkey script.
-  * [http://taekwindow.sourceforge.net/ Taekwindow]
-  * [http://winxmove.sourceforge.net/ Win-X-Move]
-  * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
-  * [http://www.palma.com.au/winroll/ WinRoll] (Rollups)
-  * [http://code.google.com/p/wmove/ wmove]
 
 
 = Freeware =
+  * [http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml EasyMove]
   * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize, also includes something similar to WindowFinder)
   * [http://www.ivanheckman.com/allsnap/ allSnap] (Window snapping)
   * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
   * [http://ehiti.de/katmouse/ KatMouse] (Scroll inactive windows)
   * [http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/ WizMouse] (Scroll inactive windows)
-  * [http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml EasyMove]
-
-
-= Commercial =
-  * [http://coderage-software.com/zooom/ Zooom/2] for Mac
-  * [http://www.actualtools.com/multiplemonitors/ Actual Multiple Monitors] (Window snapping)
-  * [http://www.dandeware.com/products/ ScreenSpace]
 
 
 = Related =
   * [http://www.mouseimp.com/ MouseImp]
   * [http://www.donationcoder.com/Software/Skrommel/#DragLock DragLock]
   * [http://fy.chalmers.se/~appro/nt/TXMouse/ True X-Mouse]
+  * [http://www.palma.com.au/winroll/ WinRoll]
+
+
+= Commercial =
+  * [http://www.actualtools.com/multiplemonitors/ Actual Multiple Monitors] (Window snapping)
+  * [http://www.dandeware.com/products/ ScreenSpace]
+  * [http://coderage-software.com/zooom/ Zooom/2] for Mac
 
 
 = Other =
