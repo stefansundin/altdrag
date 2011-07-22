@@ -577,53 +577,51 @@ void MouseMove() {
 	POINT pt;
 	GetCursorPos(&pt);
 	
+	//Restrict pt within origin monitor if Ctrl is being pressed
+	if (GetAsyncKeyState(VK_CONTROL)&0x8000 && !state.ignorectrl) {
+		MONITORINFO monitorinfo;
+		monitorinfo.cbSize = sizeof(MONITORINFO);
+		GetMonitorInfo(state.origin.monitor, &monitorinfo);
+		RECT fmon = monitorinfo.rcMonitor;
+		pt.x = (pt.x<fmon.left)?fmon.left: (pt.x>=fmon.right)?fmon.right-1: pt.x;
+		pt.y = (pt.y<fmon.top)?fmon.top: (pt.y>=fmon.bottom)?fmon.bottom-1: pt.y;
+	}
+	
 	//Get window state
 	int maximized = IsZoomed(state.hwnd);
 	HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-	RECT wnd;
-	if (GetWindowRect(state.hwnd,&wnd) == 0) {
-		return;
-	}
 	
 	//AutoRemaximize has priority over locked flag
-	if (sharedstate.action == ACTION_MOVE) {
-		posx = pt.x-state.offset.x;
-		posy = pt.y-state.offset.y;
-		wndwidth = wnd.right-wnd.left;
-		wndheight = wnd.bottom-wnd.top;
-		
-		//Maximize window again if moved from another monitor
-		if (sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
-			//Get monitor rect
-			MONITORINFO monitorinfo;
-			monitorinfo.cbSize = sizeof(MONITORINFO);
-			GetMonitorInfo(monitor, &monitorinfo);
-			RECT mon = monitorinfo.rcWork;
-			RECT fmon = monitorinfo.rcMonitor;
-			//Center window on monitor and maximize it
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(state.hwnd, &wndpl);
-			wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-wndwidth/2;
-			wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-wndheight/2;
-			wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+wndwidth;
-			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+wndheight;
-			if (maximized) {
-				wndpl.showCmd = SW_RESTORE;
-				SetWindowPlacement(state.hwnd, &wndpl);
-			}
-			wndpl.showCmd = SW_MAXIMIZE;
+	if (sharedstate.action == ACTION_MOVE && sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
+		//Get monitor rect
+		MONITORINFO monitorinfo;
+		monitorinfo.cbSize = sizeof(MONITORINFO);
+		GetMonitorInfo(monitor, &monitorinfo);
+		RECT mon = monitorinfo.rcWork;
+		RECT fmon = monitorinfo.rcMonitor;
+		//Center window on monitor and maximize it
+		WINDOWPLACEMENT wndpl;
+		wndpl.length = sizeof(WINDOWPLACEMENT);
+		GetWindowPlacement(state.hwnd, &wndpl);
+		wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-state.origin.width/2;
+		wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
+		wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
+		wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
+		if (maximized) {
+			wndpl.showCmd = SW_RESTORE;
 			SetWindowPlacement(state.hwnd, &wndpl);
-			//Set this monitor as the origin (dirty hack maybe)
-			state.origin.monitor = monitor;
-			//Lock the current state
-			state.locked = 1;
-			//Restore window after a timeout if AutoRemaximize=2
-			if (sharedsettings.AutoRemaximize == 2) {
-				SetTimer(g_hwnd, RESTORE_TIMER, 1000, NULL);
-			}
-			return;
 		}
+		wndpl.showCmd = SW_MAXIMIZE;
+		SetWindowPlacement(state.hwnd, &wndpl);
+		//Set this monitor as the origin (dirty hack maybe)
+		state.origin.monitor = monitor;
+		//Lock the current state
+		state.locked = 1;
+		//Restore window after a timeout if AutoRemaximize=2
+		if (sharedsettings.AutoRemaximize == 2) {
+			SetTimer(g_hwnd, RESTORE_TIMER, 1000, NULL);
+		}
+		return;
 	}
 	
 	//Return if state is locked
@@ -636,8 +634,19 @@ void MouseMove() {
 		sharedstate.shift = 0;
 	}
 	
+	//Get window size
+	RECT wnd;
+	if (GetWindowRect(state.hwnd,&wnd) == 0) {
+		return;
+	}
+	
 	//Get new position for window
 	if (sharedstate.action == ACTION_MOVE) {
+		posx = pt.x-state.offset.x;
+		posy = pt.y-state.offset.y;
+		wndwidth = wnd.right-wnd.left;
+		wndheight = wnd.bottom-wnd.top;
+		
 		//Aero Snap
 		if (sharedsettings.Aero) {
 			//Get monitor info
@@ -752,7 +761,7 @@ void MouseMove() {
 				wndheight = state.origin.height;
 			}
 			
-			//Move the window?
+			//Aero-move the window?
 			if (state.wndentry->restore) {
 				state.wndentry->width = state.origin.width;
 				state.wndentry->height = state.origin.height;
@@ -761,7 +770,7 @@ void MouseMove() {
 				MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 				
 				//Get new size after move
-				//Doing this since wndwidth and wndheight might be wrong if this window has a min/max size
+				//Doing this since wndwidth and wndheight will be wrong if this window has a min/max size
 				GetWindowRect(state.hwnd, &wnd);
 				state.wndentry->last.width = wnd.right-wnd.left;
 				state.wndentry->last.height = wnd.bottom-wnd.top;
@@ -889,7 +898,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				UnhookMouse();
 			}
 			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
+				state.locked = 0;
+				state.origin.maximized = 0;
 				SetForegroundWindow(state.hwnd);
+				MouseMove();
 			}
 			
 			if (sharedsettings.FocusOnTyping && !sharedstate.action && !state.alt) {
@@ -906,6 +918,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
+				//Check this first or else we will miss it if Ctrl is a hotkey
+				MouseMove();
+			}
 			if (IsHotkey(vkey)) {
 				//Double check that all the hotkeys have been released
 				int i;
@@ -958,20 +974,107 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			(wParam==WM_LBUTTONDOWN||wParam==WM_MBUTTONDOWN||wParam==WM_RBUTTONDOWN||wParam==WM_XBUTTONDOWN)?STATE_DOWN:
 			(wParam==WM_LBUTTONUP||wParam==WM_MBUTTONUP||wParam==WM_RBUTTONUP||wParam==WM_XBUTTONUP)?STATE_UP:STATE_NONE;
 		int action = GetAction(button);
+		POINT pt = msg->pt;
 		
-		//Return if button isn't bound to any action
-		if (button && !action) {
+		//Handle mouse move and scroll
+		if (wParam == WM_MOUSEMOVE) {
+			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
+				updaterate++;
+				if (updaterate > sharedsettings.Performance.UpdateRate) {
+					updaterate=0;
+					if (sharedsettings.Performance.Cursor) {
+						MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
+						//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
+					}
+					MouseMove();
+				}
+			}
+			//Reset double-click time
+			//Unfortunately, we have to remember the previous pointer position since WM_MOUSEMOVE is sometimes sent even
+			//if the mouse hasn't moved, e.g. when running Windows virtualized or when connecting to a remote desktop.
+			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
+				state.clicktime = 0;
+				state.prevpt = pt;
+			}
+		}
+		else if (wParam == WM_MOUSEWHEEL) {
+			state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+			
+			//Enumerate windows
+			numhwnds = 0;
+			EnumWindows(EnumAltTabWindows, 0);
+			if (numhwnds < 2) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Use this to print the windows
+			/*FILE *f = fopen("C:\\altdrag-log.txt", "wb");
+			fprintf(f, "numhwnds: %d\n", numhwnds);
+			char title[100], classname[100];
+			int k;
+			for (k=0; k < numhwnds; k++) {
+				GetWindowTextA(hwnds[k], title, 100);
+				GetClassNameA(hwnds[k], classname, 100);
+				RECT wnd;
+				GetWindowRect(hwnds[k], &wnd);
+				fprintf(f, "wnd #%02d: %s [%s] (%dx%d @ %dx%d)\n", k, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
+			}
+			fclose(f);*/
+			
+			//Reorder windows
+			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
+			if (delta > 0) {
+				SetForegroundWindow(hwnds[numhwnds-1]);
+			}
+			else {
+				SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				SetForegroundWindow(hwnds[1]);
+			}
+			
+			//Block original scroll event
+			state.blockaltup = 1;
+			return 1;
+		}
+		
+		//Return if this isn't a mouse action
+		if (!action) {
 			return CallNextHookEx(NULL, nCode, wParam, lParam);
 		}
 		
+		//Get monitor info
+		HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO monitorinfo;
+		monitorinfo.cbSize = sizeof(MONITORINFO);
+		GetMonitorInfo(monitor, &monitorinfo);
+		RECT mon = monitorinfo.rcWork;
+		RECT fmon = monitorinfo.rcMonitor;
+		
 		//Toggle maximized state if move+resize is clicked
 		if (buttonstate == STATE_DOWN && sharedstate.action == ACTION_MOVE && action == ACTION_RESIZE) {
+			KillTimer(g_hwnd, RESTORE_TIMER);
 			//Toggle maximized state
 			WINDOWPLACEMENT wndpl;
 			wndpl.length = sizeof(WINDOWPLACEMENT);
 			GetWindowPlacement(state.hwnd, &wndpl);
 			wndpl.showCmd = (wndpl.showCmd==SW_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE;
-			state.locked = (wndpl.showCmd==SW_MAXIMIZE); //Set locked flag
+			state.locked = (wndpl.showCmd==SW_MAXIMIZE);
+			state.origin.maximized = (wndpl.showCmd==SW_MAXIMIZE);
+			//If maximizing, also center window on monitor, if needed
+			if (wndpl.showCmd == SW_MAXIMIZE) {
+				HMONITOR wndmonitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
+				if (monitor != wndmonitor) {
+					wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-state.origin.width/2;
+					wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
+					wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
+					wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
+				}
+				state.origin.monitor = monitor;
+			}
+			else {
+				//Otherwise, reset offset
+				state.offset.x = (float)(pt.x-fmon.left)/(fmon.right-fmon.left)*state.origin.width;
+				state.offset.y = (float)(pt.y-fmon.top)/(fmon.bottom-fmon.top)*state.origin.height;
+			}
 			SetWindowPlacement(state.hwnd, &wndpl);
 			MouseMove();
 			return 1;
@@ -997,7 +1100,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Okay, at least one trigger key is being pressed
-			POINT pt = msg->pt;
 			HCURSOR cursor = NULL;
 			
 			//Make sure cursorwnd isn't in the way
@@ -1028,15 +1130,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Return if the window is a fullscreen window (and has no border)
-			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)) {
-				HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-				MONITORINFO monitorinfo;
-				monitorinfo.cbSize = sizeof(MONITORINFO);
-				GetMonitorInfo(monitor, &monitorinfo);
-				RECT mon = monitorinfo.rcMonitor;
-				if (wnd.left == mon.left && wnd.top == mon.top && wnd.right == mon.right && wnd.bottom == mon.bottom) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
+			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)
+			 && wnd.left == mon.left && wnd.top == mon.top && wnd.right == mon.right && wnd.bottom == mon.bottom) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
 			//Update state
@@ -1046,6 +1142,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			state.origin.maximized = IsZoomed(state.hwnd);
 			state.origin.width = wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
 			state.origin.height = wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
+			state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
 			
 			//Check if window is in the wnddb database
 			state.wndentry = NULL;
@@ -1079,7 +1176,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					sharedstate.action = ACTION_NONE; //Stop move action
 					state.clicktime = 0; //Reset double-click time
 					
-					//Maximize window
+					//Center window on monitor, if needed
+					HMONITOR wndmonitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
+					if (monitor != wndmonitor) {
+						wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-state.origin.width/2;
+						wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
+						wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+state.origin.width;
+						wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+state.origin.height;
+					}
 					wndpl.showCmd = SW_MAXIMIZE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					
@@ -1103,8 +1207,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
 					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
 					
-					//Restore the window if it's maximized
-					state.origin.monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
+					//Restore the window
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					
@@ -1114,7 +1217,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				else if (restore) {
 					state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
 					state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
-					//Restore old window size
 					MoveWindow(state.hwnd, pt.x-state.offset.x, pt.y-state.offset.y, state.origin.width, state.origin.height, TRUE);
 				}
 				else {
@@ -1127,11 +1229,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			else if (action == ACTION_RESIZE) {
 				//Restore the window (to monitor size) if it's maximized
 				if (state.origin.maximized) {
-					HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
-					MONITORINFO monitorinfo;
-					monitorinfo.cbSize = sizeof(MONITORINFO);
-					GetMonitorInfo(monitor, &monitorinfo);
-					wndpl.rcNormalPosition = monitorinfo.rcMonitor; //Set size to full monitor to prevent flickering
+					wndpl.rcNormalPosition = fmon; //Set size to full monitor to prevent flickering
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
 					//Update origin width/height
@@ -1179,13 +1277,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					sharedstate.action = ACTION_NONE; //Stop resize action
 					state.clicktime = 0; //Reset double-click time
-					
-					//Get monitor info
-					HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-					MONITORINFO monitorinfo;
-					monitorinfo.cbSize = sizeof(MONITORINFO);
-					GetMonitorInfo(monitor, &monitorinfo);
-					RECT mon = monitorinfo.rcWork;
 					
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
@@ -1252,11 +1343,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SendMessage(state.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
 			}
 			else if (action == ACTION_CENTER) {
-				HMONITOR monitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
-				MONITORINFO monitorinfo;
-				monitorinfo.cbSize = sizeof(MONITORINFO);
-				GetMonitorInfo(monitor, &monitorinfo);
-				RECT mon = monitorinfo.rcWork;
 				MoveWindow(state.hwnd, mon.left+(mon.right-mon.left)/2-state.origin.width/2, mon.top+(mon.bottom-mon.top)/2-state.origin.height/2, state.origin.width, state.origin.height, TRUE);
 			}
 			else if (action == ACTION_ALWAYSONTOP) {
@@ -1293,7 +1379,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		}
 		else if (buttonstate == STATE_UP && sharedstate.action == action) {
 			sharedstate.action = ACTION_NONE;
-			KillTimer(g_hwnd, MOVE_TIMER);
 			
 			//Send WM_EXITSIZEMOVE
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
@@ -1312,53 +1397,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Prevent mouseup from propagating
 			return 1;
-		}
-		else if (wParam == WM_MOUSEWHEEL) {
-			POINT pt = msg->pt;
-			state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-			
-			//Enumerate windows
-			numhwnds = 0;
-			EnumWindows(EnumAltTabWindows, 0);
-			if (numhwnds < 2) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Reorder windows
-			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
-			if (delta > 0) {
-				SetForegroundWindow(hwnds[numhwnds-1]);
-			}
-			else {
-				SetWindowPos(hwnds[0], HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
-				SetForegroundWindow(hwnds[1]);
-			}
-			
-			//Block original scroll event
-			state.blockaltup = 1;
-			return 1;
-		}
-		else if (wParam == WM_MOUSEMOVE) {
-			POINT pt = msg->pt;
-			//Move window
-			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
-				if (updaterate > sharedsettings.Performance.UpdateRate) {
-					updaterate=0;
-					if (sharedsettings.Performance.Cursor) {
-						MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
-						//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
-					}
-					MouseMove();
-				}
-				updaterate++;
-			}
-			//Reset double-click time
-			//Unfortunately, we have to remember the previous pointer position since WM_MOUSEMOVE can be sent even if
-			//the mouse hasn't moved, e.g. when running Windows virtualized or when connecting to a remote desktop.
-			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
-				state.clicktime = 0;
-				state.prevpt = pt;
-			}
 		}
 	}
 	
@@ -1449,6 +1487,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			state.locked = 0;
 			
 			if (sharedstate.action == ACTION_MOVE) {
+				//Reset offset
+				POINT pt;
+				GetCursorPos(&pt);
+				HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+				MONITORINFO monitorinfo;
+				monitorinfo.cbSize = sizeof(MONITORINFO);
+				GetMonitorInfo(monitor, &monitorinfo);
+				RECT fmon = monitorinfo.rcMonitor;
+				state.offset.x = (float)(pt.x-fmon.left)/(fmon.right-fmon.left)*state.origin.width;
+				state.offset.y = (float)(pt.y-fmon.top)/(fmon.bottom-fmon.top)*state.origin.height;
+				
 				//Restore window
 				WINDOWPLACEMENT wndpl;
 				wndpl.length = sizeof(WINDOWPLACEMENT);
@@ -1461,6 +1510,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		else if (wParam == MOVE_TIMER) {
+			if (!sharedstate.action) {
+				KillTimer(g_hwnd, wParam);
+			}
 			MouseMove();
 		}
 	}
