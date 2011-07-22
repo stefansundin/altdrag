@@ -30,6 +30,7 @@
   * [http://www.donationcoder.com/Software/Skrommel/#DragLock DragLock]
   * [http://fy.chalmers.se/~appro/nt/TXMouse/ True X-Mouse]
   * [http://www.palma.com.au/winroll/ WinRoll]
+  * [http://www.addictivetips.com/windows-tips/wrap-mouse-pointer-around-the-screen-in-windows-with-edgeless-2/ Edgeless 2]
 
 
 = Commercial =
