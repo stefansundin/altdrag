@@ -55,6 +55,7 @@ UINT WM_TASKBARCREATED = 0;
 UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
+UINT WM_OPENCONFIG = 0;
 
 //Cool stuff
 struct {
@@ -87,10 +88,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
+	WM_OPENCONFIG = RegisterWindowMessage(L"OpenConfig");
 	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
 		PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
 		PostMessage(previnst, (hide?WM_HIDETRAY:WM_ADDTRAY), 0, 0);
+		PostMessage(previnst, WM_OPENCONFIG, 0, 0);
 		return 0;
 	}
 	
@@ -366,6 +369,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_HIDETRAY) {
 		hide = 1;
 		RemoveTray();
+	}
+	else if (msg == WM_OPENCONFIG) {
+		wchar_t path[MAX_PATH];
+		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+		PathRemoveFileSpec(path);
+		wcscat(path, L"\\Config.exe");
+		ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
 	}
 	else if (msg == WM_TASKBARCREATED) {
 		tray_added = 0;

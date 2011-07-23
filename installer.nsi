@@ -40,8 +40,6 @@ SetCompressor /SOLID lzma
 
 !define MUI_COMPONENTSPAGE_NODESC
 
-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\info.txt"
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION "Launch"
 
@@ -71,7 +69,6 @@ Var AutostartSectionState ;Helps keep track of the autostart checkboxes
 
 !macro Lang id lang
 ${If} $LANGUAGE == ${id}
-	File "build\${lang}\${APP_NAME}\info.txt"
 	WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "${lang}"
 ${EndIf}
 !macroend
@@ -97,13 +94,6 @@ Function ${un}CloseApp
 	;Close app if running
 	FindWindow $0 "${APP_NAME}" ""
 	IntCmp $0 0 done
-		${If} $UpgradeState != ${BST_CHECKED}
-			StrCpy $1 "$(L10N_RUNNING)"
-			${If} "${un}" == "un."
-				StrCpy $1 "$1$\n$(L10N_RUNNING_UNINSTALL)"
-			${EndIf}
-			MessageBox MB_ICONINFORMATION|MB_YESNO "$1" /SD IDYES IDNO done
-		${EndIf}
 		DetailPrint "Closing running ${APP_NAME}."
 		SendMessage $0 ${WM_CLOSE} 0 0 /TIMEOUT=500
 		waitloop:
@@ -206,8 +196,6 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang ${LANG_ENGLISH}      en-US
 	!insertmacro Lang ${LANG_SPANISH}      es-ES
 	!insertmacro Lang ${LANG_GALICIAN}     gl-ES
-	;!insertmacro Lang ${LANG_KOREAN}       ko-KR
-	;!insertmacro Lang ${LANG_RUSSIAN}      ru-RU
 	
 	;Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
@@ -342,7 +330,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\hooks_x64.dll"
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}.ini"
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}-old.ini"
-	Delete /REBOOTOK "$INSTDIR\info.txt"
+	Delete /REBOOTOK "$INSTDIR\info.txt" ;existed in <= 0.9
 	Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 	RMDir  /REBOOTOK "$INSTDIR"
 

@@ -29,6 +29,7 @@ if "%1" == "all" (
 	%prefix32%gcc -o build\hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
 	if not exist build\hooks.dll. exit /b
 	%prefix32%gcc -o build\Config.exe config\config.c config\window.o -mwindows -lshlwapi -lcomctl32 -O2 -s
+	if not exist build\Config.exe. exit /b
 	
 	if "%2" == "x64" (
 		%prefix64%windres -o build\hookwindows_x64.o include\hookwindows_x64.rc
@@ -46,7 +47,6 @@ if "%1" == "all" (
 		copy build\AltDrag.exe "build\%%f\AltDrag"
 		copy build\hooks.dll "build\%%f\AltDrag"
 		copy build\Config.exe "build\%%f\AltDrag"
-		copy "localization\%%f\info.txt" "build\%%f\AltDrag"
 		copy AltDrag.ini "build\%%f\AltDrag"
 		build\ini "build\%%f\AltDrag\AltDrag.ini" AltDrag Language %%f
 		if "%2" == "x64" (

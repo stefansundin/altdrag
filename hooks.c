@@ -29,7 +29,7 @@
 //Timers
 HWND g_hwnd;
 #define RESTORE_TIMER WM_APP+1
-#define MOVE_TIMER WM_APP+2
+#define MOVE_TIMER    WM_APP+2
 
 //Enumerators
 enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER};
@@ -61,6 +61,7 @@ struct {
 struct {
 	HWND hwnd;
 	short alt;
+	short ctrl;
 	unsigned int clicktime;
 	POINT prevpt;
 	POINT offset;
@@ -897,11 +898,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			else if (vkey == VK_ESCAPE) {
 				UnhookMouse();
 			}
-			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
+			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl && !state.ctrl) {
+				POINT pt;
+				GetCursorPos(&pt);
 				state.locked = 0;
 				state.origin.maximized = 0;
+				state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 				SetForegroundWindow(state.hwnd);
 				MouseMove();
+				state.ctrl = 1;
 			}
 			
 			if (sharedsettings.FocusOnTyping && !sharedstate.action && !state.alt) {
@@ -918,9 +923,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 		}
 		else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
-			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl) {
-				//Check this first or else we will miss it if Ctrl is a hotkey
-				MouseMove();
+			if (vkey == VK_LCONTROL || vkey == VK_RCONTROL) {
+				if (sharedstate.action && !state.ignorectrl) {
+					//Check this first or else we will miss it if Ctrl is a hotkey
+					MouseMove();
+				}
+				state.ctrl = 0;
 			}
 			if (IsHotkey(vkey)) {
 				//Double check that all the hotkeys have been released
