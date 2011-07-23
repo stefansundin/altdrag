@@ -7,7 +7,7 @@
   * Added new mouse action: `Lower`.
   * You can now press Escape to stop AltDrag. Useful if AltDrag gets in a weird state.
   * You can now press Ctrl to make AltDrag think the mouse cursor is still inside the current monitor. Should help people who have multiple monitors and want to Aero snap at borders between monitors.
-  * Installer now grants access to AltDrag.ini to all users. Should help people who use UAC.
+  * Installer now grants access to `AltDrag.ini` to all users. Should help people who use UAC.
   * Removed `info.txt`. Use the website for help.
 
 *0.9* - 2011-02-01:
