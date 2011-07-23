@@ -33,9 +33,9 @@ The easiest way to donate is by sending money with PayPal to recover89@gmail.com
 
 == Donate with Bitcoin ==
 
-[http://bitcoin.org/ Bitcoin] is a very new and exciting currency that enables peer to peer transactions. With Bitcoin, there are no almost no transaction fees.
+[http://bitcoin.org/ Bitcoin] is a very new and exciting digital currency that enables peer to peer transactions. With Bitcoin, there are no almost no transaction fees.
 
-Donate to: `1EhDUbc5MjC6JavC6idKiTCxnqSxY2sbTX`
+Send BTC to: `1EhDUbc5MjC6JavC6idKiTCxnqSxY2sbTX`
 
 
 == Donate with Flattr ==
