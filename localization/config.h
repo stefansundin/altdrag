@@ -28,7 +28,7 @@ struct strings {
 	wchar_t *input_mouse_rmb;
 	wchar_t *input_mouse_mb4;
 	wchar_t *input_mouse_mb5;
-	wchar_t *input_mouse_idea;
+	wchar_t *input_mouse_more;
 	wchar_t *input_hotkeys_box;
 	wchar_t *input_hotkeys_leftalt;
 	wchar_t *input_hotkeys_rightalt;

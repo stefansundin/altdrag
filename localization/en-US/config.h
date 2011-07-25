@@ -39,7 +39,7 @@ struct strings en_US = {
  /* _mouse_rmb           */ L"Right mouse button:",
  /* _mouse_mb4           */ L"Mouse button 4:",
  /* _mouse_mb5           */ L"Mouse button 5:",
- /* _mouse_idea          */ L"If you have a great idea for a mouse action, put in a request <a href=\"http://code.google.com/p/altdrag/issues/list\">on the website</a>!",
+ /* _mouse_more          */ L"Use the scrollwheel to scroll through your windows.\nIf you have a great idea for a mouse action, put in a request <a href=\"http://code.google.com/p/altdrag/issues/list\">on the website</a>!",
  /* _hotkeys_box         */ L"Hotkeys",
  /* _hotkeys_leftalt     */ L"Left &Alt",
  /* _hotkeys_rightalt    */ L"Right A&lt",
@@ -47,7 +47,7 @@ struct strings en_US = {
  /* _hotkeys_rightwinkey */ L"Right W&inkey",
  /* _hotkeys_leftctrl    */ L"Left &Ctrl",
  /* _hotkeys_rightctrl   */ L"Right C&trl",
- /* _hotkeys_more        */ L"You can add any key by editing the ini file!",
+ /* _hotkeys_more        */ L"You can add any key by editing the ini file!\nUse the shift key to snap windows to each other.",
  /* blacklist tab */
  /* _box              */ L"Blacklist settings",
  /* _processblacklist */ L"Process blacklist:",
@@ -69,6 +69,6 @@ struct strings en_US = {
  /* _author           */ L"Created by Stefan Sundin",
  /* _license          */ APP_NAME L" is free and open source software!\nPlease redistribute!",
  /* _donations_box    */ L"Donations",
- /* _donations_plea   */ L"If you find "APP_NAME" useful, please consider donating money. Any amount will do.",
+ /* _donations_plea   */ L"If you find "APP_NAME" useful, please consider donating money. I don't ask for much, any amount will do.",
  /* _donate           */ L"&Donate",
 };

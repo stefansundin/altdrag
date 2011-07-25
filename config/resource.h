@@ -17,6 +17,7 @@
 #define IDC_DONATIONS_PLEA                      1001
 #define IDC_LANGUAGE_HEADER                     1001
 #define IDC_INI                                 1002
+#define IDC_MOUSE_MORE                          1002
 #define IDC_NEWRULE                             1002
 #define IDC_AUTOSAVE                            1004
 #define IDC_PROCESSBLACKLIST_HEADER             1004
@@ -28,7 +29,6 @@
 #define IDC_MB4_HEADER                          1009
 #define IDC_BETA                                1010
 #define IDC_MB5_HEADER                          1010
-#define IDC_MOUSE_IDEA                          1011
 #define IDC_FINDWINDOW_BOX                      1012
 #define IDC_HOTKEYS_MORE                        1013
 #define IDC_BLACKLIST_BOX                       1014

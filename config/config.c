@@ -200,7 +200,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.hwndParent      = NULL;
 	psh.hInstance       = hInst;
 	psh.hIcon           = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR); //PSH_USEHICON
-	psh.pszCaption      = APP_NAME L" Configuration";
+	psh.pszCaption      = APP_NAME;
 	psh.nPages          = sizeof(pages)/sizeof(pages[0]);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
@@ -441,7 +441,7 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			SetDlgItemText(hwnd, IDC_RMB_HEADER,     l10n->input_mouse_rmb);
 			SetDlgItemText(hwnd, IDC_MB4_HEADER,     l10n->input_mouse_mb4);
 			SetDlgItemText(hwnd, IDC_MB5_HEADER,     l10n->input_mouse_mb5);
-			SetDlgItemText(hwnd, IDC_MOUSE_IDEA,     l10n->input_mouse_idea);
+			SetDlgItemText(hwnd, IDC_MOUSE_MORE,     l10n->input_mouse_more);
 			SetDlgItemText(hwnd, IDC_HOTKEYS_BOX,    l10n->input_hotkeys_box);
 			SetDlgItemText(hwnd, IDC_LEFTALT,        l10n->input_hotkeys_leftalt);
 			SetDlgItemText(hwnd, IDC_RIGHTALT,       l10n->input_hotkeys_rightalt);
