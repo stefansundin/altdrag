@@ -39,7 +39,7 @@ struct strings es_ES = {
  /* _mouse_rmb           */ L"Rigi muse:",
  /* _mouse_mb4           */ L"Muse 4:",
  /* _mouse_mb5           */ L"Muse 5:",
- /* _mouse_idea          */ L"Greate idéa für a muse actione: <a href=\"http://code.google.com/p/altdrag/issues/list\">putti</a>!",
+ /* _mouse_more          */ L"Use alti+scrolli für scrolli windöws.\nGreate idéa für a muse actione: <a href=\"http://code.google.com/p/altdrag/issues/list\">putti</a>!",
  /* _hotkeys_box         */ L"Hotikiys",
  /* _hotkeys_leftalt     */ L"Lefti &Alt",
  /* _hotkeys_rightalt    */ L"Rigi A&lt",
@@ -47,7 +47,7 @@ struct strings es_ES = {
  /* _hotkeys_rightwinkey */ L"Rigi W&inkey",
  /* _hotkeys_leftctrl    */ L"Lefti &Ctrl",
  /* _hotkeys_rightctrl   */ L"Rigi C&trl",
- /* _hotkeys_more        */ L"Addi more ini fili!1",
+ /* _hotkeys_more        */ L"Addi more ini fili!1\nShifty snappi snoppy!",
  /* blacklist tab */
  /* _box              */ L"Blacklistö settingi",
  /* _processblacklist */ L"Processo blacklistö:",

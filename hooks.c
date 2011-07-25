@@ -62,6 +62,7 @@ struct {
 	HWND hwnd;
 	short alt;
 	short ctrl;
+	short updaterate;
 	unsigned int clicktime;
 	POINT prevpt;
 	POINT offset;
@@ -109,7 +110,8 @@ struct {
 	int FocusOnTyping;
 	struct {
 		int Cursor;
-		int UpdateRate;
+		int MoveRate;
+		int ResizeRate;
 	} Performance;
 	struct {
 		unsigned char keys[MAXKEYS];
@@ -121,7 +123,6 @@ struct {
 } sharedsettings shareattr;
 short sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
-int updaterate = 0;
 
 //Blacklist
 struct blacklistitem {
@@ -986,10 +987,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		
 		//Handle mouse move and scroll
 		if (wParam == WM_MOUSEMOVE) {
+			//Move the window
 			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
-				updaterate++;
-				if (updaterate > sharedsettings.Performance.UpdateRate) {
-					updaterate=0;
+				state.updaterate = (state.updaterate+1)%(sharedstate.action==ACTION_MOVE?sharedsettings.Performance.MoveRate:sharedsettings.Performance.ResizeRate);
+				if (state.updaterate == 0) {
 					if (sharedsettings.Performance.Cursor) {
 						MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
 						//MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
@@ -1367,7 +1368,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Send WM_ENTERSIZEMOVE and prepare update timer
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
 				SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
-				if (sharedsettings.Performance.UpdateRate > 0) {
+				state.updaterate = 0;
+				if ((action == ACTION_MOVE   && sharedsettings.Performance.MoveRate > 1)
+				 || (action == ACTION_RESIZE && sharedsettings.Performance.ResizeRate > 1)) {
 					SetTimer(g_hwnd, MOVE_TIMER, 100, NULL);
 				}
 			}
@@ -1727,8 +1730,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				cursors[SIZEALL]  = LoadImage(NULL, IDC_SIZEALL,  IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				#endif
 			}
-			GetPrivateProfileString(L"Performance", L"UpdateRate", L"5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Performance.UpdateRate);
+			GetPrivateProfileString(L"Performance", L"MoveRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Performance.MoveRate);
+			if (sharedsettings.Performance.MoveRate < 1) sharedsettings.Performance.MoveRate = 1;
+			GetPrivateProfileString(L"Performance", L"ResizeRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.Performance.ResizeRate);
+			if (sharedsettings.Performance.ResizeRate < 1) sharedsettings.Performance.ResizeRate = 1;
 			
 			//[Mouse]
 			struct {
