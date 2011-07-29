@@ -3,9 +3,11 @@
 
 = Introduction =
 
-Configuring the `Hotkeys` option in the ini file is not as easy as it might seem at first. Since I am a bit lazy, and still want you to be able to configure whatever key you want, I simply let you specify the hex values that represent the keys on the keyboard.
+You can use the configuration window to easily enable the Alt keys, the Windows keys and the Ctrl keys. For other keys, you have to manually edit `AltDrag.ini`.
 
-You can find hex values over at [http://msdn.microsoft.com/en-us/library/ms645540%28VS.85%29.aspx this MSDN page]. To add a key, simply append its hex value to the list. Even though there are hex values for mouse buttons listed on that page, they will not work!
+Configuring the `Hotkeys` option in the ini file is not easy. You have to specify the hex values that represent the keys on the keyboard.
+
+You can find these hex values over at [http://msdn.microsoft.com/en-us/library/ms645540%28VS.85%29.aspx this MSDN page]. To add a key, simply append its hex value to the list. Even though there are hex values for mouse buttons listed on that page, they will not work!
 
 You actually don't need a space between the hex values, but it makes it easier to read. Removing all the keys makes it impossible to alt-drag windows, but you can still use `HookWindows`.
 
