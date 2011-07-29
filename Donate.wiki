@@ -1,4 +1,4 @@
-#summary If this program is useful for you, please consider donating money.
+#summary If AltDrag is useful to you, please consider donating money.
 #labels Featured
 
 
