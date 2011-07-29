@@ -84,21 +84,23 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	
 	//Look for previous instance
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
+	WM_OPENCONFIG = RegisterWindowMessage(L"OpenConfig");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
-	WM_OPENCONFIG = RegisterWindowMessage(L"OpenConfig");
 	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
 		PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
+		if (!hide) {
+			PostMessage(previnst, WM_OPENCONFIG, 0, 0);
+		}
 		PostMessage(previnst, (hide?WM_HIDETRAY:WM_ADDTRAY), 0, 0);
-		PostMessage(previnst, WM_OPENCONFIG, 0, 0);
 		return 0;
 	}
 	
 	//Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 	RegisterClassEx(&wnd);
-	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
+	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, wnd.lpszClassName, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
 	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
 	
 	//Load settings
@@ -342,7 +344,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		hide = 1;
 		RemoveTray();
 	}
-	else if (msg == WM_OPENCONFIG) {
+	else if (msg == WM_OPENCONFIG && (wParam || !hide)) {
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 		PathRemoveFileSpec(path);
