@@ -59,12 +59,10 @@ UINT WM_OPENCONFIG = 0;
 
 //Cool stuff
 struct {
-	int InactiveScroll;
 	int HookWindows;
-} settings = {0, 0};
+} settings = {0};
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
-HHOOK scrollhook = NULL;
 HHOOK msghook = NULL;
 BOOL x64 = FALSE;
 
@@ -150,7 +148,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 }
 
 int HookSystem() {
-	if (keyhook && scrollhook && msghook) {
+	if (keyhook && msghook) {
 		//System already hooked
 		return 1;
 	}
@@ -180,21 +178,6 @@ int HookSystem() {
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
 			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
-		}
-	}
-	
-	if (!scrollhook && settings.InactiveScroll) {
-		//Get address to scroll hook (beware name mangling)
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "ScrollHook@12");
-		if (procaddr == NULL) {
-			Error(L"GetProcAddress('ScrollHook@12')", L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
-			return 1;
-		}
-		//Set up the scroll hook
-		scrollhook = SetWindowsHookEx(WH_MOUSE_LL, procaddr, hinstDLL, 0);
-		if (scrollhook == NULL) {
-			Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not scroll hook. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -235,7 +218,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 }
 
 int UnhookSystem() {
-	if (!keyhook && !scrollhook && !msghook) {
+	if (!keyhook && !msghook) {
 		//System not hooked
 		return 1;
 	}
@@ -246,14 +229,6 @@ int UnhookSystem() {
 			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		}
 		keyhook = NULL;
-	}
-	
-	//Remove mouse hook
-	if (scrollhook) {
-		if (UnhookWindowsHookEx(scrollhook) == 0) {
-			Error(L"UnhookWindowsHookEx(scrollhook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
-		}
-		scrollhook = NULL;
 	}
 	
 	//Remove message hook
@@ -275,9 +250,9 @@ int UnhookSystem() {
 		EnumWindows(EnumWindowsProc, 0);
 	}
 	
-	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
-	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
-	ClearSettings();
+	//Tell dll file that we are unloading
+	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
+	Unload();
 	
 	//Unload library
 	if (hinstDLL) {
@@ -293,7 +268,7 @@ int UnhookSystem() {
 }
 
 int enabled() {
-	return (keyhook || scrollhook || msghook);
+	return (keyhook || msghook);
 }
 
 void ToggleState() {
@@ -341,9 +316,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		PathRemoveFileSpec(path);
 		wcscat(path, L"\\"APP_NAME".ini");
 		wchar_t txt[10];
-		//InactiveScroll
-		GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
-		swscanf(txt, L"%d", &settings.InactiveScroll);
 		//HookWindows
 		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
 		swscanf(txt, L"%d", &settings.HookWindows);
@@ -431,14 +403,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
 		//Hide cursorwnd if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
 		ShowWindow(hwnd, SW_HIDE);
-	}
-	else if (msg == WM_POWERBROADCAST && wParam == PBT_APMRESUMEAUTOMATIC && settings.InactiveScroll == 1 && enabled()) {
-		//Silently rehook scroll hook when resuming from hibernation
-		//This is because Windows sometimes drops mouse hooks after hibernation
-		//HACK: Set InactiveScroll=2 to disable this behavior
-		UnhookWindowsHookEx(scrollhook);
-		HOOKPROC procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "ScrollHook@12");
-		scrollhook = SetWindowsHookEx(WH_MOUSE_LL, procaddr, hinstDLL, 0);
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }

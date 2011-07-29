@@ -30,6 +30,7 @@
 HWND g_hwnd;
 #define RESTORE_TIMER WM_APP+1
 #define MOVE_TIMER    WM_APP+2
+#define REHOOK_TIMER  WM_APP+3
 
 //Enumerators
 enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER};
@@ -106,6 +107,7 @@ struct {
 	int AutoSnap;
 	int AutoRemaximize;
 	int Aero;
+	int InactiveScroll;
 	int SnapThreshold;
 	int FocusOnTyping;
 	struct {
@@ -144,9 +146,10 @@ struct {
 HWND cursorwnd shareattr = NULL;
 HCURSOR cursors[6];
 
-//Mousehook data
+//Hook data
 HINSTANCE hinstDLL = NULL;
 HHOOK mousehook = NULL;
+HHOOK scrollhook = NULL;
 
 //Msghook data
 BOOL subclassed = FALSE;
@@ -1415,35 +1418,40 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 }
 
 __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && (wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL)) {
+	if (nCode == HC_ACTION) {
 		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
 		POINT pt = msg->pt;
-		
-		//Get window and foreground window
-		HWND window = WindowFromPoint(pt);
-		HWND foreground = GetForegroundWindow();
-		//Return if no window, or if foreground window is blacklisted
-		if (window == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
-			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		if ((wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL) && !state.alt) {
+			//Get window and foreground window
+			HWND window = WindowFromPoint(pt);
+			HWND foreground = GetForegroundWindow();
+			//Return if no window, or if foreground window is blacklisted
+			if (window == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			}
+			
+			//Get wheel info
+			WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
+			LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
+			//Add button information since we don't get it with the hook
+			if (GetAsyncKeyState(VK_CONTROL)&0x8000)  wp |= MK_CONTROL;
+			if (GetAsyncKeyState(VK_LBUTTON)&0x8000)  wp |= MK_LBUTTON;
+			if (GetAsyncKeyState(VK_MBUTTON)&0x8000)  wp |= MK_MBUTTON;
+			if (GetAsyncKeyState(VK_RBUTTON)&0x8000)  wp |= MK_RBUTTON;
+			if (GetAsyncKeyState(VK_SHIFT)&0x8000)    wp |= MK_SHIFT;
+			if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
+			if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
+			
+			//Forward scroll message
+			SendMessage(window, wParam, wp, lp);
+			
+			//Block original scroll event
+			return 1;
 		}
-		
-		//Get wheel info
-		WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
-		LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
-		//Add button information since we don't get it with the hook
-		if (GetAsyncKeyState(VK_CONTROL)&0x8000)  wp |= MK_CONTROL;
-		if (GetAsyncKeyState(VK_LBUTTON)&0x8000)  wp |= MK_LBUTTON;
-		if (GetAsyncKeyState(VK_MBUTTON)&0x8000)  wp |= MK_MBUTTON;
-		if (GetAsyncKeyState(VK_RBUTTON)&0x8000)  wp |= MK_RBUTTON;
-		if (GetAsyncKeyState(VK_SHIFT)&0x8000)    wp |= MK_SHIFT;
-		if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
-		if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
-		
-		//Forward scroll message
-		SendMessage(window, wParam, wp, lp);
-		
-		//Block original scroll event
-		return 1;
+		else if (wParam == WM_MOUSEMOVE) {
+			//Store prevpt so we can check if the hook goes stale
+			state.prevpt = pt;
+		}
 	}
 
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -1453,6 +1461,11 @@ int HookMouse() {
 	if (mousehook) {
 		//Mouse already hooked
 		return 1;
+	}
+	
+	//Check if scrollhook has become stale
+	if (sharedsettings.InactiveScroll == 1) {
+		SendMessage(g_hwnd, WM_TIMER, REHOOK_TIMER, 0);
 	}
 	
 	//Set up the mouse hook
@@ -1526,6 +1539,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 			MouseMove();
 		}
+		else if (wParam == REHOOK_TIMER) {
+			//Silently rehook scroll hook if it becomes stale (Windows 7 is very aggressive about hooks)
+			//This can often happen when locking the screen or sleeping the computer a lot
+			//HACK: Set InactiveScroll=2 to disable this behavior
+			POINT pt;
+			GetCursorPos(&pt);
+			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
+				UnhookWindowsHookEx(scrollhook);
+				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
+			}
+		}
+	}
+	else if (msg == WM_DESTROY) {
+		KillTimer(g_hwnd, RESTORE_TIMER);
+		KillTimer(g_hwnd, MOVE_TIMER);
+		KillTimer(g_hwnd, REHOOK_TIMER);
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
@@ -1670,9 +1699,15 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-//This is needed sometimes when an msghook thread lingers around for no apparent reason.
-__declspec(dllexport) void ClearSettings() {
+__declspec(dllexport) void Unload() {
 	sharedsettings_loaded = 0;
+	DestroyWindow(g_hwnd);
+	if (scrollhook) {
+		if (UnhookWindowsHookEx(scrollhook) == 0) {
+			Error(L"UnhookWindowsHookEx(scrollhook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+		}
+		scrollhook = NULL;
+	}
 }
 
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
@@ -1699,6 +1734,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.AutoRemaximize);
 			GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.Aero);
+			GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			swscanf(txt, L"%d", &sharedsettings.InactiveScroll);
 			GetPrivateProfileString(APP_NAME, L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.SnapThreshold);
 			GetPrivateProfileString(APP_NAME, L"FocusOnTyping", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
@@ -1789,6 +1826,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME, NULL};
 			RegisterClassEx(&wnd);
 			g_hwnd = CreateWindowEx(0, wnd.lpszClassName, APP_NAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInst, NULL);
+			
+			//InactiveScroll
+			if (sharedsettings.InactiveScroll) {
+				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
+				if (scrollhook == NULL) {
+					Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook mouse. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
+				}
+				if (sharedsettings.InactiveScroll != 2) {
+					SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL);
+				}
+			}
 			#endif
 		}
 		
