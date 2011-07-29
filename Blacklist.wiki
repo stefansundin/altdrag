@@ -3,19 +3,21 @@
 
 = Introduction =
 
-There are three lists in AltDrag. Here is a brief explanation of them:
+There are three blacklists in AltDrag. Here is a brief explanation of them:
 
-|| `Blacklist`      || Specifies windows that *should not* be affected by dragging and other actions. It is here you specify windows that you don't want AltDrag to touch. This list also affects `InactiveScroll`. ||
-|| `Blacklist_Snap` || Specifies windows that *should not* be snapped to. Previously known as `Blacklist_Sticky`. ||
-|| `Snaplist`       || Specifies windows that *should* be snapped to. You should only need to specify windows that do not have a normal border here (like Winamp). ||
+|| `ProcessBlacklist` || A list of processes that *should not* be affected by dragging and other actions. It is here you specify processes that you don't want AltDrag to touch. ||
+|| `Blacklist`        || A list of windows that *should not* be affected by dragging and other actions. This list also affects `InactiveScroll`. ||
+|| `Snaplist`         || A list of windows that *should* be snapped to. You should only need to specify windows that do not have a normal border here (like Winamp). ||
 
-I realized that the ability to customize the blacklists is important since we are all running different applications on our computers. I made the blacklists so that it can identify windows based on the title and the class name. The class name is an identifier used internally in Windows, so it is normally not visible. To help build your custom blacklist, I've made a tool called WindowFinder. The entries are in the format `title|classname`, and they are comma separated. You should not use spaces when separating the entries, since the space will end up being included in the title. Note that the matching is case-sensitive.
+Since 1.0, you can specify processes in `ProcessBlacklist`. It is a comma separated list of executable names. The matching is case-insensitive.
 
-Omitting the title or classname will make it match an empty string. To make it ignore the title or classname, use the string "`*`". This does not enable you to use wildcards, `*` is only valid when you want to completely ignore matching the title or the classname. Omitting the pipe character will also make it ignore the classname. This is a new behavior since 0.8.
+`Blacklist` and `Snaplist` identify windows based on the title and class name. The class name is an identifier used internally in Windows, so it is normally not visible. You can use AltDrag's configuration window to identify class names of windows. The entries are comma separated in the format `title|classname`. Do not use spaces when separating the entries, since the space will end up being included in the title. The matching is case-sensitive.
 
-Since 0.9, borderless windows are not snapped to by default. These windows have to be specified in `Snaplist`. Because of this change, `Blacklist_Snap` is empty by default. Because I no longer see any use for it, I am planning to remove `Blacklist_Snap` in a future version. If you have any use for it, get in touch with me and we'll talk about it.
+Omitting the title or classname will make it match an empty string. To make it ignore the title or class name, use the string "`*`". This does not enable you to use wildcards, `*` is only valid when you want to completely ignore matching the title or the class name. Omitting the pipe character will also make it ignore the class name.
 
-I want to mention that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
+Borderless windows are not snapped to by default. These windows have to be specified in `Snaplist`.
+
+Something worth mentioning is that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
 = Windows blacklisted by default =
 
@@ -30,7 +32,7 @@ Here is an explanation of the default entries:
 || `*|SkinWnd`                || The Xfire main window. ||
 || `*|ChatSkinWnd`            || The Xfire chat window. ||
 || `*|SpotifyMainWindow`      || The Spotify window. ||
-|| `*|USurface_35953`         || The Steam windows. ||
+|| `*|USurface_33202`         || The Steam windows. This identifier changes from version to version so you might have to update it manually. ||
 
 You should not need to edit or remove any of these entries. 
 
@@ -39,7 +41,7 @@ You should not need to edit or remove any of these entries.
 Here is a list of applications with their blacklist rule. Add the rule to `Blacklist` if you don't want to be able to drag it.
 
 || *Application* || *Blacklist rule* ||
-|| Photoshop     || `*|Photoshop,*|OWL.DocumentWindow`    ||
+|| Photoshop     || `*|Photoshop,*|OWL.DocumentWindow` ||
 || Illustrator   || `*|illustrator` ||
 || PuTTY         || `*|PuTTY` ||
 
