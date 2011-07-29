@@ -3,6 +3,8 @@
 
 = Introduction =
 
+*Note! Since 1.0, AltDrag's configuration utlity can identify windows without the need for !WindowFinder.*
+
 !WindowFinder is a tool I've made to help people blacklist windows. Since the blacklist can identify a window based the class name, which is used internally in Windows and normally not visible anywhere, it seemed appropriate to make a helper tool. With !WindowFinder you can just click the window you are interested in, and it will pop up with information about that window, including the class name.
 
 If you pressed a child window or a component of the window, it will also give you information about that. Note that you can't use the child window or component window information in the blacklist.
