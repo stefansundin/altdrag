@@ -1,6 +1,6 @@
 #summary History of changes
 
-*1.0 beta* - upcoming version:
+*1.0 beta* - 2011-07-31:
   * Added configuration GUI.
   * Added ability to scroll through windows with the scrollwheel (like Alt+Tab!).
   * Added ability to blacklist by process name.
