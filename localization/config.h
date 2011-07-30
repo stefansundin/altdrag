@@ -60,8 +60,8 @@ struct strings {
 };
 
 #include "../localization/en-US/config.h"
-#include "../localization/es-ES/config.h"
-#include "../localization/gl-ES/config.h"
+//#include "../localization/es-ES/config.h"
+//#include "../localization/gl-ES/config.h"
 #include "../localization/zh-CN/config.h"
 
 struct {
@@ -70,8 +70,8 @@ struct {
 	wchar_t *language;
 } languages[] = {
 	{L"en-US", &en_US, L"English"},
-	{L"es-ES", &es_ES, L"Spanish"},
-	{L"gl-ES", &gl_ES, L"Galician"},
+	//{L"es-ES", &es_ES, L"Spanish"},
+	//{L"gl-ES", &gl_ES, L"Galician"},
 	{L"zh-CN", &zh_CN, L"Chinese"},
 	{NULL}
 };

@@ -88,7 +88,7 @@ int HookSystem() {
 		wcscat(path, L"\\hooks_x64.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -98,7 +98,7 @@ int HookSystem() {
 		//Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
@@ -113,7 +113,7 @@ int HookSystem() {
 	if (!msghook) {
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the message hook
@@ -148,9 +148,14 @@ int UnhookSystem() {
 	}
 	msghook = NULL;
 	
-	//Clear sharedsettings_loaded flag in dll (sometimes it isn't cleared because msghook keeps it alive somehow)
-	void (*ClearSettings)() = (void*)GetProcAddress(hinstDLL, "ClearSettings");
-	ClearSettings();
+	//Tell dll file that we are unloading
+	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
+	if (Unload == NULL) {
+		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+	}
+	else {
+		Unload();
+	}
 	
 	if (hinstDLL) {
 		//Unload library
