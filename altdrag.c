@@ -163,7 +163,7 @@ int HookSystem() {
 		wcscat(path, L"\\hooks.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary('hooks.dll')", L"This probably means that the file hooks.dll is missing.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary('hooks.dll')", L"This probably means that the file hooks.dll is missing. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -173,7 +173,7 @@ int HookSystem() {
 		//Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc@12");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
@@ -188,7 +188,7 @@ int HookSystem() {
 		//Get address to message hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt.\nYou can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the message hook
@@ -254,7 +254,12 @@ int UnhookSystem() {
 	
 	//Tell dll file that we are unloading
 	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
-	Unload();
+	if (Unload == NULL) {
+		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+	}
+	else {
+		Unload();
+	}
 	
 	//Unload library
 	if (hinstDLL) {

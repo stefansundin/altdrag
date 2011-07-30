@@ -945,7 +945,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				
 				//Block the alt keyup to prevent the window menu to be selected.
 				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup (see issue 20).
-				if (vkey == VK_LMENU && (state.blockaltup || sharedstate.action)) {
+				if (state.blockaltup || sharedstate.action) {
 					state.ignorectrl = 1;
 					KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
 					ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
@@ -1701,6 +1701,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 
 __declspec(dllexport) void Unload() {
 	sharedsettings_loaded = 0;
+	#ifndef _WIN64
 	DestroyWindow(g_hwnd);
 	if (scrollhook) {
 		if (UnhookWindowsHookEx(scrollhook) == 0) {
@@ -1708,6 +1709,7 @@ __declspec(dllexport) void Unload() {
 		}
 		scrollhook = NULL;
 	}
+	#endif
 }
 
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
