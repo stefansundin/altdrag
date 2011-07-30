@@ -4,12 +4,40 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2011-02-01T20:20:00Z</updated>
+	<updated>2011-07-31T00:05:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<uri>http://stefansundin.com/</uri>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:bfcaede7-a92b-4919-8806-3bbadad70fd4</id>
+		<title>AltDrag - 1.0 beta 1</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2011-07-31T00:05:00Z</updated>
+		<author><name>Stefan Sundin</name></author>
+		<content type="html">
+&lt;p>Released 1.0 beta. The biggest new feature is a configuration GUI. Finally, AltDrag no longer requires you to know what an ini file is to be able to configure it. There are some other new features, performance improvements and bug fixes too, see the changelog below for more information. This beta is only available as a 7z archive.&lt;/p>
+&lt;p>&lt;u>Changelog:&lt;/u>&lt;/p>
+&lt;ul>
+ &lt;li>Added configuration GUI.&lt;/li>
+ &lt;li>Added ability to scroll through windows with the scrollwheel (like Alt+Tab!).&lt;/li>
+ &lt;li>Added ability to blacklist by process name (&lt;a href="http://code.google.com/p/altdrag/wiki/Blacklist">see wiki&lt;/a>).&lt;/li>
+ &lt;li>Added new mouse action: &lt;tt>Lower&lt;/tt>.&lt;/li>
+ &lt;li>Added performance options &lt;tt>MoveRate&lt;/tt> and &lt;tt>ResizeRate&lt;/tt>. Increase if dragging or resizing is slow.&lt;/li>
+ &lt;li>The scroll hook should no longer stop working when locking the screen or resuming the computer from sleep. A timer checks every 5 seconds if the scroll hook is still working, and re-enables it if it is not.&lt;/li>
+ &lt;li>You can now press Escape to stop AltDrag. Useful if AltDrag gets in a weird state.&lt;/li>
+ &lt;li>You can now press Ctrl to make AltDrag think the mouse cursor is still inside the current monitor. Should help people who have multiple monitors and want to snap at borders between monitors.&lt;/li>
+ &lt;li>Removed &lt;tt>info.txt&lt;/tt>. Use the website for help.&lt;/li>
+&lt;/ul>
+&lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the website&lt;/a>&lt;br/>
+&lt;a href="http://altdrag.googlecode.com/files/AltDrag-1.0b1.7z">&lt;img src="http://altdrag.googlecode.com/svn/wiki/down.png"/> Download the beta&lt;/a>&lt;br/>
+&lt;a href="http://groups.google.com/group/recovers-tools">&lt;img src="http://altdrag.googlecode.com/svn/wiki/groups.png"/> Discuss in the forum&lt;/a> (no registration required)&lt;br/>
+&lt;a href="http://stefansundin.com/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Visit the author's website&lt;/a>&lt;br/>
+&lt;a href="http://code.google.com/p/altdrag/wiki/Donate">&lt;img src="http://altdrag.googlecode.com/svn/wiki/money.png"/> Donate&lt;/a> (show your appreciation, any amount will do)&lt;br/>
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:9f71f90a-2a21-4e9e-8ba0-f41708ca91d1</id>
