@@ -19,6 +19,7 @@
 		<author><name>Stefan Sundin</name></author>
 		<content type="html">
 &lt;p>Released 1.0 beta. The biggest new feature is a configuration GUI. Finally, AltDrag no longer requires you to know what an ini file is to be able to configure it. There are some other new features, performance improvements and bug fixes too, see the changelog below for more information. This beta is only available as a 7z archive.&lt;/p>
+&lt;p>This release also features a new language; Chinese translated by Jack Jin. The new configuration GUI is not yet available in Spanish or Galician since their translations have not been submitted yet. If you are looking to translate AltDrag, read this &lt;a href="http://code.google.com/p/altdrag/wiki/Translate">page&lt;/a>.&lt;/p>
 &lt;p>&lt;u>Changelog:&lt;/u>&lt;/p>
 &lt;ul>
  &lt;li>Added configuration GUI.&lt;/li>
