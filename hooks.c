@@ -1803,7 +1803,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			}
 			
 			//[Keyboard]
-			unsigned char temp;
+			unsigned int temp;
 			int numread;
 			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			wchar_t *pos = txt;
