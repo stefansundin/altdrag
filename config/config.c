@@ -45,45 +45,6 @@ wchar_t inipath[MAX_PATH];
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 
 //Cool stuff
-#define MAXKEYS 10
-struct {
-	struct {
-		int AutoFocus;
-		int AutoSnap;
-		int AutoRemaximize;
-		int Aero;
-		int InactiveScroll;
-		int HookWindows;
-	} AltDrag;
-	struct {
-		int Cursor;
-	} Performance;
-	struct {
-		wchar_t LMB[20];
-		wchar_t MMB[20];
-		wchar_t RMB[20];
-		wchar_t MB4[20];
-		wchar_t MB5[20];
-	} Mouse;
-	struct {
-		int LeftAlt;
-		int RightAlt;
-		int LeftWinkey;
-		int RightWinkey;
-		int LeftCtrl;
-		int RightCtrl;
-		wchar_t OtherKeys[30];
-	} Keyboard;
-	struct {
-		wchar_t ProcessBlacklist[1000];
-		wchar_t Blacklist[1000];
-		wchar_t Snaplist[1000];
-	} Blacklist;
-	struct {
-		int CheckOnStartup;
-		int Beta;
-	} Update;
-} settings;
 BOOL x64 = FALSE;
 
 //Include stuff
@@ -105,64 +66,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
 	PathRemoveFileSpec(inipath);
 	wcscat(inipath, L"\\"APP_NAME".ini");
-	wchar_t txt[1000];
-	//[AltDrag]
-	GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.AltDrag.AutoFocus = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.AltDrag.AutoSnap = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.AltDrag.AutoRemaximize = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.AltDrag.Aero = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.AltDrag.InactiveScroll = _wtoi(txt);
-	GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.AltDrag.HookWindows = _wtoi(txt);
-	//[Mouse]
-	GetPrivateProfileString(L"Mouse", L"LMB", L"Move", settings.Mouse.LMB, sizeof(settings.Mouse.LMB)/sizeof(wchar_t), inipath);
-	GetPrivateProfileString(L"Mouse", L"MMB", L"Move", settings.Mouse.MMB, sizeof(settings.Mouse.MMB)/sizeof(wchar_t), inipath);
-	GetPrivateProfileString(L"Mouse", L"RMB", L"Move", settings.Mouse.RMB, sizeof(settings.Mouse.RMB)/sizeof(wchar_t), inipath);
-	GetPrivateProfileString(L"Mouse", L"MB4", L"Move", settings.Mouse.MB4, sizeof(settings.Mouse.MB4)/sizeof(wchar_t), inipath);
-	GetPrivateProfileString(L"Mouse", L"MB5", L"Move", settings.Mouse.MB5, sizeof(settings.Mouse.MB5)/sizeof(wchar_t), inipath);
-	//[Keyboard]
-	settings.Keyboard.LeftAlt = 0;
-	settings.Keyboard.RightAlt = 0;
-	settings.Keyboard.LeftWinkey = 0;
-	settings.Keyboard.RightWinkey = 0;
-	settings.Keyboard.LeftCtrl = 0;
-	settings.Keyboard.RightCtrl = 0;
-	settings.Keyboard.OtherKeys[0] = '\0';
-	unsigned char temp;
-	int numread;
-	GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	wchar_t *pos = txt;
-	while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
-		//Bail if we are out of space
-		if (wcslen(settings.Keyboard.OtherKeys) > 25) {
-			break;
-		}
-		//Store key
-		pos += numread;
-		//What key was that?
-		if      (temp == VK_LMENU)    settings.Keyboard.LeftAlt = 1;
-		else if (temp == VK_RMENU)    settings.Keyboard.RightAlt = 1;
-		else if (temp == VK_LWIN)     settings.Keyboard.LeftWinkey = 1;
-		else if (temp == VK_RWIN)     settings.Keyboard.RightWinkey = 1;
-		else if (temp == VK_LCONTROL) settings.Keyboard.LeftCtrl = 1;
-		else if (temp == VK_RCONTROL) settings.Keyboard.RightCtrl = 1;
-		else swprintf(settings.Keyboard.OtherKeys, L"%s %02X", settings.Keyboard.OtherKeys, temp);
-	}
-	//[Blacklist]
-	GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", settings.Blacklist.ProcessBlacklist, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t), inipath);
-	GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", settings.Blacklist.Blacklist, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t), inipath);
-	GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", settings.Blacklist.Snaplist, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t), inipath);
-	//[Update]
-	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.Update.CheckOnStartup = _wtoi(txt);
-	GetPrivateProfileString(L"Update", L"Beta", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	settings.Update.Beta = _wtoi(txt);
 	//Language
+	wchar_t txt[10];
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int i;
 	for (i=0; languages[i].code != NULL; i++) {
@@ -242,14 +147,18 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	int updatel10n = 0;
 	if (msg == WM_INITDIALOG) {
-		Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS), settings.AltDrag.AutoFocus?BST_CHECKED:BST_UNCHECKED);
+		wchar_t txt[20];
+		GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
-		Button_SetCheck(GetDlgItem(hwnd,IDC_AERO), settings.AltDrag.Aero?BST_CHECKED:BST_UNCHECKED);
-		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), settings.AltDrag.InactiveScroll?BST_CHECKED:BST_UNCHECKED);
+		GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_AERO), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
+		
+		GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
-			wchar_t txt[20];
 			wsprintf(txt, L"%s (%s)", languages[i].language, languages[i].code);
 			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), txt);
 			if (l10n == languages[i].strings) {
@@ -258,22 +167,20 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 	}
 	else if (msg == WM_COMMAND) {
-		wchar_t txt[1000];
+		wchar_t txt[10];
+		int val = Button_GetCheck(GetDlgItem(hwnd,wParam));
 		if (wParam == IDC_AUTOFOCUS) {
-			settings.AltDrag.AutoFocus = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS));
-			WritePrivateProfileString(APP_NAME, L"AutoFocus", _itow(settings.AltDrag.AutoFocus,txt,10), inipath);
+			WritePrivateProfileString(APP_NAME, L"AutoFocus", _itow(val,txt,10), inipath);
 		}
 		else if (LOWORD(wParam) == IDC_AUTOSNAP && HIWORD(wParam) == CBN_SELCHANGE) {
-			settings.AltDrag.AutoSnap = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP));
-			WritePrivateProfileString(APP_NAME, L"AutoSnap", _itow(settings.AltDrag.AutoSnap,txt,10), inipath);
+			val = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP));
+			WritePrivateProfileString(APP_NAME, L"AutoSnap", _itow(val,txt,10), inipath);
 		}
 		else if (wParam == IDC_AERO) {
-			settings.AltDrag.Aero = Button_GetCheck(GetDlgItem(hwnd,IDC_AERO));
-			WritePrivateProfileString(APP_NAME, L"Aero", _itow(settings.AltDrag.Aero,txt,10), inipath);
+			WritePrivateProfileString(APP_NAME, L"Aero", _itow(val,txt,10), inipath);
 		}
 		else if (wParam == IDC_INACTIVESCROLL) {
-			settings.AltDrag.InactiveScroll = Button_GetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL));
-			WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(settings.AltDrag.InactiveScroll,txt,10), inipath);
+			WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(val,txt,10), inipath);
 		}
 		else if (LOWORD(wParam) == IDC_LANGUAGE && HIWORD(wParam) == CBN_SELCHANGE) {
 			int i = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE));
@@ -289,16 +196,14 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 		}
 		else if (wParam == IDC_AUTOSTART) {
-			int autostart = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART));
-			SetAutostart(autostart, 0);
-			EnableWindow(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), autostart);
-			if (!autostart) {
+			SetAutostart(val, 0);
+			EnableWindow(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), val);
+			if (!val) {
 				Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), BST_UNCHECKED);
 			}
 		}
 		else if (wParam == IDC_AUTOSTART_HIDE) {
-			int hidden = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE));
-			SetAutostart(1, hidden);
+			SetAutostart(1, val);
 		}
 		UpdateSettings();
 	}
@@ -348,7 +253,9 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap1);
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap2);
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general_autosnap3);
-		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), settings.AltDrag.AutoSnap);
+		wchar_t txt[10];
+		GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), _wtoi(txt));
 		
 		//Language
 		ComboBox_DeleteString(GetDlgItem(hwnd,IDC_LANGUAGE), sizeof(languages)/sizeof(languages[0])-1);
@@ -361,73 +268,107 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	//Mouse actions
 	struct {
 		int control;
-		wchar_t *setting;
 		wchar_t *option;
 	} mouse_buttons[] = {
-		{ IDC_LMB, settings.Mouse.LMB, L"LMB" },
-		{ IDC_MMB, settings.Mouse.MMB, L"MMB" },
-		{ IDC_RMB, settings.Mouse.RMB, L"RMB" },
-		{ IDC_MB4, settings.Mouse.MB4, L"MB4" },
-		{ IDC_MB5, settings.Mouse.MB5, L"MB5" },
+		{ IDC_LMB, L"LMB" },
+		{ IDC_MMB, L"MMB" },
+		{ IDC_RMB, L"RMB" },
+		{ IDC_MB4, L"MB4" },
+		{ IDC_MB5, L"MB5" },
 	};
 	wchar_t *mouse_actions[] = {L"Move", L"Resize", L"Close", L"Minimize", L"Lower", L"AlwaysOnTop", L"Center", L"Nothing"};
 	
 	//Hotkeys
 	struct {
 		int control;
-		int *setting;
 		int vkey;
 	} hotkeys[] = {
-		{ IDC_LEFTALT,     &settings.Keyboard.LeftAlt,     VK_LMENU },
-		{ IDC_RIGHTALT,    &settings.Keyboard.RightAlt,    VK_RMENU },
-		{ IDC_LEFTWINKEY,  &settings.Keyboard.LeftWinkey,  VK_LWIN },
-		{ IDC_RIGHTWINKEY, &settings.Keyboard.RightWinkey, VK_RWIN },
-		{ IDC_LEFTCTRL,    &settings.Keyboard.LeftCtrl,    VK_LCONTROL },
-		{ IDC_RIGHTCTRL,   &settings.Keyboard.RightCtrl,   VK_RCONTROL },
+		{ IDC_LEFTALT,     VK_LMENU },
+		{ IDC_RIGHTALT,    VK_RMENU },
+		{ IDC_LEFTWINKEY,  VK_LWIN },
+		{ IDC_RIGHTWINKEY, VK_RWIN },
+		{ IDC_LEFTCTRL,    VK_LCONTROL },
+		{ IDC_RIGHTCTRL,   VK_RCONTROL },
 	};
 	
 	if (msg == WM_INITDIALOG) {
+		wchar_t txt[50];
 		//Mouse actions
 		int i, j;
 		for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
+			GetPrivateProfileString(L"Mouse", mouse_buttons[i].option, L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			for (j=0; j < sizeof(mouse_actions)/sizeof(mouse_actions[0]); j++) {
 				ComboBox_AddString(GetDlgItem(hwnd,mouse_buttons[i].control), mouse_actions[j]);
-				if (!wcscmp(mouse_buttons[i].setting,mouse_actions[j])) {
+				if (!wcscmp(txt,mouse_actions[j])) {
 					ComboBox_SetCurSel(GetDlgItem(hwnd,mouse_buttons[i].control), j);
 				}
 			}
 		}
 		
 		//Hotkeys
-		for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
-			if (*hotkeys[i].setting) {
-				Button_SetCheck(GetDlgItem(hwnd,hotkeys[i].control), BST_CHECKED);
+		unsigned int temp;
+		int numread;
+		GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		wchar_t *pos = txt;
+		while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
+			pos += numread;
+			//What key was that?
+			for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
+				if (temp == hotkeys[i].vkey) {
+					Button_SetCheck(GetDlgItem(hwnd,hotkeys[i].control), BST_CHECKED);
+					break;
+				}
 			}
 		}
 	}
 	else if (msg == WM_COMMAND) {
+		wchar_t txt[50] = L"";
 		int i;
 		if (HIWORD(wParam) == CBN_SELCHANGE) {
 			//Mouse actions
 			int control = LOWORD(wParam);
 			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
 				if (control == mouse_buttons[i].control) {
-					ComboBox_GetText(GetDlgItem(hwnd,mouse_buttons[i].control), mouse_buttons[i].setting, sizeof(settings.Mouse.LMB)/sizeof(wchar_t));
-					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, mouse_buttons[i].setting, inipath);
+					ComboBox_GetText(GetDlgItem(hwnd,mouse_buttons[i].control), txt, sizeof(txt)/sizeof(wchar_t));
+					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, txt, inipath);
+					break;
 				}
 			}
 		}
 		else {
 			//Hotkeys
-			wchar_t txt[100] = {'\0', '\0'}; //Second \0 needed if no keys are selected
+			int vkey = 0;
 			for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
-				*hotkeys[i].setting = Button_GetCheck(GetDlgItem(hwnd,hotkeys[i].control));
-				if (*hotkeys[i].setting) {
-					swprintf(txt, L"%s %02X", txt, hotkeys[i].vkey);
+				if (wParam == hotkeys[i].control) {
+					vkey = hotkeys[i].vkey;
+					break;
 				}
 			}
-			wcscat(txt, settings.Keyboard.OtherKeys);
-			WritePrivateProfileString(L"Keyboard", L"Hotkeys", txt+1, inipath); //Skip prefix space
+			if (!vkey) return FALSE;
+			
+			wchar_t keys[50];
+			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"", keys, sizeof(keys)/sizeof(wchar_t), inipath);
+			int add = Button_GetCheck(GetDlgItem(hwnd,wParam));
+			if (add) {
+				if (*keys != '\0') {
+					wcscat(keys, L" ");
+				}
+				swprintf(txt, L"%s%02X", keys, vkey);
+			}
+			else {
+				unsigned int temp;
+				int numread;
+				wchar_t *pos = keys;
+				while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
+					if (temp == vkey) {
+						wcsncpy(txt, keys, pos-keys);
+						wcscat(txt, pos+numread);
+						break;
+					}
+					pos += numread;
+				}
+			}
+			WritePrivateProfileString(L"Keyboard", L"Hotkeys", txt, inipath);
 		}
 		UpdateSettings();
 	}
@@ -459,24 +400,27 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		SetDlgItemText(hwnd, IDC_PROCESSBLACKLIST, settings.Blacklist.ProcessBlacklist);
-		SetDlgItemText(hwnd, IDC_BLACKLIST, settings.Blacklist.Blacklist);
-		SetDlgItemText(hwnd, IDC_SNAPLIST, settings.Blacklist.Snaplist);
+		wchar_t txt[1000];
+		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		SetDlgItemText(hwnd, IDC_PROCESSBLACKLIST, txt);
+		GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		SetDlgItemText(hwnd, IDC_BLACKLIST, txt);
+		GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		SetDlgItemText(hwnd, IDC_SNAPLIST, txt);
 	}
 	else if (msg == WM_COMMAND) {
+		wchar_t txt[1000];
 		int control = LOWORD(wParam);
 		if (HIWORD(wParam) == EN_KILLFOCUS) {
+			Edit_GetText(GetDlgItem(hwnd,control), txt, sizeof(txt)/sizeof(wchar_t));
 			if (control == IDC_PROCESSBLACKLIST) {
-				Edit_GetText(GetDlgItem(hwnd,IDC_PROCESSBLACKLIST), settings.Blacklist.ProcessBlacklist, sizeof(settings.Blacklist.ProcessBlacklist)/sizeof(wchar_t));
-				WritePrivateProfileString(L"Blacklist", L"ProcessBlacklist", settings.Blacklist.ProcessBlacklist, inipath);
+				WritePrivateProfileString(L"Blacklist", L"ProcessBlacklist", txt, inipath);
 			}
 			else if (control == IDC_BLACKLIST) {
-				Edit_GetText(GetDlgItem(hwnd,IDC_BLACKLIST), settings.Blacklist.Blacklist, sizeof(settings.Blacklist.Blacklist)/sizeof(wchar_t));
-				WritePrivateProfileString(L"Blacklist", L"Blacklist", settings.Blacklist.Blacklist, inipath);
+				WritePrivateProfileString(L"Blacklist", L"Blacklist", txt, inipath);
 			}
 			else if (control == IDC_SNAPLIST) {
-				Edit_GetText(GetDlgItem(hwnd,IDC_SNAPLIST), settings.Blacklist.Snaplist, sizeof(settings.Blacklist.Snaplist)/sizeof(wchar_t));
-				WritePrivateProfileString(L"Blacklist", L"Snaplist", settings.Blacklist.Snaplist, inipath);
+				WritePrivateProfileString(L"Blacklist", L"Snaplist", txt, inipath);
 			}
 			UpdateSettings();
 		}
@@ -549,9 +493,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
-		Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), settings.AltDrag.HookWindows?BST_CHECKED:BST_UNCHECKED);
-		Button_SetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP), settings.Update.CheckOnStartup?BST_CHECKED:BST_UNCHECKED);
-		Button_SetCheck(GetDlgItem(hwnd,IDC_BETA), settings.Update.Beta?BST_CHECKED:BST_UNCHECKED);
+		wchar_t txt[10];
+		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
+		GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
+		GetPrivateProfileString(L"Update", L"Beta", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_BETA), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 	}
 	else if (msg == WM_COMMAND) {
 		if (wParam == IDC_OPENINI) {
@@ -559,18 +507,16 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		}
 		else {
 			wchar_t txt[10];
+			int val = Button_GetCheck(GetDlgItem(hwnd,wParam));
 			if (wParam == IDC_HOOKWINDOWS) {
-				settings.AltDrag.HookWindows = Button_GetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS));
-				WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(settings.AltDrag.HookWindows,txt,10), inipath);
+				WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(val,txt,10), inipath);
 				UpdateSettings();
 			}
 			else if (wParam == IDC_CHECKONSTARTUP) {
-				settings.Update.CheckOnStartup = Button_GetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP));
-				WritePrivateProfileString(L"Update", L"CheckOnStartup", _itow(settings.Update.CheckOnStartup,txt,10), inipath);
+				WritePrivateProfileString(L"Update", L"CheckOnStartup", _itow(val,txt,10), inipath);
 			}
 			else if (wParam == IDC_BETA) {
-				settings.Update.Beta = Button_GetCheck(GetDlgItem(hwnd,IDC_BETA));
-				WritePrivateProfileString(L"Update", L"Beta", _itow(settings.Update.Beta,txt,10), inipath);
+				WritePrivateProfileString(L"Update", L"Beta", _itow(val,txt,10), inipath);
 			}
 		}
 	}
