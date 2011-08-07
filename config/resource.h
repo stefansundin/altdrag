@@ -2,7 +2,6 @@
 #define IDC_STATIC (-1)
 #endif
 
-#define IDI_ICON1                               111
 #define IDI_ALTDRAG                             112
 #define IDI_MONEY                               113
 #define IDD_GENERALPAGE                         201
