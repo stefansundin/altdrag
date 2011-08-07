@@ -1,9 +1,12 @@
 #summary History of changes
 
+*1.0* - upcoming version:
+  * Merged `Config.exe` with `AltDrag.exe`.
+
 *1.0 beta* - 2011-07-31:
   * Added configuration GUI.
   * Added ability to scroll through windows with the scrollwheel (like Alt+Tab!).
-  * Added ability to blacklist by process name.
+  * Added ability to blacklist by process name ([Blacklist see wiki]).
   * Added new mouse action: `Lower`.
   * Added performance options `MoveRate` and `ResizeRate`. Increase if dragging or resizing is slow.
   * The scroll hook should no longer stop working when locking the screen or resuming the computer from sleep. A timer checks every 5 seconds if the scroll hook is still working, and re-enables it if it is not.
