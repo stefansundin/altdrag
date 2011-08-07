@@ -56,6 +56,7 @@ UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
 UINT WM_OPENCONFIG = 0;
+wchar_t inipath[MAX_PATH];
 
 //Cool stuff
 struct {
@@ -72,6 +73,7 @@ BOOL x64 = FALSE;
 #include "include/autostart.c"
 #include "include/tray.c"
 #include "include/update.c"
+#include "config/config.c"
 
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
@@ -104,12 +106,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
 	
 	//Load settings
-	wchar_t path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-	PathRemoveFileSpec(path);
-	wcscat(path, L"\\"APP_NAME".ini");
+	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
+	PathRemoveFileSpec(inipath);
+	wcscat(inipath, L"\\"APP_NAME".ini");
 	wchar_t txt[10];
-	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int i;
 	for (i=0; languages[i].code != NULL; i++) {
 		if (!wcsicmp(txt,languages[i].code)) {
@@ -134,7 +135,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	}
 	
 	//Check for update
-	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int checkforupdate = _wtoi(txt);
 	if (checkforupdate) {
 		CheckForUpdate(0);
@@ -293,15 +294,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		if (lParam == WM_LBUTTONDOWN || lParam == WM_LBUTTONDBLCLK) {
 			ToggleState();
 			if (lParam == WM_LBUTTONDBLCLK) {
-				SendMessage(hwnd, WM_COMMAND, SWM_SETTINGS, 0);
+				SendMessage(hwnd, WM_OPENCONFIG, 0, 0);
 			}
 		}
 		else if (lParam == WM_MBUTTONDOWN) {
-			wchar_t path[MAX_PATH];
-			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-			PathRemoveFileSpec(path);
-			wcscat(path, L"\\"APP_NAME".ini");
-			ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
+			ShellExecute(NULL, L"open", inipath, NULL, NULL, SW_SHOWNORMAL);
 		}
 		else if (lParam == WM_RBUTTONDOWN) {
 			ShowContextMenu(hwnd);
@@ -317,17 +314,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 	}
 	else if (msg == WM_UPDATESETTINGS) {
-		//Load settings
-		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-		PathRemoveFileSpec(path);
-		wcscat(path, L"\\"APP_NAME".ini");
 		wchar_t txt[10];
 		//HookWindows
-		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
+		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		swscanf(txt, L"%d", &settings.HookWindows);
 		//Language
-		GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), path);
+		GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
 			if (!wcsicmp(txt,languages[i].code)) {
@@ -350,11 +342,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		RemoveTray();
 	}
 	else if (msg == WM_OPENCONFIG && (wParam || !hide)) {
-		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-		PathRemoveFileSpec(path);
-		wcscat(path, L"\\Config.exe");
-		ShellExecute(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
+		OpenConfig(0);
 	}
 	else if (msg == WM_TASKBARCREATED) {
 		tray_added = 0;
@@ -389,12 +377,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
 			}
 		}
-		else if (wmId == SWM_SETTINGS || wmId == SWM_ABOUT) {
-			wchar_t path[MAX_PATH];
-			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-			PathRemoveFileSpec(path);
-			wcscat(path, L"\\Config.exe");
-			ShellExecute(NULL, L"open", path, (wmId==SWM_ABOUT)?L"4":NULL, NULL, SW_SHOWNORMAL);
+		else if (wmId == SWM_SETTINGS) {
+			SendMessage(hwnd, WM_OPENCONFIG, 0, 0);
+		}
+		else if (wmId == SWM_ABOUT) {
+			OpenConfig(4);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hwnd);
