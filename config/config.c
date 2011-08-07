@@ -29,6 +29,12 @@ LRESULT CALLBACK CursorProc(HWND, UINT, WPARAM, LPARAM);
 
 //Entry point
 void OpenConfig(int startpage) {
+	if (IsWindow(g_cfgwnd)) {
+		PropSheet_SetCurSel(g_cfgwnd, 0, startpage);
+		SetForegroundWindow(g_cfgwnd);
+		return;
+	}
+	
 	//Define the pages
 	struct {
 		int pszTemplate;
@@ -53,10 +59,10 @@ void OpenConfig(int startpage) {
 	//Define the property sheet
 	PROPSHEETHEADER psh = {0};
 	psh.dwSize          = sizeof(PROPSHEETHEADER);
-	psh.dwFlags         = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
+	psh.dwFlags         = PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_USEHICON | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
 	psh.hwndParent      = NULL;
 	psh.hInstance       = g_hinst;
-	psh.hIcon           = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR); //PSH_USEHICON
+	psh.hIcon           = icon[1];
 	psh.pszCaption      = APP_NAME;
 	psh.nPages          = sizeof(pages)/sizeof(pages[0]);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
@@ -377,10 +383,10 @@ BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 			int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 			
 			//Create window
-			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, CursorProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
+			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, CursorProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME"-find", NULL};
 			wnd.hCursor = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_FIND), IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 			RegisterClassEx(&wnd);
-			HWND findhwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, left, top, width, height, NULL, NULL, g_hinst, NULL);
+			HWND findhwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, NULL, WS_POPUP, left, top, width, height, NULL, NULL, g_hinst, NULL);
 			SetLayeredWindowAttributes(findhwnd, 0, 1, LWA_ALPHA); //Almost transparent
 			ShowWindowAsync(findhwnd, SW_SHOWNA);
 			
