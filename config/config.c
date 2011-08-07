@@ -7,24 +7,9 @@
 	(at your option) any later version.
 */
 
-#define UNICODE
-#define _UNICODE
-#define _WIN32_WINNT 0x0501
-#define _WIN32_IE 0x0600
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <shlwapi.h>
 #include <commctrl.h>
 #include <prsht.h>
 #include <windowsx.h>
-
-//App
-#define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.0b1"
-#define APP_URL             L"http://code.google.com/p/altdrag/"
-#define APP_CONFIG
 
 //Boring stuff
 BOOL CALLBACK PropSheetProc(HWND, UINT, LPARAM);
@@ -34,50 +19,16 @@ BOOL CALLBACK BlacklistPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK LinkProc(HWND, UINT, WPARAM, LPARAM);
-UINT WM_UPDATESETTINGS = 0;
-UINT WM_ADDTRAY = 0;
-UINT WM_HIDETRAY = 0;
-HINSTANCE g_hinst = NULL;
-HWND g_hwnd = NULL;
-wchar_t inipath[MAX_PATH];
+HWND g_cfgwnd = NULL;
 
 //Blacklist
-LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-
-//Cool stuff
-BOOL x64 = FALSE;
+LRESULT CALLBACK CursorProc(HWND, UINT, WPARAM, LPARAM);
 
 //Include stuff
-#include "../localization/config.h"
-#include "../include/error.c"
-#include "../include/autostart.c"
 #include "resource.h"
 
 //Entry point
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
-	g_hinst = hInst;
-	
-	//Look for instance
-	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
-	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
-	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
-	
-	//Load settings
-	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
-	PathRemoveFileSpec(inipath);
-	wcscat(inipath, L"\\"APP_NAME".ini");
-	//Language
-	wchar_t txt[10];
-	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	int i;
-	for (i=0; languages[i].code != NULL; i++) {
-		if (!wcsicmp(txt,languages[i].code)) {
-			l10n = languages[i].strings;
-			break;
-		}
-	}
-	IsWow64Process(GetCurrentProcess(), &x64);
-	
+void OpenConfig(int startpage) {
 	//Define the pages
 	struct {
 		int pszTemplate;
@@ -91,9 +42,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	};
 	
 	PROPSHEETPAGE psp[sizeof(pages)/sizeof(pages[0])] = {0};
+	int i;
 	for (i=0; i < sizeof(pages)/sizeof(pages[0]); i++) {
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
-		psp[i].hInstance   = hInst;
+		psp[i].hInstance   = g_hinst;
 		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
 		psp[i].pfnDlgProc  = pages[i].pfnDlgProc;
 	}
@@ -103,44 +55,37 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	psh.dwSize          = sizeof(PROPSHEETHEADER);
 	psh.dwFlags         = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
 	psh.hwndParent      = NULL;
-	psh.hInstance       = hInst;
+	psh.hInstance       = g_hinst;
 	psh.hIcon           = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR); //PSH_USEHICON
 	psh.pszCaption      = APP_NAME;
 	psh.nPages          = sizeof(pages)/sizeof(pages[0]);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
-	
-	//Check command line
-	if (szCmdLine != NULL) {
-		psh.nStartPage = atoi(szCmdLine);
-	}
+	psh.nStartPage      = startpage;
 	
 	//Open the property sheet
 	PropertySheet(&psh);
-	
-	return 0;
 }
 
 void UpdateSettings() {
-	//Make AltDrag update its settings
-	HWND inst = FindWindow(APP_NAME, NULL);
-	if (inst != NULL) {
-		PostMessage(inst, WM_UPDATESETTINGS, 0, 0);
-	}
+	PostMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 }
 
 BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	if (msg == PSCB_INITIALIZED) {
-		g_hwnd = hwnd;
+		g_cfgwnd = hwnd;
+		
+		//Update window title
+		PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
 		
 		//OK button replaces Cancel button
-		SendMessage(g_hwnd, PSM_CANCELTOCLOSE, 0, 0);
-		EnableWindow(GetDlgItem(g_hwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
+		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
+		EnableWindow(GetDlgItem(g_cfgwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
 		WINDOWPLACEMENT wndpl;
 		wndpl.length = sizeof(WINDOWPLACEMENT);
-		GetWindowPlacement(GetDlgItem(g_hwnd,IDCANCEL), &wndpl);
-		SetWindowPlacement(GetDlgItem(g_hwnd,IDOK), &wndpl);
-		ShowWindow(GetDlgItem(g_hwnd,IDCANCEL), SW_HIDE);
+		GetWindowPlacement(GetDlgItem(g_cfgwnd,IDCANCEL), &wndpl);
+		SetWindowPlacement(GetDlgItem(g_cfgwnd,IDOK), &wndpl);
+		ShowWindow(GetDlgItem(g_cfgwnd,IDCANCEL), SW_HIDE);
 	}
 }
 
@@ -159,7 +104,7 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
-			wsprintf(txt, L"%s (%s)", languages[i].language, languages[i].code);
+			wsprintf(txt, L"%s (%s)", languages[i].strings->lang, languages[i].code);
 			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), txt);
 			if (l10n == languages[i].strings) {
 				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
@@ -191,7 +136,7 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 			else {
 				l10n = languages[i].strings;
-				WritePrivateProfileString(APP_NAME, L"Language", l10n->code, inipath);
+				WritePrivateProfileString(APP_NAME, L"Language", languages[i].code, inipath);
 				updatel10n = 1;
 			}
 		}
@@ -222,10 +167,10 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	}
 	if (updatel10n) {
 		//Update window title
-		PropSheet_SetTitle(g_hwnd, 0, l10n->title);
+		PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
 		
 		//Update tab titles
-		HWND tc = PropSheet_GetTabControl(g_hwnd);
+		HWND tc = PropSheet_GetTabControl(g_cfgwnd);
 		wchar_t *titles[] = { l10n->tab_general, l10n->tab_input, l10n->tab_blacklist, l10n->tab_advanced, l10n->tab_about };
 		int i;
 		for (i=0; i < sizeof(titles)/sizeof(titles[0]); i++) {
@@ -432,7 +377,7 @@ BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 			int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 			
 			//Create window
-			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
+			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, CursorProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 			wnd.hCursor = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_FIND), IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 			RegisterClassEx(&wnd);
 			HWND findhwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, left, top, width, height, NULL, NULL, g_hinst, NULL);
@@ -461,10 +406,10 @@ BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 	return FALSE;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
 		ShowWindow(hwnd, SW_HIDE);
-		HWND page = PropSheet_GetCurrentPageHwnd(g_hwnd);
+		HWND page = PropSheet_GetCurrentPageHwnd(g_cfgwnd);
 		
 		if (msg == WM_LBUTTONDOWN) {
 			POINT pt;

@@ -2,6 +2,8 @@ app_icon ICON "media/icon.ico"
 tray_disabled ICON "media/tray-disabled.ico"
 tray_enabled ICON "media/tray-enabled.ico"
 
+#include "../config/window.rc"
+
 #define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define RT_MANIFEST 24
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "include/AltDrag.exe.manifest"

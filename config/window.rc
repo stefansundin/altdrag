@@ -143,10 +143,3 @@ IDI_ICON1          ICON           "../media/wrench.ico"
 
 
 IDI_MONEY          ICON           "../media/money.ico"
-
-
-
-//
-// Manifest resources
-//
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST    "../include/AltDrag.exe.manifest"

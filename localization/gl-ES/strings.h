@@ -23,4 +23,7 @@ struct strings gl_ES = {
  /* update_balloon */ L"Nova versión dispoñíbel!",
  /* update_dialog  */ L"Unha nova versión está dispoñíbel.\nQueres ir á páxina web?\n\nPodes desactivar a comprobación automática de actualizacións na configuración.",
  /* update_nonew   */ L"Non hai actualizacións.",
+ 
+ /* === config === */
+ L"GALET!"
 };

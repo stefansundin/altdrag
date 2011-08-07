@@ -185,11 +185,14 @@ Section "${APP_NAME}" sec_app
 		Delete "${APP_NAME}-old.ini"
 		Rename "${APP_NAME}.ini" "${APP_NAME}-old.ini"
 	
+	;Delete files that existed in earlier versions
+	Delete /REBOOTOK "$INSTDIR\info.txt" ;existed in <= 0.9
+	Delete /REBOOTOK "$INSTDIR\Config.exe" ;existed in 1.0b1
+	
 	;Install files
 	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
 	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	File "build\en-US\${APP_NAME}\hooks.dll"
-	File "build\en-US\${APP_NAME}\Config.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
 	
@@ -331,7 +334,6 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\hooks_x64.dll"
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}.ini"
 	Delete /REBOOTOK "$INSTDIR\${APP_NAME}-old.ini"
-	Delete /REBOOTOK "$INSTDIR\info.txt" ;existed in <= 0.9
 	Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 	RMDir  /REBOOTOK "$INSTDIR"
 
