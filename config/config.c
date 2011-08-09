@@ -18,7 +18,7 @@ BOOL CALLBACK InputPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK BlacklistPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK LinkProc(HWND, UINT, WPARAM, LPARAM);
+void LinkProc(HWND, UINT, WPARAM, LPARAM);
 HWND g_cfgwnd = NULL;
 
 //Blacklist
@@ -512,12 +512,11 @@ BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	return FALSE;
 }
 
-BOOL CALLBACK LinkProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+void LinkProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_NOTIFY) {
 		NMLINK *link = (NMLINK*)lParam;
 		if (link->hdr.code == NM_CLICK || link->hdr.code == NM_RETURN) {
 			ShellExecute(NULL, L"open", link->item.szUrl, NULL, NULL, SW_SHOWDEFAULT);
-			return TRUE;
 		}
 	}
 }

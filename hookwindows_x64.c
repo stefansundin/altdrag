@@ -88,7 +88,7 @@ int HookSystem() {
 		wcscat(path, L"\\hooks_x64.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary('hooks_x64.dll')", L"This probably means that the file hooks_x64.dll is missing. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -98,7 +98,7 @@ int HookSystem() {
 		//Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('LowLevelKeyboardProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the keyboard hook
@@ -113,13 +113,13 @@ int HookSystem() {
 	if (!msghook) {
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('CallWndProc')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 		//Set up the message hook
 		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
-			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook windows. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook message hook. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 			return 1;
 		}
 	}
@@ -143,7 +143,7 @@ int UnhookSystem() {
 	
 	//Remove message hook
 	if (UnhookWindowsHookEx(msghook) == 0) {
-		Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook windows. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook message hook. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 		return 1;
 	}
 	msghook = NULL;
@@ -151,7 +151,7 @@ int UnhookSystem() {
 	//Tell dll file that we are unloading
 	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
 	if (Unload == NULL) {
-		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try to download "APP_NAME" again from the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks_x64.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
 	}
 	else {
 		Unload();
@@ -171,11 +171,10 @@ int UnhookSystem() {
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (msg == WM_DESTROY) {
+	if (msg == WM_DESTROY || msg == WM_QUERYENDSESSION) {
 		showerror = 0;
 		UnhookSystem();
 		PostQuitMessage(0);
-		return 0;
 	}
 	else if (msg == WM_TIMER) {
 		//Exit if AltDrag is not running
