@@ -1859,18 +1859,25 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				*pos = '\0';
 				pos++;
 			}
-			if (classname != NULL) {
-				*classname = '\0';
-				classname++;
-			}
-			//Check if title or classname is wildcard
-			if (!wcscmp(title,L"*")) {
-				title = NULL;
-			}
-			if (classname != NULL && !wcscmp(classname,L"*")) {
+			//Split the item with NULLs
+			if (blacklist == &settings.ProcessBlacklist) {
+				//ProcessBlacklist does not use classname or wildcards
 				classname = NULL;
 			}
-			//Store item if it's not empty
+			else {
+				if (classname != NULL) {
+					*classname = '\0';
+					classname++;
+				}
+				//Check if title or classname is wildcard
+				if (!wcscmp(title,L"*")) {
+					title = NULL;
+				}
+				if (classname != NULL && !wcscmp(classname,L"*")) {
+					classname = NULL;
+				}
+			}
+			//Do not store item if it's empty
 			if (title != NULL || classname != NULL) {
 				//Make sure we have enough space
 				if (blacklist->length == blacklist_alloc) {
