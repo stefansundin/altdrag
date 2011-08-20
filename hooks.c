@@ -275,7 +275,6 @@ BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
 	 && GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION
 	 && state.origin.monitor == MonitorFromWindow(window,MONITOR_DEFAULTTONULL)
 	) {
-		//Add window
 		hwnds[numhwnds++] = window;
 	}
 	return TRUE;
