@@ -23,7 +23,7 @@ LangString L10N_AUTOSTART_HIDE    ${LANG} "Schovať lištu"
 
 LangString L10N_ALTSHIFT_TITLE    ${LANG} "Klávesová skratka"
 LangString L10N_ALTSHIFT_SUBTITLE ${LANG} "Klávesová skratka Alt + Shift už je používaná aplikáciou ${APP_NAME}."
-LangString L10N_ALTSHIFT_HEADER   ${LANG} "Inštalátor zistil, že klávesová skratka Alt + Shift je používaná na prepínanie rozloženia klávesnice.$\n$\nPomocou ${APP_NAME}, je možné počas presúvania okien prilepiť jedno k druhému podržaním klávesy Shift. To znamená, že budete používať kombináciu kláves Alt + Shift. Tú istú kombináciu ktorú používate na prepínanie rozloženia klávesnice. Aj keď sa ${APP_NAME} blokuje náhodné prepnutie rozloženia klávesnice, nie je to možné ak stlačíte Shift ešte pred prenosom samotného okna.$\n$\nPo stlačení tlačidla "Nastaviť" môžete túto klávesovú skratku vypnúť, či zmeniť."
+LangString L10N_ALTSHIFT_HEADER   ${LANG} "Inštalátor zistil, že klávesová skratka Alt + Shift je používaná na prepínanie rozloženia klávesnice.$\n$\nPomocou ${APP_NAME}, je možné počas presúvania okien prilepiť jedno k druhému podržaním klávesy Shift. To znamená, že budete používať kombináciu kláves Alt + Shift. Tú istú kombináciu ktorú používate na prepínanie rozloženia klávesnice. Aj keď sa ${APP_NAME} blokuje náhodné prepnutie rozloženia klávesnice, nie je to možné ak stlačíte Shift ešte pred prenosom samotného okna.$\n$\nPo stlačení tlačidla $\"Nastaviť$\" môžete túto klávesovú skratku vypnúť, či zmeniť."
 LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Nastaviť"
 
 !undef LANG
