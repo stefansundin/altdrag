@@ -25,5 +25,5 @@ struct strings gl_ES = {
  /* update_nonew   */ L"Non hai actualizacións.",
  
  /* === config === */
- L"GALET!"
+ L"Galego"
 };
