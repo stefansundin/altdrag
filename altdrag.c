@@ -341,8 +341,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		hide = 1;
 		RemoveTray();
 	}
-	else if (msg == WM_OPENCONFIG && (wParam || !hide)) {
-		OpenConfig(0);
+	else if (msg == WM_OPENCONFIG && (lParam || !hide)) {
+		OpenConfig(wParam);
 	}
 	else if (msg == WM_TASKBARCREATED) {
 		tray_added = 0;
@@ -381,7 +381,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			SendMessage(hwnd, WM_OPENCONFIG, 0, 0);
 		}
 		else if (wmId == SWM_ABOUT) {
-			OpenConfig(4);
+			SendMessage(hwnd, WM_OPENCONFIG, 4, 0);
 		}
 		else if (wmId == SWM_EXIT) {
 			DestroyWindow(hwnd);
