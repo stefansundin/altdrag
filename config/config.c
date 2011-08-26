@@ -77,12 +77,59 @@ void UpdateSettings() {
 	PostMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 }
 
+void UpdateL10n() {
+	//Update window title
+	PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
+	
+	//Update tab titles
+	HWND tc = PropSheet_GetTabControl(g_cfgwnd);
+	int numrows_prev = TabCtrl_GetRowCount(tc);
+	wchar_t *titles[] = { l10n->tab_general, l10n->tab_input, l10n->tab_blacklist, l10n->tab_advanced, l10n->tab_about };
+	int i;
+	for (i=0; i < sizeof(titles)/sizeof(titles[0]); i++) {
+		TCITEM ti;
+		ti.mask = TCIF_TEXT;
+		ti.pszText = titles[i];
+		TabCtrl_SetItem(tc, i, &ti);
+	}
+	
+	//Modify UI if number of rows have changed
+	int numrows = TabCtrl_GetRowCount(tc);
+	if (numrows_prev != numrows) {
+		HWND page = PropSheet_GetCurrentPageHwnd(g_cfgwnd);
+		if (page != NULL) {
+			WINDOWPLACEMENT wndpl;
+			wndpl.length = sizeof(WINDOWPLACEMENT);
+			//Resize window
+			GetWindowPlacement(g_cfgwnd, &wndpl);
+			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+388+18*numrows;
+			SetWindowPlacement(g_cfgwnd, &wndpl);
+			//Resize tabcontrol
+			GetWindowPlacement(tc, &wndpl);
+			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+317+18*numrows;
+			SetWindowPlacement(tc, &wndpl);
+			//Move button
+			HWND button = GetDlgItem(g_cfgwnd, IDOK);
+			GetWindowPlacement(button, &wndpl);
+			int height = wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
+			wndpl.rcNormalPosition.top = 330+18*numrows;
+			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+height;
+			SetWindowPlacement(button, &wndpl);
+			//Re-select tab
+			int index = TabCtrl_GetCurSel(tc);
+			PropSheet_SetCurSel(g_cfgwnd, (index+1)%(sizeof(titles)/sizeof(titles[0])), NULL);
+			PropSheet_SetCurSel(g_cfgwnd, index, NULL);
+			//Invalidate region
+			GetWindowPlacement(g_cfgwnd, &wndpl);
+			InvalidateRect(g_cfgwnd, &wndpl.rcNormalPosition, TRUE);
+		}
+	}
+}
+
 BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	if (msg == PSCB_INITIALIZED) {
 		g_cfgwnd = hwnd;
-		
-		//Update window title
-		PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
+		UpdateL10n();
 		
 		//OK button replaces Cancel button
 		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
@@ -144,6 +191,7 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				l10n = languages[i].strings;
 				WritePrivateProfileString(APP_NAME, L"Language", languages[i].code, inipath);
 				updatel10n = 1;
+				UpdateL10n();
 			}
 		}
 		else if (wParam == IDC_AUTOSTART) {
@@ -172,20 +220,6 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 	}
 	if (updatel10n) {
-		//Update window title
-		PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
-		
-		//Update tab titles
-		HWND tc = PropSheet_GetTabControl(g_cfgwnd);
-		wchar_t *titles[] = { l10n->tab_general, l10n->tab_input, l10n->tab_blacklist, l10n->tab_advanced, l10n->tab_about };
-		int i;
-		for (i=0; i < sizeof(titles)/sizeof(titles[0]); i++) {
-			TCITEM ti;
-			ti.mask = TCIF_TEXT;
-			ti.pszText = titles[i];
-			TabCtrl_SetItem(tc, i, &ti);
-		}
-		
 		//Update text
 		SetDlgItemText(hwnd, IDC_GENERAL_BOX,        l10n->general_box);
 		SetDlgItemText(hwnd, IDC_AUTOFOCUS,          l10n->general_autofocus);
