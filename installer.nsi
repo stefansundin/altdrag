@@ -201,6 +201,7 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang ${LANG_GALICIAN}     gl-ES
 	!insertmacro Lang ${LANG_SIMPCHINESE}  zh-CN
 	!insertmacro Lang ${LANG_SLOVAK}       sk-SK
+	!insertmacro Lang ${LANG_RUSSIAN}      ru-RU
 	
 	;Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
