@@ -98,21 +98,22 @@ void UpdateL10n() {
 	if (numrows_prev != numrows) {
 		HWND page = PropSheet_GetCurrentPageHwnd(g_cfgwnd);
 		if (page != NULL) {
+			int diffrows = numrows-numrows_prev;
 			WINDOWPLACEMENT wndpl;
 			wndpl.length = sizeof(WINDOWPLACEMENT);
 			//Resize window
 			GetWindowPlacement(g_cfgwnd, &wndpl);
-			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+388+18*numrows;
+			wndpl.rcNormalPosition.bottom += 18*diffrows;
 			SetWindowPlacement(g_cfgwnd, &wndpl);
 			//Resize tabcontrol
 			GetWindowPlacement(tc, &wndpl);
-			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+317+18*numrows;
+			wndpl.rcNormalPosition.bottom += 18*diffrows;
 			SetWindowPlacement(tc, &wndpl);
 			//Move button
 			HWND button = GetDlgItem(g_cfgwnd, IDOK);
 			GetWindowPlacement(button, &wndpl);
 			int height = wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
-			wndpl.rcNormalPosition.top = 330+18*numrows;
+			wndpl.rcNormalPosition.top += 18*diffrows;
 			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+height;
 			SetWindowPlacement(button, &wndpl);
 			//Re-select tab
