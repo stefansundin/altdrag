@@ -116,9 +116,7 @@ void UpdateL10n() {
 			wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+height;
 			SetWindowPlacement(button, &wndpl);
 			//Re-select tab
-			int index = TabCtrl_GetCurSel(tc);
-			PropSheet_SetCurSel(g_cfgwnd, (index+1)%(sizeof(titles)/sizeof(titles[0])), NULL);
-			PropSheet_SetCurSel(g_cfgwnd, index, NULL);
+			PropSheet_SetCurSel(g_cfgwnd, page, 0);
 			//Invalidate region
 			GetWindowPlacement(g_cfgwnd, &wndpl);
 			InvalidateRect(g_cfgwnd, &wndpl.rcNormalPosition, TRUE);
