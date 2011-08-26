@@ -10,7 +10,7 @@
 struct strings sk_SK = {
  /* menu_enable    */ L"Zapnúť",
  /* menu_disable   */ L"Vypnúť",
- /* menu_hide      */ L"Skryť lištu",
+ /* menu_hide      */ L"Odstrániť z lišty",
  /* menu_options   */ L"Možnosti",
  /* menu_autostart */ L"Automatický štart",
  /* menu_settings  */ L"Otvoriť nastavenia",
