@@ -1,4 +1,4 @@
-/*
+﻿/*
 	AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ struct strings zh_CN = {
  /* update_nonew   */ L"没有可用的更新.",
  
  /* === config === */
- /* lang              */ L"Chinese",
+ /* lang              */ L"简体",
  /* title             */ APP_NAME L" 配置",
  /* tabs */
  /* _general          */ L"通用",

@@ -156,8 +156,7 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
-			wsprintf(txt, L"%s (%s)", languages[i].strings->lang, languages[i].code);
-			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), txt);
+			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), languages[i].strings->lang);
 			if (l10n == languages[i].strings) {
 				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
 			}

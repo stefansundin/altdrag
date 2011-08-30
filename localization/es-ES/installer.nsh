@@ -1,4 +1,4 @@
-;AltDrag - es-ES localization by Alexander De Sousa (xandy.lua@gmail.com)
+ï»¿;AltDrag - es-ES localization by Alexander De Sousa (xandy.lua@gmail.com)
 ;
 ;This program is free software: you can redistribute it and/or modify
 ;it under the terms of the GNU General Public License as published by
@@ -8,22 +8,22 @@
 !insertmacro MUI_LANGUAGE "Spanish"
 !define LANG ${LANG_SPANISH}
 
-LangString L10N_UPGRADE_TITLE     ${LANG} "Ya está instalado"
-LangString L10N_UPGRADE_SUBTITLE  ${LANG} "Elige el modo de instalación de ${APP_NAME}."
-LangString L10N_UPGRADE_HEADER    ${LANG} "${APP_NAME} ya se encuentra instalado. Selecciona la operación que quieres llevar a cabo y pulsa Siguiente para continuar."
-LangString L10N_UPGRADE_UPGRADE   ${LANG} "&Actualiza ${APP_NAME} a la versión ${APP_VERSION}."
-LangString L10N_UPGRADE_INI       ${LANG} "Se creará una copia de la configuración actual en ${APP_NAME}-old.ini."
-LangString L10N_UPGRADE_INSTALL   ${LANG} "&Instalar en otra ubicación"
+LangString L10N_UPGRADE_TITLE     ${LANG} "Ya estÃ¡ instalado"
+LangString L10N_UPGRADE_SUBTITLE  ${LANG} "Elige el modo de instalaciÃ³n de ${APP_NAME}."
+LangString L10N_UPGRADE_HEADER    ${LANG} "${APP_NAME} ya se encuentra instalado. Selecciona la operaciÃ³n que quieres llevar a cabo y pulsa Siguiente para continuar."
+LangString L10N_UPGRADE_UPGRADE   ${LANG} "&Actualiza ${APP_NAME} a la versiÃ³n ${APP_VERSION}."
+LangString L10N_UPGRADE_INI       ${LANG} "Se crearÃ¡ una copia de la configuraciÃ³n actual en ${APP_NAME}-old.ini."
+LangString L10N_UPGRADE_INSTALL   ${LANG} "&Instalar en otra ubicaciÃ³n"
 LangString L10N_UPGRADE_UNINSTALL ${LANG} "&Desinstalar ${APP_NAME}."
 LangString L10N_UPDATE_SECTION    ${LANG} "Comprobar actualizaciones antes de instalar"
-LangString L10N_UPDATE_DIALOG     ${LANG} "Una nueva versión está disponible.$\n¿Anular instalación y visitar la página de descarga?"
-LangString L10N_SHORTCUT          ${LANG} "Acceso directo en el menú Inicio"
+LangString L10N_UPDATE_DIALOG     ${LANG} "Una nueva versiÃ³n estÃ¡ disponible.$\nÂ¿Anular instalaciÃ³n y visitar la pÃ¡gina de descarga?"
+LangString L10N_SHORTCUT          ${LANG} "Acceso directo en el menÃº Inicio"
 LangString L10N_AUTOSTART         ${LANG} "Iniciar con Windows"
 LangString L10N_AUTOSTART_HIDE    ${LANG} "Ocultar icono"
 
 LangString L10N_ALTSHIFT_TITLE    ${LANG} "Atajo de teclado"
-LangString L10N_ALTSHIFT_SUBTITLE ${LANG} "El atajo Alt + Mayús. entra en conflicto con ${APP_NAME}."
-LangString L10N_ALTSHIFT_HEADER   ${LANG} "El instalador ha detectado que el atajo de teclado para activar el esquema de teclado actual es Alt+Mayús.$\n$\nAl usar ${APP_NAME}, puedes pulsar Mayús mientras arrastras ventanas para hacer que se peguen a otras. Es probable que pulses Alt + Mayús., la misma combinación que cambia tu distribución de teclado. Aunque ${APP_NAME} intente bloquear estos cambios accidentales, no lo conseguirá si presionas Mayús antes de empezar a mover una ventana.$\n$\nPuedes desactivar o cambiar el atajo que cambia la distribución de teclado pulsando este botón. Pulsa aquí para continuar."
-LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&Configuración de Teclado"
+LangString L10N_ALTSHIFT_SUBTITLE ${LANG} "El atajo Alt + MayÃºs. entra en conflicto con ${APP_NAME}."
+LangString L10N_ALTSHIFT_HEADER   ${LANG} "El instalador ha detectado que el atajo de teclado para activar el esquema de teclado actual es Alt+MayÃºs.$\n$\nAl usar ${APP_NAME}, puedes pulsar MayÃºs mientras arrastras ventanas para hacer que se peguen a otras. Es probable que pulses Alt + MayÃºs., la misma combinaciÃ³n que cambia tu distribuciÃ³n de teclado. Aunque ${APP_NAME} intente bloquear estos cambios accidentales, no lo conseguirÃ¡ si presionas MayÃºs antes de empezar a mover una ventana.$\n$\nPuedes desactivar o cambiar el atajo que cambia la distribuciÃ³n de teclado pulsando este botÃ³n. Pulsa aquÃ­ para continuar."
+LangString L10N_ALTSHIFT_BUTTON   ${LANG} "&ConfiguraciÃ³n de Teclado"
 
 !undef LANG

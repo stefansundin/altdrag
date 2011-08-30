@@ -1,4 +1,4 @@
-/*
+﻿/*
 	AltDrag - ko-KR localization by 김장환 (janghwan@gmail.com)
 	Do not localize APP_NAME, it will be automatically replaced.
 	Keep this file in UTF–8.

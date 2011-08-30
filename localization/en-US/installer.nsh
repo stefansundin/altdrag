@@ -1,11 +1,11 @@
-;AltDrag - en-US localization by Stefan Sundin (recover89@gmail.com)
+﻿;AltDrag - en-US localization by Stefan Sundin (recover89@gmail.com)
 ;
 ;This program is free software: you can redistribute it and/or modify
 ;it under the terms of the GNU General Public License as published by
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
 
-!insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "English" ;English name of this language
 !define LANG ${LANG_ENGLISH}
 
 LangString L10N_UPGRADE_TITLE     ${LANG} "Already Installed"
