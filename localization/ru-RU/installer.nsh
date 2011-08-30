@@ -5,7 +5,7 @@
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
 
-!insertmacro MUI_LANGUAGE "Russian" ;English name of the language
+!insertmacro MUI_LANGUAGE "Russian"
 !define LANG ${LANG_RUSSIAN}
 
 LangString L10N_UPGRADE_TITLE     ${LANG} "Уже установлено"

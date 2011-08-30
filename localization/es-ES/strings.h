@@ -1,4 +1,4 @@
-/*
+﻿/*
 	AltDrag - es-ES localization by Alexander De Sousa (xandy.lua@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify

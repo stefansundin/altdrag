@@ -1,4 +1,4 @@
-;AltDrag - de-DE ‹bersetzung von Peter Fiolka (info@csf-24.de)
+Ôªø;AltDrag - de-DE √úbersetzung von Peter Fiolka (info@csf-24.de)
 ;Do not localize APP_NAME, it will be automatically replaced.
 ;
 ;Copyright (C) 2009  Stefan Sundin (recover89@gmail.com)
@@ -13,12 +13,12 @@
 !insertmacro MUI_LANGUAGE "Deutsch"
 !define LANG ${LANG_GERMAN}
 
-LangString L10N_UPDATE_SECTION    ${LANG} "‹berpr¸fe auf neue Version"
+LangString L10N_UPDATE_SECTION    ${LANG} "√úberpr√ºfe auf neue Version"
 LangString L10N_UPDATE_DIALOG     ${LANG} "Es wurde eine neue Version gefunden.$\nInstallation abbrechen und zur Webseite gehen?"
-LangString L10N_RUNNING           ${LANG} "${APP_NAME} l‰uft gerade. Schlieﬂen?"
-LangString L10N_RUNNING_UNINSTALL ${LANG} "Wenn Sie NEIN w‰hlen, wird ${APP_NAME} beim n‰chsten Neustart entfernt."
-LangString L10N_CLOSING           ${LANG} "Schlieﬂe ${APP_NAME}"
-LangString L10N_SHORTCUT          ${LANG} "Startmen¸ Verkn¸pfung"
+LangString L10N_RUNNING           ${LANG} "${APP_NAME} l√§uft gerade. Schlie√üen?"
+LangString L10N_RUNNING_UNINSTALL ${LANG} "Wenn Sie NEIN w√§hlen, wird ${APP_NAME} beim n√§chsten Neustart entfernt."
+LangString L10N_CLOSING           ${LANG} "Schlie√üe ${APP_NAME}"
+LangString L10N_SHORTCUT          ${LANG} "Startmen√º Verkn√ºpfung"
 LangString L10N_AUTOSTART         ${LANG} "Autostart"
 LangString L10N_AUTOSTART_HIDE    ${LANG} "Verstecke Icon"
 

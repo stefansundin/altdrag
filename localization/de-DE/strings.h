@@ -1,4 +1,4 @@
-/*
+﻿/*
 	AltDrag - de-DE localization by Peter Fiolka (info@csf-24.de)
 	Do not localize APP_NAME, it will be automatically replaced.
 	Keep this file in UTF–8
