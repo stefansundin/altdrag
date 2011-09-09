@@ -7,22 +7,23 @@
 
 In addition to simply dragging windows, you can double-click a window to maximize it.
 
-When dragging a window, you can press the shift key to make it snap to the edges of other windows.
+While dragging a window, you can press the shift key to make the window snap to other windows.
 
-If you still have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=22OaiP_HPXY this short video] that one of my users have posted to YouTube.
+If you still have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=22OaiP_HPXY this short video] that a user has posted to YouTube.
 
 
 == Resize ==
 
-You can use either the middle or right mouse button to resize windows. Think of the window as if it is divided into nine squares, and depending on where you press, you will resize the nearest corner.
+You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press.
 
 http://altdrag.googlecode.com/svn/wiki/resize.png
 
 
 = Configuration =
 
-Since 1.0, AltDrag has a configuration GUI. The simplest way to open it is through the tray menu. The settings are saved in a file called `AltDrag.ini`. There are a few settings that you can not configure in the GUI, so you must configure them manually by opening the ini file.
+Since 1.0, AltDrag has a configuration GUI. The simplest way to open it is by double-clicking the tray icon. The settings are saved in a file called `AltDrag.ini`.
 
+http://altdrag.googlecode.com/svn/wiki/configuration_window.png
 
 == Language ==
 You can currently choose between English, Spanish, Galician and Chinese. I used to offer translations for Russian and Korean, but they have been discontinued because they are out of date.
@@ -35,8 +36,6 @@ You can reconfigure what the mouse buttons do here. The actions that you can cho
 
 If you have a great idea for a new mouse action, put in a request in the [http://code.google.com/p/altdrag/issues/list issue tracker].
 
-You can also configure what keys should trigger the alt-dragging. There is [Hotkeys a separate wiki page] about this where you can read more.
-
 
 == Blacklist ==
 There are three blacklists in AltDrag. They let you disable AltDrag from affecting some windows. This is a pretty advanced option and even has [Blacklist its own wiki page]. I recommend you to skip this option until you have learned more about AltDrag.
@@ -45,9 +44,9 @@ There are three blacklists in AltDrag. They let you disable AltDrag from affecti
 == Performance ==
 If you open the ini file, you can configure a few settings related to performance.
 
-First there is the `Cursor` option which disables the mouse cursor from changing during drag and resize.
+First there is the `Cursor` option which disables the mouse cursor from changing shape during dragging and resizing.
 
-Then there are `MoveRate` and `ResizeRate` which controls how often the window is redrawn during move and resize. Increase the values to make AltDrag redraw the window less often. Set these values to `1` to make AltDrag use pre 1.0 behavior.
+Then there are `MoveRate` and `ResizeRate` which controls how often the window is redrawn during move and resize. Increase the values to make AltDrag redraw the window less often. Set these values to `1` to make AltDrag use pre-1.0 behavior.
 
 
 == Updates ==
@@ -57,7 +56,7 @@ Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml t
 
 
 = Other tricks =
-There is a hidden setting in Windows that allows for window activation on mouse hovering. This setting is first exposed in the control panel in Windows 7. For previous Windows versions you have to use the [http://windows.microsoft.com/en-US/windows/downloads/windows-xp TweakUI utility] and enable the "X-Mouse" setting. You can find out what registry settings that does this [http://blogs.msdn.com/b/oldnewthing/archive/2011/06/02/10170483.aspx here]. I expect to add functionality in a later version so you can configure this in AltDrag.
+There is a hidden setting in Windows that allows for window activation on mouse hovering. This setting is first exposed in the control panel in Windows 7. For previous Windows versions you have to use the [http://windows.microsoft.com/en-US/windows/downloads/windows-xp TweakUI utility] and enable the "X-Mouse" setting. You can find out what registry settings does this [http://blogs.msdn.com/b/oldnewthing/archive/2011/06/02/10170483.aspx here].
 
 
 = UAC =
