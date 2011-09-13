@@ -67,7 +67,7 @@ Var AutostartSectionState ;Helps keep track of the autostart checkboxes
 !include "localization\installer.nsh"
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
-!macro Lang id lang
+!macro Lang lang id
 ${If} $LANGUAGE == ${id}
 	WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "${lang}"
 ${EndIf}
@@ -196,12 +196,13 @@ Section "${APP_NAME}" sec_app
 	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
 	
-	!insertmacro Lang ${LANG_ENGLISH}      en-US
-	!insertmacro Lang ${LANG_SPANISH}      es-ES
-	!insertmacro Lang ${LANG_GALICIAN}     gl-ES
-	!insertmacro Lang ${LANG_SIMPCHINESE}  zh-CN
-	!insertmacro Lang ${LANG_SLOVAK}       sk-SK
-	!insertmacro Lang ${LANG_RUSSIAN}      ru-RU
+	!insertmacro Lang en-US ${LANG_ENGLISH}
+	!insertmacro Lang es-ES ${LANG_SPANISH}
+	!insertmacro Lang gl-ES ${LANG_GALICIAN}
+	!insertmacro Lang zh-CN ${LANG_SIMPCHINESE}
+	!insertmacro Lang sk-SK ${LANG_SLOVAK}
+	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
+	!insertmacro Lang fr-FR ${LANG_FRENCH}
 	
 	;Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
@@ -251,7 +252,7 @@ Function PageAltShift
 	nsDialogs::Create 1018
 	!insertmacro MUI_HEADER_TEXT "$(L10N_ALTSHIFT_TITLE)" "$(L10N_ALTSHIFT_SUBTITLE)"
 	${NSD_CreateLabel} 0 0 100% 143 "$(L10N_ALTSHIFT_HEADER)"
-	${NSD_CreateButton} 0 144 92u 17u "$(L10N_ALTSHIFT_BUTTON)"
+	${NSD_CreateButton} 0 162 92u 17u "$(L10N_ALTSHIFT_BUTTON)"
 	Pop $0
 	${NSD_OnClick} $0 OpenKeyboardSettings
 	
