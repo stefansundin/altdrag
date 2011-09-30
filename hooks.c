@@ -1424,8 +1424,8 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 			//Get window and foreground window
 			HWND window = WindowFromPoint(pt);
 			HWND foreground = GetForegroundWindow();
-			//Return if no window, or if foreground window is blacklisted
-			if (window == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
+			//Return if no window, if same window, or if foreground window is blacklisted
+			if (window == NULL || GetAncestor(window,GA_ROOT) == foreground || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
@@ -1486,7 +1486,6 @@ int UnhookMouse() {
 	
 	//Stop action
 	sharedstate.action = ACTION_NONE;
-	state.clicktime = 0;
 	if (sharedsettings.Performance.Cursor) {
 		ShowWindowAsync(cursorwnd, SW_HIDE);
 	}
