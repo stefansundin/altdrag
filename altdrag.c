@@ -293,7 +293,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_TRAY) {
 		if (lParam == WM_LBUTTONDOWN || lParam == WM_LBUTTONDBLCLK) {
 			ToggleState();
-			if (lParam == WM_LBUTTONDBLCLK) {
+			if (lParam == WM_LBUTTONDBLCLK && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 				SendMessage(hwnd, WM_OPENCONFIG, 0, 0);
 			}
 		}
