@@ -1420,12 +1420,17 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 	if (nCode == HC_ACTION) {
 		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
 		POINT pt = msg->pt;
+		
 		if ((wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL) && !state.alt) {
 			//Get window and foreground window
 			HWND window = WindowFromPoint(pt);
 			HWND foreground = GetForegroundWindow();
-			//Return if no window, if same window, or if foreground window is blacklisted
-			if (window == NULL || GetAncestor(window,GA_ROOT) == foreground || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
+			int style = GetWindowLongPtr(window, GWL_STYLE);
+			
+			//Return if no window, if same window (only if child has no scrollbars), or if foreground window is blacklisted
+			if (window == NULL
+			 || (!(style&WS_VSCROLL || style&WS_HSCROLL) && GetAncestor(window,GA_ROOT) == foreground)
+			 || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
