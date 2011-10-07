@@ -13,11 +13,11 @@
 
 //Boring stuff
 BOOL CALLBACK PropSheetProc(HWND, UINT, LPARAM);
-BOOL CALLBACK GeneralPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK InputPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK BlacklistPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK GeneralPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK InputPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK BlacklistPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 void LinkProc(HWND, UINT, WPARAM, LPARAM);
 HWND g_cfgwnd = NULL;
 
@@ -26,6 +26,7 @@ LRESULT CALLBACK CursorProc(HWND, UINT, WPARAM, LPARAM);
 
 //Include stuff
 #include "resource.h"
+#include "../include/autostart.c"
 
 //Entry point
 void OpenConfig(int startpage) {
@@ -141,7 +142,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	}
 }
 
-BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	int updatel10n = 0;
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[20];
@@ -163,27 +164,31 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 	}
 	else if (msg == WM_COMMAND) {
+		int id = LOWORD(wParam);
+		int event = HIWORD(wParam);
+		HWND control = GetDlgItem(hwnd, id);
+		int val = Button_GetCheck(control);
 		wchar_t txt[10];
-		int val = Button_GetCheck(GetDlgItem(hwnd,wParam));
-		if (wParam == IDC_AUTOFOCUS) {
+		
+		if (id == IDC_AUTOFOCUS) {
 			WritePrivateProfileString(APP_NAME, L"AutoFocus", _itow(val,txt,10), inipath);
 		}
-		else if (LOWORD(wParam) == IDC_AUTOSNAP && HIWORD(wParam) == CBN_SELCHANGE) {
-			val = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP));
+		else if (id == IDC_AUTOSNAP && event == CBN_SELCHANGE) {
+			val = ComboBox_GetCurSel(control);
 			WritePrivateProfileString(APP_NAME, L"AutoSnap", _itow(val,txt,10), inipath);
 		}
-		else if (wParam == IDC_AERO) {
+		else if (id == IDC_AERO) {
 			WritePrivateProfileString(APP_NAME, L"Aero", _itow(val,txt,10), inipath);
 		}
-		else if (wParam == IDC_INACTIVESCROLL) {
+		else if (id == IDC_INACTIVESCROLL) {
 			WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(val,txt,10), inipath);
 		}
-		else if (LOWORD(wParam) == IDC_LANGUAGE && HIWORD(wParam) == CBN_SELCHANGE) {
-			int i = ComboBox_GetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE));
+		else if (id == IDC_LANGUAGE && event == CBN_SELCHANGE) {
+			int i = ComboBox_GetCurSel(control);
 			if (languages[i].code == NULL) {
 				ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Translate", NULL, NULL, SW_SHOWNORMAL);
 				for (i=0; l10n != languages[i].strings; i++) {}
-				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
+				ComboBox_SetCurSel(control, i);
 			}
 			else {
 				l10n = languages[i].strings;
@@ -192,14 +197,14 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				UpdateL10n();
 			}
 		}
-		else if (wParam == IDC_AUTOSTART) {
+		else if (id == IDC_AUTOSTART) {
 			SetAutostart(val, 0);
 			EnableWindow(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), val);
 			if (!val) {
 				Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), BST_UNCHECKED);
 			}
 		}
-		else if (wParam == IDC_AUTOSTART_HIDE) {
+		else if (id == IDC_AUTOSTART_HIDE) {
 			SetAutostart(1, val);
 		}
 		UpdateSettings();
@@ -247,7 +252,7 @@ BOOL CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	return FALSE;
 }
 
-BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	//Mouse actions
 	struct {
 		int control;
@@ -381,7 +386,7 @@ BOOL CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	return FALSE;
 }
 
-BOOL CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[1000];
 		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
@@ -474,7 +479,7 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[10];
 		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
@@ -501,6 +506,9 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			else if (wParam == IDC_BETA) {
 				WritePrivateProfileString(L"Update", L"Beta", _itow(val,txt,10), inipath);
 			}
+			else if (wParam == IDC_CHECKNOW) {
+				CheckForUpdate(1);
+			}
 		}
 	}
 	else if (msg == WM_NOTIFY) {
@@ -511,6 +519,7 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_HOOKWINDOWS,     l10n->advanced_hookwindows);
 			SetDlgItemText(hwnd, IDC_CHECKONSTARTUP,  l10n->advanced_checkonstartup);
 			SetDlgItemText(hwnd, IDC_BETA,            l10n->advanced_beta);
+			SetDlgItemText(hwnd, IDC_CHECKNOW,        l10n->advanced_checknow);
 			SetDlgItemText(hwnd, IDC_INI,             l10n->advanced_ini);
 			SetDlgItemText(hwnd, IDC_OPENINI,         l10n->advanced_openini);
 		}
@@ -518,7 +527,7 @@ BOOL CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 	return FALSE;
 }
 
-BOOL CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_COMMAND) {
 		if (wParam == IDC_DONATE) {
 			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);

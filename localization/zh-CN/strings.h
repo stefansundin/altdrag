@@ -8,20 +8,20 @@
 */
 
 struct strings zh_CN = {
+ /* === tray === */
+ /* tray_enabled   */ APP_NAME,
+ /* tray_disabled  */ APP_NAME " (禁止)",
  /* menu_enable    */ L"允许",
  /* menu_disable   */ L"禁止",
  /* menu_hide      */ L"隐藏通知栏图标",
- /* menu_options   */ L"选项",
- /* menu_autostart */ L"随系统自动启动",
- /* menu_settings  */ L"打开设置",
- /* menu_chkupdate */ L"检查更新",
  /* menu_update    */ L"发现有可用的更新!",
+ /* menu_config    */ L"打开设置",
  /* menu_about     */ L"关于",
  /* menu_exit      */ L"退出",
- /* tray_enabled   */ APP_NAME " (允许)",
- /* tray_disabled  */ APP_NAME " (禁止)",
+ 
+ /* === update === */
  /* update_balloon */ L"发现新版本!",
- /* update_dialog  */ L"有可用的新版本.\n打开AltDrag网站吗？?\n\n你可以在设置中禁用自动更新.",
+ /* update_dialog  */ L"有可用的新版本. 打开AltDrag网站吗？?",
  /* update_nonew   */ L"没有可用的更新.",
  
  /* === config === */
@@ -78,6 +78,7 @@ struct strings zh_CN = {
  /* _hookwindows      */ L"(&E)在普通移动中吸附窗口.\n窗口之间自动吸附!\n注意这个特性不是100%安全的，因为他会对其他进程进行挂接或类似操作.",
  /* _checkonstartup   */ L"(&u)处动检查更新",
  /* _beta             */ L"为&beta版检查更新",
+ /* _checknow         */ L"检查更新",
  /* _ini              */ APP_NAME L"的设置保存在"APP_NAME".ini. 有少量配置可以通过手工编辑此文件来更改.",
  /* _openini          */ L"打开&ini文件",
  /* about tab */

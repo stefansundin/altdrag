@@ -13,6 +13,7 @@
 #define IDC_AUTOSNAP_HEADER                     1000
 #define IDC_DONATIONS_BOX                       1000
 #define IDC_FINDWINDOW                          1000
+#define IDC_CHECKNOW                            1001
 #define IDC_DONATIONS_PLEA                      1001
 #define IDC_LANGUAGE_HEADER                     1001
 #define IDC_INI                                 1002

@@ -8,20 +8,20 @@
 */
 
 struct strings es_ES = {
+ /* === tray === */
+ /* tray_enabled   */ APP_NAME,
+ /* tray_disabled  */ APP_NAME " (desactivado)",
  /* menu_enable    */ L"Activar",
  /* menu_disable   */ L"Desactivar",
  /* menu_hide      */ L"Ocultar icono",
- /* menu_options   */ L"Opciones",
- /* menu_autostart */ L"Iniciar con Windows",
- /* menu_settings  */ L"Abrir configuración",
- /* menu_chkupdate */ L"Comprobar actualizaciones",
  /* menu_update    */ L"¡Actualización disponible!",
+ /* menu_config    */ L"Abrir configuración",
  /* menu_about     */ L"Acerca de",
  /* menu_exit      */ L"Salir",
- /* tray_enabled   */ APP_NAME " (activado)",
- /* tray_disabled  */ APP_NAME " (desactivado)",
+ 
+ /* === update === */
  /* update_balloon */ L"¡Nueva versión disponible!",
- /* update_dialog  */ L"Hay una nueva versión disponible.\n¿Ir a la página web?\n\nPuedes desactivar la comprobación automática de actualizaciones en la configuración.",
+ /* update_dialog  */ L"Hay una nueva versión disponible. ¿Ir a la página web?",
  /* update_nonew   */ L"No hay actualizaciones disponibles.",
  
  /* === config === */
@@ -78,6 +78,7 @@ struct strings es_ES = {
  /* _hookwindows      */ L"Enabli snappy nörmally möving windöws.\n< 100% safei",
  /* _checkonstartup   */ L"Automaticallö checki för updati",
  /* _beta             */ L"Checki für betai versionii",
+ /* _checknow         */ L"Comprobar actualizaciones",
  /* _ini              */ L"AltDrag.ini edito manuallo!",
  /* _openini          */ L"Openi inii fili",
  /* about tab */

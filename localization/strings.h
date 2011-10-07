@@ -1,17 +1,17 @@
 
 struct strings {
+	/* tray */
+	wchar_t *tray_enabled;
+	wchar_t *tray_disabled;
 	wchar_t *menu_enable;
 	wchar_t *menu_disable;
 	wchar_t *menu_hide;
-	wchar_t *menu_options;
-	wchar_t *menu_autostart;
-	wchar_t *menu_settings;
-	wchar_t *menu_chkupdate;
 	wchar_t *menu_update;
+	wchar_t *menu_config;
 	wchar_t *menu_about;
 	wchar_t *menu_exit;
-	wchar_t *tray_enabled;
-	wchar_t *tray_disabled;
+	
+	/* update */
 	wchar_t *update_balloon;
 	wchar_t *update_dialog;
 	wchar_t *update_nonew;
@@ -65,6 +65,7 @@ struct strings {
 	wchar_t *advanced_hookwindows;
 	wchar_t *advanced_checkonstartup;
 	wchar_t *advanced_beta;
+	wchar_t *advanced_checknow;
 	wchar_t *advanced_ini;
 	wchar_t *advanced_openini;
 	wchar_t *about_box;

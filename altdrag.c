@@ -28,15 +28,10 @@
 #define WM_TRAY                WM_USER+1
 #define SWM_TOGGLE             WM_APP+1
 #define SWM_HIDE               WM_APP+2
-#define SWM_AUTOSTART_ON       WM_APP+3
-#define SWM_AUTOSTART_OFF      WM_APP+4
-#define SWM_AUTOSTART_HIDE_ON  WM_APP+5
-#define SWM_AUTOSTART_HIDE_OFF WM_APP+6
-#define SWM_SETTINGS           WM_APP+7
-#define SWM_CHECKFORUPDATE     WM_APP+8
-#define SWM_UPDATE             WM_APP+9
-#define SWM_ABOUT              WM_APP+10
-#define SWM_EXIT               WM_APP+11
+#define SWM_UPDATE             WM_APP+3
+#define SWM_CONFIG             WM_APP+4
+#define SWM_ABOUT              WM_APP+5
+#define SWM_EXIT               WM_APP+6
 
 //Stuff missing in MinGW
 #ifndef NIIF_USER
@@ -57,6 +52,7 @@ UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
 UINT WM_OPENCONFIG = 0;
 wchar_t inipath[MAX_PATH];
+#define ENABLED() (keyhook || msghook)
 
 //Cool stuff
 struct {
@@ -70,7 +66,6 @@ BOOL x64 = FALSE;
 //Include stuff
 #include "localization/strings.h"
 #include "include/error.c"
-#include "include/autostart.c"
 #include "include/tray.c"
 #include "include/update.c"
 #include "config/config.c"
@@ -275,12 +270,8 @@ int UnhookSystem() {
 	return 0;
 }
 
-int enabled() {
-	return (keyhook || msghook);
-}
-
 void ToggleState() {
-	if (enabled()) {
+	if (ENABLED()) {
 		UnhookSystem();
 	}
 	else {
@@ -328,7 +319,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		//Reload hooks
-		if (enabled()) {
+		if (ENABLED()) {
 			UnhookSystem();
 			HookSystem();
 		}
@@ -357,27 +348,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			hide = 1;
 			RemoveTray();
 		}
-		else if (wmId == SWM_AUTOSTART_ON) {
-			SetAutostart(1, 0);
-		}
-		else if (wmId == SWM_AUTOSTART_OFF) {
-			SetAutostart(0, 0);
-		}
-		else if (wmId == SWM_AUTOSTART_HIDE_ON) {
-			SetAutostart(1, 1);
-		}
-		else if (wmId == SWM_AUTOSTART_HIDE_OFF) {
-			SetAutostart(1, 0);
-		}
-		else if (wmId == SWM_CHECKFORUPDATE) {
-			CheckForUpdate(1);
-		}
 		else if (wmId == SWM_UPDATE) {
 			if (MessageBox(NULL, l10n->update_dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {
 				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
 			}
 		}
-		else if (wmId == SWM_SETTINGS) {
+		else if (wmId == SWM_CONFIG) {
 			SendMessage(hwnd, WM_OPENCONFIG, 0, 0);
 		}
 		else if (wmId == SWM_ABOUT) {

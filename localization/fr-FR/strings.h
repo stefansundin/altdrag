@@ -8,20 +8,20 @@
 */
 
 struct strings fr_FR = {
+ /* === tray === */
+ /* tray_enabled   */ APP_NAME,
+ /* tray_disabled  */ APP_NAME " (désactivé)",
  /* menu_enable    */ L"Activer",
  /* menu_disable   */ L"Désactiver",
  /* menu_hide      */ L"Cacher l'icone",
- /* menu_options   */ L"Options",
- /* menu_autostart */ L"Démarrage automatique",
- /* menu_settings  */ L"Paramètres",
- /* menu_chkupdate */ L"Vérifier la mise-à-jour",
  /* menu_update    */ L"Mise-à-jour disponible!",
+ /* menu_config    */ L"Paramètres",
  /* menu_about     */ L"A Propos",
  /* menu_exit      */ L"Quitter",
- /* tray_enabled   */ APP_NAME " (activé)",
- /* tray_disabled  */ APP_NAME " (désactivé)",
+ 
+ /* === update === */
  /* update_balloon */ L"Nouvelle version disponible!",
- /* update_dialog  */ L"Une nouvelle version est disponible.\nAller sur le site web?\n\nVous pouvez désactiver la détéction automatique de mise-à-jour dans les paramètres.",
+ /* update_dialog  */ L"Une nouvelle version est disponible. Aller sur le site web?",
  /* update_nonew   */ L"Pas de mise-à-jour disponible.",
  
  /* === config === */
@@ -78,6 +78,7 @@ struct strings fr_FR = {
  /* _hookwindows      */ L"&Aimenter les fenêtres déplacées normalement.\nFonctionne en plus de l'aimantation automatique!\nCette fonction n'est pas sûr à 100% car elle s'insère dans des processus étrangers et des choses de ce genre.",
  /* _checkonstartup   */ L"Chercher des mises-à-jours automatiquement",
  /* _beta             */ L"Chercher des versions &beta",
+ /* _checknow         */ L"Vérifier la mise-à-jour",
  /* _ini              */ L"Les paramètres de "APP_NAME" sont sauvés dans le fichier "APP_NAME".ini. Certains paramètres ne sont modifiable qu'en éditant le fichier manuellement.",
  /* _openini          */ L"&Editer le fichier",
  /* about tab */
