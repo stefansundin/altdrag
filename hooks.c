@@ -1,4 +1,3 @@
-int test = 0;
 /*
 	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
 	
@@ -70,10 +69,6 @@ struct {
 	POINT offset;
 	struct {
 		enum resize x, y;
-		int minwidth;
-		int maxwidth;
-		int minheight;
-		int maxheight;
 	} resize;
 	short blockaltup;
 	short ignorectrl;
@@ -1269,10 +1264,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Set window right/bottom origin
 				state.origin.right = wnd.right;
 				state.origin.bottom = wnd.bottom;
-				state.resize.minwidth = 0;
-				state.resize.maxwidth = 0;
-				state.resize.minheight = 0;
-				state.resize.maxheight = 0;
 				
 				//Aero-move this window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
@@ -1282,8 +1273,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					//Get minmaxinfo
 					MINMAXINFO mmi = {{}, {}, {}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {mon.right-mon.left,mon.bottom-mon.top}};
 					SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
-					DBG("xcmintrack: %d", GetSystemMetrics(SM_CXMINTRACK));
-					DBG("ycmintrack: %d", GetSystemMetrics(SM_CYMINTRACK));
 					
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
