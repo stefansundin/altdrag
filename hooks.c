@@ -70,7 +70,9 @@ struct {
 	struct {
 		enum resize x, y;
 		int minwidth;
+		int maxwidth;
 		int minheight;
+		int maxheight;
 	} resize;
 	short blockaltup;
 	short ignorectrl;
@@ -644,6 +646,17 @@ void MouseMove() {
 		return;
 	}
 	
+	//Get monitor info
+	MONITORINFO monitorinfo;
+	monitorinfo.cbSize = sizeof(MONITORINFO);
+	GetMonitorInfo(monitor, &monitorinfo);
+	RECT mon = monitorinfo.rcWork;
+	RECT fmon = monitorinfo.rcMonitor;
+	
+	//Get minmaxinfo
+	MINMAXINFO mmi = {{}, {}, {}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {mon.right-mon.left,mon.bottom-mon.top}};
+	SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
+	
 	//Get new position for window
 	if (sharedstate.action == ACTION_MOVE) {
 		posx = pt.x-state.offset.x;
@@ -653,13 +666,6 @@ void MouseMove() {
 		
 		//Aero Snap
 		if (sharedsettings.Aero) {
-			//Get monitor info
-			MONITORINFO monitorinfo;
-			monitorinfo.cbSize = sizeof(MONITORINFO);
-			GetMonitorInfo(monitor, &monitorinfo);
-			RECT mon = monitorinfo.rcWork;
-			RECT fmon = monitorinfo.rcMonitor;
-			
 			//Restore window?
 			if (maximized
 			 && ((pt.y >= mon.top+AERO_THRESHOLD)
@@ -688,7 +694,7 @@ void MouseMove() {
 			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Top right
 				state.wndentry->restore = 1;
-				wndwidth = (mon.right-mon.left)/2;
+				wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.right-wndwidth;
 				posy = mon.top;
@@ -697,15 +703,15 @@ void MouseMove() {
 				//Bottom left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
-				wndheight = (mon.bottom-mon.top)/2;
+				wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
 				posx = mon.left;
 				posy = mon.bottom-wndheight;
 			}
 			else if (mon.right-2*AERO_THRESHOLD < pt.x && mon.bottom-2*AERO_THRESHOLD < pt.y) {
 				//Bottom right
 				state.wndentry->restore = 1;
-				wndwidth = (mon.right-mon.left)/2;
-				wndheight = (mon.bottom-mon.top)/2;
+				wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
 				posx = mon.right-wndwidth;
 				posy = mon.bottom-wndheight;
 			}
@@ -729,34 +735,34 @@ void MouseMove() {
 			else if (pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Top
 				state.wndentry->restore = 1;
-				wndwidth = (mon.right-mon.left);
+				wndwidth = max(min((mon.right-mon.left), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
 				wndheight = (mon.bottom-mon.top)/2;
-				posx = mon.left;
+				posx = (mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
 				posy = mon.top;
 			}
 			else if (mon.bottom-AERO_THRESHOLD < pt.y) {
 				//Bottom
 				state.wndentry->restore = 1;
-				wndwidth = (mon.right-mon.left);
-				wndheight = (mon.bottom-mon.top)/2;
-				posx = mon.left;
+				wndwidth = max(min((mon.right-mon.left), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				posx = (mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
 				posy = mon.bottom-wndheight;
 			}
 			else if (pt.x < mon.left+AERO_THRESHOLD) {
 				//Left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
-				wndheight = (mon.bottom-mon.top);
+				wndheight = max(min((mon.bottom-mon.top), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
 				posx = mon.left;
-				posy = mon.top;
+				posy = (mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
 			}
 			else if (mon.right-AERO_THRESHOLD < pt.x) {
 				//Right
 				state.wndentry->restore = 1;
-				wndwidth = (mon.right-mon.left)/2;
-				wndheight = (mon.bottom-mon.top);
+				wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				wndheight = max(min((mon.bottom-mon.top), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
 				posx = mon.right-wndwidth;
-				posy = mon.top;
+				posy = (mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
 			}
 			else if (state.wndentry->restore) {
 				//Restore original window size
@@ -774,22 +780,10 @@ void MouseMove() {
 				MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 				
 				//Get new size after move
-				//Doing this since wndwidth and wndheight will be wrong if this window has a min/max size
+				//Doing this since wndwidth and wndheight might be wrong if the window is resized in chunks
 				GetWindowRect(state.hwnd, &wnd);
 				state.wndentry->last.width = wnd.right-wnd.left;
 				state.wndentry->last.height = wnd.bottom-wnd.top;
-				
-				//If the window has a restricting width or height, and the window was moved to the right or bottom, then move it again
-				if (mon.right-AERO_THRESHOLD < pt.x && wndwidth != state.wndentry->last.width) {
-					posx = mon.right-state.wndentry->last.width;
-				}
-				if (mon.bottom-AERO_THRESHOLD < pt.y && wndheight != state.wndentry->last.height) {
-					posy = mon.bottom-state.wndentry->last.height;
-				}
-				if ((mon.right-AERO_THRESHOLD < pt.x && wndwidth != state.wndentry->last.width)
-				 || (mon.bottom-AERO_THRESHOLD < pt.y && wndheight != state.wndentry->last.height)) {
-					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
-				}
 				
 				//We are done
 				return;
@@ -859,23 +853,40 @@ void MouseMove() {
 				ResizeSnap(&posx, &posy, &wndwidth, &wndheight);
 			}
 			
-			//Check if we have reached minwidth or minheight
-			if (state.resize.x == RESIZE_LEFT && state.resize.minwidth == 0 && wnd.right > state.origin.right) {
-				state.resize.minwidth = wnd.right-wnd.left;
+			//Make sure we don't try to make the window too small or too big
+			//This is only needed to prevent the window from drifting when resizing it on the left or right side
+			//Check if we have reached min/max width or height
+			if (state.resize.x == RESIZE_LEFT) {
+				if (state.resize.minwidth == 0 && wnd.right > state.origin.right) {
+					state.resize.minwidth = wnd.right-wnd.left;
+				}
+				else if (state.resize.maxwidth == 0 && wnd.right < state.origin.right) {
+					state.resize.maxwidth = wnd.right-wnd.left;
+				}
+				if (wndwidth <= state.resize.minwidth && state.resize.minwidth > 0) {
+					wndwidth = state.resize.minwidth;
+					posx = state.origin.right-wndwidth;
+				}
+				else if (wndwidth >= state.resize.maxwidth && state.resize.maxwidth > 0) {
+					wndwidth = state.resize.maxwidth;
+					posx = state.origin.right-wndwidth;
+				}
 			}
-			if (state.resize.y == RESIZE_TOP && state.resize.minheight == 0 && wnd.bottom > state.origin.bottom) {
-				state.resize.minheight = wnd.bottom-wnd.top;
-			}
-			
-			//Make sure we don't try to make the window too small
-			//This is only needed to prevent the window from drifting when resizing it to the right or downwards
-			if (wndwidth <= state.resize.minwidth && state.resize.minwidth > 0) {
-				wndwidth = state.resize.minwidth;
-				posx = state.origin.right-wndwidth;
-			}
-			if (wndheight <= state.resize.minheight && state.resize.minheight > 0) {
-				wndheight = state.resize.minheight;
-				posy = state.origin.bottom-wndheight;
+			if (state.resize.y == RESIZE_TOP) {
+				if (state.resize.minheight == 0 && wnd.bottom > state.origin.bottom) {
+					state.resize.minheight = wnd.bottom-wnd.top;
+				}
+				else if (state.resize.maxheight == 0 && wnd.bottom < state.origin.bottom) {
+					state.resize.maxheight = wnd.bottom-wnd.top;
+				}
+				if (wndheight <= state.resize.minheight && state.resize.minheight > 0) {
+					wndheight = state.resize.minheight;
+					posy = state.origin.bottom-wndheight;
+				}
+				else if (wndheight >= state.resize.maxheight && state.resize.maxheight > 0) {
+					wndheight = state.resize.maxheight;
+					posy = state.origin.bottom-wndheight;
+				}
 			}
 		}
 	}
@@ -1294,21 +1305,28 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.origin.right = wnd.right;
 				state.origin.bottom = wnd.bottom;
 				state.resize.minwidth = 0;
+				state.resize.maxwidth = 0;
 				state.resize.minheight = 0;
+				state.resize.maxheight = 0;
 				
 				//Aero-move this window if this is a double-click
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					sharedstate.action = ACTION_NONE; //Stop resize action
 					state.clicktime = 0; //Reset double-click time
 					
+					//Get minmaxinfo
+					MINMAXINFO mmi = {{}, {}, {}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {mon.right-mon.left,mon.bottom-mon.top}};
+					SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
+					
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
-					wndwidth = (mon.right-mon.left)/2;
-					wndheight = (mon.bottom-mon.top)/2;
+					wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+					wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
 					posx = mon.left;
 					posy = mon.top;
 					if (state.resize.y == RESIZE_CENTER) {
-						wndheight = mon.bottom-mon.top;
+						wndheight = max(min((mon.bottom-mon.top), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+						posy = (mon.bottom-mon.top)/2-wndheight/2;
 					}
 					else if (state.resize.y == RESIZE_BOTTOM) {
 						posy = mon.bottom-wndheight;
@@ -1317,8 +1335,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						posx = wnd.left;
 						wndwidth = wnd.right-wnd.left;
 						if (state.resize.y != RESIZE_CENTER) {
-							posx = mon.left;
-							wndwidth = mon.right-mon.left;
+							wndwidth = max(min((mon.right-mon.left), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+							posx = (mon.right-mon.left)/2-wndwidth/2;
 						}
 					}
 					else if (state.resize.x == RESIZE_RIGHT) {
@@ -1326,9 +1344,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 					
+					//Get new size after move
+					//Doing this since wndwidth and wndheight might be wrong if the window is resized in chunks
+					GetWindowRect(state.hwnd, &wnd);
 					//Update wndentry
-					state.wndentry->last.width = wndwidth;
-					state.wndentry->last.height = wndheight;
+					state.wndentry->last.width = wnd.right-wnd.left;
+					state.wndentry->last.height = wnd.bottom-wnd.top;
 					if (!state.wndentry->restore) {
 						state.wndentry->width = state.origin.width;
 						state.wndentry->height = state.origin.height;
