@@ -1,3 +1,4 @@
+int test = 0;
 /*
 	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
 	
@@ -824,8 +825,8 @@ void MouseMove() {
 		}
 		else {
 			if (state.resize.y == RESIZE_TOP) {
-				posy = pt.y-state.offset.y;
-				wndheight = wnd.bottom-pt.y+state.offset.y;
+				wndheight = max(min((wnd.bottom-pt.y+state.offset.y), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				posy = state.origin.bottom-wndheight;
 			}
 			else if (state.resize.y == RESIZE_CENTER) {
 				posy = wnd.top;
@@ -836,8 +837,8 @@ void MouseMove() {
 				wndheight = pt.y-wnd.top+state.offset.y;
 			}
 			if (state.resize.x == RESIZE_LEFT) {
-				posx = pt.x-state.offset.x;
-				wndwidth = wnd.right-pt.x+state.offset.x;
+				wndwidth = max(min((wnd.right-pt.x+state.offset.x), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				posx = state.origin.right-wndwidth;
 			}
 			else if (state.resize.x == RESIZE_CENTER) {
 				posx = wnd.left;
@@ -851,42 +852,6 @@ void MouseMove() {
 			//Check if the window will snap anywhere
 			if (sharedstate.shift || sharedsettings.AutoSnap) {
 				ResizeSnap(&posx, &posy, &wndwidth, &wndheight);
-			}
-			
-			//Make sure we don't try to make the window too small or too big
-			//This is only needed to prevent the window from drifting when resizing it on the left or right side
-			//Check if we have reached min/max width or height
-			if (state.resize.x == RESIZE_LEFT) {
-				if (state.resize.minwidth == 0 && wnd.right > state.origin.right) {
-					state.resize.minwidth = wnd.right-wnd.left;
-				}
-				else if (state.resize.maxwidth == 0 && wnd.right < state.origin.right) {
-					state.resize.maxwidth = wnd.right-wnd.left;
-				}
-				if (wndwidth <= state.resize.minwidth && state.resize.minwidth > 0) {
-					wndwidth = state.resize.minwidth;
-					posx = state.origin.right-wndwidth;
-				}
-				else if (wndwidth >= state.resize.maxwidth && state.resize.maxwidth > 0) {
-					wndwidth = state.resize.maxwidth;
-					posx = state.origin.right-wndwidth;
-				}
-			}
-			if (state.resize.y == RESIZE_TOP) {
-				if (state.resize.minheight == 0 && wnd.bottom > state.origin.bottom) {
-					state.resize.minheight = wnd.bottom-wnd.top;
-				}
-				else if (state.resize.maxheight == 0 && wnd.bottom < state.origin.bottom) {
-					state.resize.maxheight = wnd.bottom-wnd.top;
-				}
-				if (wndheight <= state.resize.minheight && state.resize.minheight > 0) {
-					wndheight = state.resize.minheight;
-					posy = state.origin.bottom-wndheight;
-				}
-				else if (wndheight >= state.resize.maxheight && state.resize.maxheight > 0) {
-					wndheight = state.resize.maxheight;
-					posy = state.origin.bottom-wndheight;
-				}
 			}
 		}
 	}
@@ -1317,6 +1282,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					//Get minmaxinfo
 					MINMAXINFO mmi = {{}, {}, {}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {mon.right-mon.left,mon.bottom-mon.top}};
 					SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
+					DBG("xcmintrack: %d", GetSystemMetrics(SM_CXMINTRACK));
+					DBG("ycmintrack: %d", GetSystemMetrics(SM_CYMINTRACK));
 					
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
