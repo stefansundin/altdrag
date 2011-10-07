@@ -779,6 +779,18 @@ void MouseMove() {
 				state.wndentry->last.width = wnd.right-wnd.left;
 				state.wndentry->last.height = wnd.bottom-wnd.top;
 				
+				//If the window has a restricting width or height, and the window was moved to the right or bottom, then move it again
+				if (mon.right-AERO_THRESHOLD < pt.x && wndwidth != state.wndentry->last.width) {
+					posx = mon.right-state.wndentry->last.width;
+				}
+				if (mon.bottom-AERO_THRESHOLD < pt.y && wndheight != state.wndentry->last.height) {
+					posy = mon.bottom-state.wndentry->last.height;
+				}
+				if ((mon.right-AERO_THRESHOLD < pt.x && wndwidth != state.wndentry->last.width)
+				 || (mon.bottom-AERO_THRESHOLD < pt.y && wndheight != state.wndentry->last.height)) {
+					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
+				}
+				
 				//We are done
 				return;
 			}
