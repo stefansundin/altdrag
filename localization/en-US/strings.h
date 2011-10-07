@@ -8,20 +8,20 @@
 */
 
 struct strings en_US = {
+ /* === tray === */
+ /* tray_enabled   */ APP_NAME,
+ /* tray_disabled  */ APP_NAME " (disabled)",
  /* menu_enable    */ L"Enable",
  /* menu_disable   */ L"Disable",
  /* menu_hide      */ L"Hide tray",
- /* menu_options   */ L"Options",
- /* menu_autostart */ L"Autostart",
- /* menu_settings  */ L"Open settings",
- /* menu_chkupdate */ L"Check for update",
  /* menu_update    */ L"Update available!",
+ /* menu_config    */ L"Open configuration",
  /* menu_about     */ L"About",
  /* menu_exit      */ L"Exit",
- /* tray_enabled   */ APP_NAME " (enabled)",
- /* tray_disabled  */ APP_NAME " (disabled)",
+ 
+ /* === update === */
  /* update_balloon */ L"New version found!",
- /* update_dialog  */ L"A new version is available.\nGo to website?\n\nYou can disable automatic update checking in the settings.",
+ /* update_dialog  */ L"A new version is available. Go to website?",
  /* update_nonew   */ L"No update available.",
  
  /* === config === */
@@ -78,6 +78,7 @@ struct strings en_US = {
  /* _hookwindows      */ L"&Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!\nNote that this is not 100% safe as it hooks into other processes and stuff like that.",
  /* _checkonstartup   */ L"Automatically check for &updates",
  /* _beta             */ L"Check for &beta versions",
+ /* _checknow         */ L"&Check now",
  /* _ini              */ APP_NAME L"'s settings are saved in "APP_NAME".ini. There are a few things that you can only configure by editing the file manually.",
  /* _openini          */ L"Open &ini file",
  /* about tab */

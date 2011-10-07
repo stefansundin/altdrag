@@ -991,7 +991,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.prevpt = pt;
 			}
 		}
-		else if (wParam == WM_MOUSEWHEEL) {
+		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action) {
 			state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 			
 			//Enumerate windows

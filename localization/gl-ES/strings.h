@@ -8,20 +8,20 @@
 */
 
 struct strings gl_ES = {
+ /* === tray === */
+ /* tray_enabled   */ APP_NAME,
+ /* tray_disabled  */ APP_NAME " (desactivado)",
  /* menu_enable    */ L"Activar",
  /* menu_disable   */ L"Desactivar",
  /* menu_hide      */ L"Esconder a icona",
- /* menu_options   */ L"Preferencias",
- /* menu_autostart */ L"Iniciar co Windows",
- /* menu_settings  */ L"Abrir configuración",
- /* menu_chkupdate */ L"Comprobar actualizacións",
  /* menu_update    */ L"Actualización dispoñíbel",
+ /* menu_config    */ L"Abrir configuración",
  /* menu_about     */ L"Acerca de",
  /* menu_exit      */ L"Saír",
- /* tray_enabled   */ APP_NAME " (activado)",
- /* tray_disabled  */ APP_NAME " (desactivado)",
+ 
+ /* === update === */
  /* update_balloon */ L"Nova versión dispoñíbel!",
- /* update_dialog  */ L"Unha nova versión está dispoñíbel.\nQueres ir á páxina web?\n\nPodes desactivar a comprobación automática de actualizacións na configuración.",
+ /* update_dialog  */ L"Unha nova versión está dispoñíbel. Queres ir á páxina web?",
  /* update_nonew   */ L"Non hai actualizacións.",
  
  /* === config === */

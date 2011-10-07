@@ -47,6 +47,7 @@ SetCompressor /SOLID lzma
 
 Page custom PageUpgrade PageUpgradeLeave
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipPage
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW HideBackButton
 !insertmacro MUI_PAGE_COMPONENTS
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipPage
 !insertmacro MUI_PAGE_DIRECTORY
@@ -109,49 +110,6 @@ FunctionEnd
 !insertmacro CloseApp ""
 !insertmacro CloseApp "un."
 
-; Detect previous installation
-
-Var Upgradebox
-Var Uninstallbox
-
-Function PageUpgrade
-	ReadRegStr $0 HKCU "Software\${APP_NAME}" "Install_Dir"
-	IfFileExists $0 +2
-		Abort
-	
-	nsDialogs::Create 1018
-	!insertmacro MUI_HEADER_TEXT "$(L10N_UPGRADE_TITLE)" "$(L10N_UPGRADE_SUBTITLE)"
-	${NSD_CreateLabel} 0 0 100% 20u "$(L10N_UPGRADE_HEADER)"
-	
-	${NSD_CreateRadioButton} 0 45 100% 10u "$(L10N_UPGRADE_UPGRADE)"
-	Pop $Upgradebox
-	${NSD_CreateLabel} 16 62 100% 20u "$(L10N_UPGRADE_INI)"
-	
-	${NSD_CreateRadioButton} 0 95 100% 10u "$(L10N_UPGRADE_INSTALL)"
-	Pop $0
-	
-	${NSD_CreateRadioButton} 0 130 100% 10u "$(L10N_UPGRADE_UNINSTALL)"
-	Pop $Uninstallbox
-	
-	;Check the correct button when going back to this page
-	${If} $UpgradeState == ${BST_UNCHECKED}
-		${NSD_Check} $0
-	${Else}
-		${NSD_Check} $Upgradebox
-	${EndIf}
-	
-	nsDialogs::Show
-FunctionEnd
-
-Function PageUpgradeLeave
-	${NSD_GetState} $Upgradebox $UpgradeState
-	${NSD_GetState} $Uninstallbox $0
-	${If} $0 == ${BST_CHECKED}
-		Exec "$INSTDIR\Uninstall.exe"
-		Quit
-	${EndIf}
-FunctionEnd
-
 ; Installer
 
 Section "$(L10N_UPDATE_SECTION)" sec_update
@@ -204,6 +162,11 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
 	!insertmacro Lang fr-FR ${LANG_FRENCH}
 	
+	;Deactivate CheckOnStartup if check for update was deselected
+	${IfNot} ${SectionIsSelected} ${sec_update}
+		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "Update" "CheckOnStartup" "0"
+	${EndIf}
+	
 	;Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
 	
@@ -218,6 +181,7 @@ Section "${APP_NAME}" sec_app
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayIcon" '"$INSTDIR\${APP_NAME}.exe"'
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayVersion" "${APP_VERSION}"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "HelpLink" "${APP_URL}"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "Publisher" "Stefan Sundin"
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
 SectionEnd
@@ -263,12 +227,60 @@ Function OpenKeyboardSettings
 	Exec "RunDll32.exe shell32.dll,Control_RunDLL input.dll"
 FunctionEnd
 
+; Detect previous installation
+
+Var Upgradebox
+Var Uninstallbox
+
+Function PageUpgrade
+	IfFileExists $INSTDIR +2
+		Abort
+	
+	nsDialogs::Create 1018
+	!insertmacro MUI_HEADER_TEXT "$(L10N_UPGRADE_TITLE)" "$(L10N_UPGRADE_SUBTITLE)"
+	${NSD_CreateLabel} 0 0 100% 20u "$(L10N_UPGRADE_HEADER)"
+	
+	${NSD_CreateRadioButton} 0 45 100% 10u "$(L10N_UPGRADE_UPGRADE)"
+	Pop $Upgradebox
+	${NSD_Check} $Upgradebox
+	${NSD_CreateLabel} 16 62 100% 20u "$(L10N_UPGRADE_INI)"
+	
+	${NSD_CreateRadioButton} 0 95 100% 10u "$(L10N_UPGRADE_INSTALL)"
+	Pop $0
+	
+	${NSD_CreateRadioButton} 0 130 100% 10u "$(L10N_UPGRADE_UNINSTALL)"
+	Pop $Uninstallbox
+	
+	nsDialogs::Show
+FunctionEnd
+
+Function PageUpgradeLeave
+	${NSD_GetState} $Uninstallbox $0
+	${If} $0 == ${BST_CHECKED}
+		Exec "$INSTDIR\Uninstall.exe"
+		Quit
+	${EndIf}
+	
+	${NSD_GetState} $Upgradebox $UpgradeState
+	${If} $UpgradeState == ${BST_CHECKED}
+		ReadINIStr $0 "$INSTDIR\${APP_NAME}.ini" "Update" "CheckOnStartup"
+		${If} $0 == "0"
+			!insertmacro UnselectSection ${sec_update}
+		${EndIf}
+	${EndIf}
+FunctionEnd
+
 ;Used when upgrading to skip the components and directory pages
 Function SkipPage
 	${If} $UpgradeState == ${BST_CHECKED}
 		!insertmacro UnselectSection ${sec_shortcut}
 		Abort
 	${EndIf}
+FunctionEnd
+
+Function HideBackButton
+	GetDlgItem $0 $HWNDPARENT 3
+	ShowWindow $0 ${SW_HIDE}
 FunctionEnd
 
 Function .onInit

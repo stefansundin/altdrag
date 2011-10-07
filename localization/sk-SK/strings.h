@@ -8,20 +8,20 @@
 */
 
 struct strings sk_SK = {
+ /* === tray === */
+ /* tray_enabled   */ APP_NAME,
+ /* tray_disabled  */ APP_NAME " (vypnutý)",
  /* menu_enable    */ L"Zapnúť",
  /* menu_disable   */ L"Vypnúť",
  /* menu_hide      */ L"Odstrániť z lišty",
- /* menu_options   */ L"Možnosti",
- /* menu_autostart */ L"Automatický štart",
- /* menu_settings  */ L"Otvoriť nastavenia",
- /* menu_chkupdate */ L"Skontrolovať aktualizácie",
  /* menu_update    */ L"Aktualizácia dostupná!",
+ /* menu_config    */ L"Otvoriť nastavenia",
  /* menu_about     */ L"O aplikácii",
  /* menu_exit      */ L"Koniec",
- /* tray_enabled   */ APP_NAME " (zapnutý)",
- /* tray_disabled  */ APP_NAME " (vypnutý)",
+ 
+ /* === update === */
  /* update_balloon */ L"Dostupná nová verzia!",
- /* update_dialog  */ L"Je dostupná nová verzia.\nPrejsť na webstránku?\n\nAutomatickú kontrolu aktualizácii je možné vypnúť v nastaveniach aplikácie.",
+ /* update_dialog  */ L"Je dostupná nová verzia. Prejsť na webstránku?",
  /* update_nonew   */ L"Nie sú dostupné žiadne aktualizácie.",
  
  /* === config === */
@@ -79,6 +79,7 @@ struct strings sk_SK = {
  /* _hookwindows      */ L"&Povoliť prichytávanie počas presunu okien.\nPracuje pri zapnutom automatickom prichytávaní okien!\nTáto funkcia nie je 100% bezpečná, nakoľko je potrebný zásah do iných procesov.",
  /* _checkonstartup   */ L"Automatická kontrola akt&ualizácii",
  /* _beta             */ L"Kontrolovať aj dostupnosť &beta verzii",
+ /* _checknow         */ L"Skontrolovať aktualizácie",
  /* _ini              */ APP_NAME L" nastavenia sú ukladané do súboru "APP_NAME".ini. Niektoré nastavenia je možné upraviť len manuálnou editáciou tohto súboru.",
  /* _openini          */ L"Otvoriť &ini súbor",
  /* about tab */
