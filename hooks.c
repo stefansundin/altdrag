@@ -65,6 +65,7 @@ struct {
 	short ctrl;
 	short updaterate;
 	unsigned int clicktime;
+	POINT clickpt;
 	POINT prevpt;
 	POINT offset;
 	struct {
@@ -82,6 +83,10 @@ struct {
 		int right;
 		int bottom;
 	} origin;
+	struct {
+		POINT ptMinTrackSize;
+		POINT ptMaxTrackSize;
+	} mmi;
 } state;
 
 struct {
@@ -649,10 +654,6 @@ void MouseMove() {
 	RECT mon = monitorinfo.rcWork;
 	RECT fmon = monitorinfo.rcMonitor;
 	
-	//Get minmaxinfo
-	MINMAXINFO mmi = {{}, {}, {}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {mon.right-mon.left,mon.bottom-mon.top}};
-	SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
-	
 	//Get new position for window
 	if (sharedstate.action == ACTION_MOVE) {
 		posx = pt.x-state.offset.x;
@@ -690,7 +691,7 @@ void MouseMove() {
 			else if (mon.right-2*AERO_THRESHOLD < pt.x && pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Top right
 				state.wndentry->restore = 1;
-				wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				wndwidth = max(min((mon.right-mon.left)/2, state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = mon.right-wndwidth;
 				posy = mon.top;
@@ -699,15 +700,15 @@ void MouseMove() {
 				//Bottom left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
-				wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				wndheight = max(min((mon.bottom-mon.top)/2, state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = mon.left;
 				posy = mon.bottom-wndheight;
 			}
 			else if (mon.right-2*AERO_THRESHOLD < pt.x && mon.bottom-2*AERO_THRESHOLD < pt.y) {
 				//Bottom right
 				state.wndentry->restore = 1;
-				wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
-				wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				wndwidth = max(min((mon.right-mon.left)/2, state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
+				wndheight = max(min((mon.bottom-mon.top)/2, state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = mon.right-wndwidth;
 				posy = mon.bottom-wndheight;
 			}
@@ -731,7 +732,7 @@ void MouseMove() {
 			else if (pt.y < mon.top+2*AERO_THRESHOLD) {
 				//Top
 				state.wndentry->restore = 1;
-				wndwidth = max(min((mon.right-mon.left), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 				wndheight = (mon.bottom-mon.top)/2;
 				posx = (mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
 				posy = mon.top;
@@ -739,8 +740,8 @@ void MouseMove() {
 			else if (mon.bottom-AERO_THRESHOLD < pt.y) {
 				//Bottom
 				state.wndentry->restore = 1;
-				wndwidth = max(min((mon.right-mon.left), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
-				wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
+				wndheight = max(min((mon.bottom-mon.top)/2, state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = (mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
 				posy = mon.bottom-wndheight;
 			}
@@ -748,15 +749,15 @@ void MouseMove() {
 				//Left
 				state.wndentry->restore = 1;
 				wndwidth = (mon.right-mon.left)/2;
-				wndheight = max(min((mon.bottom-mon.top), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				wndheight = max(min((mon.bottom-mon.top), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = mon.left;
 				posy = (mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
 			}
 			else if (mon.right-AERO_THRESHOLD < pt.x) {
 				//Right
 				state.wndentry->restore = 1;
-				wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
-				wndheight = max(min((mon.bottom-mon.top), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				wndwidth = max(min((mon.right-mon.left)/2, state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
+				wndheight = max(min((mon.bottom-mon.top), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = mon.right-wndwidth;
 				posy = (mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
 			}
@@ -820,7 +821,7 @@ void MouseMove() {
 		}
 		else {
 			if (state.resize.y == RESIZE_TOP) {
-				wndheight = max(min((wnd.bottom-pt.y+state.offset.y), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+				wndheight = max(min((wnd.bottom-pt.y+state.offset.y), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posy = state.origin.bottom-wndheight;
 			}
 			else if (state.resize.y == RESIZE_CENTER) {
@@ -832,7 +833,7 @@ void MouseMove() {
 				wndheight = pt.y-wnd.top+state.offset.y;
 			}
 			if (state.resize.x == RESIZE_LEFT) {
-				wndwidth = max(min((wnd.right-pt.x+state.offset.x), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+				wndwidth = max(min((wnd.right-pt.x+state.offset.x), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 				posx = state.origin.right-wndwidth;
 			}
 			else if (state.resize.x == RESIZE_CENTER) {
@@ -986,9 +987,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			//Reset double-click time
 			//Unfortunately, we have to remember the previous pointer position since WM_MOUSEMOVE is sometimes sent even
 			//if the mouse hasn't moved, e.g. when running Windows virtualized or when connecting to a remote desktop.
-			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
+			if (pt.x != state.clickpt.x || pt.y != state.clickpt.y) {
 				state.clicktime = 0;
-				state.prevpt = pt;
 			}
 		}
 		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action) {
@@ -1163,6 +1163,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SetForegroundWindow(state.hwnd);
 			}
 			
+			//Get minmaxinfo
+			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
+				MINMAXINFO mmi = {{160,28}, {GetSystemMetrics(SM_CXMAXIMIZED),GetSystemMetrics(SM_CYMAXIMIZED)}, {mon.left-8,mon.top-8}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {GetSystemMetrics(SM_CXMAXTRACK),GetSystemMetrics(SM_CXMAXTRACK)}};
+				SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
+				state.mmi.ptMinTrackSize = mmi.ptMinTrackSize;
+				state.mmi.ptMaxTrackSize = mmi.ptMaxTrackSize;
+			}
+			
 			//Do things depending on what button was pressed
 			if (action == ACTION_MOVE) {
 				//Maximize window if this is a double-click
@@ -1270,18 +1278,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					sharedstate.action = ACTION_NONE; //Stop resize action
 					state.clicktime = 0; //Reset double-click time
 					
-					//Get minmaxinfo
-					MINMAXINFO mmi = {{}, {}, {}, {GetSystemMetrics(SM_CXMINTRACK),GetSystemMetrics(SM_CYMINTRACK)}, {mon.right-mon.left,mon.bottom-mon.top}};
-					SendMessage(state.hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mmi);
-					
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
-					wndwidth = max(min((mon.right-mon.left)/2, mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
-					wndheight = max(min((mon.bottom-mon.top)/2, mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+					wndwidth = max(min((mon.right-mon.left)/2, state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
+					wndheight = max(min((mon.bottom-mon.top)/2, state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 					posx = mon.left;
 					posy = mon.top;
 					if (state.resize.y == RESIZE_CENTER) {
-						wndheight = max(min((mon.bottom-mon.top), mmi.ptMaxTrackSize.y), mmi.ptMinTrackSize.y);
+						wndheight = max(min((mon.bottom-mon.top), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 						posy = (mon.bottom-mon.top)/2-wndheight/2;
 					}
 					else if (state.resize.y == RESIZE_BOTTOM) {
@@ -1291,7 +1295,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						posx = wnd.left;
 						wndwidth = wnd.right-wnd.left;
 						if (state.resize.y != RESIZE_CENTER) {
-							wndwidth = max(min((mon.right-mon.left), mmi.ptMaxTrackSize.x), mmi.ptMinTrackSize.x);
+							wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 							posx = (mon.right-mon.left)/2-wndwidth/2;
 						}
 					}
@@ -1368,6 +1372,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Remember time of this click so we can check for double-click
 			state.clicktime = GetTickCount();
+			state.clickpt = pt;
 			
 			//Update cursor
 			if (sharedsettings.Performance.Cursor && cursor != NULL) {
