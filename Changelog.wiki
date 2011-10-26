@@ -2,6 +2,7 @@
 
 *1.0* - upcoming version:
   * Merged `Config.exe` with `AltDrag.exe`.
+  * You can now press Space during a drag to reset any custom `AutoSnap` setting for the duration of the drag.
 
 *1.0 beta* - 2011-07-31:
   * Added configuration GUI.
