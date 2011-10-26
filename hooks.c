@@ -91,8 +91,9 @@ struct {
 
 struct {
 	short shift;
+	short snap;
 	enum action action;
-} sharedstate shareattr = {0, ACTION_NONE};
+} sharedstate shareattr = {0, 0, ACTION_NONE};
 
 //Snap
 RECT *monitors = NULL;
@@ -129,7 +130,7 @@ struct {
 short sharedsettings_loaded shareattr = 0;
 wchar_t inipath[MAX_PATH] shareattr;
 
-//Blacklist
+//Blacklist (not shared since dynamically allocated)
 struct blacklistitem {
 	wchar_t *title;
 	wchar_t *classname;
@@ -156,7 +157,7 @@ HHOOK scrollhook = NULL;
 
 //Msghook data
 BOOL subclassed = FALSE;
-enum action msgaction = ACTION_NONE;
+enum action msgaction shareattr = ACTION_NONE;
 
 //Error()
 #ifdef DEBUG
@@ -295,15 +296,15 @@ void Enum() {
 	
 	//Enumerate windows
 	numwnds = 0;
-	if (sharedstate.shift || sharedsettings.AutoSnap > 0) {
+	if (sharedstate.snap) {
 		HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
 		RECT wnd;
 		if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
 			wnds[numwnds++] = wnd;
 		}
-	}
-	if (sharedstate.shift || sharedsettings.AutoSnap >= 2) {
-		EnumWindows(EnumWindowsProc, 0);
+		if (sharedstate.snap >= 2) {
+			EnumWindows(EnumWindowsProc, 0);
+		}
 	}
 	
 	//Use this to print the monitors and windows
@@ -347,7 +348,7 @@ void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
 		}
 		else if (j < numwnds) {
 			snapwnd = wnds[j];
-			snapinside = (sharedstate.shift || sharedsettings.AutoSnap != 2);
+			snapinside = (sharedstate.snap != 2);
 			j++;
 		}
 		
@@ -441,7 +442,7 @@ void ResizeSnap(int *posx, int *posy, int *wndwidth, int *wndheight) {
 		}
 		else if (j < numwnds) {
 			snapwnd = wnds[j];
-			snapinside = (sharedstate.shift || sharedsettings.AutoSnap != 2);
+			snapinside = (sharedstate.snap != 2);
 			j++;
 		}
 		
@@ -533,10 +534,17 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 			if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 				sharedstate.shift = 1;
+				sharedstate.snap = 3;
 			}
 			else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				sharedstate.shift = 0;
+				sharedstate.snap = sharedsettings.AutoSnap;
 			}
+		}
+		else if (vkey == VK_SPACE
+		     && (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+		     && (sharedstate.action || msgaction) && sharedstate.snap) {
+			sharedstate.snap = 0;
 		}
 	}
 	
@@ -636,9 +644,10 @@ void MouseMove() {
 		return;
 	}
 	
-	//Double check if the shift is being pressed
+	//Double check if the shift key is being pressed
 	if (sharedstate.shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 		sharedstate.shift = 0;
+		sharedstate.snap = sharedsettings.AutoSnap;
 	}
 	
 	//Get window size
@@ -802,7 +811,7 @@ void MouseMove() {
 		}
 		
 		//Check if the window will snap anywhere
-		if (sharedstate.shift || sharedsettings.AutoSnap) {
+		if (sharedstate.snap) {
 			MoveSnap(&posx, &posy, wndwidth, wndheight);
 		}
 	}
@@ -846,7 +855,7 @@ void MouseMove() {
 			}
 			
 			//Check if the window will snap anywhere
-			if (sharedstate.shift || sharedsettings.AutoSnap) {
+			if (sharedstate.snap) {
 				ResizeSnap(&posx, &posy, &wndwidth, &wndheight);
 			}
 		}
@@ -875,12 +884,17 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				sharedstate.shift = 1;
+				sharedstate.snap = 3;
 				MouseMove();
 				
 				//Block keydown to prevent Windows from changing keyboard layout
 				if (state.alt && sharedstate.action) {
 					return 1;
 				}
+			}
+			else if (vkey == VK_SPACE && (sharedstate.action || msgaction) && sharedstate.snap) {
+				sharedstate.snap = 0;
+				return 1;
 			}
 			else if (vkey == VK_ESCAPE) {
 				UnhookMouse();
@@ -947,6 +961,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (vkey == VK_LSHIFT || vkey == VK_RSHIFT) {
 				sharedstate.shift = 0;
+				sharedstate.snap = sharedsettings.AutoSnap;
 				MouseMove();
 			}
 		}
@@ -1131,6 +1146,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Update state
 			sharedstate.action = action;
+			if (!sharedstate.snap) {
+				sharedstate.snap = sharedsettings.AutoSnap;
+			}
 			state.blockaltup = 1;
 			state.locked = 0;
 			state.origin.maximized = IsZoomed(state.hwnd);
@@ -1560,7 +1578,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 //Msghook
 __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
-	if (msg == WM_WINDOWPOSCHANGING && (sharedstate.shift || sharedsettings.AutoSnap)) {
+	if (msg == WM_WINDOWPOSCHANGING && sharedstate.snap) {
 		WINDOWPOS *wndpos = (WINDOWPOS*)lParam;
 		if (msgaction == ACTION_MOVE && !(wndpos->flags&SWP_NOMOVE)) {
 			MoveSnap(&wndpos->x, &wndpos->y, wndpos->cx, wndpos->cy);
@@ -1634,9 +1652,13 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			//Double check if a shift key is still being pressed
 			if (sharedstate.shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 				sharedstate.shift = 0;
+				sharedstate.snap = sharedsettings.AutoSnap;
 			}
-			if (!sharedstate.shift && !sharedsettings.AutoSnap) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
+			if (!sharedstate.snap) {
+				sharedstate.snap = sharedsettings.AutoSnap;
+				if (!sharedstate.snap) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
 			}
 			
 			//Subclass window
@@ -1647,7 +1669,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 		}
 		else if (msg->message == WM_WINDOWPOSCHANGING
 		 && !subclassed && state.hwnd == msg->hwnd && msgaction != ACTION_NONE
-		 && (sharedstate.shift || sharedsettings.AutoSnap)) {
+		 && sharedstate.snap) {
 			
 			//Subclass window
 			subclassed = SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0);
@@ -1729,6 +1751,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			swscanf(txt, L"%d", &sharedsettings.AutoFocus);
 			GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.AutoSnap);
+			sharedstate.snap = sharedsettings.AutoSnap;
 			GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			swscanf(txt, L"%d", &sharedsettings.AutoRemaximize);
 			GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
