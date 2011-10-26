@@ -4,23 +4,19 @@
 <wiki:toc max_depth="2" />
 
 = Introduction =
-
 In addition to simply dragging windows, you can double-click a window to maximize it.
 
 While dragging a window, you can press the shift key to make the window snap to other windows.
 
 If you still have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=22OaiP_HPXY this short video] that a user has posted to YouTube.
 
-
 == Resize ==
-
 You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press.
 
 http://altdrag.googlecode.com/svn/wiki/resize.png
 
 
 = Configuration =
-
 Since 1.0, AltDrag has a configuration GUI. The simplest way to open it is by double-clicking the tray icon. The settings are saved in a file called `AltDrag.ini`.
 
 http://altdrag.googlecode.com/svn/wiki/configuration_window.png
@@ -57,6 +53,8 @@ Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml t
 
 = Other tricks =
 There is a hidden setting in Windows that allows for window activation on mouse hovering. This setting is first exposed in the control panel in Windows 7. For previous Windows versions you have to use the [http://windows.microsoft.com/en-US/windows/downloads/windows-xp TweakUI utility] and enable the "X-Mouse" setting. You can find out what registry settings does this [http://blogs.msdn.com/b/oldnewthing/archive/2011/06/02/10170483.aspx here].
+
+If you, like me, dislike the ability in Windows 7 to shake a window to minimize all other windows, then you can disable it with the following registry hack. Create the DWORD value `NoWindowMinimizingShortcuts` in `HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows` and give it the value `1`. Log off and in for the change to take effect.
 
 
 = UAC =
