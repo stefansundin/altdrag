@@ -51,10 +51,20 @@ AltDrag will by default check if there is a newer version available when it is s
 Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml the rss feed] for new releases.
 
 
-= Other tricks =
+= Windows hacks =
+
+== X-Mouse ==
+
 There is a hidden setting in Windows that allows for window activation on mouse hovering. This setting is first exposed in the control panel in Windows 7. For previous Windows versions you have to use the [http://windows.microsoft.com/en-US/windows/downloads/windows-xp TweakUI utility] and enable the "X-Mouse" setting. You can find out what registry settings does this [http://blogs.msdn.com/b/oldnewthing/archive/2011/06/02/10170483.aspx here].
 
+== Disable Aero Shake ==
+
 If you, like me, dislike the ability in Windows 7 to shake a window to minimize all other windows, then you can disable it with the following registry hack. Create the DWORD value `NoWindowMinimizingShortcuts` in `HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows` and give it the value `1`. Log off and in for the change to take effect.
+
+If you are too lazy to start regedit, then simply run this command:
+{{{
+reg add HKCU\Software\Policies\Microsoft\Windows /t REG_DWORD /v NoWindowMinimizingShortcuts /d 1
+}}}
 
 
 = UAC =
