@@ -59,11 +59,11 @@ There is a hidden setting in Windows that allows for window activation on mouse 
 
 == Disable Aero Shake ==
 
-If you, like me, dislike the ability in Windows 7 to shake a window to minimize all other windows, then you can disable it with the following registry hack. Create the DWORD value `NoWindowMinimizingShortcuts` in `HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows` and give it the value `1`. Log off and in for the change to take effect.
+If you, like me, dislike the ability in Windows 7 to shake a window to minimize all other windows, then you can disable it with the following registry hack. Create the DWORD value `NoWindowMinimizingShortcuts` in `HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer` and give it the value `1`. Log off and in for the change to take effect.
 
 If you are too lazy to start regedit, then simply run this command:
 {{{
-reg add HKCU\Software\Policies\Microsoft\Windows /t REG_DWORD /v NoWindowMinimizingShortcuts /d 1
+reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /t REG_DWORD /v NoWindowMinimizingShortcuts /d 1
 }}}
 
 
