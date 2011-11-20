@@ -16,8 +16,9 @@
 
 
 = Freeware =
+  * [http://www.nurgo-software.com/products/aquasnap AquaSnap] (Snap on move and resize)
   * [http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml EasyMove]
-  * [http://pitaschio.ara3.net/ Pitaschio] (Snaps windows on move and resize)
+  * [http://pitaschio.ara3.net/ Pitaschio] (Snap on move and resize)
   * [http://www.ivanheckman.com/allsnap/ allSnap] (Window snapping)
   * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
