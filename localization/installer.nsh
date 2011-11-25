@@ -5,3 +5,4 @@
 !include "localization\sk-SK\installer.nsh"
 !include "localization\ru-RU\installer.nsh"
 !include "localization\fr-FR\installer.nsh"
+!include "localization\pl-PL\installer.nsh"

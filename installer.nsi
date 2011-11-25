@@ -24,7 +24,7 @@ ${StrLoc}
 ; General
 
 Name "${APP_NAME} ${APP_VERSION}"
-OutFile "build/${APP_NAME}-${APP_VERSION}.exe"
+OutFile "build\${APP_NAME}-${APP_VERSION}.exe"
 InstallDir "$PROGRAMFILES\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${APP_NAME}" "Install_Dir"
 RequestExecutionLevel admin
@@ -161,6 +161,7 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang sk-SK ${LANG_SLOVAK}
 	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
 	!insertmacro Lang fr-FR ${LANG_FRENCH}
+	!insertmacro Lang pl-PL ${LANG_POLISH}
 	
 	;Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
@@ -246,7 +247,6 @@ Function PageUpgrade
 	${NSD_CreateLabel} 16 62 100% 20u "$(L10N_UPGRADE_INI)"
 	
 	${NSD_CreateRadioButton} 0 95 100% 10u "$(L10N_UPGRADE_INSTALL)"
-	Pop $0
 	
 	${NSD_CreateRadioButton} 0 130 100% 10u "$(L10N_UPGRADE_UNINSTALL)"
 	Pop $Uninstallbox

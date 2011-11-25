@@ -84,6 +84,7 @@ struct strings {
 #include "sk-SK/strings.h"
 #include "ru-RU/strings.h"
 #include "fr-FR/strings.h"
+#include "pl-PL/strings.h"
 
 struct {
 	wchar_t *code;
@@ -96,6 +97,7 @@ struct {
 	{ L"sk-SK", &sk_SK },
 	{ L"ru-RU", &ru_RU },
 	{ L"fr-FR", &fr_FR },
+	{ L"pl-PL", &pl_PL },
 	{ NULL }
 };
 
