@@ -1,11 +1,11 @@
 #summary If AltDrag is useful to you, please consider donating money.
 #labels Featured
 
-My name is Stefan Sundin. I am a student in Sweden, programming my tools in my free time. My programs will always remain free and open source, even if I receive no donations.
+My name is Stefan Sundin. I am a university student in Sweden, programming my tools in my free time.
 
-Donations are a great motivation for me to keep updating my programs. They are also perfect to get my attention, especially if you want me to add some special feature.
+Donations are a great motivation for me to keep updating my programs. They are also perfect to get my attention if you want me to add some special feature.
 
-You can get in touch with me by sending an email to `stefan[at]stefansundin[.]com`. You can also [http://stefansundin.com/ visit my website] to read a little more about me.
+You can get in touch with me by sending an email to `stefan(at)stefansundin.com`. You can also [http://stefansundin.com/ visit my website] to read a little more about me.
 
 
 == Who else have contributed ==
@@ -26,14 +26,14 @@ Currently you can choose to donate with PayPal, Flattr or Bitcoin.
 
 == Donate with PayPal ==
 
-The easiest way to donate is by sending money with PayPal to `stefan[at]stefansundin[.]com`. You can donate with PayPal without a PayPal account, using only your credit card. Note that PayPal will take a small processing fee.
+The easiest way to donate is by sending money with PayPal to `stefan(at)stefansundin.com`. You can donate with PayPal without a PayPal account, using only your credit card. Note that PayPal will take a small processing fee.
 
 [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E2VLK4MQ7UD9C http://altdrag.googlecode.com/svn/wiki/donate.png]
 
 
 == Donate with Flattr ==
 
-[http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. If you already have Flattr, then you can flattr me by clicking this button:
+[http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. If you have Flattr, then you can flattr me by clicking this button:
 
 <wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="55" height="62" up_uid="recover" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
 
