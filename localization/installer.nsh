@@ -6,3 +6,5 @@
 !include "localization\ru-RU\installer.nsh"
 !include "localization\fr-FR\installer.nsh"
 !include "localization\pl-PL\installer.nsh"
+;!include "localization\de-DE\installer.nsh"
+!include "localization\pt-BR\installer.nsh"
