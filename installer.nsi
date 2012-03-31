@@ -162,6 +162,8 @@ Section "${APP_NAME}" sec_app
 	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
 	!insertmacro Lang fr-FR ${LANG_FRENCH}
 	!insertmacro Lang pl-PL ${LANG_POLISH}
+	;!insertmacro Lang de-DE ${LANG_GERMAN}
+	!insertmacro Lang pt-BR ${LANG_PORTUGUESEBR}
 	
 	;Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
