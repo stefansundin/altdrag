@@ -1,4 +1,4 @@
-﻿/*
+/*
 	AltDrag - pt-BR localization by Jucá Costa (virgilino@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ struct strings pt_BR = {
  /* _snaplist         */ L"Janelas a alinhar:",
  /* _explanation      */ L"Leia <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">a wiki</a> (em inglês) na nossa página para uma explicação detalhada de como a lista negra funciona!",
  /* _findwindow_box   */ L"Identificar janela",
- /* __explanation     */ L"Utilize esta função para identificar a classe de uma janela, a fim de adicionar a uma das listas acima.",
+ /* __explanation     */ L"Utilize esta ferramenta para identificar a classe de uma janela, a fim de adicionar a uma das listas acima.",
  /* advanced tab */
  /* _box              */ L"Configurações avançadas",
  /* _hookwindows      */ L"&Ativar alinhamento quando mover normalmente uma janela. Funciona em conjunção com o alinhamento automático.\nNote que isto não é totalmente seguro, pois se conecta a outros processos e coisas do tipo. Pode ser arriscado usar com jogos que tenham proteção anti-cheat.",
