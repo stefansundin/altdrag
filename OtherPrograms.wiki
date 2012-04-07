@@ -24,6 +24,7 @@
   * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
   * [http://ehiti.de/katmouse/ KatMouse] (Scroll inactive windows)
   * [http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/ WizMouse] (Scroll inactive windows)
+  * [http://amlpages.com/mousehunter.shtml Mouse Hunter] (Scroll inactive windows)
 
 
 = Related =
