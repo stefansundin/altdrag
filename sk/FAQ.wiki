@@ -3,22 +3,22 @@
 
 = FAQ =
 
-*AltDrag does not work in VirtualBox when using Linux as a host OS. Why?*
- AltDrag does not work since your window manager is intercepting the alt keypress so you can move the VirtualBox window. You can reassign the hotkey for AltDrag as a workaround. For more information, read issue 23.
+*AltDrag nefunguje správne v Linuxe keď používam VirtualBox. Prečo?*
+ AltDrag nefunguje z dôvodu obsadenia klávesnice alt programom VirtualBox. Ako riešenie možete pre AltDrag použiť iný hotkey. Pre bližšie info viď. issue 23.
 
-*I can't resize PuTTY!! FIX IT PLZ!*
- This was a problem in the past. Upgrade to PuTTY 0.61 if you are having problems. For more information, read issue 27.
+*Neviem zmeniť veľkosť PuTTY!! Prosím fixnite to!*
+ Tento problém je minulosťou. Použite prosím novšiu verziu PuTTY (0.61) ak problémy pretrvávajú. Pre bližšie info viď. issue 27.
 
-*I can't drag or resize window X. Why?*
- Some programs implement their own window handlers which may interfere with AltDrag (e.g. Winamp). The problem most likely lies with the program you are trying to drag. They did not expect that another program might want to move it and thus they didn't code for that scenario. If you encounter a program that is having troubles, I suggest that you send a bug report to its developers. If you still think the problem lies with AltDrag, please file a bug report.
+*Nemožem preniesť alebo zmeniť veľkosť X window. Prečo?*
+ Niektoré programy používajú vlastnú implementáciu správy okien (napr. Winamp), čo sa môže biť s programom AltDrag. Tento problém je väčšinou na strane programu, ktorého okno nie je možné preniesť či zmeniť jeho veľkosť. Takáto implementácia nepredpokladá, že by nejaký externý program chcel zmeniť pozíciu, či veľkosť ich okna, takže túto možnosť nemajú implementovanú. Ak objavíte program ktorý má problém s presunom, či zmenou veľkosti, odporúčame poslať bugreport vývojárom tohto programu. Ak problém pretrvá a ste si istý že je na strane AltDrag zašlite mi prosím bug report.
 
-*I am having trouble dragging some windows. I have UAC enabled.*
- The keyboard hook that AltDrag uses to detect the Alt keypress does not forward keypresses if an elevated program has keyboard focus. Thus if AltDrag is not running with administrator privileges, then it won't detect Alt keypresses when an elevated program has keyboard focus. For AltDrag to pick up this, it too has to run with administrator privileges. See [About#UAC the about page] for details on how to solve this.
+*Mám problém s premiestňovaním niektorých okien. Mám zapnuté UAC.*
+ Spôsob detekcie stlačenia klávesy Alt, ktorú AltDrag používa, neposúva akciu oknu, ktoré beží s vyššími právami používateľa ako samotný AltDrag. Takže ak AltDrag nebeží s administrátorskými právami, nedokáže zdetegovať stlačenie klávesy Alt pre aplikáciu ktorá beží s vyššími právami ako samotný AltDrag. Aby dokázal AltDrag pracovať s privilegovanými oknami je potrebné spustiť ho s administrátorskými právami. Viď. [About#UAC stránku "O programe"] pre viac detailov.
 
-*I get errors about the hooks not working when I press the tray icon. I lock the screen/sleep my computer a lot.*
- In Windows 7, low-level hooks are more aggressively removed when they become unresponsive. All programs which use low-level hooks are affected by this new behavior, and it almost always happens when locking the screen or resuming the computer from sleep. AltDrag attempts to re-enable the hooks in some cases, but might not always succeed. You can apply a registry setting to make Windows less aggressive. Navigate to `HKEY_CURRENT_USER\Control Panel\Desktop` and create a new DWORD with the name `LowLevelHooksTimeout` and a value of `5000` or more. For more information, read issue 58.
+*Keď stlačím ikonu AltDrag na lište objaví sa chyba, že systém na detekciu stlačenia klávesnice nie je funkčný. Moj počítač často uspávam alebo zamykám.*
+ V systéme Windows 7 je detekcia stlačenia klávesov agresívne odstránená v prípade keď prestane reagovať. Všetky programy, ktoré tento low-level systém detekcie používajú, sú ovplyvnené týmto novým chovaním. Najčastejšie sa to stáva ak ste obnovili systém zo spánku, alebo odomkli obrazovku. AltDrag sa pokúsi obnoviť systém na detekciu stlačenia klávesy, no občas sa môže stať, že sa mu to nepodarí. Menej agresívne chovanie Windowsu možete nastaviť v registroch. Pridajte do `HKEY_CURRENT_USER\Control Panel\Desktop` nový záznam DWORD s názvom `LowLevelHooksTimeout` a hodnotou `5000` alebo viac. Pre viac info viď. issue 58.
 
 
-= This doesn't answer my question! =
+= Nenašiel som odpoveď na moju otázku! =
 
-Is your question not here? Ask it in the comments!
+Nenachádza sa tu vaša otázka? Spýtajte sa v komentároch.
