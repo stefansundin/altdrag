@@ -1,4 +1,4 @@
-#summary Odpovede na niektoré èasto kladené otázky
+ï»¿#summary Odpovede na niektorÃ© Äasto kladenÃ© otÃ¡zky
 #labels Featured,Phase-Support
 
 = FAQ =
