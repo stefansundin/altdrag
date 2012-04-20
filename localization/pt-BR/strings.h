@@ -75,7 +75,8 @@ struct strings pt_BR = {
  /* __explanation     */ L"Utilize esta ferramenta para identificar a classe de uma janela, a fim de adicionar a uma das listas acima.",
  /* advanced tab */
  /* _box              */ L"Configurações avançadas",
- /* _hookwindows      */ L"&Ativar alinhamento quando mover normalmente uma janela. Funciona em conjunção com o alinhamento automático.\nNote que isto não é totalmente seguro, pois se conecta a outros processos e coisas do tipo. Pode ser arriscado usar com jogos que tenham proteção anti-cheat.",
+ /* _hookwindows      */ L"&Ativar alinhamento quando mover normalmente uma janela. Funciona em conjunção com o alinhamento automático.",
+ /* _hookwindows_box  */ L"Note que isto não é totalmente seguro, pois se conecta a outros processos e coisas do tipo. Pode ser arriscado usar com jogos que tenham proteção anti-cheat.",
  /* _checkonstartup   */ L"Checar se há novas at&ualizações automaticamente",
  /* _beta             */ L"Checar versões &beta",
  /* _checknow         */ L"&Checar agora",

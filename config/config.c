@@ -497,6 +497,10 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 			wchar_t txt[10];
 			int val = Button_GetCheck(GetDlgItem(hwnd,wParam));
 			if (wParam == IDC_HOOKWINDOWS) {
+				if (val && MessageBox(NULL, l10n->advanced_hookwindows_warn, APP_NAME, MB_ICONINFORMATION|MB_YESNO) == IDNO) {
+					Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), BST_UNCHECKED);
+					return;
+				}
 				WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(val,txt,10), inipath);
 				UpdateSettings();
 			}

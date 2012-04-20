@@ -75,7 +75,8 @@ struct strings en_US = {
  /* __explanation     */ L"Use this feature to identify the classname of a window so you can add it to the Blacklist or Snaplist above.",
  /* advanced tab */
  /* _box              */ L"Advanced settings",
- /* _hookwindows      */ L"&Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!\nNote that this is not 100% safe as it hooks into other processes and stuff like that. Might be risky to use when playing games with anti-cheat protection.",
+ /* _hookwindows      */ L"&Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!",
+ /* _hookwindows_warn */ L"Note that this is not 100% safe as it hooks into other processes and stuff like that. Might be risky to use when playing games with anti-cheat protection.\n\nAre you sure you want to enable this feature?",
  /* _checkonstartup   */ L"Automatically check for &updates",
  /* _beta             */ L"Check for &beta versions",
  /* _checknow         */ L"&Check now",

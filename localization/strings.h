@@ -63,6 +63,7 @@ struct strings {
 	wchar_t *blacklist_findwindow_explanation;
 	wchar_t *advanced_box;
 	wchar_t *advanced_hookwindows;
+	wchar_t *advanced_hookwindows_warn;
 	wchar_t *advanced_checkonstartup;
 	wchar_t *advanced_beta;
 	wchar_t *advanced_checknow;

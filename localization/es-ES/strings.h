@@ -75,7 +75,8 @@ struct strings es_ES = {
  /* __explanation     */ L"Usi thisa featura tå identifyö classinami of windowö, addi für Blacklistö / Snaplistö.",
  /* advanced tab */
  /* _box              */ L"Advancé settingi",
- /* _hookwindows      */ L"Enabli snappy nörmally möving windöws.\n< 100% safei",
+ /* _hookwindows      */ L"Enabli snappy nörmally möving windöws.",
+ /* _hookwindows_box  */ L"< 100% safei",
  /* _checkonstartup   */ L"Automaticallö checki för updati",
  /* _beta             */ L"Checki für betai versionii",
  /* _checknow         */ L"Comprobar actualizaciones",
