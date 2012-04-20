@@ -75,7 +75,8 @@ struct strings zh_CN = {
  /* __explanation     */ L"全用此工具来辩识窗口的类名，以便于你在不作用列表或自动吸附列表中进行添加.",
  /* advanced tab */
  /* _box              */ L"增强设置",
- /* _hookwindows      */ L"(&E)在普通移动中吸附窗口.\n窗口之间自动吸附!\n注意这个特性不是100%安全的，因为他会对其他进程进行挂接或类似操作.",
+ /* _hookwindows      */ L"(&E)在普通移动中吸附窗口.\n窗口之间自动吸附!",
+ /* _hookwindows_box  */ L"注意这个特性不是100%安全的，因为他会对其他进程进行挂接或类似操作.",
  /* _checkonstartup   */ L"(&u)处动检查更新",
  /* _beta             */ L"为&beta版检查更新",
  /* _checknow         */ L"检查更新",

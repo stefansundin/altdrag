@@ -75,7 +75,8 @@ struct strings fr_FR = {
  /* __explanation     */ L"Utilisez cette fonction pour identifier la classe d'une fenêtre afin de l'ajouter dans la liste des fenêtres à ignorer ou des fenêtres à aimanter ci-dessus.",
  /* advanced tab */
  /* _box              */ L"Paramètres avancés",
- /* _hookwindows      */ L"&Aimenter les fenêtres déplacées normalement.\nFonctionne en plus de l'aimantation automatique!\nCette fonction n'est pas sûr à 100% car elle s'insère dans des processus étrangers et des choses de ce genre.",
+ /* _hookwindows      */ L"&Aimenter les fenêtres déplacées normalement.\nFonctionne en plus de l'aimantation automatique!",
+ /* _hookwindows_box  */ L"Cette fonction n'est pas sûr à 100% car elle s'insère dans des processus étrangers et des choses de ce genre.",
  /* _checkonstartup   */ L"Chercher des mises-à-jours automatiquement",
  /* _beta             */ L"Chercher des versions &beta",
  /* _checknow         */ L"Vérifier la mise-à-jour",

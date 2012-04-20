@@ -75,7 +75,8 @@ struct strings pl_PL = {
  /* __explanation     */ L"Użyj powyższej funkcji do identyfikacji nazwy klasy okna by można było je dodać do jednej z powyższych list.",
  /* advanced tab */
  /* _box              */ L"Ustawienia zaawansowane",
- /* _hookwindows      */ L"&Włącz przyciąganie podczas zwykłego przesuwania okien.\nDziała w połączeniu z automatycznym przyciąganiem!\nNie jest to na 100% bezpieczne bo wymaga podczepiania się pod inne procesy itp.",
+ /* _hookwindows      */ L"&Włącz przyciąganie podczas zwykłego przesuwania okien.\nDziała w połączeniu z automatycznym przyciąganiem!",
+ /* _hookwindows_warn */ L"Nie jest to na 100% bezpieczne bo wymaga podczepiania się pod inne procesy itp.",
  /* _checkonstartup   */ L"&Automatycznie sprawdzaj dostępność aktualizacji",
  /* _beta             */ L"&Uwzględniaj wersje testowe",
  /* _checknow         */ L"&Sprawdź teraz",

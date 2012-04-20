@@ -76,7 +76,8 @@ struct strings sk_SK = {
  /* __explanation     */ L"Túto funkciu je možné využiť pre určenie \"classname\" okna, použiteľného pre funkcionality blacklistu, či prichytávania okien v rámci snaplistu.",
  /* advanced tab */
  /* _box              */ L"Pokročilé nastavenia",
- /* _hookwindows      */ L"&Povoliť prichytávanie počas presunu okien.\nPracuje pri zapnutom automatickom prichytávaní okien!\nTáto funkcia nie je 100% bezpečná, nakoľko je potrebný zásah do iných procesov.",
+ /* _hookwindows      */ L"&Povoliť prichytávanie počas presunu okien.\nPracuje pri zapnutom automatickom prichytávaní okien!",
+ /* _hookwindows_box  */ L"Táto funkcia nie je 100% bezpečná, nakoľko je potrebný zásah do iných procesov.",
  /* _checkonstartup   */ L"Automatická kontrola akt&ualizácii",
  /* _beta             */ L"Kontrolovať aj dostupnosť &beta verzii",
  /* _checknow         */ L"Skontrolovať aktualizácie",
