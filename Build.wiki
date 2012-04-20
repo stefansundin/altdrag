@@ -47,6 +47,11 @@ The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are on
 Note that `AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, and because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag 64-bit only (yet).
 
 
+= GUI =
+
+The configuration dialog was made with [http://www.resedit.net/ ResEdit], a compact resource editor. ResEdit is not needed to build AltDrag.
+
+
 = Installer =
 
 To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and the [http://nsis.sourceforge.net/AccessControl_plug-in AccessControl plug-in]. Put NSIS in PATH, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
