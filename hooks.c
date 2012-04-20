@@ -1433,7 +1433,7 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
 		POINT pt = msg->pt;
 		
-		if ((wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL) && !state.alt) {
+		if ((wParam == WM_MOUSEWHEEL || (wParam == WM_MOUSEHWHEEL && sharedsettings.InactiveScroll != 2)) && !state.alt) {
 			//Get window and foreground window
 			HWND window = WindowFromPoint(pt);
 			HWND foreground = GetForegroundWindow();
@@ -1480,7 +1480,7 @@ int HookMouse() {
 	}
 	
 	//Check if scrollhook has become stale
-	if (sharedsettings.InactiveScroll == 1) {
+	if (sharedsettings.InactiveScroll && sharedsettings.InactiveScroll != 3) {
 		SendMessage(g_hwnd, WM_TIMER, REHOOK_TIMER, 0);
 	}
 	
@@ -1557,7 +1557,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		else if (wParam == REHOOK_TIMER) {
 			//Silently rehook scroll hook if it becomes stale (Windows 7 is very aggressive about hooks)
 			//This can often happen when locking the screen or sleeping the computer a lot
-			//HACK: Set InactiveScroll=2 to disable this behavior
+			//HACK: Set InactiveScroll=3 to disable this behavior
 			POINT pt;
 			GetCursorPos(&pt);
 			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
@@ -1765,6 +1765,14 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			
 			//Detect if Aero Snap is enabled
 			if (sharedsettings.Aero == 2) {
+				/*
+				BOOL enabled;
+				SystemParametersInfo(SPI_GETWINARRANGING, 0, &enabled, 0);
+				DBG("SPI_GETWINARRANGING: %d", enabled);
+				SystemParametersInfo(SPI_GETDOCKMOVING, 0, &enabled, 0);
+				DBG("SPI_GETDOCKMOVING: %d", enabled);
+				sharedsettings.Aero = !!enabled;
+				*/
 				HKEY key;
 				DWORD len = sizeof(txt);
 				RegOpenKeyEx(HKEY_CURRENT_USER, L"Control Panel\\Desktop", 0, KEY_QUERY_VALUE, &key);
@@ -1855,7 +1863,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				if (scrollhook == NULL) {
 					Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook mouse. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
 				}
-				if (sharedsettings.InactiveScroll != 2) {
+				if (sharedsettings.InactiveScroll != 3) {
 					SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL);
 				}
 			}
