@@ -9,7 +9,8 @@
 
 #define UNICODE
 #define _UNICODE
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0600
+#define COBJMACROS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,22 +19,28 @@
 #include <shlwapi.h>
 #include <commctrl.h>
 #include <psapi.h>
+#include <mmdeviceapi.h>
+#include <endpointvolume.h>
+
+//Stuff missing in MinGW
+#define WM_MOUSEHWHEEL 0x020E //WM_MOUSEHWHEEL is only defined for >= Vista
+CLSID my_CLSID_MMDeviceEnumerator = {0xBCDE0395,0xE52F,0x467C,{0x8E,0x3D,0xC4,0x57,0x92,0x91,0x69,0x2E}};
+GUID my_IID_IMMDeviceEnumerator = {0xA95664D2,0x9614,0x4F35,{0xA7,0x46,0xDE,0x8D,0xB6,0x36,0x17,0xE6}};
+GUID my_IID_IAudioEndpointVolume = {0x5CDF2C82,0x841E,0x4546,{0x97,0x22,0x0C,0xF7,0x40,0x78,0x22,0x9A}};
 
 //App
 #define APP_NAME L"AltDrag"
 #define AERO_THRESHOLD 5
-
-//WM_MOUSEHWHEEL is only defined for >= Vista
-#define WM_MOUSEHWHEEL 0x020E
 
 //Timers
 HWND g_hwnd;
 #define RESTORE_TIMER WM_APP+1
 #define MOVE_TIMER    WM_APP+2
 #define REHOOK_TIMER  WM_APP+3
+#define INIT_TIMER    WM_APP+4
 
 //Enumerators
-enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER};
+enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME};
 enum button {BUTTON_NONE=0, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
 enum resize {RESIZE_NONE=0, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
 enum cursor {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
@@ -124,7 +131,7 @@ struct {
 		int length;
 	} Hotkeys;
 	struct {
-		enum action LMB, MMB, RMB, MB4, MB5;
+		enum action LMB, MMB, RMB, MB4, MB5, Scroll;
 	} Mouse;
 } sharedsettings shareattr;
 short sharedsettings_loaded shareattr = 0;
@@ -158,6 +165,8 @@ HHOOK scrollhook = NULL;
 //Msghook data
 BOOL subclassed = FALSE;
 enum action msgaction shareattr = ACTION_NONE;
+
+IAudioEndpointVolume *pAudioEndpoint = NULL;
 
 //Error()
 #ifdef DEBUG
@@ -1006,38 +1015,60 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.clicktime = 0;
 			}
 		}
-		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action) {
-			state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-			
-			//Enumerate windows
-			numhwnds = 0;
-			EnumWindows(EnumAltTabWindows, 0);
-			if (numhwnds < 2) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-			
-			//Use this to print the windows
-			/*FILE *f = fopen("C:\\altdrag-log.txt", "wb");
-			fprintf(f, "numhwnds: %d\n", numhwnds);
-			char title[100], classname[100];
-			int k;
-			for (k=0; k < numhwnds; k++) {
-				GetWindowTextA(hwnds[k], title, 100);
-				GetClassNameA(hwnds[k], classname, 100);
-				RECT wnd;
-				GetWindowRect(hwnds[k], &wnd);
-				fprintf(f, "wnd #%02d: %s [%s] (%dx%d @ %dx%d)\n", k, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
-			}
-			fclose(f);*/
-			
-			//Reorder windows
+		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action && sharedsettings.Mouse.Scroll) {
 			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
-			if (delta > 0) {
-				SetForegroundWindow(hwnds[numhwnds-1]);
+			if (sharedsettings.Mouse.Scroll == ACTION_ALTTAB) {
+				state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+				
+				//Enumerate windows
+				numhwnds = 0;
+				EnumWindows(EnumAltTabWindows, 0);
+				if (numhwnds < 2) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				
+				//Use this to print the windows
+				/*FILE *f = fopen("C:\\altdrag-log.txt", "wb");
+				fprintf(f, "numhwnds: %d\n", numhwnds);
+				char title[100], classname[100];
+				int k;
+				for (k=0; k < numhwnds; k++) {
+					GetWindowTextA(hwnds[k], title, 100);
+					GetClassNameA(hwnds[k], classname, 100);
+					RECT wnd;
+					GetWindowRect(hwnds[k], &wnd);
+					fprintf(f, "wnd #%02d: %s [%s] (%dx%d @ %dx%d)\n", k, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
+				}
+				fclose(f);*/
+				
+				//Reorder windows
+				if (delta > 0) {
+					SetForegroundWindow(hwnds[numhwnds-1]);
+				}
+				else {
+					SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+					SetForegroundWindow(hwnds[1]);
+				}
 			}
-			else {
-				SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
-				SetForegroundWindow(hwnds[1]);
+			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
+				//Function pointer so we only need one for loop
+				typedef HRESULT WINAPI (*_VolumeStep)(IAudioEndpointVolume*, LPCGUID pguidEventContext);
+				_VolumeStep VolumeStep = (_VolumeStep)pAudioEndpoint->lpVtbl->VolumeStepDown;
+				if (delta > 0) {
+					VolumeStep = (_VolumeStep)pAudioEndpoint->lpVtbl->VolumeStepUp;
+				}
+				
+				//Hold shift to make 5 steps
+				int i;
+				int num = (sharedstate.shift)?5:1;
+				HRESULT hr;
+				for (i=0; i < num; i++) {
+					hr = VolumeStep(pAudioEndpoint, NULL);
+				}
+				if (hr != S_OK) {
+					Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
 			}
 			
 			//Block original scroll event
@@ -1565,6 +1596,39 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
 			}
 		}
+		else if (wParam == INIT_TIMER) {
+			KillTimer(g_hwnd, wParam);
+			if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
+				//Do the work necessary to get an IAudioEndpointVolume pointer
+				HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+				if (hr != S_OK) {
+					Error(L"CoInitializeEx()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					return;
+				}
+				
+				IMMDeviceEnumerator *pDevEnumerator = NULL;
+				hr = CoCreateInstance(&my_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &my_IID_IMMDeviceEnumerator, (void**)&pDevEnumerator);
+				if (hr != S_OK) {
+					Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					return;
+				}
+				
+				IMMDevice *pDev = NULL;
+				hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pDevEnumerator, eRender, eMultimedia, &pDev);
+				IMMDeviceEnumerator_Release(pDevEnumerator);
+				if (hr != S_OK) {
+					Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					return;
+				}
+				
+				hr = IMMDevice_Activate(pDev, &my_IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, (void**)&pAudioEndpoint);
+				IMMDevice_Release(pDev);
+				if (hr != S_OK) {
+					Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					return;
+				}
+			}
+		}
 	}
 	else if (msg == WM_DESTROY) {
 		KillTimer(g_hwnd, RESTORE_TIMER);
@@ -1815,6 +1879,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				{L"RMB", L"Resize",  &sharedsettings.Mouse.RMB},
 				{L"MB4", L"Nothing", &sharedsettings.Mouse.MB4},
 				{L"MB5", L"Nothing", &sharedsettings.Mouse.MB5},
+				{L"Scroll", L"Nothing", &sharedsettings.Mouse.Scroll},
 				{NULL}
 			};
 			int i;
@@ -1827,6 +1892,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				else if (!wcsicmp(txt,L"AlwaysOnTop")) *buttons[i].ptr = ACTION_ALWAYSONTOP;
 				else if (!wcsicmp(txt,L"Close"))       *buttons[i].ptr = ACTION_CLOSE;
 				else if (!wcsicmp(txt,L"Lower"))       *buttons[i].ptr = ACTION_LOWER;
+				else if (!wcsicmp(txt,L"AltTab"))      *buttons[i].ptr = ACTION_ALTTAB;
+				else if (!wcsicmp(txt,L"Volume"))      *buttons[i].ptr = ACTION_VOLUME;
 				else                                   *buttons[i].ptr = ACTION_NONE;
 			}
 			
@@ -1937,6 +2004,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		//Allocate space for wnds
 		wnds_alloc += 20;
 		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
+		
+		//Create a timer to do more initialization
+		SetTimer(g_hwnd, INIT_TIMER, 10, NULL);
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
 		//Remove subclassing if a window is currently subclassed

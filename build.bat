@@ -25,7 +25,7 @@ if "%1" == "all" (
 	echo Building release build
 	%prefix32%gcc -o build\AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -O2 -s
 	if not exist build\AltDrag.exe. exit /b
-	%prefix32%gcc -o build\hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
+	%prefix32%gcc -o build\hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -O2 -s
 	if not exist build\hooks.dll. exit /b
 	
 	if "%2" == "x64" (
@@ -56,7 +56,7 @@ if "%1" == "all" (
 	makensis /V2 installer.nsi
 ) else (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -g -DDEBUG
-	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -g -DDEBUG
+	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -g -DDEBUG
 	
 	if "%1" == "x64" (
 		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
