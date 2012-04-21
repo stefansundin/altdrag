@@ -266,6 +266,9 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 	};
 	wchar_t *mouse_actions[] = {L"Move", L"Resize", L"Close", L"Minimize", L"Lower", L"AlwaysOnTop", L"Center", L"Nothing"};
 	
+	//Scroll
+	wchar_t *scroll_actions[] = {L"AltTab", L"Volume", L"Nothing"};
+	
 	//Hotkeys
 	struct {
 		int control;
@@ -293,6 +296,15 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			}
 		}
 		
+		//Scroll
+		GetPrivateProfileString(L"Mouse", L"Scroll", L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		for (j=0; j < sizeof(scroll_actions)/sizeof(scroll_actions[0]); j++) {
+			ComboBox_AddString(GetDlgItem(hwnd,IDC_SCROLL), scroll_actions[j]);
+			if (!wcscmp(txt,scroll_actions[j])) {
+				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_SCROLL), j);
+			}
+		}
+		
 		//Hotkeys
 		unsigned int temp;
 		int numread;
@@ -313,14 +325,19 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		wchar_t txt[50] = L"";
 		int i;
 		if (HIWORD(wParam) == CBN_SELCHANGE) {
-			//Mouse actions
 			int control = LOWORD(wParam);
+			//Mouse actions
 			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
 				if (control == mouse_buttons[i].control) {
 					ComboBox_GetText(GetDlgItem(hwnd,mouse_buttons[i].control), txt, sizeof(txt)/sizeof(wchar_t));
 					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, txt, inipath);
 					break;
 				}
+			}
+			//Scroll
+			if (control == IDC_SCROLL) {
+				ComboBox_GetText(GetDlgItem(hwnd,IDC_SCROLL), txt, sizeof(txt)/sizeof(wchar_t));
+				WritePrivateProfileString(L"Mouse", L"Scroll", txt, inipath);
 			}
 		}
 		else {
@@ -370,6 +387,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_RMB_HEADER,     l10n->input_mouse_rmb);
 			SetDlgItemText(hwnd, IDC_MB4_HEADER,     l10n->input_mouse_mb4);
 			SetDlgItemText(hwnd, IDC_MB5_HEADER,     l10n->input_mouse_mb5);
+			SetDlgItemText(hwnd, IDC_SCROLL_HEADER,  l10n->input_mouse_scroll);
 			SetDlgItemText(hwnd, IDC_MOUSE_MORE,     l10n->input_mouse_more);
 			SetDlgItemText(hwnd, IDC_HOTKEYS_BOX,    l10n->input_hotkeys_box);
 			SetDlgItemText(hwnd, IDC_LEFTALT,        l10n->input_hotkeys_leftalt);

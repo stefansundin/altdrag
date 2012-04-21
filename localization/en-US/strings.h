@@ -15,7 +15,7 @@ struct strings en_US = {
  /* menu_disable   */ L"Disable",
  /* menu_hide      */ L"Hide tray",
  /* menu_update    */ L"Update available!",
- /* menu_config    */ L"Open configuration",
+ /* menu_config    */ L"Configure",
  /* menu_about     */ L"About",
  /* menu_exit      */ L"Exit",
  
@@ -56,7 +56,8 @@ struct strings en_US = {
  /* _mouse_rmb           */ L"Right mouse button:",
  /* _mouse_mb4           */ L"Mouse button 4:",
  /* _mouse_mb5           */ L"Mouse button 5:",
- /* _mouse_more          */ L"Use the scrollwheel to scroll through your windows.\nIf you have a great idea for a mouse action, put in a request <a href=\"http://code.google.com/p/altdrag/issues/list\">on the website</a>!",
+ /* _mouse_scroll        */ L"Scrollwheel:",
+ /* _mouse_more          */ L"If you have a great idea for a mouse action, put in a request <a href=\"http://code.google.com/p/altdrag/issues/list\">on the website</a>!",
  /* _hotkeys_box         */ L"Hotkeys",
  /* _hotkeys_leftalt     */ L"Left &Alt",
  /* _hotkeys_rightalt    */ L"Right A&lt",
