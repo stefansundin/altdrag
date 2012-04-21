@@ -349,7 +349,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			RemoveTray();
 		}
 		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL, l10n->update_dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {
+			if (MessageBox(NULL, l10n->update.dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {
 				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
 			}
 		}
