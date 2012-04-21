@@ -5,6 +5,8 @@
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
 
+;For silent install you can use these switches: /S /D=C:\installdir
+
 ;Requires AccessControl plug-in
 ;http://nsis.sourceforge.net/AccessControl_plug-in
 
@@ -18,8 +20,6 @@
 !include "MUI2.nsh"
 !include "Sections.nsh"
 !include "LogicLib.nsh"
-!include "StrFunc.nsh"
-${StrLoc}
 
 ; General
 
@@ -48,11 +48,10 @@ SetCompressor /SOLID lzma
 Page custom PageUpgrade PageUpgradeLeave
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipPage
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW HideBackButton
-!insertmacro MUI_PAGE_COMPONENTS
-!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipPage
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 Page custom PageAltShift
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW DisableBackButton
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -61,7 +60,6 @@ Page custom PageAltShift
 ; Variables
 
 Var UpgradeState
-Var AutostartSectionState ;Helps keep track of the autostart checkboxes
 
 ; Languages
 
@@ -102,8 +100,12 @@ Function ${un}CloseApp
 			FindWindow $0 "${APP_NAME}" ""
 			IntCmp $0 0 closed waitloop waitloop
 	closed:
-	Sleep 500 ;Sleep a little extra to let Windows do its thing.
-	;This Sleep value is a little higher than normal since HookWindows can take a while to fully unload
+	Sleep 100 ;Sleep a little extra to let Windows do its thing
+	;If HookWindows is enabled, sleep even longer
+	ReadINIStr $0 "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "HookWindows"
+	${If} $0 == "1"
+		Sleep 1000
+	${EndIf}
 	done:
 FunctionEnd
 !macroend
@@ -112,7 +114,7 @@ FunctionEnd
 
 ; Installer
 
-Section "$(L10N_UPDATE_SECTION)" sec_update
+Section "" sec_update
 	NSISdl::download "${APP_UPDATEURL}" "$TEMP\${APP_NAME}-updatecheck"
 	Pop $0
 	StrCmp $0 "success" +3
@@ -130,7 +132,7 @@ Section "$(L10N_UPDATE_SECTION)" sec_update
 	done:
 SectionEnd
 
-Section "${APP_NAME}" sec_app
+Section "" sec_app
 	SectionIn RO
 	
 	;Close app if running
@@ -155,15 +157,12 @@ Section "${APP_NAME}" sec_app
 	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
 	
 	!insertmacro Lang en-US ${LANG_ENGLISH}
-	!insertmacro Lang es-ES ${LANG_SPANISH}
-	!insertmacro Lang gl-ES ${LANG_GALICIAN}
-	!insertmacro Lang zh-CN ${LANG_SIMPCHINESE}
-	!insertmacro Lang sk-SK ${LANG_SLOVAK}
-	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
 	!insertmacro Lang fr-FR ${LANG_FRENCH}
 	!insertmacro Lang pl-PL ${LANG_POLISH}
-	;!insertmacro Lang de-DE ${LANG_GERMAN}
 	!insertmacro Lang pt-BR ${LANG_PORTUGUESEBR}
+	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
+	!insertmacro Lang sk-SK ${LANG_SLOVAK}
+	!insertmacro Lang zh-CN ${LANG_SIMPCHINESE}
 	
 	;Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
@@ -189,16 +188,9 @@ Section "${APP_NAME}" sec_app
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
 SectionEnd
 
-Section "$(L10N_SHORTCUT)" sec_shortcut
+Section "" sec_shortcut
 	CreateShortCut "$SMPROGRAMS\${APP_NAME}.lnk" "$INSTDIR\${APP_NAME}.exe" "" "$INSTDIR\${APP_NAME}.exe" 0
 SectionEnd
-
-SectionGroup /e "$(L10N_AUTOSTART)"
-	Section /o "$(L10N_AUTOSTART)" sec_autostart
-	SectionEnd
-	Section /o "$(L10N_AUTOSTART_HIDE)" sec_hide
-	SectionEnd
-SectionGroupEnd
 
 Function Launch
 	Exec "$INSTDIR\${APP_NAME}.exe"
@@ -222,6 +214,10 @@ Function PageAltShift
 	${NSD_CreateButton} 0 162 92u 17u "$(L10N_ALTSHIFT_BUTTON)"
 	Pop $0
 	${NSD_OnClick} $0 OpenKeyboardSettings
+	
+	;Disable Cancel button
+	GetDlgItem $0 $HWNDPARENT 2
+	EnableWindow $0 0
 	
 	nsDialogs::Show
 FunctionEnd
@@ -285,51 +281,23 @@ Function HideBackButton
 	ShowWindow $0 ${SW_HIDE}
 FunctionEnd
 
+Function DisableBackButton
+	GetDlgItem $0 $HWNDPARENT 3
+	EnableWindow $0 0
+FunctionEnd
+
 Function .onInit
 	;Display language selection and add tray if program is running
 	!insertmacro MUI_LANGDLL_DISPLAY
 	Call AddTray
-	;If silent, deselect check for update
-	IfSilent 0 autostart_check
+	
+	;Handle silent install
+	IfSilent 0 done
 		!insertmacro UnselectSection ${sec_update}
-	autostart_check:
-	;Determine current autostart setting
-	StrCpy $AutostartSectionState 0
-	ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP_NAME}"
-	IfErrors done
-		!insertmacro SelectSection ${sec_autostart}
-		${StrLoc} $0 $0 "-hide" "<"
-		${If} $0 != ""
-			StrCpy $AutostartSectionState 1
-			!insertmacro SelectSection ${sec_hide}
-		${EndIf}
 	done:
 FunctionEnd
 
-Function .onSelChange
-	;Hide tray automatically checks Autostart
-	${If} ${SectionIsSelected} ${sec_hide}
-		${If} $AutostartSectionState == 0
-			StrCpy $AutostartSectionState 1
-			!insertmacro SelectSection ${sec_autostart}
-		${ElseIfNot} ${SectionIsSelected} ${sec_autostart}
-			StrCpy $AutostartSectionState 0
-			!insertmacro UnselectSection ${sec_hide}
-		${EndIf}
-	${Else}
-		StrCpy $AutostartSectionState 0
-	${EndIf}
-FunctionEnd
-
 Function .onInstSuccess
-	;Set or remove autostart
-	${If} ${SectionIsSelected} ${sec_hide}
-		WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP_NAME}" '"$INSTDIR\${APP_NAME}.exe" -hide'
-	${ElseIf} ${SectionIsSelected} ${sec_autostart}
-		WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP_NAME}" '"$INSTDIR\${APP_NAME}.exe"'
-	${Else}
-		DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP_NAME}"
-	${EndIf}
 	;Run program if silent
 	IfSilent 0 +2
 		Call Launch

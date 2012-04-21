@@ -112,12 +112,12 @@ struct strings {
 };
 
 #include "en-US/strings.h"
-#include "zh-CN/strings.h"
-#include "sk-SK/strings.h"
-#include "ru-RU/strings.h"
 #include "fr-FR/strings.h"
 #include "pl-PL/strings.h"
 #include "pt-BR/strings.h"
+#include "ru-RU/strings.h"
+#include "sk-SK/strings.h"
+#include "zh-CN/strings.h"
 
 struct {
 	wchar_t *code;

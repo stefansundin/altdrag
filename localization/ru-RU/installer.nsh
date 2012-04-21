@@ -15,11 +15,7 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Обновить ${APP_NAME} до верс
 LangString L10N_UPGRADE_INI       0 "Существующие настройки будут скопированы в ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "Установить в другом &месте."
 LangString L10N_UPGRADE_UNINSTALL 0 "У&далить ${APP_NAME}."
-LangString L10N_UPDATE_SECTION    0 "Проверить наличие обновлений перед установкой"
 LangString L10N_UPDATE_DIALOG     0 "Доступна новая версия.$\nПрервать установку и перейти на сайт?"
-LangString L10N_SHORTCUT          0 "Ярлык в меню Пуск"
-LangString L10N_AUTOSTART         0 "Автозагрузка"
-LangString L10N_AUTOSTART_HIDE    0 "Спрятать иконку в трее"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Горячая клавиша"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Сочетание Alt + Shift конфликтует с ${APP_NAME}."
