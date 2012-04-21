@@ -15,11 +15,7 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Mettre à jour ${APP_NAME} vers ${APP_VERS
 LangString L10N_UPGRADE_INI       0 "Vos paramètres précédents seront copiés dans ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Installer dans un nouveau dossier."
 LangString L10N_UPGRADE_UNINSTALL 0 "&Désinstaller ${APP_NAME}."
-LangString L10N_UPDATE_SECTION    0 "Chercher les mises-à-jours avant d'installer"
 LangString L10N_UPDATE_DIALOG     0 "Une nouvelle version est disponible.$\nAnnuler l'installation et aller sur le site web?"
-LangString L10N_SHORTCUT          0 "Raccourci dans le menu Démarrer"
-LangString L10N_AUTOSTART         0 "Démarrage automatique"
-LangString L10N_AUTOSTART_HIDE    0 "Cacher l'icone dans la barre d'outils"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Raccourcis clavier"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Le raccourci Alt + Shift est en conflit avec ${APP_NAME}."

@@ -15,11 +15,7 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Uaktualniono ${APP_NAME} do wersji ${APP_V
 LangString L10N_UPGRADE_INI       0 "Twoje aktualne ustawienia będą skopiowane do ${APP_NAME}-stary.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Zainstaluj w innej lokacji."
 LangString L10N_UPGRADE_UNINSTALL 0 "&Odinstaluj ${APP_NAME}."
-LangString L10N_UPDATE_SECTION    0 "Szukaj uaktualnienia przed instalacją"
 LangString L10N_UPDATE_DIALOG     0 "Wykryto nowszą wersję.$\nPrzerwać instalację i odwiedzić stronę programu?"
-LangString L10N_SHORTCUT          0 "Skrót menu start"
-LangString L10N_AUTOSTART         0 "Autostart"
-LangString L10N_AUTOSTART_HIDE    0 "Ukryj ikonę obszaru powiadomienia"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Skrót klawiszowy"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Skrót klawiszowy Alt + Shift jest w konflikcie z ${APP_NAME}."
