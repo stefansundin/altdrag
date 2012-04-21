@@ -166,6 +166,7 @@ HHOOK scrollhook = NULL;
 BOOL subclassed = FALSE;
 enum action msgaction shareattr = ACTION_NONE;
 
+//Interface data
 IAudioEndpointVolume *pAudioEndpoint = NULL;
 
 //Error()
@@ -1050,12 +1051,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					SetForegroundWindow(hwnds[1]);
 				}
 			}
-			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
+			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME && pAudioEndpoint != NULL) {
 				//Function pointer so we only need one for loop
 				typedef HRESULT WINAPI (*_VolumeStep)(IAudioEndpointVolume*, LPCGUID pguidEventContext);
-				_VolumeStep VolumeStep = (_VolumeStep)pAudioEndpoint->lpVtbl->VolumeStepDown;
+				_VolumeStep VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepDown);
 				if (delta > 0) {
-					VolumeStep = (_VolumeStep)pAudioEndpoint->lpVtbl->VolumeStepUp;
+					VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepUp);
 				}
 				
 				//Hold shift to make 5 steps
@@ -1601,7 +1602,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
 				//Do the work necessary to get an IAudioEndpointVolume pointer
 				HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-				if (hr != S_OK) {
+				if (hr != S_OK && hr != S_FALSE) {
 					Error(L"CoInitializeEx()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 					return;
 				}
@@ -1634,6 +1635,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		KillTimer(g_hwnd, RESTORE_TIMER);
 		KillTimer(g_hwnd, MOVE_TIMER);
 		KillTimer(g_hwnd, REHOOK_TIMER);
+		IAudioEndpointVolume_Release(pAudioEndpoint);
+		pAudioEndpoint = NULL;
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
