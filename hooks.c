@@ -1155,6 +1155,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			state.hwnd = GetAncestor(state.hwnd, GA_ROOT);
 			
+			//Use this to print info about the window which is about to be dragged
+			/*{
+				FILE *f = fopen("C:\\altdrag-log.txt", "wb");
+				char title[100], classname[100];
+				GetWindowTextA(state.hwnd, title, 100);
+				GetClassNameA(state.hwnd, classname, 100);
+				RECT wnd;
+				GetWindowRect(state.hwnd, &wnd);
+				fprintf(f, "hwnd     : %d\nTitle    : %s\nClassname: %s\nSize     : %dx%d\nPosition : %dx%d\nStyle    : 0x%08X\n", state.hwnd, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top, GetWindowLongPtr(state.hwnd,GWL_STYLE));
+				fprintf(f, "Is fullscreen? %d == %d && %d == %d && %d == %d && %d == %d: %d\n", wnd.left, fmon.left, wnd.top, fmon.top, wnd.right, fmon.right, wnd.bottom, fmon.bottom, wnd.left==fmon.left && wnd.top==fmon.top && wnd.right==fmon.right && wnd.bottom==fmon.bottom);
+				fclose(f);
+			}*/
+			mon
 			//Return if window is blacklisted
 			if (blacklisted(state.hwnd,&settings.ProcessBlacklist)
 			 || blacklisted(state.hwnd,&settings.Blacklist)) {
@@ -1172,7 +1185,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Return if the window is a fullscreen window (and has no border)
 			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)
-			 && wnd.left == mon.left && wnd.top == mon.top && wnd.right == mon.right && wnd.bottom == mon.bottom) {
+			 && wnd.left == fmon.left && wnd.top == fmon.top && wnd.right == fmon.right && wnd.bottom == fmon.bottom) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			
