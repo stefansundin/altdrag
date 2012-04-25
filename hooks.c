@@ -1167,7 +1167,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				fprintf(f, "Is fullscreen? %d == %d && %d == %d && %d == %d && %d == %d: %d\n", wnd.left, fmon.left, wnd.top, fmon.top, wnd.right, fmon.right, wnd.bottom, fmon.bottom, wnd.left==fmon.left && wnd.top==fmon.top && wnd.right==fmon.right && wnd.bottom==fmon.bottom);
 				fclose(f);
 			}*/
-			mon
+			
 			//Return if window is blacklisted
 			if (blacklisted(state.hwnd,&settings.ProcessBlacklist)
 			 || blacklisted(state.hwnd,&settings.Blacklist)) {
@@ -1425,7 +1425,13 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Send WM_ENTERSIZEMOVE and prepare update timer
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
-				SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
+				//Don't send WM_ENTERSIZEMOVE if the window is iTunes
+				wchar_t classname[30] = L"";
+				GetClassName(state.hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+				if (wcscmp(classname,L"iTunes")) {
+					SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
+				}
+				//Prepare update timer
 				state.updaterate = 0;
 				if ((action == ACTION_MOVE   && sharedsettings.Performance.MoveRate > 1)
 				 || (action == ACTION_RESIZE && sharedsettings.Performance.ResizeRate > 1)) {
@@ -1452,7 +1458,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Send WM_EXITSIZEMOVE
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
-				SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
+				//Don't send WM_EXITSIZEMOVE if the window is iTunes
+				wchar_t classname[30] = L"";
+				GetClassName(state.hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+				if (wcscmp(classname,L"iTunes")) {
+					SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
+				}
 			}
 			
 			//Unhook mouse?
@@ -1648,8 +1659,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		KillTimer(g_hwnd, RESTORE_TIMER);
 		KillTimer(g_hwnd, MOVE_TIMER);
 		KillTimer(g_hwnd, REHOOK_TIMER);
-		IAudioEndpointVolume_Release(pAudioEndpoint);
-		pAudioEndpoint = NULL;
+		if (pAudioEndpoint != NULL) {
+			IAudioEndpointVolume_Release(pAudioEndpoint);
+			pAudioEndpoint = NULL;
+		}
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
