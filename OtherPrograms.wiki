@@ -25,6 +25,7 @@
   * [http://ehiti.de/katmouse/ KatMouse] (Scroll inactive windows)
   * [http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/ WizMouse] (Scroll inactive windows)
   * [http://amlpages.com/mousehunter.shtml Mouse Hunter] (Scroll inactive windows)
+  * [http://www.nirsoft.net/utils/volumouse.html Volumouse] (Change volume with scroll wheel)
 
 
 = Related =
