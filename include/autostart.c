@@ -1,6 +1,6 @@
 /*
 	Autostart functions.
-	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -8,7 +8,7 @@
 	(at your option) any later version.
 */
 
-//No error reporting since we don't want the user to be interrupted when opening the tray menu
+//No error reporting since we don't want the user to be interrupted
 void CheckAutostart(int *on, int *hidden) {
 	*on = 0;
 	*hidden = 0;
@@ -48,10 +48,6 @@ void SetAutostart(int on, int hide) {
 		//Get path
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-		#ifdef APP_CONFIG
-		PathRemoveFileSpec(path);
-		wcscat(path, L"\\"APP_NAME".exe");
-		#endif
 		//Set autostart
 		wchar_t value[MAX_PATH+10];
 		swprintf(value, (hide?L"\"%s\" -hide":L"\"%s\""), path);

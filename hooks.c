@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@ struct {
 	HWND hwnd;
 	short alt;
 	short ctrl;
+	short interrupted;
 	short updaterate;
 	unsigned int clicktime;
 	POINT clickpt;
@@ -880,9 +881,16 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		int vkey = ((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 		
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-			if (!state.alt && IsHotkey(vkey)) {
+			if (IsHotkey(vkey)) {
+				//Don't do anything if we're already pressing a hotkey
+				if (state.alt) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				
+				//Update state
 				state.alt = 1;
 				state.blockaltup = 0;
+				state.interrupted = 0;
 				
 				//Ctrl as hotkey should not trigger Ctrl-focusing when starting dragging, releasing and pressing it again will focus though
 				if (!sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL)) {
@@ -908,6 +916,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (vkey == VK_ESCAPE) {
 				UnhookMouse();
+			}
+			else {
+				state.interrupted = 1;
 			}
 			if (sharedstate.action && (vkey == VK_LCONTROL || vkey == VK_RCONTROL) && !state.ignorectrl && !state.ctrl) {
 				POINT pt;
@@ -1016,7 +1027,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.clicktime = 0;
 			}
 		}
-		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action && sharedsettings.Mouse.Scroll) {
+		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action && sharedsettings.Mouse.Scroll && !state.interrupted) {
 			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
 			if (sharedsettings.Mouse.Scroll == ACTION_ALTTAB) {
 				state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
@@ -1052,7 +1063,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 			}
 			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME && pAudioEndpoint != NULL) {
-				//Function pointer so we only need one for loop
+				//Function pointer so we only need one for-loop
 				typedef HRESULT WINAPI (*_VolumeStep)(IAudioEndpointVolume*, LPCGUID pguidEventContext);
 				_VolumeStep VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepDown);
 				if (delta > 0) {
