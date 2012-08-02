@@ -74,6 +74,10 @@ void OpenConfig(int startpage) {
 	PropertySheet(&psh);
 }
 
+void CloseConfig() {
+	PostMessage(g_cfgwnd, WM_CLOSE, 0, 0);
+}
+
 void UpdateSettings() {
 	PostMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 }

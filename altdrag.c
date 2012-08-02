@@ -51,6 +51,7 @@ UINT WM_UPDATESETTINGS = 0;
 UINT WM_ADDTRAY = 0;
 UINT WM_HIDETRAY = 0;
 UINT WM_OPENCONFIG = 0;
+UINT WM_CLOSECONFIG = 0;
 wchar_t inipath[MAX_PATH];
 #define ENABLED() (keyhook || msghook)
 
@@ -71,17 +72,39 @@ BOOL x64 = FALSE;
 #include "config/config.c"
 
 //Entry point
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
 	
-	//Check command line
-	if (!strcmp(szCmdLine,"-hide")) {
-		hide = 1;
+	//Convert szCmdLine to argv and argc (max 10 arguments)
+	char *argv[10];
+	int argc = 1;
+	argv[0] = szCmdLine;
+	while ((argv[argc]=strchr(argv[argc-1],' ')) != NULL) {
+		*argv[argc] = '\0';
+		if (argc == sizeof(argv)/sizeof(char*)) break;
+		argv[argc++]++;
+	}
+	
+	//Check arguments
+	int i;
+	int elevate = 0;
+	int quiet = 0;
+	for (i=0; i < argc; i++) {
+		if (!strcmp(argv[i],"-hide") || !strcmp(argv[i],"-h")) {
+			hide = 1;
+		}
+		else if (!strcmp(argv[i],"-quiet") || !strcmp(argv[i],"-q")) {
+			quiet = 1;
+		}
+		else if (!strcmp(argv[i],"-elevate") || !strcmp(argv[i],"-e")) {
+			elevate = 1;
+		}
 	}
 	
 	//Register some messages
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_OPENCONFIG = RegisterWindowMessage(L"OpenConfig");
+	WM_CLOSECONFIG = RegisterWindowMessage(L"CloseConfig");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
 	
@@ -93,21 +116,28 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 	
 	//Look for previous instance
 	GetPrivateProfileString(APP_NAME, L"MultipleInstances", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	if (!_wtoi(txt)) {
+	if (!_wtoi(txt) && !elevate) {
 		HWND previnst = FindWindow(APP_NAME, NULL);
 		if (previnst != NULL) {
-			PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
-			if (!hide) {
-				PostMessage(previnst, WM_OPENCONFIG, 0, 0);
+			if (quiet) {
+				return 0;
 			}
+			PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
+			PostMessage(previnst, (hide?WM_CLOSECONFIG:WM_OPENCONFIG), 0, 0);
 			PostMessage(previnst, (hide?WM_HIDETRAY:WM_ADDTRAY), 0, 0);
 			return 0;
 		}
 	}
 	
+	//Handle request to elevate to administrator privileges
+	if (elevate) {
+		GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
+		ShellExecute(NULL, L"runas", inipath, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
+		return 0;
+	}
+	
 	//Language
 	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	int i;
 	for (i=0; languages[i].code != NULL; i++) {
 		if (!wcsicmp(txt,languages[i].code)) {
 			l10n = languages[i].strings;
@@ -341,6 +371,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	else if (msg == WM_OPENCONFIG && (lParam || !hide)) {
 		OpenConfig(wParam);
+	}
+	else if (msg == WM_CLOSECONFIG) {
+		CloseConfig();
 	}
 	else if (msg == WM_TASKBARCREATED) {
 		tray_added = 0;
