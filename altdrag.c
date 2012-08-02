@@ -9,7 +9,7 @@
 
 #define UNICODE
 #define _UNICODE
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0600
 #define _WIN32_IE 0x0600
 
 #include <stdio.h>
@@ -87,18 +87,36 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	
 	//Check arguments
 	int i;
-	int elevate = 0;
-	int quiet = 0;
+	int elevate=0, quiet=0, config=-1, multi=0;
 	for (i=0; i < argc; i++) {
 		if (!strcmp(argv[i],"-hide") || !strcmp(argv[i],"-h")) {
+			//-hide = do not add tray icon, hide it if already running
 			hide = 1;
 		}
 		else if (!strcmp(argv[i],"-quiet") || !strcmp(argv[i],"-q")) {
+			//-quiet = do nothing if already running
 			quiet = 1;
 		}
 		else if (!strcmp(argv[i],"-elevate") || !strcmp(argv[i],"-e")) {
+			//-elevate = create a new instance with administrator privileges
 			elevate = 1;
 		}
+		else if (!strcmp(argv[i],"-config") || !strcmp(argv[i],"-c")) {
+			//-config = open config (with requested page)
+			config = (i+1 < argc)?atoi(argv[i+1]):0;
+		}
+		else if (!strcmp(argv[i],"-multi")) {
+			//-multi = allow multiple instances, used internally when elevating via config window
+			multi = 1;
+		}
+	}
+	
+	//Handle request to elevate to administrator privileges
+	if (elevate) {
+		wchar_t path[MAX_PATH];
+		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+		ShellExecute(NULL, L"runas", path, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
+		return 0;
 	}
 	
 	//Register some messages
@@ -116,24 +134,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	
 	//Look for previous instance
 	GetPrivateProfileString(APP_NAME, L"MultipleInstances", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	if (!_wtoi(txt) && !elevate) {
+	if (!_wtoi(txt) && !multi) {
 		HWND previnst = FindWindow(APP_NAME, NULL);
 		if (previnst != NULL) {
 			if (quiet) {
 				return 0;
 			}
 			PostMessage(previnst, WM_UPDATESETTINGS, 0, 0);
-			PostMessage(previnst, (hide?WM_CLOSECONFIG:WM_OPENCONFIG), 0, 0);
+			PostMessage(previnst, (hide && !config?WM_CLOSECONFIG:WM_OPENCONFIG), config, 0);
 			PostMessage(previnst, (hide?WM_HIDETRAY:WM_ADDTRAY), 0, 0);
 			return 0;
 		}
-	}
-	
-	//Handle request to elevate to administrator privileges
-	if (elevate) {
-		GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
-		ShellExecute(NULL, L"runas", inipath, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
-		return 0;
 	}
 	
 	//Language
@@ -164,6 +175,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	if (hide && (!keyhook || (settings.HookWindows && !msghook))) {
 		hide = 0;
 		UpdateTray();
+	}
+	
+	//Open config if -config was supplied
+	if (config != -1) {
+		SendMessage(g_hwnd, WM_OPENCONFIG, config, 0);
 	}
 	
 	//Check for update

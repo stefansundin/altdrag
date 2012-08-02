@@ -15,7 +15,7 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Upgrade ${APP_NAME} to ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "Your existing settings will be copied to ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Install to a new location."
 LangString L10N_UPGRADE_UNINSTALL 0 "&Uninstall ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "A new version is available.$\nAbort install and go to website?"
+LangString L10N_UPDATE_DIALOG     0 "A newer version is available.$\nAbort install and go to website?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Keyboard Shortcut"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "The shortcut Alt + Shift conflicts with ${APP_NAME}."

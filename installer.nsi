@@ -115,7 +115,7 @@ FunctionEnd
 ; Installer
 
 Section "" sec_update
-	NSISdl::download "${APP_UPDATEURL}" "$TEMP\${APP_NAME}-updatecheck"
+	NSISdl::download /TIMEOUT=5000 "${APP_UPDATEURL}" "$TEMP\${APP_NAME}-updatecheck"
 	Pop $0
 	StrCmp $0 "success" +3
 		DetailPrint "Update check failed. Error: $0."

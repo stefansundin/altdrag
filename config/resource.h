@@ -23,7 +23,9 @@
 #define IDC_AUTOSAVE                            1004
 #define IDC_PROCESSBLACKLIST_HEADER             1004
 #define IDC_SCROLL_HEADER                       1004
+#define IDC_AUTOSTART_ELEVATE                   1005
 #define IDC_BLACKLIST_HEADER                    1006
+#define IDC_ELEVATE                             1006
 #define IDC_LMB_HEADER                          1006
 #define IDC_MMB_HEADER                          1007
 #define IDC_RMB_HEADER                          1008

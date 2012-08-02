@@ -45,6 +45,12 @@ struct strings {
 		wchar_t *autostart_box;
 		wchar_t *autostart;
 		wchar_t *autostart_hide;
+		wchar_t *autostart_elevate;
+		wchar_t *autostart_elevate_tip;
+		wchar_t *elevate;
+		wchar_t *elevated;
+		wchar_t *elevate_tip;
+		wchar_t *elevation_aborted;
 		wchar_t *autosave;
 	} general;
 	struct {

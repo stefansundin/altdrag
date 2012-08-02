@@ -38,7 +38,7 @@ struct strings en_US = {
  { /* general tab */
    /* box              */ L"General settings",
    /* autofocus        */ L"&Focus windows when dragging.\nYou can also press Ctrl to focus windows.",
-   /* aero             */ L"Mimic &Aero Snap",
+   /* aero             */ L"&Mimic Aero Snap",
    /* inactivescroll   */ L"&Scroll inactive windows",
    /* autosnap         */ L"Automatically snap to:",
    /* autosnap0        */ L"Disabled",
@@ -50,6 +50,12 @@ struct strings en_US = {
    /* autostart_box    */ L"Autostart",
    /* autostart        */ L"S&tart "APP_NAME" when logging on",
    /* autostart_hide   */ L"&Hide tray",
+   /* autostart_elevate*/ L"&Elevate to administrator privileges",
+   /*       elevate_tip*/ L"Note that the UAC prompt will appear every time you log in. There is a workaround for this (described on the website wiki), but it is not 100% trouble free.",
+   /* elevate          */ L"E&levate",
+   /* elevated         */ L"Elevated",
+   /* elevate_tip      */ L"This will create a new instance of "APP_NAME" which is running with administrator privileges. This allows "APP_NAME" to manage other programs which are running with administrator privileges.\n\nYou will have to approve a UAC prompt from Windows to allow "APP_NAME" to run with administrator privileges.",
+   /* elevation_aborted*/ L"Elevation aborted.",
    /* autosave         */ L"Note: Settings are saved and applied instantly!",
  },
  { /* input tab */
