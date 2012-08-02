@@ -10,6 +10,7 @@
 #include <commctrl.h>
 #include <prsht.h>
 #include <windowsx.h>
+#include <winnt.h>
 
 //Boring stuff
 BOOL CALLBACK PropSheetProc(HWND, UINT, LPARAM);
@@ -20,6 +21,8 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 void LinkProc(HWND, UINT, WPARAM, LPARAM);
 HWND g_cfgwnd = NULL;
+int vista = 0;
+int elevated = 0;
 
 //Blacklist
 LRESULT CALLBACK CursorProc(HWND, UINT, WPARAM, LPARAM);
@@ -69,6 +72,21 @@ void OpenConfig(int startpage) {
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	psh.nStartPage      = startpage;
+	
+	//Check if in Vista+
+	OSVERSIONINFO vi = { sizeof(OSVERSIONINFO) };
+	GetVersionEx(&vi);
+	vista = (vi.dwMajorVersion >= 6);
+	
+	//Check if already elevated
+	if (vista) {
+		HANDLE token;
+		TOKEN_ELEVATION elevation;
+		DWORD len;
+		if (OpenProcessToken(GetCurrentProcess(),TOKEN_READ,&token) && GetTokenInformation(token,TokenElevation,&elevation,sizeof(elevation),&len)) {
+			elevated = elevation.TokenIsElevated;
+		}
+	}
 	
 	//Open the property sheet
 	PropertySheet(&psh);
@@ -137,7 +155,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 		
 		//OK button replaces Cancel button
 		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
-		EnableWindow(GetDlgItem(g_cfgwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
+		Button_Enable(GetDlgItem(g_cfgwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
 		WINDOWPLACEMENT wndpl;
 		wndpl.length = sizeof(WINDOWPLACEMENT);
 		GetWindowPlacement(GetDlgItem(g_cfgwnd,IDCANCEL), &wndpl);
@@ -166,6 +184,8 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
 			}
 		}
+		
+		Button_Enable(GetDlgItem(hwnd,IDC_ELEVATE), vista && !elevated);
 	}
 	else if (msg == WM_COMMAND) {
 		int id = LOWORD(wParam);
@@ -202,14 +222,35 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 			}
 		}
 		else if (id == IDC_AUTOSTART) {
-			SetAutostart(val, 0);
-			EnableWindow(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), val);
+			SetAutostart(val, 0, 0);
+			Button_Enable(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), val);
+			Button_Enable(GetDlgItem(hwnd,IDC_AUTOSTART_ELEVATE), val && vista);
 			if (!val) {
 				Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), BST_UNCHECKED);
+				Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_ELEVATE), BST_UNCHECKED);
 			}
 		}
 		else if (id == IDC_AUTOSTART_HIDE) {
-			SetAutostart(1, val);
+			int elevate = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_ELEVATE));
+			SetAutostart(1, val, elevate);
+		}
+		else if (id == IDC_AUTOSTART_ELEVATE) {
+			int hide = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE));
+			SetAutostart(1, hide, val);
+			if (val) {
+				MessageBox(NULL, l10n->general.autostart_elevate_tip, APP_NAME, MB_ICONINFORMATION|MB_OK);
+			}
+		}
+		else if (id == IDC_ELEVATE && MessageBox(NULL,l10n->general.elevate_tip,APP_NAME,MB_ICONINFORMATION|MB_OK)) {
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			if ((int)ShellExecute(NULL,L"runas",path,L"-config -multi",NULL,SW_SHOWNORMAL) > 32) {
+				PostMessage(g_hwnd, WM_CLOSE, 0, 0);
+			}
+			else {
+				MessageBox(NULL, l10n->general.elevation_aborted, APP_NAME, MB_ICONINFORMATION|MB_OK);
+			}
+			return;
 		}
 		UpdateSettings();
 	}
@@ -219,11 +260,13 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 			updatel10n = 1;
 			
 			//Autostart
-			int autostart=0, hidden=0;
-			CheckAutostart(&autostart, &hidden);
+			int autostart=0, hidden=0, elevated=0;
+			CheckAutostart(&autostart, &hidden, &elevated);
 			Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART), autostart?BST_CHECKED:BST_UNCHECKED);
 			Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), hidden?BST_CHECKED:BST_UNCHECKED);
+			Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_ELEVATE), elevated?BST_CHECKED:BST_UNCHECKED);
 			Button_Enable(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE), autostart);
+			Button_Enable(GetDlgItem(hwnd,IDC_AUTOSTART_ELEVATE), autostart && vista);
 		}
 	}
 	if (updatel10n) {
@@ -237,6 +280,8 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX,      l10n->general.autostart_box);
 		SetDlgItemText(hwnd, IDC_AUTOSTART,          l10n->general.autostart);
 		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE,     l10n->general.autostart_hide);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_ELEVATE,  l10n->general.autostart_elevate);
+		SetDlgItemText(hwnd, IDC_ELEVATE,            (elevated?l10n->general.elevated:l10n->general.elevate));
 		SetDlgItemText(hwnd, IDC_AUTOSAVE,           l10n->general.autosave);
 		
 		//AutoSnap
