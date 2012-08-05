@@ -56,9 +56,6 @@ wchar_t inipath[MAX_PATH];
 #define ENABLED() (keyhook || msghook)
 
 //Cool stuff
-struct {
-	int HookWindows;
-} settings = {0};
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
@@ -156,7 +153,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 			break;
 		}
 	}
-	SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 	
 	//Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
@@ -172,7 +168,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	HookSystem();
 	
 	//Add tray if hook failed, even though -hide was supplied
-	if (hide && (!keyhook || (settings.HookWindows && !msghook))) {
+	if (hide && !keyhook) {
 		hide = 0;
 		UpdateTray();
 	}
@@ -217,6 +213,7 @@ int HookSystem() {
 		}
 	}
 	
+	//Load keyboard hook
 	HOOKPROC procaddr;
 	if (!keyhook) {
 		//Get address to keyboard hook (beware name mangling)
@@ -233,7 +230,10 @@ int HookSystem() {
 		}
 	}
 	
-	if (!msghook && settings.HookWindows) {
+	//HookWindows
+	wchar_t txt[10];
+	GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	if (!msghook && _wtoi(txt)) {
 		//Get address to message hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
 		if (procaddr == NULL) {
@@ -359,9 +359,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	else if (msg == WM_UPDATESETTINGS) {
 		wchar_t txt[10];
-		//HookWindows
-		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-		swscanf(txt, L"%d", &settings.HookWindows);
 		//Language
 		GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		int i;
