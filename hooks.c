@@ -181,7 +181,7 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 	int i;
 	
 	//ProcessBlacklist is case-insensitive
-	if (list == &settings.ProcessBlacklist) {
+	if (list == &settings.ProcessBlacklist && list->length > 0) {
 		DWORD pid;
 		GetWindowThreadProcessId(hwnd, &pid);
 		HANDLE proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
@@ -1992,6 +1992,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			if (blacklist == &settings.ProcessBlacklist) {
 				//ProcessBlacklist does not use classname or wildcards
 				classname = NULL;
+				if (title[0] == '\0') {
+					title = NULL;
+				}
 			}
 			else {
 				if (classname != NULL) {
@@ -1999,7 +2002,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 					classname++;
 				}
 				//Check if title or classname is wildcard
-				if (!wcscmp(title,L"*")) {
+				if (!wcscmp(title,L"*") || title[0] == '\0') {
 					title = NULL;
 				}
 				if (classname != NULL && !wcscmp(classname,L"*")) {
