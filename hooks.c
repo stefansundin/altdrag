@@ -180,8 +180,13 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 	wchar_t title[256]=L"", classname[256]=L"";
 	int i;
 	
+	//Do not check if list is empty
+	if (list->length == 0) {
+		return 0;
+	}
+	
 	//ProcessBlacklist is case-insensitive
-	if (list == &settings.ProcessBlacklist && list->length > 0) {
+	if (list == &settings.ProcessBlacklist) {
 		DWORD pid;
 		GetWindowThreadProcessId(hwnd, &pid);
 		HANDLE proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
