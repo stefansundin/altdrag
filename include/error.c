@@ -55,12 +55,12 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	#endif
 }
 
-//DBG(L"%d", 5);
+//DBG("%d", 5);
 //DBGA("%d", 5);
 
 #define DBG(fmt, ...) { \
 	wchar_t _txt[1000]; \
-	wsprintf(_txt, fmt, ##__VA_ARGS__); \
+	wsprintf(_txt, TEXT(fmt), ##__VA_ARGS__); \
 	MessageBox(NULL, _txt, APP_NAME" Debug", MB_ICONINFORMATION|MB_OK); \
 }
 
