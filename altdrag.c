@@ -127,6 +127,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
 	
 	//Load settings
+	IsWow64Process(GetCurrentProcess(), &x64);
 	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
 	PathRemoveFileSpec(inipath);
 	wcscat(inipath, L"\\"APP_NAME".ini");
@@ -156,7 +157,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 	SendMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
-	IsWow64Process(GetCurrentProcess(), &x64);
 	
 	//Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
@@ -177,16 +177,16 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		UpdateTray();
 	}
 	
-	//Open config if -config was supplied
-	if (config != -1) {
-		SendMessage(g_hwnd, WM_OPENCONFIG, config, 0);
-	}
-	
 	//Check for update
 	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	int checkforupdate = _wtoi(txt);
 	if (checkforupdate) {
 		CheckForUpdate(0);
+	}
+	
+	//Open config if -config was supplied
+	if (config != -1) {
+		PostMessage(g_hwnd, WM_OPENCONFIG, config, 0);
 	}
 	
 	//Message loop
@@ -405,8 +405,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			RemoveTray();
 		}
 		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL, l10n->update.dialog, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {
-				ShellExecute(NULL, L"open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
+			if (MessageBox(NULL,l10n->update.dialog,APP_NAME,MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {
+				OpenUrl(APP_URL);
 			}
 		}
 		else if (wmId == SWM_CONFIG) {

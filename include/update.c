@@ -12,16 +12,30 @@
 
 int update = 0;
 
+int OpenUrl(wchar_t *url) {
+	int ret = (int)ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWDEFAULT);
+	if (ret <= 32 && MessageBox(NULL,L"Failed to open browser. Copy url to clipboard?",APP_NAME,MB_ICONWARNING|MB_YESNO) == IDYES) {
+		int size = (wcslen(url)+1)*sizeof(wchar_t);
+		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
+		memcpy(data, url, size);
+		OpenClipboard(NULL);
+		EmptyClipboard();
+		SetClipboardData(CF_UNICODETEXT, data);
+		CloseClipboard();
+		LocalFree(data);
+	}
+	return ret;
+}
+
 DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	int verbose = *(int*)arg;
 	free(arg);
 	
 	//Check if we should check for beta
-	wchar_t path[MAX_PATH];
+	wchar_t path[MAX_PATH], txt[10];
 	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
 	PathRemoveFileSpec(path);
 	wcscat(path, L"\\"APP_NAME".ini");
-	wchar_t txt[10];
 	GetPrivateProfileString(L"Update", L"Beta", L"0", txt, sizeof(txt)/sizeof(wchar_t), path);
 	int beta = _wtoi(txt);
 	
@@ -42,7 +56,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	}
 	
 	//Open connection
-	HINTERNET http = InternetOpen(APP_NAME" - "APP_VERSION, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+	HINTERNET http = InternetOpen(APP_NAME"/"APP_VERSION, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
 	if (http == NULL) {
 		if (verbose) {
 			Error(L"InternetOpen()", L"Could not establish connection.\n\nPlease check for update manually on the website.", GetLastError(), TEXT(__FILE__), __LINE__);

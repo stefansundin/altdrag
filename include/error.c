@@ -44,10 +44,10 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	if (response == IDYES) {
 		//Copy message to clipboard
 		int size = (wcslen(msg)+1)*sizeof(wchar_t);
-		OpenClipboard(NULL);
-		EmptyClipboard();
 		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
 		memcpy(data, msg, size);
+		OpenClipboard(NULL);
+		EmptyClipboard();
 		SetClipboardData(CF_UNICODETEXT, data);
 		CloseClipboard();
 		LocalFree(data);
@@ -55,16 +55,17 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	#endif
 }
 
-//DBG("%d", 5);
+//DBG(L"%d", 5);
+//DBGA("%d", 5);
 
-#define DBG(fmt, arg) { \
+#define DBG(fmt, ...) { \
 	wchar_t _txt[1000]; \
-	wsprintf(_txt, TEXT(fmt), arg); \
+	wsprintf(_txt, fmt, ##__VA_ARGS__); \
 	MessageBox(NULL, _txt, APP_NAME" Debug", MB_ICONINFORMATION|MB_OK); \
 }
 
-#define DBGA(fmt, arg) { \
+#define DBGA(fmt, ...) { \
 	char _txt[1000]; \
-	sprintf(_txt, fmt, arg); \
+	sprintf(_txt, fmt, ##__VA_ARGS__); \
 	MessageBoxA(NULL, _txt, "Debug", MB_ICONINFORMATION|MB_OK); \
 }
