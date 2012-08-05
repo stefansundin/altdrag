@@ -210,7 +210,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		else if (id == IDC_LANGUAGE && event == CBN_SELCHANGE) {
 			int i = ComboBox_GetCurSel(control);
 			if (languages[i].code == NULL) {
-				ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Translate", NULL, NULL, SW_SHOWNORMAL);
+				OpenUrl(L"http://code.google.com/p/altdrag/wiki/Translate");
 				for (i=0; l10n != languages[i].strings; i++) {}
 				ComboBox_SetCurSel(control, i);
 			}
@@ -625,7 +625,7 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 INT_PTR CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_COMMAND) {
 		if (wParam == IDC_DONATE) {
-			ShellExecute(NULL, L"open", L"http://code.google.com/p/altdrag/wiki/Donate", NULL, NULL, SW_SHOWNORMAL);
+			OpenUrl(L"http://code.google.com/p/altdrag/wiki/Donate");
 		}
 	}
 	else if (msg == WM_NOTIFY) {
@@ -652,7 +652,7 @@ void LinkProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_NOTIFY) {
 		NMLINK *link = (NMLINK*)lParam;
 		if (link->hdr.code == NM_CLICK || link->hdr.code == NM_RETURN) {
-			ShellExecute(NULL, L"open", link->item.szUrl, NULL, NULL, SW_SHOWDEFAULT);
+			OpenUrl(link->item.szUrl);
 		}
 	}
 }
