@@ -245,8 +245,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		if (IsZoomed(window)) {
 			//Get monitor size
 			HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-			MONITORINFO monitorinfo;
-			monitorinfo.cbSize = sizeof(MONITORINFO);
+			MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
 			GetMonitorInfo(monitor, &monitorinfo);
 			RECT mon = monitorinfo.rcMonitor;
 			//Crop this window so that it does not exceed the size of the monitor
@@ -607,8 +606,7 @@ void MouseMove() {
 	
 	//Restrict pt within origin monitor if Ctrl is being pressed
 	if (GetAsyncKeyState(VK_CONTROL)&0x8000 && !state.ignorectrl) {
-		MONITORINFO monitorinfo;
-		monitorinfo.cbSize = sizeof(MONITORINFO);
+		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
 		GetMonitorInfo(state.origin.monitor, &monitorinfo);
 		RECT fmon = monitorinfo.rcMonitor;
 		pt.x = (pt.x<fmon.left)?fmon.left: (pt.x>=fmon.right)?fmon.right-1: pt.x;
@@ -622,14 +620,12 @@ void MouseMove() {
 	//AutoRemaximize has priority over locked flag
 	if (sharedstate.action == ACTION_MOVE && sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
 		//Get monitor rect
-		MONITORINFO monitorinfo;
-		monitorinfo.cbSize = sizeof(MONITORINFO);
+		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
 		GetMonitorInfo(monitor, &monitorinfo);
 		RECT mon = monitorinfo.rcWork;
 		RECT fmon = monitorinfo.rcMonitor;
 		//Center window on monitor and maximize it
-		WINDOWPLACEMENT wndpl;
-		wndpl.length = sizeof(WINDOWPLACEMENT);
+		WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 		GetWindowPlacement(state.hwnd, &wndpl);
 		wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-state.origin.width/2;
 		wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
@@ -670,8 +666,7 @@ void MouseMove() {
 	}
 	
 	//Get monitor info
-	MONITORINFO monitorinfo;
-	monitorinfo.cbSize = sizeof(MONITORINFO);
+	MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
 	GetMonitorInfo(monitor, &monitorinfo);
 	RECT mon = monitorinfo.rcWork;
 	RECT fmon = monitorinfo.rcMonitor;
@@ -691,8 +686,7 @@ void MouseMove() {
 			  || (fmon.left < pt.x && pt.x < mon.left+2*AERO_THRESHOLD)
 			  || (mon.right-2*AERO_THRESHOLD < pt.x && pt.x < fmon.right))) {
 				//Restore window
-				WINDOWPLACEMENT wndpl;
-				wndpl.length = sizeof(WINDOWPLACEMENT);
+				WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 				GetWindowPlacement(state.hwnd, &wndpl);
 				wndpl.showCmd = SW_RESTORE;
 				SetWindowPlacement(state.hwnd, &wndpl);
@@ -739,8 +733,7 @@ void MouseMove() {
 				if (!maximized) {
 					state.wndentry->restore = 0;
 					//Center window on monitor and maximize it
-					WINDOWPLACEMENT wndpl;
-					wndpl.length = sizeof(WINDOWPLACEMENT);
+					WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 					GetWindowPlacement(state.hwnd, &wndpl);
 					wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-state.origin.width/2;
 					wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-state.origin.height/2;
@@ -1120,8 +1113,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		
 		//Get monitor info
 		HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		MONITORINFO monitorinfo;
-		monitorinfo.cbSize = sizeof(MONITORINFO);
+		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
 		GetMonitorInfo(monitor, &monitorinfo);
 		RECT mon = monitorinfo.rcWork;
 		RECT fmon = monitorinfo.rcMonitor;
@@ -1130,8 +1122,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		if (buttonstate == STATE_DOWN && sharedstate.action == ACTION_MOVE && action == ACTION_RESIZE) {
 			KillTimer(g_hwnd, RESTORE_TIMER);
 			//Toggle maximized state
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
+			WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 			GetWindowPlacement(state.hwnd, &wndpl);
 			wndpl.showCmd = (wndpl.showCmd==SW_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE;
 			state.locked = (wndpl.showCmd==SW_MAXIMIZE);
@@ -1211,8 +1202,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Get window placement
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
+			WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 			GetWindowPlacement(state.hwnd, &wndpl);
 			RECT wnd;
 			if (GetWindowRect(state.hwnd,&wnd) == 0) {
@@ -1625,16 +1615,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				POINT pt;
 				GetCursorPos(&pt);
 				HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-				MONITORINFO monitorinfo;
-				monitorinfo.cbSize = sizeof(MONITORINFO);
+				MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
 				GetMonitorInfo(monitor, &monitorinfo);
 				RECT fmon = monitorinfo.rcMonitor;
 				state.offset.x = (float)(pt.x-fmon.left)/(fmon.right-fmon.left)*state.origin.width;
 				state.offset.y = (float)(pt.y-fmon.top)/(fmon.bottom-fmon.top)*state.origin.height;
 				
 				//Restore window
-				WINDOWPLACEMENT wndpl;
-				wndpl.length = sizeof(WINDOWPLACEMENT);
+				WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 				GetWindowPlacement(state.hwnd, &wndpl);
 				wndpl.showCmd = SW_RESTORE;
 				SetWindowPlacement(state.hwnd, &wndpl);
@@ -1851,20 +1839,19 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			
 			//[AltDrag]
 			GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.AutoFocus);
+			sharedsettings.AutoFocus = _wtoi(txt);
 			GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.AutoSnap);
-			sharedstate.snap = sharedsettings.AutoSnap;
+			sharedsettings.AutoSnap = sharedstate.snap = _wtoi(txt);
 			GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.AutoRemaximize);
+			sharedsettings.AutoRemaximize = _wtoi(txt);
 			GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Aero);
+			sharedsettings.Aero = _wtoi(txt);
 			GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.InactiveScroll);
+			sharedsettings.InactiveScroll = _wtoi(txt);
 			GetPrivateProfileString(APP_NAME, L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.SnapThreshold);
+			sharedsettings.SnapThreshold = _wtoi(txt);
 			GetPrivateProfileString(APP_NAME, L"FocusOnTyping", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.FocusOnTyping);
+			sharedsettings.FocusOnTyping = _wtoi(txt);
 			
 			//Detect if Aero Snap is enabled
 			if (sharedsettings.Aero == 2) {
@@ -1882,13 +1869,13 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				int error = RegQueryValueEx(key, L"WindowArrangementActive", NULL, NULL, (LPBYTE)txt, &len);
 				RegCloseKey(key);
 				if (error == ERROR_SUCCESS) {
-					swscanf(txt, L"%d", &sharedsettings.Aero);
+					sharedsettings.Aero = _wtoi(txt);
 				}
 			}
 			
 			//[Performance]
 			GetPrivateProfileString(L"Performance", L"Cursor", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Performance.Cursor);
+			sharedsettings.Performance.Cursor = _wtoi(txt);
 			if (sharedsettings.Performance.Cursor) {
 				cursorwnd = FindWindow(APP_NAME, NULL);
 				#ifndef _WIN64
@@ -1901,10 +1888,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				#endif
 			}
 			GetPrivateProfileString(L"Performance", L"MoveRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Performance.MoveRate);
+			sharedsettings.Performance.MoveRate = _wtoi(txt);
 			if (sharedsettings.Performance.MoveRate < 1) sharedsettings.Performance.MoveRate = 1;
 			GetPrivateProfileString(L"Performance", L"ResizeRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			swscanf(txt, L"%d", &sharedsettings.Performance.ResizeRate);
+			sharedsettings.Performance.ResizeRate = _wtoi(txt);
 			if (sharedsettings.Performance.ResizeRate < 1) sharedsettings.Performance.ResizeRate = 1;
 			
 			//[Mouse]

@@ -122,8 +122,7 @@ void UpdateL10n() {
 		HWND page = PropSheet_GetCurrentPageHwnd(g_cfgwnd);
 		if (page != NULL) {
 			int diffrows = numrows-numrows_prev;
-			WINDOWPLACEMENT wndpl;
-			wndpl.length = sizeof(WINDOWPLACEMENT);
+			WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 			//Resize window
 			GetWindowPlacement(g_cfgwnd, &wndpl);
 			wndpl.rcNormalPosition.bottom += 18*diffrows;
@@ -156,8 +155,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 		//OK button replaces Cancel button
 		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
 		Button_Enable(GetDlgItem(g_cfgwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
-		WINDOWPLACEMENT wndpl;
-		wndpl.length = sizeof(WINDOWPLACEMENT);
+		WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 		GetWindowPlacement(GetDlgItem(g_cfgwnd,IDCANCEL), &wndpl);
 		SetWindowPlacement(GetDlgItem(g_cfgwnd,IDOK), &wndpl);
 		ShowWindow(GetDlgItem(g_cfgwnd,IDCANCEL), SW_HIDE);
