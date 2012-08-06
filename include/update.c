@@ -63,6 +63,8 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		}
 		return 1;
 	}
+	unsigned long timeout = 5000;
+	InternetSetOption(http, INTERNET_OPTION_CONNECT_TIMEOUT, &timeout, sizeof(timeout));
 	HINTERNET file = InternetOpenUrl(http, (beta?APP_UPDATE_UNSTABLE:APP_UPDATE_STABLE), NULL, 0, INTERNET_FLAG_RELOAD|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_NO_AUTH|INTERNET_FLAG_NO_AUTO_REDIRECT|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI, 0);
 	if (file == NULL) {
 		if (verbose) {
