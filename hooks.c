@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <time.h>
 #include <windows.h>
 #include <shlwapi.h>
@@ -38,6 +39,7 @@ HWND g_hwnd;
 #define MOVE_TIMER    WM_APP+2
 #define REHOOK_TIMER  WM_APP+3
 #define INIT_TIMER    WM_APP+4
+#define FOCUS_TIMER   WM_APP+5
 
 //Enumerators
 enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME};
@@ -934,8 +936,44 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				hoverwnd = GetAncestor(hoverwnd, GA_ROOT);
-				if (GetForegroundWindow() != hoverwnd) {
-					SetForegroundWindow(hoverwnd);
+				HWND foregroundwnd = GetForegroundWindow();
+				if (foregroundwnd != hoverwnd) {
+					//Ignore if mouse is over taskbar
+					HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
+					if (taskbar == hoverwnd) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					
+					//Focus and raise?
+					if (sharedsettings.FocusOnTyping == 1) {
+						SetForegroundWindow(hoverwnd);
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					
+					//Do not raise, this is a major hack
+					SystemParametersInfo(SPI_SETACTIVEWINDOWTRACKING, 0, (PVOID)TRUE, 0);
+					
+					//Move mouse to bottom right corner
+					POINT pt0 = {0, 0};
+					HMONITOR monitor = MonitorFromPoint(pt0, MONITOR_DEFAULTTOPRIMARY);
+					MONITORINFO mi = { sizeof(MONITORINFO) };
+					GetMonitorInfo(monitor, &mi);
+					MOUSEINPUT mm1 = {65535, 65535, 0, MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE, 0, GetMessageExtraInfo()};
+					INPUT input1 = {INPUT_MOUSE, {.mi=mm1}};
+					SendInput(1, &input1, sizeof(INPUT));
+					
+					//Sleep a while to let the mouse move happen
+					Sleep(1);
+					
+					//Move mouse back
+					int normalizedX = ceil(pt.x*65536.0/mi.rcMonitor.right);
+					int normalizedY = ceil(pt.y*65536.0/mi.rcMonitor.bottom);
+					MOUSEINPUT mm2 = {normalizedX, normalizedY, 0, MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE, 0, GetMessageExtraInfo()};
+					INPUT input2 = {INPUT_MOUSE, {.mi=mm2}};
+					SendInput(1, &input2, sizeof(INPUT));
+					
+					//Set timer to disable window tracking
+					SetTimer(g_hwnd, FOCUS_TIMER, 10, NULL);
 				}
 			}
 		}
@@ -1648,6 +1686,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
 			}
 		}
+		else if (wParam == FOCUS_TIMER) {
+			KillTimer(g_hwnd, wParam);
+			SystemParametersInfo(SPI_SETACTIVEWINDOWTRACKING, 0, (PVOID)FALSE, 0);
+		}
 		else if (wParam == INIT_TIMER) {
 			KillTimer(g_hwnd, wParam);
 			//Needed for IAudioEndpointVolume, and maybe some future stuff
@@ -1655,12 +1697,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			if (hr != S_OK && hr != S_FALSE) {
 				Error(L"CoInitializeEx()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
 			}
+			
+			/*
+			BOOL wndtracking, snaptobutton;
+			DWORD trktimeout, trkzorder;
+			SystemParametersInfo(SPI_GETACTIVEWINDOWTRACKING, 0, &wndtracking, 0);
+			SystemParametersInfo(SPI_GETACTIVEWNDTRKTIMEOUT, 0, &trktimeout, 0);
+			SystemParametersInfo(SPI_GETACTIVEWNDTRKZORDER, 0, &trkzorder, 0);
+			SystemParametersInfo(SPI_GETSNAPTODEFBUTTON, 0, &snaptobutton, 0);
+			DBG("SPI_GETACTIVEWINDOWTRACKING: %d\nSPI_GETACTIVEWNDTRKTIMEOUT: %d\nSPI_GETACTIVEWNDTRKZORDER: %d\nSPI_GETSNAPTODEFBUTTON: %d", wndtracking, trktimeout, trkzorder, snaptobutton);
+			*/
 		}
 	}
 	else if (msg == WM_DESTROY) {
 		KillTimer(g_hwnd, RESTORE_TIMER);
 		KillTimer(g_hwnd, MOVE_TIMER);
 		KillTimer(g_hwnd, REHOOK_TIMER);
+		if (sharedsettings.FocusOnTyping > 1) {
+			SystemParametersInfo(SPI_SETACTIVEWINDOWTRACKING, 0, (PVOID)FALSE, 0);
+		}
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
