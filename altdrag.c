@@ -60,6 +60,8 @@ HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
 BOOL x64 = FALSE;
+int vista = 0;
+int elevated = 0;
 
 //Include stuff
 #include "localization/strings.h"
@@ -71,6 +73,13 @@ BOOL x64 = FALSE;
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
+	IsWow64Process(GetCurrentProcess(), &x64);
+	
+	//Get ini path
+	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
+	PathRemoveFileSpec(inipath);
+	wcscat(inipath, L"\\"APP_NAME".ini");
+	wchar_t txt[10];
 	
 	//Convert szCmdLine to argv and argc (max 10 arguments)
 	char *argv[10];
@@ -108,12 +117,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 	
-	//Handle request to elevate to administrator privileges
-	if (elevate) {
-		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
-		ShellExecute(NULL, L"runas", path, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
-		return 0;
+	//Check if elevated if in >= Vista
+	OSVERSIONINFO vi = { sizeof(OSVERSIONINFO) };
+	GetVersionEx(&vi);
+	vista = (vi.dwMajorVersion >= 6);
+	if (vista) {
+		HANDLE token;
+		TOKEN_ELEVATION elevation;
+		DWORD len;
+		if (OpenProcessToken(GetCurrentProcess(),TOKEN_READ,&token) && GetTokenInformation(token,TokenElevation,&elevation,sizeof(elevation),&len)) {
+			elevated = elevation.TokenIsElevated;
+		}
 	}
 	
 	//Register some messages
@@ -123,15 +137,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
 	
-	//Load settings
-	IsWow64Process(GetCurrentProcess(), &x64);
-	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
-	PathRemoveFileSpec(inipath);
-	wcscat(inipath, L"\\"APP_NAME".ini");
-	wchar_t txt[10];
-	
 	//Look for previous instance
-	GetPrivateProfileString(APP_NAME, L"MultipleInstances", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Advanced", L"MultipleInstances", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	if (!_wtoi(txt) && !multi) {
 		HWND previnst = FindWindow(APP_NAME, NULL);
 		if (previnst != NULL) {
@@ -145,8 +152,26 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 	
+	//Check AlwaysElevate
+	if (!elevated) {
+		GetPrivateProfileString(L"Advanced", L"AlwaysElevate", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		if (_wtoi(txt)) {
+			elevate = 1;
+		}
+		
+		//Handle request to elevate to administrator privileges
+		if (elevate) {
+			wchar_t path[MAX_PATH];
+			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			int ret = (int)ShellExecute(NULL, L"runas", path, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
+			if (ret > 32) {
+				return 0;
+			}
+		}
+	}
+	
 	//Language
-	GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	for (i=0; languages[i].code != NULL; i++) {
 		if (!wcsicmp(txt,languages[i].code)) {
 			l10n = languages[i].strings;
@@ -175,8 +200,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	
 	//Check for update
 	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-	int checkforupdate = _wtoi(txt);
-	if (checkforupdate) {
+	if (_wtoi(txt)) {
 		CheckForUpdate(0);
 	}
 	
@@ -232,7 +256,7 @@ int HookSystem() {
 	
 	//HookWindows
 	wchar_t txt[10];
-	GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 	if (!msghook && _wtoi(txt)) {
 		//Get address to message hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
@@ -360,7 +384,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_UPDATESETTINGS) {
 		wchar_t txt[10];
 		//Language
-		GetPrivateProfileString(APP_NAME, L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
 			if (!wcsicmp(txt,languages[i].code)) {

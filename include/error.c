@@ -8,6 +8,10 @@
 	(at your option) any later version.
 */
 
+#ifdef ERROR_WRITETOFILE
+#include <shlobj.h>
+#endif
+
 int showerror = 1;
 
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
@@ -33,8 +37,12 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	LocalFree(errormsg);
 	//Display message
 	#ifdef ERROR_WRITETOFILE
-	FILE *f = _wfopen("C:\\"APP_NAME"-errorlog.txt", L"ab");
-	fwprintf(f, L"%s\n\n", msg);
+	wchar_t _txt[1000];
+	SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, _txt);
+	wcscat(_txt, L"\\"APP_NAME"-errorlog.txt");
+	FILE *f = _wfopen(_txt, L"ab");
+	fputws(msg, f);
+	fputws(L"\n\n", f);
 	fclose(f);
 	#else
 	//Tip: You can also press Ctrl+C in a MessageBox window to copy the text
@@ -58,14 +66,24 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 //DBG("%d", 5);
 //DBGA("%d", 5);
 
+#ifdef ERROR_WRITETOFILE
+
+#define DBG(fmt, ...) { \
+	wchar_t _txt[1000]; \
+	SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, _txt); \
+	wcscat(_txt, L"\\"APP_NAME"-errorlog.txt"); \
+	FILE *f = _wfopen(_txt, L"ab"); \
+	fwprintf(f, TEXT(fmt), ##__VA_ARGS__); \
+	fputws(L"\n\n", f); \
+	fclose(f); \
+}
+
+#else
+
 #define DBG(fmt, ...) { \
 	wchar_t _txt[1000]; \
 	wsprintf(_txt, TEXT(fmt), ##__VA_ARGS__); \
 	MessageBox(NULL, _txt, APP_NAME" Debug", MB_ICONINFORMATION|MB_OK); \
 }
 
-#define DBGA(fmt, ...) { \
-	char _txt[1000]; \
-	sprintf(_txt, fmt, ##__VA_ARGS__); \
-	MessageBoxA(NULL, _txt, "Debug", MB_ICONINFORMATION|MB_OK); \
-}
+#endif

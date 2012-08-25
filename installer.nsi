@@ -219,11 +219,15 @@ Function PageAltShift
 	GetDlgItem $0 $HWNDPARENT 2
 	EnableWindow $0 0
 	
+	;Disable x button
+	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
+	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
+	
 	nsDialogs::Show
 FunctionEnd
 
 Function OpenKeyboardSettings
-	Exec "RunDll32.exe shell32.dll,Control_RunDLL input.dll"
+	Exec "rundll32.exe shell32.dll,Control_RunDLL input.dll,,{C07337D3-DB2C-4D0B-9A93-B722A6C106E2}{HOTKEYS}"
 FunctionEnd
 
 ; Detect previous installation
