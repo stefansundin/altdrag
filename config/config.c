@@ -21,8 +21,6 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK AboutPageDialogProc(HWND, UINT, WPARAM, LPARAM);
 void LinkProc(HWND, UINT, WPARAM, LPARAM);
 HWND g_cfgwnd = NULL;
-int vista = 0;
-int elevated = 0;
 
 //Blacklist
 LRESULT CALLBACK CursorProc(HWND, UINT, WPARAM, LPARAM);
@@ -72,21 +70,6 @@ void OpenConfig(int startpage) {
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	psh.nStartPage      = startpage;
-	
-	//Check if in Vista+
-	OSVERSIONINFO vi = { sizeof(OSVERSIONINFO) };
-	GetVersionEx(&vi);
-	vista = (vi.dwMajorVersion >= 6);
-	
-	//Check if already elevated
-	if (vista) {
-		HANDLE token;
-		TOKEN_ELEVATION elevation;
-		DWORD len;
-		if (OpenProcessToken(GetCurrentProcess(),TOKEN_READ,&token) && GetTokenInformation(token,TokenElevation,&elevation,sizeof(elevation),&len)) {
-			elevated = elevation.TokenIsElevated;
-		}
-	}
 	
 	//Open the property sheet
 	PropertySheet(&psh);
@@ -166,13 +149,13 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	int updatel10n = 0;
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[20];
-		GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
-		GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_AERO), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
-		GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"InactiveScroll", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
 		int i;
@@ -193,17 +176,17 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		wchar_t txt[10];
 		
 		if (id == IDC_AUTOFOCUS) {
-			WritePrivateProfileString(APP_NAME, L"AutoFocus", _itow(val,txt,10), inipath);
+			WritePrivateProfileString(L"General", L"AutoFocus", _itow(val,txt,10), inipath);
 		}
 		else if (id == IDC_AUTOSNAP && event == CBN_SELCHANGE) {
 			val = ComboBox_GetCurSel(control);
-			WritePrivateProfileString(APP_NAME, L"AutoSnap", _itow(val,txt,10), inipath);
+			WritePrivateProfileString(L"General", L"AutoSnap", _itow(val,txt,10), inipath);
 		}
 		else if (id == IDC_AERO) {
-			WritePrivateProfileString(APP_NAME, L"Aero", _itow(val,txt,10), inipath);
+			WritePrivateProfileString(L"General", L"Aero", _itow(val,txt,10), inipath);
 		}
 		else if (id == IDC_INACTIVESCROLL) {
-			WritePrivateProfileString(APP_NAME, L"InactiveScroll", _itow(val,txt,10), inipath);
+			WritePrivateProfileString(L"General", L"InactiveScroll", _itow(val,txt,10), inipath);
 		}
 		else if (id == IDC_LANGUAGE && event == CBN_SELCHANGE) {
 			int i = ComboBox_GetCurSel(control);
@@ -214,7 +197,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 			}
 			else {
 				l10n = languages[i].strings;
-				WritePrivateProfileString(APP_NAME, L"Language", languages[i].code, inipath);
+				WritePrivateProfileString(L"General", L"Language", languages[i].code, inipath);
 				updatel10n = 1;
 				UpdateL10n();
 			}
@@ -289,7 +272,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap2);
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap3);
 		wchar_t txt[10];
-		GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), _wtoi(txt));
 		
 		//Language
@@ -352,7 +335,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		//Hotkeys
 		unsigned int temp;
 		int numread;
-		GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		wchar_t *pos = txt;
 		while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
 			pos += numread;
@@ -374,14 +357,14 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
 				if (control == mouse_buttons[i].control) {
 					int j = ComboBox_GetCurSel(GetDlgItem(hwnd,control));
-					WritePrivateProfileString(L"Mouse", mouse_buttons[i].option, mouse_actions[j].action, inipath);
+					WritePrivateProfileString(L"Input", mouse_buttons[i].option, mouse_actions[j].action, inipath);
 					break;
 				}
 			}
 			//Scroll
 			if (control == IDC_SCROLL) {
 				int j = ComboBox_GetCurSel(GetDlgItem(hwnd,control));
-				WritePrivateProfileString(L"Mouse", L"Scroll", scroll_actions[j].action, inipath);
+				WritePrivateProfileString(L"Input", L"Scroll", scroll_actions[j].action, inipath);
 			}
 		}
 		else {
@@ -396,7 +379,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			if (!vkey) return FALSE;
 			
 			wchar_t keys[50];
-			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"", keys, sizeof(keys)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Input", L"Hotkeys", L"", keys, sizeof(keys)/sizeof(wchar_t), inipath);
 			int add = Button_GetCheck(GetDlgItem(hwnd,wParam));
 			if (add) {
 				if (*keys != '\0') {
@@ -417,7 +400,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 					pos += numread;
 				}
 			}
-			WritePrivateProfileString(L"Keyboard", L"Hotkeys", txt, inipath);
+			WritePrivateProfileString(L"Input", L"Hotkeys", txt, inipath);
 		}
 		UpdateSettings();
 	}
@@ -431,7 +414,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
 				HWND control = GetDlgItem(hwnd, mouse_buttons[i].control);
 				ComboBox_ResetContent(control);
-				GetPrivateProfileString(L"Mouse", mouse_buttons[i].option, L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				GetPrivateProfileString(L"Input", mouse_buttons[i].option, L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				for (j=0; j < sizeof(mouse_actions)/sizeof(mouse_actions[0]); j++) {
 					ComboBox_AddString(control, mouse_actions[j].l10n);
 					if (!wcscmp(txt,mouse_actions[j].action)) {
@@ -443,7 +426,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			//Scroll
 			HWND control = GetDlgItem(hwnd, IDC_SCROLL);
 			ComboBox_ResetContent(control);
-			GetPrivateProfileString(L"Mouse", L"Scroll", L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			for (j=0; j < sizeof(scroll_actions)/sizeof(scroll_actions[0]); j++) {
 				ComboBox_AddString(control, scroll_actions[j].l10n);
 				if (!wcscmp(txt,scroll_actions[j].action)) {
@@ -571,7 +554,7 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[10];
-		GetPrivateProfileString(APP_NAME, L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
@@ -590,7 +573,7 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 					Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), BST_UNCHECKED);
 					return;
 				}
-				WritePrivateProfileString(APP_NAME, L"HookWindows", _itow(val,txt,10), inipath);
+				WritePrivateProfileString(L"Advanced", L"HookWindows", _itow(val,txt,10), inipath);
 				UpdateSettings();
 			}
 			else if (wParam == IDC_CHECKONSTARTUP) {

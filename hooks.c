@@ -1892,20 +1892,22 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			PathRemoveFileSpec(inipath);
 			wcscat(inipath, L"\\"APP_NAME".ini");
 			
-			//[AltDrag]
-			GetPrivateProfileString(APP_NAME, L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			//[General]
+			GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			sharedsettings.AutoFocus = _wtoi(txt);
-			GetPrivateProfileString(APP_NAME, L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			sharedsettings.AutoSnap = sharedstate.snap = _wtoi(txt);
-			GetPrivateProfileString(APP_NAME, L"AutoRemaximize", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			sharedsettings.AutoRemaximize = _wtoi(txt);
-			GetPrivateProfileString(APP_NAME, L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			sharedsettings.Aero = _wtoi(txt);
-			GetPrivateProfileString(APP_NAME, L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			sharedsettings.InactiveScroll = _wtoi(txt);
-			GetPrivateProfileString(APP_NAME, L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			
+			//[Advanced]
+			GetPrivateProfileString(L"Advanced", L"AutoRemaximize", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			sharedsettings.AutoRemaximize = _wtoi(txt);
+			GetPrivateProfileString(L"Advanced", L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			sharedsettings.SnapThreshold = _wtoi(txt);
-			GetPrivateProfileString(APP_NAME, L"FocusOnTyping", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Advanced", L"FocusOnTyping", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			sharedsettings.FocusOnTyping = _wtoi(txt);
 			
 			//Detect if Aero Snap is enabled
@@ -1949,23 +1951,23 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			sharedsettings.Performance.ResizeRate = _wtoi(txt);
 			if (sharedsettings.Performance.ResizeRate < 1) sharedsettings.Performance.ResizeRate = 1;
 			
-			//[Mouse]
+			//[Input]
 			struct {
 				wchar_t *key;
 				wchar_t *def;
 				enum action *ptr;
 			} buttons[] = {
-				{L"LMB", L"Move",    &sharedsettings.Mouse.LMB},
-				{L"MMB", L"Resize",  &sharedsettings.Mouse.MMB},
-				{L"RMB", L"Resize",  &sharedsettings.Mouse.RMB},
-				{L"MB4", L"Nothing", &sharedsettings.Mouse.MB4},
-				{L"MB5", L"Nothing", &sharedsettings.Mouse.MB5},
+				{L"LMB",    L"Move",    &sharedsettings.Mouse.LMB},
+				{L"MMB",    L"Resize",  &sharedsettings.Mouse.MMB},
+				{L"RMB",    L"Resize",  &sharedsettings.Mouse.RMB},
+				{L"MB4",    L"Nothing", &sharedsettings.Mouse.MB4},
+				{L"MB5",    L"Nothing", &sharedsettings.Mouse.MB5},
 				{L"Scroll", L"Nothing", &sharedsettings.Mouse.Scroll},
 				{NULL}
 			};
 			int i;
 			for (i=0; buttons[i].key != NULL; i++) {
-				GetPrivateProfileString(L"Mouse", buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				GetPrivateProfileString(L"Input", buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
 				if      (!wcsicmp(txt,L"Move"))        *buttons[i].ptr = ACTION_MOVE;
 				else if (!wcsicmp(txt,L"Resize"))      *buttons[i].ptr = ACTION_RESIZE;
 				else if (!wcsicmp(txt,L"Minimize"))    *buttons[i].ptr = ACTION_MINIMIZE;
@@ -1978,10 +1980,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				else                                   *buttons[i].ptr = ACTION_NONE;
 			}
 			
-			//[Keyboard]
 			unsigned int temp;
 			int numread;
-			GetPrivateProfileString(L"Keyboard", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
 			wchar_t *pos = txt;
 			while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
 				//Bail if we are out of space
@@ -2039,9 +2040,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			if (blacklist == &settings.ProcessBlacklist) {
 				//ProcessBlacklist does not use classname or wildcards
 				classname = NULL;
-				if (title[0] == '\0') {
-					title = NULL;
-				}
 			}
 			else {
 				if (classname != NULL) {
@@ -2049,12 +2047,16 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 					classname++;
 				}
 				//Check if title or classname is wildcard
-				if (!wcscmp(title,L"*") || title[0] == '\0') {
+				if (!wcscmp(title,L"*")) {
 					title = NULL;
 				}
 				if (classname != NULL && !wcscmp(classname,L"*")) {
 					classname = NULL;
 				}
+			}
+			//Check for invalid entry
+			if (classname == NULL && title != NULL && title[0] == '\0') {
+				title = NULL;
 			}
 			//Do not store item if it's empty
 			if (title != NULL || classname != NULL) {
