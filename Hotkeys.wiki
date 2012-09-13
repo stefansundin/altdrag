@@ -25,5 +25,9 @@ I'm listing some common keys here.
 || Right Windows Key  || `5C` ||
 || Left Ctrl Key      || `A2` ||
 || Right Ctrl Key     || `A3` ||
+|| Left Shift Key     || `A0` ||
+|| Right Shift Key    || `A1` ||
+
+Note that if you assign one of the shift keys to alt-drag windows, that shift key can no longer be used to snap windows together. If you assign the left shift key, you can still use the right shift key though, and vice versa.
 
 Write a comment if you think I have missed a common key.
