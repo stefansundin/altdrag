@@ -26,9 +26,9 @@ Currently you can choose to donate with PayPal, Flattr or Bitcoin.
 
 == Donate with PayPal ==
 
-The easiest way to donate is by sending money with PayPal to `stefan(at)stefansundin.com`. You can donate with PayPal without a PayPal account, using only your credit card. Note that PayPal will take a small processing fee.
+The easiest way to donate is by sending money with PayPal to `recover89(at)gmail.com`. You can donate with PayPal without a PayPal account, using only your credit card.
 
-[https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E2VLK4MQ7UD9C http://altdrag.googlecode.com/svn/wiki/donate.png]
+[https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=8727MAF7NTYRE http://altdrag.googlecode.com/svn/wiki/donate.png]
 
 
 == Donate with Flattr ==
