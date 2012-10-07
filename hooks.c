@@ -1103,19 +1103,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Get audio endpoint
 				HRESULT hr = CoCreateInstance(&my_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &my_IID_IMMDeviceEnumerator, (void**)&pDevEnumerator);
 				if (hr != S_OK) {
-					Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pDevEnumerator, eRender, eMultimedia, &pDev);
 				IMMDeviceEnumerator_Release(pDevEnumerator);
 				if (hr != S_OK) {
-					Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				hr = IMMDevice_Activate(pDev, &my_IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, (void**)&pAudioEndpoint);
 				IMMDevice_Release(pDev);
 				if (hr != S_OK) {
-					Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				
@@ -1134,7 +1134,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				IAudioEndpointVolume_Release(pAudioEndpoint);
 				if (hr != S_OK) {
-					Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -1695,7 +1695,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			//Needed for IAudioEndpointVolume, and maybe some future stuff
 			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			if (hr != S_OK && hr != S_FALSE) {
-				Error(L"CoInitializeEx()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+				Error(L"CoInitializeEx()", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
 			}
 			
 			/*
