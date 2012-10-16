@@ -63,7 +63,7 @@ If you, like me, dislike the ability in Windows 7 to shake a window to minimize 
 
 If you are too lazy to start regedit, then simply run this command. Make sure you are running it with administrator privileges (hold Ctrl+Shift if running from the start menu).
 {{{
-reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /t REG_DWORD /v NoWindowMinimizingShortcuts /d 1
+reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /t REG_DWORD /v NoWindowMinimizingShortcuts /d 1 /f
 }}}
 
 To change it back, run this command:
