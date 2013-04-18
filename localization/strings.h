@@ -136,7 +136,6 @@ struct {
 	{ L"ru-RU", &ru_RU },
 	{ L"sk-SK", &sk_SK },
 	{ L"zh-CN", &zh_CN },
-	{ NULL }
 };
 
 struct strings *l10n = &en_US;

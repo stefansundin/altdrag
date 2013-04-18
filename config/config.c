@@ -49,9 +49,9 @@ void OpenConfig(int startpage) {
 		{ IDD_ABOUTPAGE,     AboutPageDialogProc },
 	};
 	
-	PROPSHEETPAGE psp[sizeof(pages)/sizeof(pages[0])] = {0};
+	PROPSHEETPAGE psp[ARRAY_SIZE(pages)] = {0};
 	int i;
-	for (i=0; i < sizeof(pages)/sizeof(pages[0]); i++) {
+	for (i=0; i < ARRAY_SIZE(pages); i++) {
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
 		psp[i].hInstance   = g_hinst;
 		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
@@ -66,7 +66,7 @@ void OpenConfig(int startpage) {
 	psh.hInstance       = g_hinst;
 	psh.hIcon           = icon[1];
 	psh.pszCaption      = APP_NAME;
-	psh.nPages          = sizeof(pages)/sizeof(pages[0]);
+	psh.nPages          = ARRAY_SIZE(pages);
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	psh.nStartPage      = startpage;
@@ -92,7 +92,7 @@ void UpdateL10n() {
 	int numrows_prev = TabCtrl_GetRowCount(tc);
 	wchar_t *titles[] = { l10n->tabs.general, l10n->tabs.input, l10n->tabs.blacklist, l10n->tabs.advanced, l10n->tabs.about };
 	int i;
-	for (i=0; i < sizeof(titles)/sizeof(titles[0]); i++) {
+	for (i=0; i < ARRAY_SIZE(titles); i++) {
 		TCITEM ti;
 		ti.mask = TCIF_TEXT;
 		ti.pszText = titles[i];
@@ -149,17 +149,17 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	int updatel10n = 0;
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[20];
-		GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
-		GetPrivateProfileString(L"General", L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"Aero", L"2", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_AERO), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
-		GetPrivateProfileString(L"General", L"InactiveScroll", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"InactiveScroll", L"1", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 		
 		int i;
-		for (i=0; languages[i].code != NULL; i++) {
+		for (i=0; i < ARRAY_SIZE(languages); i++) {
 			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), languages[i].strings->lang);
 			if (l10n == languages[i].strings) {
 				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
@@ -190,7 +190,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		}
 		else if (id == IDC_LANGUAGE && event == CBN_SELCHANGE) {
 			int i = ComboBox_GetCurSel(control);
-			if (languages[i].code == NULL) {
+			if (i == ARRAY_SIZE(languages)) {
 				OpenUrl(L"http://code.google.com/p/altdrag/wiki/Translate");
 				for (i=0; l10n != languages[i].strings; i++) {}
 				ComboBox_SetCurSel(control, i);
@@ -224,7 +224,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		}
 		else if (id == IDC_ELEVATE && MessageBox(NULL,l10n->general.elevate_tip,APP_NAME,MB_ICONINFORMATION|MB_OK)) {
 			wchar_t path[MAX_PATH];
-			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 			if ((int)ShellExecute(NULL,L"runas",path,L"-config -multi",NULL,SW_SHOWNORMAL) > 32) {
 				PostMessage(g_hwnd, WM_CLOSE, 0, 0);
 			}
@@ -272,11 +272,11 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap2);
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap3);
 		wchar_t txt[10];
-		GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, ARRAY_SIZE(txt), inipath);
 		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), _wtoi(txt));
 		
 		//Language
-		ComboBox_DeleteString(GetDlgItem(hwnd,IDC_LANGUAGE), sizeof(languages)/sizeof(languages[0])-1);
+		ComboBox_DeleteString(GetDlgItem(hwnd,IDC_LANGUAGE), ARRAY_SIZE(languages));
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), l10n->general.helptranslate);
 	}
 	return FALSE;
@@ -335,12 +335,12 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		//Hotkeys
 		unsigned int temp;
 		int numread;
-		GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, ARRAY_SIZE(txt), inipath);
 		wchar_t *pos = txt;
 		while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
 			pos += numread;
 			//What key was that?
-			for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
+			for (i=0; i < ARRAY_SIZE(hotkeys); i++) {
 				if (temp == hotkeys[i].vkey) {
 					Button_SetCheck(GetDlgItem(hwnd,hotkeys[i].control), BST_CHECKED);
 					break;
@@ -354,7 +354,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		if (HIWORD(wParam) == CBN_SELCHANGE) {
 			int control = LOWORD(wParam);
 			//Mouse actions
-			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
+			for (i=0; i < ARRAY_SIZE(mouse_buttons); i++) {
 				if (control == mouse_buttons[i].control) {
 					int j = ComboBox_GetCurSel(GetDlgItem(hwnd,control));
 					WritePrivateProfileString(L"Input", mouse_buttons[i].option, mouse_actions[j].action, inipath);
@@ -370,7 +370,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		else {
 			//Hotkeys
 			int vkey = 0;
-			for (i=0; i < sizeof(hotkeys)/sizeof(hotkeys[0]); i++) {
+			for (i=0; i < ARRAY_SIZE(hotkeys); i++) {
 				if (wParam == hotkeys[i].control) {
 					vkey = hotkeys[i].vkey;
 					break;
@@ -379,7 +379,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			if (!vkey) return FALSE;
 			
 			wchar_t keys[50];
-			GetPrivateProfileString(L"Input", L"Hotkeys", L"", keys, sizeof(keys)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Input", L"Hotkeys", L"", keys, ARRAY_SIZE(keys), inipath);
 			int add = Button_GetCheck(GetDlgItem(hwnd,wParam));
 			if (add) {
 				if (*keys != '\0') {
@@ -411,11 +411,11 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			int i, j;
 			
 			//Mouse actions
-			for (i=0; i < sizeof(mouse_buttons)/sizeof(mouse_buttons[0]); i++) {
+			for (i=0; i < ARRAY_SIZE(mouse_buttons); i++) {
 				HWND control = GetDlgItem(hwnd, mouse_buttons[i].control);
 				ComboBox_ResetContent(control);
-				GetPrivateProfileString(L"Input", mouse_buttons[i].option, L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-				for (j=0; j < sizeof(mouse_actions)/sizeof(mouse_actions[0]); j++) {
+				GetPrivateProfileString(L"Input", mouse_buttons[i].option, L"Nothing", txt, ARRAY_SIZE(txt), inipath);
+				for (j=0; j < ARRAY_SIZE(mouse_actions); j++) {
 					ComboBox_AddString(control, mouse_actions[j].l10n);
 					if (!wcscmp(txt,mouse_actions[j].action)) {
 						ComboBox_SetCurSel(control, j);
@@ -426,8 +426,8 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			//Scroll
 			HWND control = GetDlgItem(hwnd, IDC_SCROLL);
 			ComboBox_ResetContent(control);
-			GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, sizeof(txt)/sizeof(wchar_t), inipath);
-			for (j=0; j < sizeof(scroll_actions)/sizeof(scroll_actions[0]); j++) {
+			GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, ARRAY_SIZE(txt), inipath);
+			for (j=0; j < ARRAY_SIZE(scroll_actions); j++) {
 				ComboBox_AddString(control, scroll_actions[j].l10n);
 				if (!wcscmp(txt,scroll_actions[j].action)) {
 					ComboBox_SetCurSel(control, j);
@@ -461,18 +461,18 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[1000];
-		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, ARRAY_SIZE(txt), inipath);
 		SetDlgItemText(hwnd, IDC_PROCESSBLACKLIST, txt);
-		GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, ARRAY_SIZE(txt), inipath);
 		SetDlgItemText(hwnd, IDC_BLACKLIST, txt);
-		GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, ARRAY_SIZE(txt), inipath);
 		SetDlgItemText(hwnd, IDC_SNAPLIST, txt);
 	}
 	else if (msg == WM_COMMAND) {
 		wchar_t txt[1000];
 		int control = LOWORD(wParam);
 		if (HIWORD(wParam) == EN_KILLFOCUS) {
-			Edit_GetText(GetDlgItem(hwnd,control), txt, sizeof(txt)/sizeof(wchar_t));
+			Edit_GetText(GetDlgItem(hwnd,control), txt, ARRAY_SIZE(txt));
 			if (control == IDC_PROCESSBLACKLIST) {
 				WritePrivateProfileString(L"Blacklist", L"ProcessBlacklist", txt, inipath);
 			}
@@ -535,8 +535,8 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			window = GetAncestor(window, GA_ROOT);
 			
 			wchar_t title[256], classname[256];
-			GetWindowText(window, title, sizeof(title)/sizeof(wchar_t));
-			GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+			GetWindowText(window, title, ARRAY_SIZE(title));
+			GetClassName(window, classname, ARRAY_SIZE(classname));
 			
 			wchar_t txt[1000];
 			swprintf(txt, L"%s|%s", title, classname);
@@ -554,11 +554,11 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[10];
-		GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
-		GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_CHECKONSTARTUP), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
-		GetPrivateProfileString(L"Update", L"Beta", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Update", L"Beta", L"0", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_BETA), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 	}
 	else if (msg == WM_COMMAND) {
