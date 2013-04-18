@@ -51,7 +51,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
 		//Copy message to clipboard
-		int size = (wcslen(msg)+1)*sizeof(wchar_t);
+		int size = (wcslen(msg)+1)*sizeof(msg[0]);
 		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
 		memcpy(data, msg, size);
 		OpenClipboard(NULL);
@@ -84,6 +84,12 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	wchar_t _txt[1000]; \
 	wsprintf(_txt, TEXT(fmt), ##__VA_ARGS__); \
 	MessageBox(NULL, _txt, APP_NAME" Debug", MB_ICONINFORMATION|MB_OK); \
+}
+
+#define DBGA(fmt, ...) { \
+	char _txt[1000]; \
+	sprintf(_txt, fmt, ##__VA_ARGS__); \
+	MessageBoxA(NULL, _txt, "Debug", MB_ICONINFORMATION|MB_OK); \
 }
 
 #endif

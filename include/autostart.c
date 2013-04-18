@@ -20,7 +20,7 @@ void CheckAutostart(int *on, int *hidden, int *elevated) {
 	RegCloseKey(key);
 	//Compare
 	wchar_t path[MAX_PATH], compare[MAX_PATH+20];
-	GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+	GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 	swprintf(compare, L"\"%s\"", path);
 	if (wcsstr(value,compare) != value) {
 		return;
@@ -46,10 +46,10 @@ void SetAutostart(int on, int hide, int elevate) {
 	if (on) {
 		//Get path
 		wchar_t path[MAX_PATH], value[MAX_PATH+20];
-		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+		GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 		swprintf(value, L"\"%s\"%s%s", path, (hide?L" -hide":L""), (elevate?L" -elevate":L""));
 		//Set autostart
-		error = RegSetValueEx(key, APP_NAME, 0, REG_SZ, (LPBYTE)value, (wcslen(value)+1)*sizeof(wchar_t));
+		error = RegSetValueEx(key, APP_NAME, 0, REG_SZ, (LPBYTE)value, (wcslen(value)+1)*sizeof(value[0]));
 		if (error != ERROR_SUCCESS) {
 			Error(L"RegSetValueEx('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
 			return;

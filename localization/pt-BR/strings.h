@@ -50,6 +50,12 @@ struct strings pt_BR = {
    /* autostart_box    */ L"Início automático",
    /* autostart        */ L"&Iniciar o "APP_NAME" quando fizer logon",
    /* autostart_hide   */ L"&Ocultar ícone da área de notificação",
+   /* autostart_elevate*/ L"&Elevate to administrator privileges",
+   /*       elevate_tip*/ L"Note that a UAC prompt will appear every time you log in, unless you disable UAC completely.",
+   /* elevate          */ L"E&levate",
+   /* elevated         */ L"Elevated",
+   /* elevate_tip      */ L"This will create a new instance of "APP_NAME" which is running with administrator privileges. This allows "APP_NAME" to manage other programs which are running with administrator privileges.\n\nYou will have to approve a UAC prompt from Windows to allow "APP_NAME" to run with administrator privileges.",
+   /* elevation_aborted*/ L"Elevation aborted.",
    /* autosave         */ L"Nota: as configurações são salvas e aplicadas instantaneamente!",
  },
  { /* input tab */

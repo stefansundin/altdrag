@@ -31,7 +31,7 @@ int InitTray() {
 	tray.uCallbackMessage = WM_TRAY;
 	//Balloon tooltip
 	tray.uTimeout = 10000;
-	wcsncpy(tray.szInfoTitle, APP_NAME, sizeof(tray.szInfoTitle)/sizeof(wchar_t));
+	wcsncpy(tray.szInfoTitle, APP_NAME, ARRAY_SIZE(tray.szInfoTitle));
 	tray.dwInfoFlags = NIIF_USER;
 	
 	//Register TaskbarCreated so we can re-add the tray icon if (when) explorer.exe crashes
@@ -41,7 +41,7 @@ int InitTray() {
 }
 
 int UpdateTray() {
-	wcsncpy(tray.szTip, (ENABLED()?l10n->tray_enabled:l10n->tray_disabled), sizeof(tray.szTip)/sizeof(wchar_t));
+	wcsncpy(tray.szTip, (ENABLED()?l10n->tray_enabled:l10n->tray_disabled), ARRAY_SIZE(tray.szTip));
 	tray.hIcon = icon[ENABLED()?1:0];
 	
 	//Only add or modify if not hidden or if balloon will be displayed
