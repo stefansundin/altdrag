@@ -3,7 +3,7 @@
 
 = AltDrag.exe =
 
-AltDrag has historically only had one command line option; `-hide`. With the release of 1.0b2, several new options were added. Please note that all options are case-sensitive.
+AltDrag has historically only had one command line option; `-hide`. With the release of 1.0 beta 2, several new options were added. Please note that all options are case-sensitive.
 
 || *Short option* || *Long option* || *Explanation* ||
 || `-h`           || `-hide`       || Do not add tray icon, hide it if already running. ||
