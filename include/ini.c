@@ -15,6 +15,8 @@
 #include <windows.h>
 #include <shlwapi.h>
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
 int main(int argc, char *argv[]) {
 	if (argc < 4) {
 		printf("Not enough arguments\n");
@@ -25,7 +27,7 @@ int main(int argc, char *argv[]) {
 	//Get path
 	char path[MAX_PATH];
 	if (PathIsRelative(argv[1])) {
-		GetCurrentDirectory(sizeof(path), path);
+		GetCurrentDirectory(ARRAY_SIZE(path), path);
 		PathAddBackslash(path);
 		strcat(path, argv[1]);
 	}
@@ -36,7 +38,7 @@ int main(int argc, char *argv[]) {
 	//Write/Read
 	if (argc == 4) {
 		char txt[1000];
-		GetPrivateProfileString(argv[2], argv[3], NULL, txt, sizeof(txt), path); //No error detection possible
+		GetPrivateProfileString(argv[2], argv[3], NULL, txt, ARRAY_SIZE(txt), path); //No error detection possible
 		printf(txt);
 	}
 	else if (WritePrivateProfileString(argv[2],argv[3],argv[4],path) == 0) {

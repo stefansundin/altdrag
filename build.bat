@@ -19,14 +19,14 @@ rem "build\unhook.exe"
 %prefix32%windres include\hooks.rc build\hooks.o
 
 if "%1" == "all" (
-	%prefix32%gcc -o build\ini.exe include\ini.c -lshlwapi
-	
 	@echo.
 	echo Building release build
 	%prefix32%gcc -o build\AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -O2 -s
 	if not exist build\AltDrag.exe. exit /b
 	%prefix32%gcc -o build\hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -O2 -s
 	if not exist build\hooks.dll. exit /b
+	
+	%prefix32%gcc -o build\ini.exe include\ini.c -lshlwapi
 	
 	if "%2" == "x64" (
 		%prefix64%windres include\hookwindows_x64.rc build\hookwindows_x64.o

@@ -19,7 +19,7 @@
 
 //App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.0b1"
+#define APP_VERSION         "1.0b2"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
@@ -43,6 +43,8 @@
 #endif
 
 //Boring stuff
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#define ENABLED() (keyhook || msghook)
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hinst = NULL;
 HWND g_hwnd = NULL;
@@ -53,7 +55,6 @@ UINT WM_HIDETRAY = 0;
 UINT WM_OPENCONFIG = 0;
 UINT WM_CLOSECONFIG = 0;
 wchar_t inipath[MAX_PATH];
-#define ENABLED() (keyhook || msghook)
 
 //Cool stuff
 HINSTANCE hinstDLL = NULL;
@@ -76,7 +77,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	IsWow64Process(GetCurrentProcess(), &x64);
 	
 	//Get ini path
-	GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
+	GetModuleFileName(NULL, inipath, ARRAY_SIZE(inipath));
 	PathRemoveFileSpec(inipath);
 	wcscat(inipath, L"\\"APP_NAME".ini");
 	wchar_t txt[10];
@@ -87,7 +88,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	argv[0] = szCmdLine;
 	while ((argv[argc]=strchr(argv[argc-1],' ')) != NULL) {
 		*argv[argc] = '\0';
-		if (argc == sizeof(argv)/sizeof(char*)) break;
+		if (argc == ARRAY_SIZE(argv)) break;
 		argv[argc++]++;
 	}
 	
@@ -138,7 +139,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
 	
 	//Look for previous instance
-	GetPrivateProfileString(L"Advanced", L"MultipleInstances", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Advanced", L"MultipleInstances", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (!_wtoi(txt) && !multi) {
 		HWND previnst = FindWindow(APP_NAME, NULL);
 		if (previnst != NULL) {
@@ -154,7 +155,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	
 	//Check AlwaysElevate
 	if (!elevated) {
-		GetPrivateProfileString(L"Advanced", L"AlwaysElevate", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Advanced", L"AlwaysElevate", L"0", txt, ARRAY_SIZE(txt), inipath);
 		if (_wtoi(txt)) {
 			elevate = 1;
 		}
@@ -162,7 +163,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		//Handle request to elevate to administrator privileges
 		if (elevate) {
 			wchar_t path[MAX_PATH];
-			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 			int ret = (int)ShellExecute(NULL, L"runas", path, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
 			if (ret > 32) {
 				return 0;
@@ -171,7 +172,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	}
 	
 	//Language
-	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
 	for (i=0; languages[i].code != NULL; i++) {
 		if (!wcsicmp(txt,languages[i].code)) {
 			l10n = languages[i].strings;
@@ -199,7 +200,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	}
 	
 	//Check for update
-	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (_wtoi(txt)) {
 		CheckForUpdate(0);
 	}
@@ -227,7 +228,7 @@ int HookSystem() {
 	//Load library
 	if (!hinstDLL) {
 		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+		GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 		PathRemoveFileSpec(path);
 		wcscat(path, L"\\hooks.dll");
 		hinstDLL = LoadLibrary(path);
@@ -256,7 +257,7 @@ int HookSystem() {
 	
 	//HookWindows
 	wchar_t txt[10];
-	GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+	GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (!msghook && _wtoi(txt)) {
 		//Get address to message hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
@@ -274,7 +275,7 @@ int HookSystem() {
 		//x64
 		if (x64) {
 			wchar_t path[MAX_PATH];
-			GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 			PathRemoveFileSpec(path);
 			wcscat(path, L"\\HookWindows_x64.exe");
 			ShellExecute(NULL, L"open", path, L"nowarning", NULL, SW_SHOWNORMAL);
@@ -384,7 +385,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	else if (msg == WM_UPDATESETTINGS) {
 		wchar_t txt[10];
 		//Language
-		GetPrivateProfileString(L"General", L"Language", L"en-US", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
 		int i;
 		for (i=0; languages[i].code != NULL; i++) {
 			if (!wcsicmp(txt,languages[i].code)) {
@@ -426,7 +427,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			RemoveTray();
 		}
 		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL,l10n->update.dialog,APP_NAME,MB_ICONINFORMATION|MB_YESNO|MB_SYSTEMMODAL) == IDYES) {
+			if (MessageBox(NULL,l10n->update.dialog,APP_NAME,MB_ICONINFORMATION|MB_YESNO|MB_TOPMOST|MB_SETFOREGROUND) == IDYES) {
 				OpenUrl(APP_URL);
 			}
 		}

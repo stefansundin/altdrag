@@ -50,6 +50,12 @@ struct strings zh_CN = {
    /* autostart_box    */ L"随系统自动启动",
    /* autostart        */ L"(&t)登录时启动"APP_NAME"",
    /* autostart_hide   */ L"(&H)隐藏通知栏图标",
+   /* autostart_elevate*/ L"&Elevate to administrator privileges",
+   /*       elevate_tip*/ L"Note that a UAC prompt will appear every time you log in, unless you disable UAC completely.",
+   /* elevate          */ L"E&levate",
+   /* elevated         */ L"Elevated",
+   /* elevate_tip      */ L"This will create a new instance of "APP_NAME" which is running with administrator privileges. This allows "APP_NAME" to manage other programs which are running with administrator privileges.\n\nYou will have to approve a UAC prompt from Windows to allow "APP_NAME" to run with administrator privileges.",
+   /* elevation_aborted*/ L"Elevation aborted.",
    /* autosave         */ L"注意: 设置改动后会立即保存!",
  },
  { /* input tab */

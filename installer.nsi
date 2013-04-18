@@ -11,15 +11,16 @@
 ;http://nsis.sourceforge.net/AccessControl_plug-in
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "1.0"
+!define APP_VERSION   "1.0b2"
 !define APP_URL       "http://code.google.com/p/altdrag/"
-!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
+!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
 
 ; Libraries
 
 !include "MUI2.nsh"
 !include "Sections.nsh"
 !include "LogicLib.nsh"
+!include "FileFunc.nsh"
 
 ; General
 
@@ -177,6 +178,7 @@ Section "" sec_app
 	;Create uninstaller
 	WriteUninstaller "Uninstall.exe"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayName" "${APP_NAME}"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayIcon" '"$INSTDIR\${APP_NAME}.exe"'
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayVersion" "${APP_VERSION}"
@@ -184,6 +186,11 @@ Section "" sec_app
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "Publisher" "Stefan Sundin"
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
+	
+	;Compute size for uninstall information
+	${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+	IntFmt $0 "0x%08X" $0
+	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "EstimatedSize" "$0"
 SectionEnd
 
 Section "" sec_shortcut
