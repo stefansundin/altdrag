@@ -133,8 +133,6 @@ Section "" sec_update
 SectionEnd
 
 Section "" sec_app
-	SectionIn RO
-	
 	;Close app if running
 	Call CloseApp
 	

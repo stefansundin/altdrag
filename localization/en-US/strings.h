@@ -104,7 +104,7 @@ struct strings en_US = {
  { /* advanced tab */
    /* box              */ L"Advanced settings",
    /* hookwindows      */ L"&Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!",
-   /* hookwindows_warn */ L"Note that this is not 100% safe as it hooks into other processes and stuff like that. Might be risky to use when playing games with anti-cheat protection.\n\nAre you sure you want to enable this feature?",
+   /* hookwindows_warn */ L"Note that this is not 100% safe as this feature works by hooking into other processes. This might be risky to use when playing games with anti-cheat protection.\n\nAre you sure you want to enable this feature?",
    /* checkonstartup   */ L"Automatically check for &updates",
    /* beta             */ L"Check for &beta versions",
    /* checknow         */ L"&Check now",

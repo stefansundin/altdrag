@@ -13,7 +13,7 @@
 int update = 0;
 
 int OpenUrl(wchar_t *url) {
-	int ret = (int)ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWDEFAULT);
+	int ret = (INT_PTR)ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWDEFAULT);
 	if (ret <= 32 && MessageBox(NULL,L"Failed to open browser. Copy url to clipboard?",APP_NAME,MB_ICONWARNING|MB_YESNO) == IDYES) {
 		int size = (wcslen(url)+1)*sizeof(wchar_t);
 		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
