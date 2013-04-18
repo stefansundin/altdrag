@@ -1,11 +1,11 @@
-;Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
+;Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 ;
 ;This program is free software: you can redistribute it and/or modify
 ;it under the terms of the GNU General Public License as published by
 ;the Free Software Foundation, either version 3 of the License, or
 ;(at your option) any later version.
 
-;For silent install you can use these switches: /S /D=C:\installdir
+;For silent install you can use these switches: /S /L=es-ES /D=C:\installdir
 
 ;Requires AccessControl plug-in
 ;http://nsis.sourceforge.net/AccessControl_plug-in
@@ -35,8 +35,8 @@ SetCompressor /SOLID lzma
 
 ; Interface
 
-!define MUI_LANGDLL_REGISTRY_ROOT "HKCU" 
-!define MUI_LANGDLL_REGISTRY_KEY "Software\${APP_NAME}" 
+!define MUI_LANGDLL_REGISTRY_ROOT HKCU
+!define MUI_LANGDLL_REGISTRY_KEY "Software\${APP_NAME}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Language"
 
 !define MUI_COMPONENTSPAGE_NODESC
@@ -69,7 +69,14 @@ Var UpgradeState
 
 !macro Lang lang id
 ${If} $LANGUAGE == ${id}
-	WriteINIStr "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "Language" "${lang}"
+	WriteINIStr "$INSTDIR\${APP_NAME}.ini" "General" "Language" "${lang}"
+${EndIf}
+!macroend
+
+!macro SetLang lang1 lang2 id
+${If} ${lang1} == ${lang2}
+	;Beautiful NSIS-way of doing $LANGUAGE = ${id}
+	IntOp $LANGUAGE 0 + ${id}
 ${EndIf}
 !macroend
 
@@ -103,7 +110,7 @@ Function ${un}CloseApp
 	closed:
 	Sleep 100 ;Sleep a little extra to let Windows do its thing
 	;If HookWindows is enabled, sleep even longer
-	ReadINIStr $0 "$INSTDIR\${APP_NAME}.ini" "${APP_NAME}" "HookWindows"
+	ReadINIStr $0 "$INSTDIR\${APP_NAME}.ini" "Advanced" "HookWindows"
 	${If} $0 == "1"
 		Sleep 1000
 	${EndIf}
@@ -155,13 +162,13 @@ Section "" sec_app
 	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
 	
-	!insertmacro Lang en-US ${LANG_ENGLISH}
-	!insertmacro Lang fr-FR ${LANG_FRENCH}
-	!insertmacro Lang pl-PL ${LANG_POLISH}
-	!insertmacro Lang pt-BR ${LANG_PORTUGUESEBR}
-	!insertmacro Lang ru-RU ${LANG_RUSSIAN}
-	!insertmacro Lang sk-SK ${LANG_SLOVAK}
-	!insertmacro Lang zh-CN ${LANG_SIMPCHINESE}
+	!insertmacro Lang "en-US" ${LANG_ENGLISH}
+	!insertmacro Lang "fr-FR" ${LANG_FRENCH}
+	!insertmacro Lang "pl-PL" ${LANG_POLISH}
+	!insertmacro Lang "pt-BR" ${LANG_PORTUGUESEBR}
+	!insertmacro Lang "ru-RU" ${LANG_RUSSIAN}
+	!insertmacro Lang "sk-SK" ${LANG_SLOVAK}
+	!insertmacro Lang "zh-CN" ${LANG_SIMPCHINESE}
 	
 	;Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
@@ -270,17 +277,14 @@ Function PageUpgradeLeave
 	
 	${NSD_GetState} $Upgradebox $UpgradeState
 	${If} $UpgradeState == ${BST_CHECKED}
-		ReadINIStr $0 "$INSTDIR\${APP_NAME}.ini" "Update" "CheckOnStartup"
-		${If} $0 == "0"
-			!insertmacro UnselectSection ${sec_update}
-		${EndIf}
+		!insertmacro UnselectSection ${sec_update}
+		!insertmacro UnselectSection ${sec_shortcut}
 	${EndIf}
 FunctionEnd
 
-;Used when upgrading to skip the components and directory pages
+;Used when upgrading to skip the directory page
 Function SkipPage
 	${If} $UpgradeState == ${BST_CHECKED}
-		!insertmacro UnselectSection ${sec_shortcut}
 		Abort
 	${EndIf}
 FunctionEnd
@@ -296,20 +300,31 @@ Function DisableBackButton
 FunctionEnd
 
 Function .onInit
-	;Display language selection and add tray if program is running
-	!insertmacro MUI_LANGDLL_DISPLAY
 	Call AddTray
 	
 	;Handle silent install
 	IfSilent 0 done
 		!insertmacro UnselectSection ${sec_update}
 	done:
-FunctionEnd
-
-Function .onInstSuccess
-	;Run program if silent
-	IfSilent 0 +2
-		Call Launch
+	
+	;Set language from command line
+	ClearErrors
+	${GetParameters} $0
+	IfErrors done2
+	${GetOptionsS} $0 "/L=" $0
+	IfErrors done2
+	!insertmacro SetLang $0 "en-US" ${LANG_ENGLISH}
+	!insertmacro SetLang $0 "fr-FR" ${LANG_FRENCH}
+	!insertmacro SetLang $0 "pl-PL" ${LANG_POLISH}
+	!insertmacro SetLang $0 "pt-BR" ${LANG_PORTUGUESEBR}
+	!insertmacro SetLang $0 "ru-RU" ${LANG_RUSSIAN}
+	!insertmacro SetLang $0 "sk-SK" ${LANG_SLOVAK}
+	!insertmacro SetLang $0 "zh-CN" ${LANG_SIMPCHINESE}
+	WriteRegStr ${MUI_LANGDLL_REGISTRY_ROOT} "${MUI_LANGDLL_REGISTRY_KEY}" "${MUI_LANGDLL_REGISTRY_VALUENAME}" "$LANGUAGE"
+	done2:
+	
+	;Display language selection and add tray if program is running
+	!insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
 
 ; Uninstaller

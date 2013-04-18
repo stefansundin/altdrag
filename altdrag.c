@@ -173,7 +173,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	
 	//Language
 	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
-	for (i=0; languages[i].code != NULL; i++) {
+	for (i=0; i < ARRAY_SIZE(languages); i++) {
 		if (!wcsicmp(txt,languages[i].code)) {
 			l10n = languages[i].strings;
 			break;
@@ -387,7 +387,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		//Language
 		GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
 		int i;
-		for (i=0; languages[i].code != NULL; i++) {
+		for (i=0; i < ARRAY_SIZE(languages); i++) {
 			if (!wcsicmp(txt,languages[i].code)) {
 				l10n = languages[i].strings;
 				break;

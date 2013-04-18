@@ -21,6 +21,7 @@
 #define APP_NAME L"AltDrag"
 
 //Boring stuff
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hinst = NULL;
 HWND g_hwnd = NULL;
@@ -83,7 +84,7 @@ int HookSystem() {
 	//Load library
 	if (!hinstDLL) {
 		wchar_t path[MAX_PATH];
-		GetModuleFileName(NULL, path, sizeof(path)/sizeof(wchar_t));
+		GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 		PathRemoveFileSpec(path);
 		wcscat(path, L"\\hooks_x64.dll");
 		hinstDLL = LoadLibrary(path);
