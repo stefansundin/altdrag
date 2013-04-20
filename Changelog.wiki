@@ -1,6 +1,6 @@
 #summary History of changes
 
-*1.0 beta 2* - upcoming version:
+*1.0 beta 2* - 2013-04-20:
   * Merged `Config.exe` with `AltDrag.exe`.
   * Made it possible to disable the Alt+Scroll action. It was silly of me to not let you do this in beta 1, sorry!
   * Added new Alt+Scroll action that changes the volume.
