@@ -8,6 +8,40 @@ Donations are a great motivation for me to keep updating my programs. They are a
 You can get in touch with me by sending an email to `stefan(at)stefansundin.com`. You can also [http://stefansundin.com/ visit my website] to read a little more about me.
 
 
+== Crowdfunding campaign ==
+
+==== 2013-04-20 ====
+ I have finally been able to spend some time on AltDrag and I hope you people will like the new beta. I've started a [https://www.catincan.com/proposal/altdrag/altdrag-10 a crowdfunding campaign] on the newly started Catincan website (it's like Kickstarter, but for open source projects). It is my hope that this campaign will bring life to this project again and that it will make the next version as great as it can possible be, and also make way for future releases.
+
+ If the goal of $1000 is met before June 18th (59 days from now), I promise that I will finish development on version 1.0 before the end of this summer, and maybe another beta before that. I will also develop a new translation system that will make it easier to translate and the possibility to add new translations in between releases.
+
+ For every $10 that you donate, you will get one vote that you can use on a bug report or feature request. The bug reports and feature requests with the most votes will be given the most attention by me.
+
+ If you donate $100, you will get to chat with me (video, audio, or just text, depending on your preference) for an hour or two, and you can tell me about a new feature that you'd like to have, and I'll code it live, on the spot. You'll get to keep anything that I make, and if I like the feature I'll put it into the next release. It doesn't even have to be related to AltDrag, it can be a totally new program if you want. You will still get to cast 10 votes, as well.
+
+ You can easily add your pledge with your credit card. *You will only be charged if the goal is reached.* You can log in with your Google, Facebook or Github account, you do not need to create a new account over at Cantican.
+
+ Please go [https://www.catincan.com/proposal/altdrag/altdrag-10 to the campaign site] if you want to read more.
+
+  * == [https://www.catincan.com/proposal/altdrag/altdrag-10 I want to pledge] ==
+
+  * == [https://code.google.com/p/altdrag/downloads/list No thanks, take me to the downloads] ==
+
+<table cellspacing="0" cellpadding="0"><tr><td width="870">
+<table width="100%">
+<tr align="center">
+<td width="100%" align="center"><wiki:gadget border="0" url="http://stefansundin.com/stuff/catincan-iframe.xml" up_id="448" width="324" height="402" /></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+
+= Other donation options =
+
+I prefer that you donate in the campaign above, but here are the donation options that are also available.
+
 == Who else have contributed ==
 
 While I have done most of the work, here are some people who have contributed.
