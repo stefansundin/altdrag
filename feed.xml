@@ -4,12 +4,23 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2011-07-31T00:05:00Z</updated>
+	<updated>2013-04-20T19:00:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<uri>http://stefansundin.com/</uri>
 		<email>recover89@gmail.com</email>
 	</author>
+
+	<entry>
+		<id>urn:uuid:a5f98640-a9e3-11e2-9e96-0800200c9a66</id>
+		<title>AltDrag - 1.0 beta 2</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2013-04-20T19:00:00Z</updated>
+		<author><name>Stefan Sundin</name></author>
+		<content type="html">
+Released 1.0 beta 2. I've also launched a crowdfunding campaign for version 1.0. &lt;a href="http://code.google.com/p/altdrag/">&lt;img src="http://altdrag.googlecode.com/svn/wiki/website.png"/> Please go to the website to read more&lt;/a>.
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:bfcaede7-a92b-4919-8806-3bbadad70fd4</id>
