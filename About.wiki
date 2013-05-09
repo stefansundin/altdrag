@@ -13,6 +13,8 @@ If you still have troubles understanding how AltDrag works, you can watch [http:
 == Resize ==
 You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press.
 
+If you double-click these regions, the window will move moved to the respective corner on your screen (like Aero Snap), so you can quickly arrange your windows to fit on the screen.
+
 http://altdrag.googlecode.com/svn/wiki/resize.png
 
 
