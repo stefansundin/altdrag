@@ -8,6 +8,13 @@
 */
 
 struct strings sk_SK = {
+ /* === translation info === */
+ /* code               */ L"sk-SK",
+ /* lang_english       */ L"Slovak",
+ /* lang               */ L"Slovenčina",
+ /* author             */ L"Miroslav Miklus",
+ 
+ /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (vypnutý)",
  { /* menu */
@@ -26,7 +33,6 @@ struct strings sk_SK = {
  },
  
  /* === config === */
- /* lang               */ L"Slovenčina",
  /* title              */ APP_NAME L" Konfigurácia",
  { /* tabs */
    /* general          */ L"Všeobecné",
@@ -47,7 +53,6 @@ struct strings sk_SK = {
    /* autosnap2        */ L"+ mimo okien",
    /* autosnap3        */ L"+ vnútri okien",
    /* language         */ L"Jazyk:",
-   /* helptranslate    */ L"Pomôcť s prekladom",
    /* autostart_box    */ L"Autoštart",
    /* autostart        */ L"Š&tart "APP_NAME" po prihlásení",
    /* autostart_hide   */ L"&Schovať lištu",
@@ -118,8 +123,7 @@ struct strings sk_SK = {
    /* version          */ L"Verzia "APP_VERSION,
    /* author           */ L"Autor Stefan Sundin",
    /* license          */ APP_NAME L" je voľne dostupný softvér s otvoreným zdrojovým kódom. Šírte ho prosím ďalej.",
-   /* donations_box    */ L"Príspevok",
-   /* donations_plea   */ L"Ak vám pripadá "APP_NAME" užitočný, zvážte finančný príspevok. Ľubovoľná suma poteší.",
    /* donate           */ L"&Prispej",
+   /*translation_credit*/ L"Translation credit",
  },
 };

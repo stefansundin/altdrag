@@ -44,7 +44,6 @@ struct strings es_ES = {
  /* _autosnap2        */ L"- outsidi von windöws",
  /* _autosnap3        */ L"- insidi von windöws",
  /* _language         */ L"Languagi:",
- /* _helptranslate    */ L"Heyy, helpe translaté?!",
  /* _autostart_box    */ L"Autostarti",
  /* _autostart        */ L"S&tarti "APP_NAME" auf log ön",
  /* _autostart_hide   */ L"&Hidé trayi",
