@@ -81,6 +81,7 @@ struct strings sk_SK = {
      /* nothing        */ L"Nothing",
      /* alttab         */ L"Alt+Tab",
      /* volume         */ L"Volume",
+     /* transparency   */ L"Transparency",
    },
    { /* hotkeys */
      /* box            */ L"Klávesové skratky",

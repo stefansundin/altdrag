@@ -42,7 +42,7 @@ HWND g_hwnd;
 #define FOCUS_TIMER   WM_APP+5
 
 //Enumerators
-enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME};
+enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME, ACTION_TRANSPARENCY};
 enum button {BUTTON_NONE=0, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
 enum resize {RESIZE_NONE=0, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
 enum cursor {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
@@ -1000,9 +1000,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					}
 				}
 				
+				//Prevent the alt keyup from triggering the window menu to be selected
+				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events
+				if (state.blockaltup || sharedstate.action) {
+					state.ignorectrl = 1;
+					KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
+					ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
+					INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
+					SendInput(2, input, sizeof(INPUT));
+				}
+				state.ignorectrl = 0;
+				
 				//Okay, all hotkeys have been released
 				state.alt = 0;
-				state.ignorectrl = 0;
 				
 				//Unhook mouse if not moving or resizing
 				if (!sharedstate.action) {
@@ -1134,9 +1144,46 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
+			else if (sharedsettings.Mouse.Scroll == ACTION_TRANSPARENCY) {
+				HWND hwnd = WindowFromPoint(pt);
+				if (hwnd == NULL) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				hwnd = GetAncestor(hwnd, GA_ROOT);
+				
+				LONG_PTR style = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+				if (!(style&WS_EX_LAYERED)) {
+					SetWindowLongPtr(hwnd, GWL_EXSTYLE, style|WS_EX_LAYERED);
+					SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+				}
+				
+				BYTE old_alpha;
+				DWORD flags;
+				if (GetLayeredWindowAttributes(hwnd,NULL,&old_alpha,&flags) == FALSE) {
+					Error(L"GetLayeredWindowAttributes()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				int alpha = old_alpha;
+
+				int alpha_delta = (sharedstate.shift)?8:64;
+				if (delta > 0) {
+					alpha += alpha_delta;
+					if (alpha > 255) {
+						alpha = 255;
+					}
+				}
+				else {
+					alpha -= alpha_delta;
+					if (alpha < 8) {
+						alpha = 8;
+					}
+				}
+				SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
+			}
 			
 			//Block original scroll event
 			state.blockaltup = 1;
+			state.activated = 1;
 			return 1;
 		}
 		
@@ -1507,8 +1554,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 			}
 			
-			//Prevent the alt keyup from triggering the window menu to be selected
-			//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events
+			//We have to send the ctrl keys here too because of IE (and maybe some other program?)
 			state.ignorectrl = 1;
 			KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
 			ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
@@ -1993,16 +2039,17 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			int i;
 			for (i=0; buttons[i].key != NULL; i++) {
 				GetPrivateProfileString(L"Input", buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
-				if      (!wcsicmp(txt,L"Move"))        *buttons[i].ptr = ACTION_MOVE;
-				else if (!wcsicmp(txt,L"Resize"))      *buttons[i].ptr = ACTION_RESIZE;
-				else if (!wcsicmp(txt,L"Minimize"))    *buttons[i].ptr = ACTION_MINIMIZE;
-				else if (!wcsicmp(txt,L"Center"))      *buttons[i].ptr = ACTION_CENTER;
-				else if (!wcsicmp(txt,L"AlwaysOnTop")) *buttons[i].ptr = ACTION_ALWAYSONTOP;
-				else if (!wcsicmp(txt,L"Close"))       *buttons[i].ptr = ACTION_CLOSE;
-				else if (!wcsicmp(txt,L"Lower"))       *buttons[i].ptr = ACTION_LOWER;
-				else if (!wcsicmp(txt,L"AltTab"))      *buttons[i].ptr = ACTION_ALTTAB;
-				else if (!wcsicmp(txt,L"Volume"))      *buttons[i].ptr = ACTION_VOLUME;
-				else                                   *buttons[i].ptr = ACTION_NONE;
+				if      (!wcsicmp(txt,L"Move"))         *buttons[i].ptr = ACTION_MOVE;
+				else if (!wcsicmp(txt,L"Resize"))       *buttons[i].ptr = ACTION_RESIZE;
+				else if (!wcsicmp(txt,L"Minimize"))     *buttons[i].ptr = ACTION_MINIMIZE;
+				else if (!wcsicmp(txt,L"Center"))       *buttons[i].ptr = ACTION_CENTER;
+				else if (!wcsicmp(txt,L"AlwaysOnTop"))  *buttons[i].ptr = ACTION_ALWAYSONTOP;
+				else if (!wcsicmp(txt,L"Close"))        *buttons[i].ptr = ACTION_CLOSE;
+				else if (!wcsicmp(txt,L"Lower"))        *buttons[i].ptr = ACTION_LOWER;
+				else if (!wcsicmp(txt,L"AltTab"))       *buttons[i].ptr = ACTION_ALTTAB;
+				else if (!wcsicmp(txt,L"Volume"))       *buttons[i].ptr = ACTION_VOLUME;
+				else if (!wcsicmp(txt,L"Transparency")) *buttons[i].ptr = ACTION_TRANSPARENCY;
+				else                                    *buttons[i].ptr = ACTION_NONE;
 			}
 			
 			unsigned int temp;

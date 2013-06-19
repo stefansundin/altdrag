@@ -75,6 +75,7 @@ struct strings {
 			wchar_t *nothing;
 			wchar_t *alttab;
 			wchar_t *volume;
+			wchar_t *transparency;
 		} actions;
 		struct {
 			wchar_t *box;

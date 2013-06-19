@@ -80,6 +80,7 @@ struct strings ru_RU = {
      /* nothing        */ L"Ничего",
      /* alttab         */ L"Alt+Tab",
      /* volume         */ L"Громкость",
+     /* transparency   */ L"Transparency",
    },
    { /* hotkeys */
      /* box            */ L"Горячие клавиши",
