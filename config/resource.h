@@ -11,11 +11,10 @@
 #define IDD_ABOUTPAGE                           205
 #define IDI_FIND                                206
 #define IDC_AUTOSNAP_HEADER                     1000
-#define IDC_DONATIONS_BOX                       1000
 #define IDC_FINDWINDOW                          1000
 #define IDC_CHECKNOW                            1001
-#define IDC_DONATIONS_PLEA                      1001
 #define IDC_LANGUAGE_HEADER                     1001
+#define IDC_TRANSLATIONS_BOX                    1001
 #define IDC_INI                                 1002
 #define IDC_MOUSE_MORE                          1002
 #define IDC_NEWRULE                             1002
@@ -24,6 +23,7 @@
 #define IDC_PROCESSBLACKLIST_HEADER             1004
 #define IDC_SCROLL_HEADER                       1004
 #define IDC_AUTOSTART_ELEVATE                   1005
+#define IDC_TRANSLATIONS                        1005
 #define IDC_BLACKLIST_HEADER                    1006
 #define IDC_ELEVATE                             1006
 #define IDC_LMB_HEADER                          1006

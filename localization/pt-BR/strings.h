@@ -8,6 +8,13 @@
 */
 
 struct strings pt_BR = {
+ /* === translation info === */
+ /* code               */ L"pt-BR",
+ /* lang_english       */ L"Brazilian Portuguese",
+ /* lang               */ L"Português (Brasil)",
+ /* author             */ L"Jucá Costa",
+ 
+ /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (desativado)",
  { /* menu */
@@ -26,7 +33,6 @@ struct strings pt_BR = {
  },
  
  /* === config === */
- /* lang               */ L"Português (Brasil)",
  /* title              */ L"Configuração do " APP_NAME,
  { /* tabs */
    /* general          */ L"Geral",
@@ -46,7 +52,6 @@ struct strings pt_BR = {
    /* autosnap2        */ L"+ exterior das janelas",
    /* autosnap3        */ L"+ interior das janelas",
    /* language         */ L"Idioma:",
-   /* helptranslate    */ L"Como posso ajudar a traduzir?",
    /* autostart_box    */ L"Início automático",
    /* autostart        */ L"&Iniciar o "APP_NAME" quando fizer logon",
    /* autostart_hide   */ L"&Ocultar ícone da área de notificação",
@@ -117,8 +122,7 @@ struct strings pt_BR = {
    /* version          */ L"Versão "APP_VERSION,
    /* author           */ L"Criado por Stefan Sundin",
    /* license          */ APP_NAME L" é um software grátis e de código aberto!\nDivulgue-o aos seus amigos!",
-   /* donations_box    */ L"Doações",
-   /* donations_plea   */ L"Se você acha o "APP_NAME" útil, por favor, considere fazer uma doação. Não pedimos muito, qualquer quantia é bem-vinda.",
    /* donate           */ L"&Doar",
+   /*translation_credit*/ L"Translation credit",
  },
 };

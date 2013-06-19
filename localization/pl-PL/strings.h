@@ -8,6 +8,13 @@
 */
 
 struct strings pl_PL = {
+ /* === translation info === */
+ /* code               */ L"pl-PL",
+ /* lang_english       */ L"Polish",
+ /* lang               */ L"Polski",
+ /* author             */ L"Krystian Maksymowicz, Paweł 'Pawouek' Krafczyk",
+ 
+ /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (wyłączony)",
  { /* menu */
@@ -26,7 +33,6 @@ struct strings pl_PL = {
  },
  
  /* === config === */
- /* lang               */ L"Polish",
  /* title              */ L"Ustawienia " APP_NAME,
  { /* tabs */
    /* general          */ L"Ogólne",
@@ -46,7 +52,6 @@ struct strings pl_PL = {
    /* autosnap2        */ L"+ zew. krawędzi okien",
    /* autosnap3        */ L"+ wew. krawędzi okien",
    /* language         */ L"Język:",
-   /* helptranslate    */ L"Jak pomóc w tłumaczeniu?",
    /* autostart_box    */ L"Autostart",
    /* autostart        */ L"Uruchom "APP_NAME" przy &starcie systemu",
    /* autostart_hide   */ L"&Ukryj w obszarze powiadomień",
@@ -117,8 +122,7 @@ struct strings pl_PL = {
    /* version          */ L"Wersja "APP_VERSION,
    /* author           */ L"Autorem jest Stefan Sundin",
    /* license          */ APP_NAME L" to wolne i otwarte oprogramowanie!\nNakłaniam do jego rozpowszechniania!",
-   /* donations_box    */ L"Dotacje",
-   /* donations_plea   */ L"Jeżeli uważasz, że "APP_NAME" jest programem przydatnym, rozważ proszę złożenie dotacji. Nie proszę o wiele, każda kwota będzie mile widziana.",
    /* donate           */ L"&Dotuj",
+   /*translation_credit*/ L"Translation credit",
  },
 };

@@ -8,6 +8,13 @@
 */
 
 struct strings zh_CN = {
+ /* === translation info === */
+ /* code               */ L"zh-CN",
+ /* lang_english       */ L"Chinese",
+ /* lang               */ L"简体",
+ /* author             */ L"Jack Jin",
+ 
+ /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (禁止)",
  { /* menu */
@@ -26,7 +33,6 @@ struct strings zh_CN = {
  },
  
  /* === config === */
- /* lang               */ L"简体",
  /* title              */ APP_NAME L" 配置",
  { /* tabs */
    /* general          */ L"通用",
@@ -46,7 +52,6 @@ struct strings zh_CN = {
    /* autosnap2        */ L"+ 在窗口外",
    /* autosnap3        */ L"+ 在窗口内",
    /* language         */ L"语言:",
-   /* helptranslate    */ L"怎样参与翻译?",
    /* autostart_box    */ L"随系统自动启动",
    /* autostart        */ L"(&t)登录时启动"APP_NAME"",
    /* autostart_hide   */ L"(&H)隐藏通知栏图标",
@@ -117,8 +122,7 @@ struct strings zh_CN = {
    /* version          */ L"版本"APP_VERSION,
    /* author           */ L"作者: Stefan Sundin",
    /* license          */ APP_NAME L" 是自由和开源软件!\n欢迎重新发布!",
-   /* donations_box    */ L"捐赠",
-   /* donations_plea   */ L"如果你觉得"APP_NAME"有用, 你可以考虑进行一定的捐蹭. 欢迎任何数量的捐赠.",
    /* donate           */ L"(&D)捐赠",
+   /*translation_credit*/ L"Translation credit",
  },
 };

@@ -8,6 +8,13 @@
 */
 
 struct strings ru_RU = {
+ /* === translation info === */
+ /* code               */ L"ru-RU",
+ /* lang_english       */ L"Russian",
+ /* lang               */ L"Русский",
+ /* author             */ L"Neek Eoneof, Dmitry Trubin",
+ 
+ /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (выключено)",
  { /* menu */
@@ -26,7 +33,6 @@ struct strings ru_RU = {
  },
  
  /* === config === */
- /* lang               */ L"Русский",
  /* title              */ L"Настройки " APP_NAME,
  { /* tabs */
    /* general          */ L"Основные",
@@ -46,7 +52,6 @@ struct strings ru_RU = {
    /* autosnap2        */ L"+ к окнам снаружи",
    /* autosnap3        */ L"+ к окнам изнутри",
    /* language         */ L"Язык:",
-   /* helptranslate    */ L"Помочь с переводом",
    /* autostart_box    */ L"Автозагрузка",
    /* autostart        */ L"&Запускать "APP_NAME" при загрузке системы",
    /* autostart_hide   */ L"Прятать иконку в &области уведомлений",
@@ -117,8 +122,7 @@ struct strings ru_RU = {
    /* version          */ L"Версия "APP_VERSION,
    /* author           */ L"Разработал Stefan Sundin",
    /* license          */ APP_NAME L" — бесплатная программа с открытым исходным кодом. Расскажите о ней друзьям!",
-   /* donations_box    */ L"Пожертвования",
-   /* donations_plea   */ L"Если использование "APP_NAME" помогает вам, поддержите проект. Подойдет любая сумма!",
    /* donate           */ L"&Помочь",
+   /*translation_credit*/ L"Translation credit",
  },
 };
