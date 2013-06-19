@@ -82,6 +82,7 @@ struct {
 		enum resize x, y;
 	} resize;
 	short blockaltup;
+	short blockmouseup;
 	short ignorectrl;
 	short locked;
 	struct wnddata *wndentry;
@@ -887,6 +888,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				//Update state
 				state.alt = 1;
 				state.blockaltup = 0;
+				state.blockmouseup = 0;
 				state.interrupted = 0;
 				
 				//Ctrl as hotkey should not trigger Ctrl-focusing when starting dragging, releasing and pressing it again will focus though
@@ -1304,6 +1306,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					sharedstate.action = ACTION_NONE; //Stop move action
 					state.clicktime = 0; //Reset double-click time
+					state.blockmouseup = 1; //Block the mouseup, otherwise it can trigger a context menu (e.g. in explorer, or on the desktop)
 					
 					//Center window on monitor, if needed
 					HMONITOR wndmonitor = MonitorFromWindow(state.hwnd, MONITOR_DEFAULTTONEAREST);
@@ -1407,6 +1410,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				if (GetTickCount()-state.clicktime <= GetDoubleClickTime()) {
 					sharedstate.action = ACTION_NONE; //Stop resize action
 					state.clicktime = 0; //Reset double-click time
+					state.blockmouseup = 1; //Block the mouseup, otherwise it can trigger a context menu (e.g. in explorer, or on the desktop)
 					
 					//Get and set new position
 					int posx, posy, wndwidth, wndheight;
@@ -1518,6 +1522,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 			
 			//Prevent mousedown from propagating
+			return 1;
+		}
+		else if (buttonstate == STATE_UP && state.blockmouseup) {
+			state.blockmouseup = 0;
 			return 1;
 		}
 		else if (buttonstate == STATE_UP && sharedstate.action == action) {
