@@ -37,6 +37,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	LocalFree(errormsg);
 	//Display message
 	#ifdef ERROR_WRITETOFILE
+	//Put file on desktop (since we should always be able to write there)
 	wchar_t _txt[1000];
 	SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, _txt);
 	wcscat(_txt, L"\\"APP_NAME"-errorlog.txt");
