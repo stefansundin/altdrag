@@ -71,6 +71,7 @@ struct {
 struct {
 	HWND hwnd;
 	short alt;
+	short activated;
 	short ctrl;
 	short interrupted;
 	short updaterate;
@@ -880,9 +881,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 			if (IsHotkey(vkey)) {
-				//Don't do anything if we're already pressing a hotkey
-				if (state.alt) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				//Block this keypress if an we're already pressing a hotkey or an action is happening
+				if (state.activated && !state.alt && sharedstate.action) {
+					state.alt = 1;
+				}
+				if (state.activated && state.alt) {
+					return 1;
 				}
 				
 				//Update state
@@ -996,19 +1000,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					}
 				}
 				
-				//Block the alt keyup to prevent the window menu to be selected.
-				//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events just before the altup (see issue 20).
-				if (state.blockaltup || sharedstate.action) {
-					state.ignorectrl = 1;
-					KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
-					ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
-					INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
-					SendInput(2, input, sizeof(INPUT));
-				}
-				state.ignorectrl = 0;
-				
 				//Okay, all hotkeys have been released
 				state.alt = 0;
+				state.ignorectrl = 0;
 				
 				//Unhook mouse if not moving or resizing
 				if (!sharedstate.action) {
@@ -1196,14 +1190,17 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		if (state.alt && buttonstate == STATE_DOWN) {
 			//Double check if any of the hotkeys are being pressed
 			int i;
-			for (i=0; i < sharedsettings.Hotkeys.length; i++) {
-				if (GetAsyncKeyState(sharedsettings.Hotkeys.keys[i])&0x8000) {
-					break;
-				}
-				else if (i+1 == sharedsettings.Hotkeys.length) {
-					state.alt = 0;
-					UnhookMouse();
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
+			if (!state.activated) { //Don't check if we've activated, because keyups would be blocked and GetAsyncKeyState() won't return the correct state
+				for (i=0; i < sharedsettings.Hotkeys.length; i++) {
+					if (GetAsyncKeyState(sharedsettings.Hotkeys.keys[i])&0x8000) {
+						break;
+					}
+					else if (i+1 == sharedsettings.Hotkeys.length) {
+						state.alt = 0;
+						UnhookMouse();
+						Error(L"No hotkeys down", L"LowLevelMouseProc()", 0, TEXT(__FILE__), __LINE__);
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
 				}
 			}
 			
@@ -1260,6 +1257,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (!sharedstate.snap) {
 				sharedstate.snap = sharedsettings.AutoSnap;
 			}
+			state.activated = 1;
 			state.blockaltup = 1;
 			state.locked = 0;
 			state.origin.maximized = IsZoomed(state.hwnd);
@@ -1278,7 +1276,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			
 			//Find a nice place in wnddb if not already present
 			if (state.wndentry == NULL) {
-				int i;
 				for (i=0; i < NUMWNDDB+1 && wnddb.pos->restore == 1; i++) {
 					wnddb.pos = (wnddb.pos == &wnddb.items[NUMWNDDB-1])?&wnddb.items[0]:wnddb.pos+1;
 				}
@@ -1510,6 +1507,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 			}
 			
+			//Prevent the alt keyup from triggering the window menu to be selected
+			//The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events
+			state.ignorectrl = 1;
+			KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
+			ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
+			INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
+			SendInput(2, input, sizeof(INPUT));
+			state.ignorectrl = 0;
+			
 			//Remember time of this click so we can check for double-click
 			state.clicktime = GetTickCount();
 			state.clickpt = pt;
@@ -1644,6 +1650,7 @@ int UnhookMouse() {
 	
 	//Stop action
 	sharedstate.action = ACTION_NONE;
+	state.activated = 0;
 	if (sharedsettings.Performance.Cursor) {
 		ShowWindowAsync(cursorwnd, SW_HIDE);
 	}
