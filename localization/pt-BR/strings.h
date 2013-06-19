@@ -80,6 +80,7 @@ struct strings pt_BR = {
      /* nothing        */ L"Nothing",
      /* alttab         */ L"Alt+Tab",
      /* volume         */ L"Volume",
+     /* transparency   */ L"Transparency",
    },
    { /* hotkeys */
      /* box            */ L"Teclas de atalho",

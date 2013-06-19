@@ -80,6 +80,7 @@ struct strings zh_CN = {
      /* nothing        */ L"Nothing",
      /* alttab         */ L"Alt+Tab",
      /* volume         */ L"Volume",
+     /* transparency   */ L"Transparency",
    },
    { /* hotkeys */
      /* box            */ L"热键",

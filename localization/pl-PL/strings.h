@@ -80,6 +80,7 @@ struct strings pl_PL = {
      /* nothing        */ L"Nothing",
      /* alttab         */ L"Alt+Tab",
      /* volume         */ L"Volume",
+     /* transparency   */ L"Transparency",
    },
    { /* hotkeys */
      /* box            */ L"Skróty klawiszowe",

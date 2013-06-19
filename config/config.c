@@ -311,9 +311,10 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 	
 	//Scroll
 	struct action scroll_actions[] = {
-		{ L"AltTab",      l10n->input.actions.alttab },
-		{ L"Volume",      l10n->input.actions.volume },
-		{ L"Nothing",     l10n->input.actions.nothing },
+		{ L"AltTab",       l10n->input.actions.alttab },
+		{ L"Volume",       l10n->input.actions.volume },
+		{ L"Transparency", l10n->input.actions.transparency },
+		{ L"Nothing",      l10n->input.actions.nothing },
 	};
 	
 	//Hotkeys
