@@ -1581,6 +1581,16 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 			if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
 			if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
 			
+			//Change WM_MOUSEWHEEL to WM_MOUSEHWHEEL if shift is being depressed
+			//Note that this does not work on all windows, the message was introduced in Vista and far from all programs have implemented it
+			if (wParam == WM_MOUSEWHEEL
+			 && sharedsettings.InactiveScroll != 2
+			 && sharedstate.shift
+			 && GetAsyncKeyState(VK_SHIFT)&0x8000) {
+				wParam = WM_MOUSEHWHEEL;
+				wp = -wp; //Up is left, down is right
+			}
+			
 			//Forward scroll message
 			SendMessage(window, wParam, wp, lp);
 			
