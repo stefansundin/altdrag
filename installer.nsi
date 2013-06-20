@@ -11,7 +11,7 @@
 ;http://nsis.sourceforge.net/AccessControl_plug-in
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "1.0b2"
+!define APP_VERSION   "1.0b3"
 !define APP_URL       "http://code.google.com/p/altdrag/"
 !define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
 
@@ -267,7 +267,7 @@ Function PageCatincan
 	nsDialogs::Create 1018
 	!insertmacro MUI_HEADER_TEXT "Fundraising campaign" "Help me make AltDrag 1.0 as awesome as possible"
 
-	${NSD_CreateLabel} 0 0 100% 115u "As you might be aware, I am currently trying to raise money to support the development of AltDrag 1.0.$\n$\nFor every $$10 that you pledge, you get a vote that you can put on a bug report or a feature request. I will spend the most time on the features or bug reports that get the most votes. This gives you the possiblity to use your money to decide what I work on.$\n$\nSo far, $R0 has been pledged out of $$1000.00. The campaign ends on June 29th.$\nIf the goal is reached, AltDrag 1.0 will be a really great release, with many extra features.$\n$\nAltDrag will always remain free and open source software, and you will never have to pay to use it. However, your donations help support the development and they keep me motivated.$\n$\nPlease make a pledge now."
+	${NSD_CreateLabel} 0 0 100% 115u "As you might be aware, I am currently trying to raise money to support the development of AltDrag 1.0.$\n$\nFor every $$10 that you pledge, you get a vote that you can put on a bug report or a feature request. I will spend time on all issues, but more on the issues that get more votes. This gives you the possiblity to use your money to decide what I work on.$\n$\nSo far, $R0 has been pledged out of $$1000.00. The campaign ends on June 29th.$\nIf the goal is reached, AltDrag 1.0 will be a really great release, with many extra features.$\n$\nAltDrag will always remain free and open source software, and you will never have to pay to use it. However, your donations help support the development and they keep me motivated.$\n$\nPlease make a pledge now."
 	
 	${NSD_CreateButton} 0 187 92u 17u "Open fundraising site"
 	Pop $0
