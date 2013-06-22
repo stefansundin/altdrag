@@ -1,4 +1,4 @@
-﻿/*
+ /*
 	AltDrag - ru-RU localization by Neek Eoneof (eoneof@gmail.com) and Dmitry Trubin (dtruebin@gmail.com)
 	
 	This program is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ struct strings ru_RU = {
      /* mb4            */ L"Кнопка мыши 4:",
      /* mb5            */ L"Кнопка мыши 5:",
      /* scroll        `*/ L"Колесо прокрутки:",
-     /* more          `*/ L"Запрос на новое действие мыши можно оставить <a href=\"http://code.google.com/p/altdrag/issues/list\">на сайте</a>!",
+     /* more          `*/ L"Запрос на новое действие мыши можно оставить <a href=\"http://code.google.com/p/altdrag/issues/list\">на сайте</a>!",
    },
    { /* actions `*/
      /* move           */ L"Переместить",
@@ -85,7 +85,7 @@ struct strings ru_RU = {
      /* nothing        */ L"Ничего",
      /* alttab         */ L"Alt+Tab",
      /* volume         */ L"Громкость",
-     /* transparency   */ L"Transparency",
+     /* transparency   */ L"Прозрачность",
    },
    { /* hotkeys */
      /* box            */ L"Горячие клавиши",
@@ -123,6 +123,6 @@ struct strings ru_RU = {
    /* author           */ L"Разработал Stefan Sundin",
    /* license          */ APP_NAME L" — бесплатная программа с открытым исходным кодом. Расскажите о ней друзьям!",
    /* donate           */ L"&Помочь",
-   /*translation_credit*/ L"Translation credit",
+   /*translation_credit*/ L"Авторы перевода",
  },
 };
