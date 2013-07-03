@@ -46,7 +46,6 @@ SetCompressor /SOLID lzma
 
 ; Pages
 
-Page custom PageCatincan
 Page custom PageUpgrade PageUpgradeLeave
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipPage
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW HideBackButton
@@ -242,42 +241,6 @@ FunctionEnd
 
 Function OpenKeyboardSettings
 	Exec "rundll32.exe shell32.dll,Control_RunDLL input.dll,,{C07337D3-DB2C-4D0B-9A93-B722A6C106E2}{HOTKEYS}"
-FunctionEnd
-
-
-Function PageCatincan
-	inetc::get /SILENT "https://www.catincan.com/catincan-rest/views/node_service.json?args[0]=448" "$TEMP\${APP_NAME}-catincan.txt"
-	BringToFront
-	Pop $0
-	${If} $0 != "OK"
-	Abort
-	${EndIf}
-
-	nsJSON::Set /file "$TEMP\${APP_NAME}-catincan.txt"
-
-	ClearErrors
-	nsJSON::Get /index 0 "amount raised" /end
-	${If} ${Errors}
-	Abort
-	${EndIf}
-	Pop $R0
-
-	Delete /REBOOTOK "$TEMP\${APP_NAME}-catincan.txt"
-	
-	nsDialogs::Create 1018
-	!insertmacro MUI_HEADER_TEXT "Fundraising campaign" "Help me make AltDrag 1.0 as awesome as possible"
-
-	${NSD_CreateLabel} 0 0 100% 115u "As you might be aware, I am currently trying to raise money to support the development of AltDrag 1.0.$\n$\nFor every $$10 that you pledge, you get a vote that you can put on a bug report or a feature request. I will spend time on all issues, but more on the issues that get more votes. This gives you the possiblity to use your money to decide what I work on.$\n$\nSo far, $R0 has been pledged out of $$1000.00. The campaign ends on June 29th.$\nIf the goal is reached, AltDrag 1.0 will be a really great release, with many extra features.$\n$\nAltDrag will always remain free and open source software, and you will never have to pay to use it. However, your donations help support the development and they keep me motivated.$\n$\nPlease make a pledge now."
-	
-	${NSD_CreateButton} 0 187 92u 17u "Open fundraising site"
-	Pop $0
-	${NSD_OnClick} $0 OpenCatincan
-	
-	nsDialogs::Show
-FunctionEnd
-
-Function OpenCatincan
-	ExecShell "open" "https://www.catincan.com/proposal/altdrag/altdrag-10"
 FunctionEnd
 
 
