@@ -1611,32 +1611,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-BOOL child_has_scrollbars = FALSE;
-BOOL CALLBACK CheckWindowScrollbars(HWND hwnd, LPARAM lParam) {
-	HWND window = (HWND) lParam;
-
-	wchar_t classname[20];
-	GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
-
-	if (!wcscmp(classname,L"ScrollBar")) {
-		//Check so that all parents are visible
-		while (hwnd != window) {
-			hwnd = GetAncestor(hwnd, GA_PARENT);
-			if (hwnd == window) {
-				child_has_scrollbars = TRUE;
-				return FALSE;
-			}
-
-			int style = GetWindowLongPtr(hwnd, GWL_STYLE);
-			if (!(style&WS_VISIBLE)) {
-				return TRUE;
-			}
-		}
-	}
-
-	return TRUE;
-}
-
 __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
@@ -1652,31 +1626,25 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 
-			//Child must have scrollbars if we are trying to scroll within the foreground window
-			//The reason we do this is because it is sometimes preferable to have the default scrolling behavior (e.g. scrolling a combobox)
+			//If it's a groupbox, grab the real window
 			int style = GetWindowLongPtr(window, GWL_STYLE);
-			if (!(style&(WS_VSCROLL|WS_HSCROLL)) && GetAncestor(window,GA_ROOT) == foreground) {
-				//Child does not appear to have scrollbars, check further before returning (explorer needs this)
-				child_has_scrollbars = FALSE;
-				EnumChildWindows(window, CheckWindowScrollbars, (LPARAM) window);
-				if (!child_has_scrollbars) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
+			if (style&BS_GROUPBOX) {
+				wchar_t classname[20];
+				GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+				if (!wcscmp(classname,L"Button")) {
+					HWND groupbox = window;
+					EnableWindow(groupbox, FALSE);
+					window = WindowFromPoint(pt);
+					EnableWindow(groupbox, TRUE);
+					if (!window) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
 				}
 			}
 
 			//Get wheel info
 			WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
 			LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
-
-			//Holding Ctrl+Shift acts like InactiveScroll isn't enabled
-			if (GetAsyncKeyState(VK_CONTROL)&0x8000 && GetAsyncKeyState(VK_SHIFT)&0x8000) {
-				int remote_thread_id = GetWindowThreadProcessId(foreground, 0);
-				AttachThreadInput(remote_thread_id, GetCurrentThreadId(), TRUE);
-				HWND focused = GetFocus();
-				AttachThreadInput(remote_thread_id, GetCurrentThreadId(), FALSE);
-				SendMessage(focused, wParam, wp, lp);
-				return 1;
-			}
 
 			//Change WM_MOUSEWHEEL to WM_MOUSEHWHEEL if shift is being depressed
 			//Note that this does not work on all windows, the message was introduced in Vista and far from all programs have implemented it
