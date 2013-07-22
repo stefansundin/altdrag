@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -36,7 +36,7 @@ void OpenConfig(int startpage) {
 		SetForegroundWindow(g_cfgwnd);
 		return;
 	}
-	
+
 	//Define the pages
 	struct {
 		int pszTemplate;
@@ -48,7 +48,7 @@ void OpenConfig(int startpage) {
 		{ IDD_ADVANCEDPAGE,  AdvancedPageDialogProc },
 		{ IDD_ABOUTPAGE,     AboutPageDialogProc },
 	};
-	
+
 	PROPSHEETPAGE psp[ARRAY_SIZE(pages)] = {0};
 	int i;
 	for (i=0; i < ARRAY_SIZE(pages); i++) {
@@ -57,7 +57,7 @@ void OpenConfig(int startpage) {
 		psp[i].pszTemplate = MAKEINTRESOURCE(pages[i].pszTemplate);
 		psp[i].pfnDlgProc  = pages[i].pfnDlgProc;
 	}
-	
+
 	//Define the property sheet
 	PROPSHEETHEADER psh = {0};
 	psh.dwSize          = sizeof(PROPSHEETHEADER);
@@ -70,7 +70,7 @@ void OpenConfig(int startpage) {
 	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
 	psh.pfnCallback     = PropSheetProc;
 	psh.nStartPage      = startpage;
-	
+
 	//Open the property sheet
 	PropertySheet(&psh);
 }
@@ -86,7 +86,7 @@ void UpdateSettings() {
 void UpdateL10n() {
 	//Update window title
 	PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
-	
+
 	//Update tab titles
 	HWND tc = PropSheet_GetTabControl(g_cfgwnd);
 	int numrows_prev = TabCtrl_GetRowCount(tc);
@@ -98,7 +98,7 @@ void UpdateL10n() {
 		ti.pszText = titles[i];
 		TabCtrl_SetItem(tc, i, &ti);
 	}
-	
+
 	//Modify UI if number of rows have changed
 	int numrows = TabCtrl_GetRowCount(tc);
 	if (numrows_prev != numrows) {
@@ -134,7 +134,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	if (msg == PSCB_INITIALIZED) {
 		g_cfgwnd = hwnd;
 		UpdateL10n();
-		
+
 		//OK button replaces Cancel button
 		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
 		Button_Enable(GetDlgItem(g_cfgwnd,IDCANCEL), TRUE); //Re-enable to enable escape key
@@ -151,13 +151,13 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		wchar_t txt[20];
 		GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_AUTOFOCUS), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
-		
+
 		GetPrivateProfileString(L"General", L"Aero", L"2", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_AERO), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
-		
+
 		GetPrivateProfileString(L"General", L"InactiveScroll", L"1", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
-		
+
 		int i;
 		for (i=0; i < ARRAY_SIZE(languages); i++) {
 			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), languages[i]->lang);
@@ -165,7 +165,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
 			}
 		}
-		
+
 		Button_Enable(GetDlgItem(hwnd,IDC_ELEVATE), vista && !elevated);
 	}
 	else if (msg == WM_COMMAND) {
@@ -174,7 +174,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		HWND control = GetDlgItem(hwnd, id);
 		int val = Button_GetCheck(control);
 		wchar_t txt[10];
-		
+
 		if (id == IDC_AUTOFOCUS) {
 			WritePrivateProfileString(L"General", L"AutoFocus", _itow(val,txt,10), inipath);
 		}
@@ -239,7 +239,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			updatel10n = 1;
-			
+
 			//Autostart
 			int autostart=0, hidden=0, elevated=0;
 			CheckAutostart(&autostart, &hidden, &elevated);
@@ -264,7 +264,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		SetDlgItemText(hwnd, IDC_AUTOSTART_ELEVATE,  l10n->general.autostart_elevate);
 		SetDlgItemText(hwnd, IDC_ELEVATE,            (elevated?l10n->general.elevated:l10n->general.elevate));
 		SetDlgItemText(hwnd, IDC_AUTOSAVE,           l10n->general.autosave);
-		
+
 		//AutoSnap
 		ComboBox_ResetContent(GetDlgItem(hwnd,IDC_AUTOSNAP));
 		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap0);
@@ -274,7 +274,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		wchar_t txt[10];
 		GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, ARRAY_SIZE(txt), inipath);
 		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), _wtoi(txt));
-		
+
 		//Language
 		ComboBox_DeleteString(GetDlgItem(hwnd,IDC_LANGUAGE), ARRAY_SIZE(languages));
 		if (l10n == &en_US) {
@@ -310,7 +310,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		{ L"Center",      l10n->input.actions.center },
 		{ L"Nothing",     l10n->input.actions.nothing },
 	};
-	
+
 	//Scroll
 	struct action scroll_actions[] = {
 		{ L"AltTab",       l10n->input.actions.alttab },
@@ -318,7 +318,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		{ L"Transparency", l10n->input.actions.transparency },
 		{ L"Nothing",      l10n->input.actions.nothing },
 	};
-	
+
 	//Hotkeys
 	struct {
 		int control;
@@ -331,7 +331,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		{ IDC_LEFTCTRL,    VK_LCONTROL },
 		{ IDC_RIGHTCTRL,   VK_RCONTROL },
 	};
-	
+
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[50];
 		int i;
@@ -380,7 +380,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 				}
 			}
 			if (!vkey) return FALSE;
-			
+
 			wchar_t keys[50];
 			GetPrivateProfileString(L"Input", L"Hotkeys", L"", keys, ARRAY_SIZE(keys), inipath);
 			int add = Button_GetCheck(GetDlgItem(hwnd,wParam));
@@ -412,7 +412,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		if (pnmh->code == PSN_SETACTIVE) {
 			wchar_t txt[50];
 			int i, j;
-			
+
 			//Mouse actions
 			for (i=0; i < ARRAY_SIZE(mouse_buttons); i++) {
 				HWND control = GetDlgItem(hwnd, mouse_buttons[i].control);
@@ -425,7 +425,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 					}
 				}
 			}
-			
+
 			//Scroll
 			HWND control = GetDlgItem(hwnd, IDC_SCROLL);
 			ComboBox_ResetContent(control);
@@ -436,7 +436,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 					ComboBox_SetCurSel(control, j);
 				}
 			}
-			
+
 			//Update text
 			SetDlgItemText(hwnd, IDC_MOUSE_BOX,      l10n->input.mouse.box);
 			SetDlgItemText(hwnd, IDC_LMB_HEADER,     l10n->input.mouse.lmb);
@@ -456,7 +456,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_HOTKEYS_MORE,   l10n->input.hotkeys.more);
 		}
 	}
-	
+
 	LinkProc(hwnd, msg, wParam, lParam);
 	return FALSE;
 }
@@ -493,7 +493,7 @@ INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
 			int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 			int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-			
+
 			//Create window
 			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, CursorProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME"-find", NULL};
 			wnd.hCursor = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_FIND), IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
@@ -501,7 +501,7 @@ INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			HWND findhwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, NULL, WS_POPUP, left, top, width, height, NULL, NULL, g_hinst, NULL);
 			SetLayeredWindowAttributes(findhwnd, 0, 1, LWA_ALPHA); //Almost transparent
 			ShowWindowAsync(findhwnd, SW_SHOWNA);
-			
+
 			//Hide icon
 			ShowWindowAsync(GetDlgItem(hwnd,IDC_FINDWINDOW), SW_HIDE);
 		}
@@ -519,7 +519,7 @@ INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			SetDlgItemText(hwnd, IDC_FINDWINDOW_EXPLANATION,  l10n->blacklist.findwindow_explanation);
 		}
 	}
-	
+
 	LinkProc(hwnd, msg, wParam, lParam);
 	return FALSE;
 }
@@ -528,27 +528,27 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
 		ShowWindow(hwnd, SW_HIDE);
 		HWND page = PropSheet_GetCurrentPageHwnd(g_cfgwnd);
-		
+
 		if (msg == WM_LBUTTONDOWN) {
 			POINT pt;
 			pt.x = GET_X_LPARAM(lParam);
 			pt.y = GET_Y_LPARAM(lParam);
-			
+
 			HWND window = WindowFromPoint(pt);
 			window = GetAncestor(window, GA_ROOT);
-			
+
 			wchar_t title[256], classname[256];
 			GetWindowText(window, title, ARRAY_SIZE(title));
 			GetClassName(window, classname, ARRAY_SIZE(classname));
-			
+
 			wchar_t txt[1000];
 			swprintf(txt, L"%s|%s", title, classname);
 			SetDlgItemText(page, IDC_NEWRULE, txt);
 		}
-		
+
 		//Show icon again
 		ShowWindowAsync(GetDlgItem(page,IDC_FINDWINDOW), SW_SHOW);
-		
+
 		DestroyWindow(hwnd);
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -622,19 +622,21 @@ INT_PTR CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_LICENSE,          l10n->about.license);
 			SetDlgItemText(hwnd, IDC_DONATE,           l10n->about.donate);
 			SetDlgItemText(hwnd, IDC_TRANSLATIONS_BOX, l10n->about.translation_credit);
-			
+
 			wchar_t txt[1024] = L"";
 			int i;
 			for (i=0; i < ARRAY_SIZE(languages); i++) {
 				wcscat(txt, languages[i]->lang_english);
 				wcscat(txt, L": ");
 				wcscat(txt, languages[i]->author);
-				wcscat(txt, L"\n");
+				if (i+1 != ARRAY_SIZE(languages)) {
+					wcscat(txt, L"\r\n");
+				}
 			}
 			SetDlgItemText(hwnd, IDC_TRANSLATIONS, txt);
 		}
 	}
-	
+
 	LinkProc(hwnd, msg, wParam, lParam);
 	return FALSE;
 }

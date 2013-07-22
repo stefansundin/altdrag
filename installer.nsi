@@ -144,25 +144,25 @@ SectionEnd
 Section "" sec_app
 	;Close app if running
 	Call CloseApp
-	
+
 	SetOutPath "$INSTDIR"
-	
+
 	;Rename old ini file if it exists
 	IfFileExists "${APP_NAME}.ini" 0 +3
 		Delete "${APP_NAME}-old.ini"
 		Rename "${APP_NAME}.ini" "${APP_NAME}-old.ini"
-	
+
 	;Delete files that existed in earlier versions
 	Delete /REBOOTOK "$INSTDIR\info.txt" ;existed in <= 0.9
 	Delete /REBOOTOK "$INSTDIR\Config.exe" ;existed in 1.0b1
-	
+
 	;Install files
 	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
 	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	File "build\en-US\${APP_NAME}\hooks.dll"
 	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
 	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
-	
+
 	!insertmacro Lang "en-US" ${LANG_ENGLISH}
 	!insertmacro Lang "fr-FR" ${LANG_FRENCH}
 	!insertmacro Lang "pl-PL" ${LANG_POLISH}
@@ -170,19 +170,20 @@ Section "" sec_app
 	!insertmacro Lang "ru-RU" ${LANG_RUSSIAN}
 	!insertmacro Lang "sk-SK" ${LANG_SLOVAK}
 	!insertmacro Lang "zh-CN" ${LANG_SIMPCHINESE}
-	
+	!insertmacro Lang "it-IT" ${LANG_ITALIAN}
+
 	;Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
 		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "Update" "CheckOnStartup" "0"
 	${EndIf}
-	
+
 	;Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
-	
+
 	;Update registry
 	WriteRegStr HKCU "Software\${APP_NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${APP_NAME}" "Version" "${APP_VERSION}"
-	
+
 	;Create uninstaller
 	WriteUninstaller "Uninstall.exe"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
@@ -194,7 +195,7 @@ Section "" sec_app
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "Publisher" "Stefan Sundin"
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
-	
+
 	;Compute size for uninstall information
 	${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
 	IntFmt $0 "0x%08X" $0
@@ -219,7 +220,7 @@ Function PageAltShift
 	${AndIf} $1 != "1"
 		Abort
 	${EndIf}
-	
+
 	prompt:
 	nsDialogs::Create 1018
 	!insertmacro MUI_HEADER_TEXT "$(L10N_ALTSHIFT_TITLE)" "$(L10N_ALTSHIFT_SUBTITLE)"
@@ -227,15 +228,15 @@ Function PageAltShift
 	${NSD_CreateButton} 0 162 92u 17u "$(L10N_ALTSHIFT_BUTTON)"
 	Pop $0
 	${NSD_OnClick} $0 OpenKeyboardSettings
-	
+
 	;Disable Cancel button
 	GetDlgItem $0 $HWNDPARENT 2
 	EnableWindow $0 0
-	
+
 	;Disable x button
 	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
 	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
-	
+
 	nsDialogs::Show
 FunctionEnd
 
@@ -252,21 +253,21 @@ Var Uninstallbox
 Function PageUpgrade
 	IfFileExists $INSTDIR +2
 		Abort
-	
+
 	nsDialogs::Create 1018
 	!insertmacro MUI_HEADER_TEXT "$(L10N_UPGRADE_TITLE)" "$(L10N_UPGRADE_SUBTITLE)"
 	${NSD_CreateLabel} 0 0 100% 20u "$(L10N_UPGRADE_HEADER)"
-	
+
 	${NSD_CreateRadioButton} 0 45 100% 10u "$(L10N_UPGRADE_UPGRADE)"
 	Pop $Upgradebox
 	${NSD_Check} $Upgradebox
 	${NSD_CreateLabel} 16 62 100% 20u "$(L10N_UPGRADE_INI)"
-	
+
 	${NSD_CreateRadioButton} 0 95 100% 10u "$(L10N_UPGRADE_INSTALL)"
-	
+
 	${NSD_CreateRadioButton} 0 130 100% 10u "$(L10N_UPGRADE_UNINSTALL)"
 	Pop $Uninstallbox
-	
+
 	nsDialogs::Show
 FunctionEnd
 
@@ -276,7 +277,7 @@ Function PageUpgradeLeave
 		Exec "$INSTDIR\Uninstall.exe"
 		Quit
 	${EndIf}
-	
+
 	${NSD_GetState} $Upgradebox $UpgradeState
 	${If} $UpgradeState == ${BST_CHECKED}
 		!insertmacro UnselectSection ${sec_update}
@@ -303,12 +304,12 @@ FunctionEnd
 
 Function .onInit
 	Call AddTray
-	
+
 	;Handle silent install
 	IfSilent 0 done
 		!insertmacro UnselectSection ${sec_update}
 	done:
-	
+
 	;Set language from command line
 	ClearErrors
 	${GetParameters} $0
@@ -324,7 +325,7 @@ Function .onInit
 	!insertmacro SetLang $0 "zh-CN" ${LANG_SIMPCHINESE}
 	WriteRegStr ${MUI_LANGDLL_REGISTRY_ROOT} "${MUI_LANGDLL_REGISTRY_KEY}" "${MUI_LANGDLL_REGISTRY_VALUENAME}" "$LANGUAGE"
 	done2:
-	
+
 	;Display language selection and add tray if program is running
 	!insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
