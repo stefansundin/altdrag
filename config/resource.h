@@ -19,11 +19,11 @@
 #define IDC_MOUSE_MORE                          1002
 #define IDC_NEWRULE                             1002
 #define IDC_SCROLL                              1003
+#define IDC_TRANSLATIONS                        1003
 #define IDC_AUTOSAVE                            1004
 #define IDC_PROCESSBLACKLIST_HEADER             1004
 #define IDC_SCROLL_HEADER                       1004
 #define IDC_AUTOSTART_ELEVATE                   1005
-#define IDC_TRANSLATIONS                        1005
 #define IDC_BLACKLIST_HEADER                    1006
 #define IDC_ELEVATE                             1006
 #define IDC_LMB_HEADER                          1006

@@ -27,7 +27,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     LTEXT           "Free and open source software!", IDC_LICENSE, 10, 65, 195, 20, SS_LEFT
     DEFPUSHBUTTON   "Donate", IDC_DONATE, 10, 85, 45, 14
     GROUPBOX        "Translations", IDC_TRANSLATIONS_BOX, 3, 111, 212, 72
-    LTEXT           "??", IDC_TRANSLATIONS, 10, 120, 195, 60, SS_LEFT
+    EDITTEXT        IDC_TRANSLATIONS, 10, 120, 195, 60, WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY
 }
 
 
@@ -87,7 +87,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     LTEXT           "Language:", IDC_LANGUAGE_HEADER, 10, 90, 100, 8, SS_LEFT
     GROUPBOX        "General", IDC_GENERAL_BOX, 3, 1, 212, 120
     GROUPBOX        "Autostart", IDC_AUTOSTART_BOX, 3, 125, 212, 53
-    LTEXT           "Note: Instant!", IDC_AUTOSAVE, 3, 180, 210, 8, SS_LEFT
+    CONTROL         "Note: Instant!", IDC_AUTOSAVE, WC_STATIC, NOT WS_GROUP | SS_LEFTNOWORDWRAP, 3, 180, 216, 8
     AUTOCHECKBOX    "Elevate", IDC_AUTOSTART_ELEVATE, 10, 163, 130, 8
     DEFPUSHBUTTON   "Elevate", IDC_ELEVATE, 153, 158, 58, 14
 }

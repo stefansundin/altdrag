@@ -4,7 +4,7 @@ struct strings {
 	wchar_t *lang_english;
 	wchar_t *lang;
 	wchar_t *author;
-	
+
 	/* tray */
 	wchar_t *tray_enabled;
 	wchar_t *tray_disabled;
@@ -17,14 +17,14 @@ struct strings {
 		wchar_t *about;
 		wchar_t *exit;
 	} menu;
-	
+
 	/* update */
 	struct {
 		wchar_t *balloon;
 		wchar_t *dialog;
 		wchar_t *nonew;
 	} update;
-	
+
 	/* config */
 	wchar_t *title;
 	struct {
@@ -127,6 +127,7 @@ struct strings {
 #include "ru-RU/strings.h"
 #include "sk-SK/strings.h"
 #include "zh-CN/strings.h"
+#include "it-IT/strings.h"
 
 struct strings *languages[] = {
 	&en_US,
@@ -136,6 +137,7 @@ struct strings *languages[] = {
 	&sk_SK,
 	&ru_RU,
 	&zh_CN,
+	&it_IT,
 };
 
 struct strings *l10n = &en_US;
