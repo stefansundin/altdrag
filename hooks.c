@@ -753,7 +753,7 @@ void MouseMove() {
 				state.wndentry->restore = 1;
 				wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 				wndheight = (mon.bottom-mon.top)/2;
-				posx = (mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
+				posx = mon.left+(mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
 				posy = mon.top;
 			}
 			else if (mon.bottom-AERO_THRESHOLD < pt.y) {
@@ -761,7 +761,7 @@ void MouseMove() {
 				state.wndentry->restore = 1;
 				wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 				wndheight = max(min((mon.bottom-mon.top)/2, state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
-				posx = (mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
+				posx = mon.left+(mon.right-mon.left)/2-wndwidth/2; //Center horizontally (if window has a max width)
 				posy = mon.bottom-wndheight;
 			}
 			else if (pt.x < mon.left+AERO_THRESHOLD) {
@@ -770,7 +770,7 @@ void MouseMove() {
 				wndwidth = (mon.right-mon.left)/2;
 				wndheight = max(min((mon.bottom-mon.top), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = mon.left;
-				posy = (mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
+				posy = mon.top+(mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
 			}
 			else if (mon.right-AERO_THRESHOLD < pt.x) {
 				//Right
@@ -778,7 +778,7 @@ void MouseMove() {
 				wndwidth = max(min((mon.right-mon.left)/2, state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
 				wndheight = max(min((mon.bottom-mon.top), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posx = mon.right-wndwidth;
-				posy = (mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
+				posy = mon.top+(mon.bottom-mon.top)/2-wndheight/2; //Center vertically (if window has a max height)
 			}
 			else if (state.wndentry->restore) {
 				//Restore original window size
