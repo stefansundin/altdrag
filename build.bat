@@ -6,7 +6,7 @@
 
 set prefix32=i686-w64-mingw32-
 set prefix64=x86_64-w64-mingw32-
-set l10n=en-US fr-FR pl-PL pt-BR ru-RU sk-SK zh-CN it-IT
+set l10n=en-US fr-FR pl-PL pt-BR ru-RU sk-SK zh-CN it-IT de-DE
 
 taskkill /IM AltDrag.exe
 

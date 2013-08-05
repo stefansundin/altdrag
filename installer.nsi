@@ -171,6 +171,7 @@ Section "" sec_app
 	!insertmacro Lang "sk-SK" ${LANG_SLOVAK}
 	!insertmacro Lang "zh-CN" ${LANG_SIMPCHINESE}
 	!insertmacro Lang "it-IT" ${LANG_ITALIAN}
+	!insertmacro Lang "de-DE" ${LANG_GERMAN}
 
 	;Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
