@@ -128,6 +128,7 @@ struct strings {
 #include "sk-SK/strings.h"
 #include "zh-CN/strings.h"
 #include "it-IT/strings.h"
+#include "de-DE/strings.h"
 
 struct strings *languages[] = {
 	&en_US,
@@ -138,6 +139,7 @@ struct strings *languages[] = {
 	&ru_RU,
 	&zh_CN,
 	&it_IT,
+	&de_DE,
 };
 
 struct strings *l10n = &en_US;
