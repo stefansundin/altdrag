@@ -4,11 +4,21 @@
 <wiki:toc max_depth="2" />
 
 = Introduction =
-In addition to simply dragging windows, you can double-click a window to maximize it.
+AltDrag gives you the ability to move and resize your windows in a new way. After you have started AltDrag, you can simply hold down the Alt key and then click and drag any window.
 
-While dragging a window, you can press the shift key to make the window snap to other windows.
+This behavior already exists in Linux and other operating systems, and AltDrag was made with the mission to copy that behavior to the Windows platform.
 
-If you still have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=22OaiP_HPXY this short video] that a user has posted to YouTube.
+If you have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=8yw1i2FBAss this short video] that a user has posted to YouTube.
+
+
+== Tricks you should know about ==
+  * While dragging windows, press the Shift key to make the window snap to other windows.
+  * AltDrag will not bring windows to front by default. Press Ctrl to bring the window to front, or configure AltDrag to do that automatically in the settings.
+  * AltDrag will mimic Aero Snap by default, so try dragging windows to the edges of your monitor. Corners work too!
+  * If you use multiple monitors, you can hold Ctrl while dragging to trap the window within the current monitor. This is particularly useful if you want to Aero Snap at edges between monitors.
+  * If you can't move a particular window, try elevating AltDrag. Normal programs can't interact with programs that are started with administrator privileges.
+  * You can run multiple instances of AltDrag if you configure `AltDrag.ini`. This is useful if you e.g. want Alt+LMB to move windows and Ctrl+LMB to resize windows.
+
 
 == Resize ==
 You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press.
