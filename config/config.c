@@ -531,9 +531,7 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 		if (msg == WM_LBUTTONDOWN) {
 			POINT pt;
-			pt.x = GET_X_LPARAM(lParam);
-			pt.y = GET_Y_LPARAM(lParam);
-
+			GetCursorPos(&pt);
 			HWND window = WindowFromPoint(pt);
 			window = GetAncestor(window, GA_ROOT);
 
