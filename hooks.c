@@ -1464,18 +1464,18 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					posy = mon.top;
 					if (state.resize.y == RESIZE_CENTER) {
 						wndheight = max(min((mon.bottom-mon.top), state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
-						posy = (mon.bottom-mon.top)/2-wndheight/2;
+						posy += (mon.bottom-mon.top)/2-wndheight/2;
 					}
 					else if (state.resize.y == RESIZE_BOTTOM) {
 						posy = mon.bottom-wndheight;
 					}
-					if (state.resize.x == RESIZE_CENTER) {
-						posx = wnd.left;
+					if (state.resize.x == RESIZE_CENTER && state.resize.y != RESIZE_CENTER) {
+						wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
+						posx += (mon.right-mon.left)/2-wndwidth/2;
+					}
+					else if (state.resize.x == RESIZE_CENTER) {
 						wndwidth = wnd.right-wnd.left;
-						if (state.resize.y != RESIZE_CENTER) {
-							wndwidth = max(min((mon.right-mon.left), state.mmi.ptMaxTrackSize.x), state.mmi.ptMinTrackSize.x);
-							posx = (mon.right-mon.left)/2-wndwidth/2;
-						}
+						posx = wnd.left;
 					}
 					else if (state.resize.x == RESIZE_RIGHT) {
 						posx = mon.right-wndwidth;
@@ -1483,7 +1483,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 
 					//Get new size after move
-					//Doing this since wndwidth and wndheight might be wrong if the window is resized in chunks
+					//Doing this since wndwidth and wndheight might be wrong if the window is resized in chunks (e.g. PuTTY)
 					GetWindowRect(state.hwnd, &wnd);
 					//Update wndentry
 					state.wndentry->last.width = wnd.right-wnd.left;
