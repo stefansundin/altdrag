@@ -1,6 +1,6 @@
 ﻿/*
 	AltDrag - de-DE localization by Markus Hentsch
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings de_DE = {
  /* lang_english       */ L"German",
  /* lang               */ L"Deutsch",
  /* author             */ L"Markus Hentsch",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (deaktiviert)",
@@ -31,7 +31,7 @@ struct strings de_DE = {
    /* dialog           */ L"Eine neue Version ist verfügbar. Zur Webseite wechseln?",
    /* nonew            */ L"Keine Aktualisierung verfügbar.",
  },
- 
+
  /* === config === */
  /* title              */ APP_NAME L" Einstellungen",
  { /* tabs */
@@ -44,8 +44,9 @@ struct strings de_DE = {
  { /* general tab */
    /* box              */ L"Allgemeine Einstellungen",
    /* autofocus        */ L"&Fenster beim Verschieben nach vorn bringen.\n(Dafür kann wahlweise auch Strg gedrückt werden)",
-   /* aero             */ L"&Aero Snap immitieren",
+   /* aero             */ L"Aero S&nap immitieren",
    /* inactivescroll   */ L"&Scrollen des Mausrades in inaktiven Fenstern",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Fenster automatisch einrasten an:",
    /* autosnap0        */ L"Deaktiviert",
    /* autosnap1        */ L"Bildschirmkanten",
@@ -89,8 +90,8 @@ struct strings de_DE = {
    },
    { /* hotkeys */
      /* box            */ L"Tastaturkürzel",
-     /* leftalt        */ L"&Alt links",
-     /* rightalt       */ L"A&lt rechts",
+     /* leftalt        */ L"Alt &links",
+     /* rightalt       */ L"Alt &rechts",
      /* leftwinkey     */ L"&Windows links",
      /* rightwinkey    */ L"W&indows rechts",
      /* leftctrl       */ L"&Strg links",
@@ -111,7 +112,7 @@ struct strings de_DE = {
    /* box              */ L"Erweiterte Einstellungen",
    /* hookwindows      */ L"&Einrasten beim normalen Verschieben von Fenstern.\nFunktioniert zusammen mit automatischem Einrasten!",
    /* hookwindows_warn */ L"Beachten Sie, dass diese Funktion nicht zu 100% sicher ist, da sie durch das Einhängen in andere Prozesse ermöglicht wird. Dies könnte bei Spielen riskant sein, die einen Anti-Cheat Schutz besitzen.\n\nSind Sie sich sicher, dass Sie diese Funktion aktivieren möchten?",
-   /* checkonstartup   */ L"&Automatisch nach Aktualisierungen suchen",
+   /* checkonstartup   */ L"A&utomatisch nach Aktualisierungen suchen",
    /* beta             */ L"Auf &Beta-Versionen prüfen",
    /* checknow         */ L"&Jetzt prüfen",
    /* ini              */ L"Die Einstellungen von "APP_NAME" werden in "APP_NAME".ini gespeichert. Es gibt ein paar Dinge, die nur durch das Bearbeiten dieser Datei eingestellt werden können.",

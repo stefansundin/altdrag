@@ -46,6 +46,7 @@ struct strings it_IT = {
    /* autofocus        */ L"Seleziona la &finestra durante il trascinamento.\nPuoi anche premere Ctrl per attivare la finestra.",
    /* aero             */ L"&Mima Aero Snap",
    /* inactivescroll   */ L"&Scorri finestre inattive",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Aggancia automaticamente a:",
    /* autosnap0        */ L"disattivato",
    /* autosnap1        */ L"bordi dello schermo",
@@ -89,8 +90,8 @@ struct strings it_IT = {
    },
    { /* hotkeys */
      /* box            */ L"Tasti di scelta rapida",
-     /* leftalt        */ L"&Alt sinistro",
-     /* rightalt       */ L"A&lt destro",
+     /* leftalt        */ L"Alt &sinistro",
+     /* rightalt       */ L"Alt &destro",
      /* leftwinkey     */ L"&Win sinistro",
      /* rightwinkey    */ L"W&in destro",
      /* leftctrl       */ L"&Ctrl sinistro",

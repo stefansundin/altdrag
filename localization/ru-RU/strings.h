@@ -1,6 +1,6 @@
  /*
 	AltDrag - ru-RU localization by Neek Eoneof (eoneof@gmail.com) and Dmitry Trubin (dtruebin@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings ru_RU = {
  /* lang_english       */ L"Russian",
  /* lang               */ L"Русский",
  /* author             */ L"Neek Eoneof, Dmitry Trubin",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (выключено)",
@@ -31,7 +31,7 @@ struct strings ru_RU = {
    /* dialog           */ L"Доступна новая версия. Прейти на сайт программы?",
    /* nonew            */ L"Нет доступных обновлений.",
  },
- 
+
  /* === config === */
  /* title              */ L"Настройки " APP_NAME,
  { /* tabs */
@@ -46,6 +46,7 @@ struct strings ru_RU = {
    /* autofocus        */ L"&Активировать окно при перетаскивании.\nИначе, с зажатой клавишей Ctrl.",
    /* aero             */ L"&Имитировать Aero Snap",
    /* inactivescroll   */ L"&Прокручивать содержимое неактивных окон",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Автоматическая стыковка:",
    /* autosnap0        */ L"Отключена",
    /* autosnap1        */ L"К краям экрана",
@@ -89,8 +90,8 @@ struct strings ru_RU = {
    },
    { /* hotkeys */
      /* box            */ L"Горячие клавиши",
-     /* leftalt        */ L"Левый &Alt",
-     /* rightalt       */ L"Правый A&lt",
+     /* leftalt        */ L"&Левый Alt",
+     /* rightalt       */ L"&Правый Alt",
      /* leftwinkey     */ L"Левый &Win",
      /* rightwinkey    */ L"Правый W&in",
      /* leftctrl       */ L"Левый &Ctrl",

@@ -1,7 +1,7 @@
 /*
 	Autostart functions.
 	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -40,7 +40,7 @@ void SetAutostart(int on, int hide, int elevate) {
 	HKEY key;
 	int error = RegCreateKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, NULL, 0, KEY_SET_VALUE, NULL, &key, NULL);
 	if (error != ERROR_SUCCESS) {
-		Error(L"RegCreateKeyEx(HKEY_CURRENT_USER,'Software\\Microsoft\\Windows\\CurrentVersion\\Run')", L"Error opening the registry.", error, TEXT(__FILE__), __LINE__);
+		Error(L"RegCreateKeyEx(HKEY_CURRENT_USER,'Software\\Microsoft\\Windows\\CurrentVersion\\Run')", L"Error opening the registry.", error);
 		return;
 	}
 	if (on) {
@@ -51,7 +51,7 @@ void SetAutostart(int on, int hide, int elevate) {
 		//Set autostart
 		error = RegSetValueEx(key, APP_NAME, 0, REG_SZ, (LPBYTE)value, (wcslen(value)+1)*sizeof(value[0]));
 		if (error != ERROR_SUCCESS) {
-			Error(L"RegSetValueEx('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
+			Error(L"RegSetValueEx('"APP_NAME"')", L"SetAutostart()", error);
 			return;
 		}
 	}
@@ -59,7 +59,7 @@ void SetAutostart(int on, int hide, int elevate) {
 		//Remove
 		error = RegDeleteValue(key, APP_NAME);
 		if (error != ERROR_SUCCESS) {
-			Error(L"RegDeleteValue('"APP_NAME"')", L"SetAutostart()", error, TEXT(__FILE__), __LINE__);
+			Error(L"RegDeleteValue('"APP_NAME"')", L"SetAutostart()", error);
 			return;
 		}
 	}

@@ -1,18 +1,37 @@
 /*
 	Error message handler.
 	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 */
 
-#ifdef ERROR_WRITETOFILE
+int showerror = 1;
+
+
+#if defined(DEBUG) || defined(ERROR_WRITETOFILE)
+
 #include <shlobj.h>
+wchar_t log_filename[1000] = L"";
+
+FILE *OpenLog(wchar_t *mode) {
+	//Put the file on the desktop (since we should always be able to write there)
+	if (log_filename[0] == '\0') {
+		SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, log_filename);
+		wcscat(log_filename, L"\\"APP_NAME"-log.txt");
+	}
+	FILE *f = _wfopen(log_filename, mode);
+	if (f == NULL) {
+		// if it fails to open the file, it should print to the terminal (recompile with -mconsole)
+		return stdout;
+	}
+	return f;
+}
+
 #endif
 
-int showerror = 1;
 
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
@@ -23,7 +42,7 @@ LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	return 0;
 }
 
-void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line) {
+void _Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line) {
 	if (!showerror) {
 		return;
 	}
@@ -37,11 +56,7 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	LocalFree(errormsg);
 	//Display message
 	#ifdef ERROR_WRITETOFILE
-	//Put file on desktop (since we should always be able to write there)
-	wchar_t _txt[1000];
-	SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, _txt);
-	wcscat(_txt, L"\\"APP_NAME"-errorlog.txt");
-	FILE *f = _wfopen(_txt, L"ab");
+	FILE *f = OpenLog(L"ab");
 	fputws(msg, f);
 	fputws(L"\n\n", f);
 	fclose(f);
@@ -64,16 +79,15 @@ void Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line)
 	#endif
 }
 
+#define Error(a,b,c) _Error(a, b, c, TEXT(__FILE__), __LINE__)
+
 //DBG("%d", 5);
 //DBGA("%d", 5);
 
 #ifdef ERROR_WRITETOFILE
 
 #define DBG(fmt, ...) { \
-	wchar_t _txt[1000]; \
-	SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, _txt); \
-	wcscat(_txt, L"\\"APP_NAME"-errorlog.txt"); \
-	FILE *f = _wfopen(_txt, L"ab"); \
+	FILE *f = OpenLog(L"ab"); \
 	fwprintf(f, TEXT(fmt), ##__VA_ARGS__); \
 	fputws(L"\n\n", f); \
 	fclose(f); \

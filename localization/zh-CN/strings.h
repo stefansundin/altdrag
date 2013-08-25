@@ -1,6 +1,6 @@
 ﻿/*
 	AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings zh_CN = {
  /* lang_english       */ L"Chinese",
  /* lang               */ L"简体",
  /* author             */ L"Jack Jin",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (禁止)",
@@ -31,7 +31,7 @@ struct strings zh_CN = {
    /* dialog           */ L"有可用的新版本. 打开AltDrag网站吗？?",
    /* nonew            */ L"没有可用的更新.",
  },
- 
+
  /* === config === */
  /* title              */ APP_NAME L" 配置",
  { /* tabs */
@@ -44,8 +44,9 @@ struct strings zh_CN = {
  { /* general tab */
    /* box              */ L"通用设置",
    /* autofocus        */ L"(&F)拖动时聚焦窗口.\n按Ctrl也可以聚焦到窗口.",
-   /* aero             */ L"(&A)Win7窗口贴边自动调整",
+   /* aero             */ L"(&N)Win7窗口贴边自动调整",
    /* inactivescroll   */ L"&滚动非活动窗口",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"自动吸附在:",
    /* autosnap0        */ L"禁止",
    /* autosnap1        */ L"到屏幕边缘",
@@ -89,12 +90,12 @@ struct strings zh_CN = {
    },
    { /* hotkeys */
      /* box            */ L"热键",
-     /* leftalt        */ L"左&Alt",
-     /* rightalt       */ L"右A&lt",
+     /* leftalt        */ L"左A&lt",
+     /* rightalt       */ L"右Al&t",
      /* leftwinkey     */ L"左&Winkey",
      /* rightwinkey    */ L"右W&inkey",
      /* leftctrl       */ L"左&Ctrl",
-     /* rightctrl      */ L"右C&trl",
+     /* rightctrl      */ L"右Ct&rl",
      /* more           */ L"你可以通过修改ini配置文件来加入任何键!\n使用shift键使窗口间进行吸附.",
    },
  },

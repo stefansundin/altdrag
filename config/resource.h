@@ -18,6 +18,7 @@
 #define IDC_INI                                 1002
 #define IDC_MOUSE_MORE                          1002
 #define IDC_NEWRULE                             1002
+#define IDC_MDI                                 1003
 #define IDC_SCROLL                              1003
 #define IDC_TRANSLATIONS                        1003
 #define IDC_AUTOSAVE                            1004

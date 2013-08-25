@@ -1,6 +1,6 @@
 ﻿/*
 	AltDrag - sk-SK localization by Miroslav Miklus (miroslav.miklus@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings sk_SK = {
  /* lang_english       */ L"Slovak",
  /* lang               */ L"Slovenčina",
  /* author             */ L"Miroslav Miklus",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (vypnutý)",
@@ -31,7 +31,7 @@ struct strings sk_SK = {
    /* dialog           */ L"Je dostupná nová verzia. Prejsť na webstránku?",
    /* nonew            */ L"Nie sú dostupné žiadne aktualizácie.",
  },
- 
+
  /* === config === */
  /* title              */ APP_NAME L" Konfigurácia",
  { /* tabs */
@@ -45,8 +45,9 @@ struct strings sk_SK = {
  { /* general tab */
    /* box              */ L"Všeobecné nastavenia",
    /* autofocus        */ L"&Označiť okno počas premiesňovania.\nOkno je možné označiť stlačením klávesy Ctrl.",
-   /* aero             */ L"Mimic &Aero Snap",
+   /* aero             */ L"Mimic Aero S&nap",
    /* inactivescroll   */ L"&Skrolovanie neaktívnych okien",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Automatické uchytenie na:",
    /* autosnap0        */ L"Vypnuté",
    /* autosnap1        */ L"Na okraje obrazovky",
@@ -90,8 +91,8 @@ struct strings sk_SK = {
    },
    { /* hotkeys */
      /* box            */ L"Klávesové skratky",
-     /* leftalt        */ L"Left &Alt",
-     /* rightalt       */ L"Right A&lt",
+     /* leftalt        */ L"&Left Alt",
+     /* rightalt       */ L"&Right Alt",
      /* leftwinkey     */ L"Left &Winkey",
      /* rightwinkey    */ L"Right W&inkey",
      /* leftctrl       */ L"Left &Ctrl",

@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -63,30 +63,30 @@ int find = 0;
 //Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
-	
+
 	//Look for previous instance
 	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
 		SendMessage(previnst, WM_COMMAND, SWM_FIND, 0);
 		return 0;
 	}
-	
+
 	//Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 	wnd.hCursor = LoadImage(hInst, L"find", IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 	RegisterClassEx(&wnd);
 	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
 	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
-	
+
 	//Tray icon
 	InitTray();
 	UpdateTray();
-	
+
 	//Hook mouse
 	if ((GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 		HookMouse();
 	}
-	
+
 	//Message loop
 	MSG msg;
 	while (GetMessage(&msg,NULL,0,0)) {
@@ -108,20 +108,20 @@ LRESULT CALLBACK WndDetailsMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 DWORD WINAPI FindWnd(LPVOID arg) {
 	POINT pt = *(POINT*)arg;
 	free(arg);
-	
+
 	HWND hwnd_component = WindowFromPoint(pt);
 	if (hwnd_component == NULL) {
 		#ifdef DEBUG
-		Error(L"WindowFromPoint()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"WindowFromPoint()", L"FindWnd()", GetLastError());
 		#endif
 	}
 	HWND hwnd = GetAncestor(hwnd_component, GA_ROOT);
-	
+
 	//Get child window
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
 		#ifdef DEBUG
-		Error(L"GetWindowRect()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"GetWindowRect()", L"FindWnd()", GetLastError());
 		#endif
 	}
 	POINT pt_child;
@@ -130,10 +130,10 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	HWND hwnd_child = ChildWindowFromPoint(hwnd, pt_child);
 	if (hwnd_child == NULL) {
 		#ifdef DEBUG
-		Error(L"ChildWindowFromPoint()", L"FindWnd()", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"ChildWindowFromPoint()", L"FindWnd()", GetLastError());
 		#endif
 	}
-	
+
 	//Get title and class
 	wchar_t title[256], title_child[256], title_component[256];
 	wchar_t classname[256], classname_child[256], classname_component[256];
@@ -143,7 +143,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	GetClassName(hwnd_child, classname_child, sizeof(classname_child)/sizeof(wchar_t));
 	GetWindowText(hwnd_component, title_component, sizeof(title_component)/sizeof(wchar_t));
 	GetClassName(hwnd_component, classname_component, sizeof(classname_component)/sizeof(wchar_t));
-	
+
 	//Assemble message
 	swprintf(txt, L"Window:\n title: %s\n class: %s", title, classname);
 	if (hwnd_child != hwnd) {
@@ -199,7 +199,7 @@ void FindAllWnds() {
 			wcscat(txt, L"\n");
 		}
 	}
-	
+
 	//Show message
 	HHOOK hhk = SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
 	int response = MessageBox(NULL, txt, l10n->allwnds, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
@@ -220,18 +220,18 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && find) {
 			POINT pt = ((PMSLLHOOKSTRUCT)lParam)->pt;
-			
+
 			//Make sure cursorwnd isn't in the way
 			ShowWindow(g_hwnd, SW_HIDE);
-			
+
 			//Print window info
 			POINT *p_pt = malloc(sizeof(pt));
 			*p_pt = pt;
 			CreateThread(NULL, 0, FindWnd, p_pt, 0, NULL);
-			
+
 			//Unhook mouse
 			UnhookMouse();
-			
+
 			//Prevent mousedown from propagating
 			return 1;
 		}
@@ -248,7 +248,7 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 			return 1;
 		}
 	}
-	
+
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
@@ -257,14 +257,14 @@ int HookMouse() {
 		//Mouse already hooked
 		return 1;
 	}
-	
+
 	//Set up the hook
 	mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, g_hinst, 0);
 	if (mousehook == NULL) {
-		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError());
 		return 1;
 	}
-	
+
 	//Show cursor
 	int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
 	int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -272,7 +272,7 @@ int HookMouse() {
 	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	MoveWindow(g_hwnd, left, top, width, height, FALSE);
 	ShowWindowAsync(g_hwnd, SW_SHOWNA);
-	
+
 	//Success
 	find = 1;
 	return 0;
@@ -281,13 +281,13 @@ int HookMouse() {
 DWORD WINAPI DelayedUnhookMouse() {
 	//Sleep so mouse events have time to be canceled
 	Sleep(100);
-	
+
 	//Unhook the mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		Error(L"UnhookWindowsHookEx(mousehook)", L"UnhookMouse()", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"UnhookWindowsHookEx(mousehook)", L"UnhookMouse()", GetLastError());
 		return 1;
 	}
-	
+
 	//Success
 	mousehook = NULL;
 }
@@ -297,13 +297,13 @@ int UnhookMouse() {
 		//Mouse not hooked
 		return 1;
 	}
-	
+
 	//Disable
 	DisableMouse();
-	
+
 	//Unhook
 	CreateThread(NULL, 0, DelayedUnhookMouse, NULL, 0, NULL);
-	
+
 	//Success
 	return 0;
 }
@@ -311,7 +311,7 @@ int UnhookMouse() {
 int DisableMouse() {
 	//Disable
 	find = 0;
-	
+
 	//Hide cursor
 	ShowWindow(g_hwnd, SW_HIDE);
 }
