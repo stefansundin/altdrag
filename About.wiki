@@ -18,6 +18,7 @@ If you have troubles understanding how AltDrag works, you can watch [http://www.
   * If you use multiple monitors, you can hold Ctrl while dragging to trap the window within the current monitor. This is particularly useful if you want to Aero Snap at edges between monitors.
   * If you can't move a particular window, try elevating AltDrag. Normal programs can't interact with programs that are started with administrator privileges.
   * You can run multiple instances of AltDrag if you configure `AltDrag.ini`. This is useful if you e.g. want Alt+LMB to move windows and Ctrl+LMB to resize windows.
+  * If you use the scroll wheel to change the volume, you can hold shift to increase the rate the volume is changed. If you use the scroll wheel to change the transparency, you can hold shift to decrease the rate the transparency is changed.
 
 
 == Resize ==
