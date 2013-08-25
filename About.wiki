@@ -103,7 +103,7 @@ This happens if you have enabled _Scroll inactive windows_. I do not know why it
 
 There are a few ways to disable the beeping. The easiest is to open the volume window in the tray, then expand by pressing _Mixer_, then press the mute button for _System Sounds_. Note that this will mute all system sounds on your computer.
 
-To only disable the beep sound, you have two options. The easiest is to edit a value in the registry. Run this command with administrator privileges (hold Ctrl+Shift if running from the start menu):
+To only disable the beep sound, you have two options. The easiest is to edit a value in the registry. You have to reboot for the changes to take effect. Run this command:
 {{{
 cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d no /f & pause
 }}}
@@ -118,6 +118,8 @@ Your last option is to disable the beep service. There are GUI instructions [htt
 net stop beep
 sc config beep start= disabled
 }}}
+
+The space between `start=` and `disabled` is intentional. If you remove it the command will fail.
 
 
 = Reporting bugs and suggesting new features =
