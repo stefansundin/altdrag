@@ -77,12 +77,12 @@ If you, like me, dislike the ability in Windows 7 to shake a window to minimize 
 
 If you are too lazy to start regedit, then simply run this command. Make sure you are running it with administrator privileges (hold Ctrl+Shift if running from the start menu).
 {{{
-reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /t REG_DWORD /v NoWindowMinimizingShortcuts /d 1 /f
+cmd /C reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /t REG_DWORD /d 1 /f & pause
 }}}
 
 To change it back, run this command:
 {{{
-reg delete HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /f
+cmd /C reg delete HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /f & pause
 }}}
 
 You have to log off and in for the change to take effect.
@@ -101,7 +101,23 @@ If you want AltDrag to launch with administrator privileges on startup, then you
 
 This happens if you have enabled _Scroll inactive windows_. I do not know why it happens, so let me know if you know a solution.
 
-One way to disable the beeping is to open the volume window in the tray, then expand by pressing _Mixer_, then press the mute button for _System Sounds_. Note that this will mute all system sounds on your computer.
+There are a few ways to disable the beeping. The easiest is to open the volume window in the tray, then expand by pressing _Mixer_, then press the mute button for _System Sounds_. Note that this will mute all system sounds on your computer.
+
+To only disable the beep sound, you have two options. The easiest is to edit a value in the registry. Run this command with administrator privileges (hold Ctrl+Shift if running from the start menu):
+{{{
+cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d no /f & pause
+}}}
+
+To change it back:
+{{{
+cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d yes /f & pause
+}}}
+
+Your last option is to disable the beep service. There are GUI instructions [http://technology.mattrude.com/2011/05/how-to-disable-the-system-beep-in-windows-7/ here], but you can also run these commands in cmd:
+{{{
+net stop beep
+sc config beep start= disabled
+}}}
 
 
 = Reporting bugs and suggesting new features =
