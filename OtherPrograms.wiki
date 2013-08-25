@@ -15,6 +15,7 @@
   * [http://www.donationcoder.com/Software/Skrommel/index.html#MoveInactiveWin MoveInactiveWin], a fifth AutoHotkey script.
   * [http://wincmd.ru/plugring/LinuxMove.html LinuxMove] (quite buggy)
   * [http://flashwheel.sourceforge.net/ FlashWheel] (Scroll inactive windows)
+  * [http://www.mobzystems.com/Tools/SeeThroughWindows.aspx SeeThroughWindows] (Transparency toggler)
 
 
 = Freeware =
