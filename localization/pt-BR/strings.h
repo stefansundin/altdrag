@@ -1,6 +1,6 @@
 /*
 	AltDrag - pt-BR localization by Jucá Costa (virgilino@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings pt_BR = {
  /* lang_english       */ L"Brazilian Portuguese",
  /* lang               */ L"Português (Brasil)",
  /* author             */ L"Jucá Costa",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (desativado)",
@@ -31,7 +31,7 @@ struct strings pt_BR = {
    /* update_dialog    */ L"Uma nova versão está disponível. Ir à página de download?",
    /* update_nonew     */ L"Não há atualizações disponíveis.",
  },
- 
+
  /* === config === */
  /* title              */ L"Configuração do " APP_NAME,
  { /* tabs */
@@ -43,9 +43,10 @@ struct strings pt_BR = {
  },
  { /* general tab */
    /* box              */ L"Configurações gerais",
-   /* autofocus        */ L"&Ativar janelas ao arrastar. Você também pode\npressionar Ctrl para ativar janelas.",
+   /* autofocus        */ L"A&tivar janelas ao arrastar. Você também pode\npressionar Ctrl para ativar janelas.",
    /* aero             */ L"&Imitar o Aero Snap",
    /* inactivescroll   */ L"&Rolar janelas inativas",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Alinhar automaticamente a:",
    /* autosnap0        */ L"Desativado",
    /* autosnap1        */ L"Bordas da tela",
@@ -89,8 +90,8 @@ struct strings pt_BR = {
    },
    { /* hotkeys */
      /* box            */ L"Teclas de atalho",
-     /* leftalt        */ L"&Alt esquerdo",
-     /* rightalt       */ L"A&lt direito",
+     /* leftalt        */ L"Alt &esquerdo",
+     /* rightalt       */ L"Alt &direito",
      /* leftwinkey     */ L"&Windows esquerdo",
      /* rightwinkey    */ L"W&indows direito",
      /* leftctrl       */ L"&Ctrl esquerdo",
@@ -109,7 +110,7 @@ struct strings pt_BR = {
  },
  { /* advanced tab */
    /* box              */ L"Configurações avançadas",
-   /* hookwindows      */ L"&Ativar alinhamento quando mover normalmente uma janela. Funciona em conjunção com o alinhamento automático.",
+   /* hookwindows      */ L"A&tivar alinhamento quando mover normalmente uma janela. Funciona em conjunção com o alinhamento automático.",
    /* hookwindows_warn`*/ L"Note que isto não é totalmente seguro, pois se conecta a outros processos e coisas do tipo. Pode ser arriscado usar com jogos que tenham proteção anti-cheat.",
    /* checkonstartup   */ L"Checar se há novas at&ualizações automaticamente",
    /* beta             */ L"Checar versões &beta",

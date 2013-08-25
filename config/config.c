@@ -83,7 +83,7 @@ void UpdateSettings() {
 	PostMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
 }
 
-void UpdateL10n() {
+void UpdateStrings() {
 	//Update window title
 	PropSheet_SetTitle(g_cfgwnd, 0, l10n->title);
 
@@ -133,7 +133,7 @@ void UpdateL10n() {
 BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	if (msg == PSCB_INITIALIZED) {
 		g_cfgwnd = hwnd;
-		UpdateL10n();
+		UpdateStrings();
 
 		//OK button replaces Cancel button
 		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
@@ -146,7 +146,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 }
 
 INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	int updatel10n = 0;
+	int updatestrings = 0;
 	if (msg == WM_INITDIALOG) {
 		wchar_t txt[20];
 		GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, ARRAY_SIZE(txt), inipath);
@@ -157,6 +157,9 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 
 		GetPrivateProfileString(L"General", L"InactiveScroll", L"1", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_INACTIVESCROLL), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
+
+		GetPrivateProfileString(L"General", L"MDI", L"0", txt, ARRAY_SIZE(txt), inipath);
+		Button_SetCheck(GetDlgItem(hwnd,IDC_MDI), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 
 		int i;
 		for (i=0; i < ARRAY_SIZE(languages); i++) {
@@ -188,6 +191,9 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		else if (id == IDC_INACTIVESCROLL) {
 			WritePrivateProfileString(L"General", L"InactiveScroll", _itow(val,txt,10), inipath);
 		}
+		else if (id == IDC_MDI) {
+			WritePrivateProfileString(L"General", L"MDI", _itow(val,txt,10), inipath);
+		}
 		else if (id == IDC_LANGUAGE && event == CBN_SELCHANGE) {
 			int i = ComboBox_GetCurSel(control);
 			if (i == ARRAY_SIZE(languages)) {
@@ -198,8 +204,8 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 			else {
 				l10n = languages[i];
 				WritePrivateProfileString(L"General", L"Language", l10n->code, inipath);
-				updatel10n = 1;
-				UpdateL10n();
+				updatestrings = 1;
+				UpdateStrings();
 			}
 		}
 		else if (id == IDC_AUTOSTART) {
@@ -238,7 +244,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	else if (msg == WM_NOTIFY) {
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
-			updatel10n = 1;
+			updatestrings = 1;
 
 			//Autostart
 			int autostart=0, hidden=0, elevated=0;
@@ -250,12 +256,13 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 			Button_Enable(GetDlgItem(hwnd,IDC_AUTOSTART_ELEVATE), autostart && vista);
 		}
 	}
-	if (updatel10n) {
+	if (updatestrings) {
 		//Update text
 		SetDlgItemText(hwnd, IDC_GENERAL_BOX,        l10n->general.box);
 		SetDlgItemText(hwnd, IDC_AUTOFOCUS,          l10n->general.autofocus);
 		SetDlgItemText(hwnd, IDC_AERO,               l10n->general.aero);
 		SetDlgItemText(hwnd, IDC_INACTIVESCROLL,     l10n->general.inactivescroll);
+		SetDlgItemText(hwnd, IDC_MDI,                l10n->general.mdi);
 		SetDlgItemText(hwnd, IDC_AUTOSNAP_HEADER,    l10n->general.autosnap);
 		SetDlgItemText(hwnd, IDC_LANGUAGE_HEADER,    l10n->general.language);
 		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX,      l10n->general.autostart_box);

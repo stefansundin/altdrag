@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -75,13 +75,13 @@ int elevated = 0;
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
 	IsWow64Process(GetCurrentProcess(), &x64);
-	
+
 	//Get ini path
 	GetModuleFileName(NULL, inipath, ARRAY_SIZE(inipath));
 	PathRemoveFileSpec(inipath);
 	wcscat(inipath, L"\\"APP_NAME".ini");
 	wchar_t txt[10];
-	
+
 	//Convert szCmdLine to argv and argc (max 10 arguments)
 	char *argv[10];
 	int argc = 1;
@@ -91,7 +91,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		if (argc == ARRAY_SIZE(argv)) break;
 		argv[argc++]++;
 	}
-	
+
 	//Check arguments
 	int i;
 	int elevate=0, quiet=0, config=-1, multi=0;
@@ -117,7 +117,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 			multi = 1;
 		}
 	}
-	
+
 	//Check if elevated if in >= Vista
 	OSVERSIONINFO vi = { sizeof(OSVERSIONINFO) };
 	GetVersionEx(&vi);
@@ -130,14 +130,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 			elevated = elevation.TokenIsElevated;
 		}
 	}
-	
+
 	//Register some messages
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_OPENCONFIG = RegisterWindowMessage(L"OpenConfig");
 	WM_CLOSECONFIG = RegisterWindowMessage(L"CloseConfig");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
-	
+
 	//Look for previous instance
 	GetPrivateProfileString(L"Advanced", L"MultipleInstances", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (!_wtoi(txt) && !multi) {
@@ -152,14 +152,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 			return 0;
 		}
 	}
-	
+
 	//Check AlwaysElevate
 	if (!elevated) {
 		GetPrivateProfileString(L"Advanced", L"AlwaysElevate", L"0", txt, ARRAY_SIZE(txt), inipath);
 		if (_wtoi(txt)) {
 			elevate = 1;
 		}
-		
+
 		//Handle request to elevate to administrator privileges
 		if (elevate) {
 			wchar_t path[MAX_PATH];
@@ -170,7 +170,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 			}
 		}
 	}
-	
+
 	//Language
 	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
 	for (i=0; i < ARRAY_SIZE(languages); i++) {
@@ -179,37 +179,37 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 			break;
 		}
 	}
-	
+
 	//Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 	RegisterClassEx(&wnd);
 	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, NULL, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
 	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
-	
+
 	//Tray icon
 	InitTray();
 	UpdateTray();
-	
+
 	//Hook system
 	HookSystem();
-	
+
 	//Add tray if hook failed, even though -hide was supplied
 	if (hide && !keyhook) {
 		hide = 0;
 		UpdateTray();
 	}
-	
+
 	//Check for update
 	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (_wtoi(txt)) {
 		CheckForUpdate(0);
 	}
-	
+
 	//Open config if -config was supplied
 	if (config != -1) {
 		PostMessage(g_hwnd, WM_OPENCONFIG, config, 0);
 	}
-	
+
 	//Message loop
 	MSG msg;
 	while (GetMessage(&msg,NULL,0,0)) {
@@ -224,7 +224,7 @@ int HookSystem() {
 		//System already hooked
 		return 1;
 	}
-	
+
 	//Load library
 	if (!hinstDLL) {
 		wchar_t path[MAX_PATH];
@@ -233,28 +233,28 @@ int HookSystem() {
 		wcscat(path, L"\\hooks.dll");
 		hinstDLL = LoadLibrary(path);
 		if (hinstDLL == NULL) {
-			Error(L"LoadLibrary('hooks.dll')", L"This probably means that the file hooks.dll is missing. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"LoadLibrary('hooks.dll')", L"This probably means that the file hooks.dll is missing. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
 		}
 	}
-	
+
 	//Load keyboard hook
 	HOOKPROC procaddr;
 	if (!keyhook) {
 		//Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc@12");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
 		}
 		//Set up the keyboard hook
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
-			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError());
 			return 1;
 		}
 	}
-	
+
 	//HookWindows
 	wchar_t txt[10];
 	GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, ARRAY_SIZE(txt), inipath);
@@ -262,16 +262,16 @@ int HookSystem() {
 		//Get address to message hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
 		if (procaddr == NULL) {
-			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
 		}
 		//Set up the message hook
 		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
-			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook message hook. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook message hook. Another program might be interfering.", GetLastError());
 			return 1;
 		}
-		
+
 		//x64
 		if (x64) {
 			wchar_t path[MAX_PATH];
@@ -281,7 +281,7 @@ int HookSystem() {
 			ShellExecute(NULL, L"open", path, L"nowarning", NULL, SW_SHOWNORMAL);
 		}
 	}
-	
+
 	//Success
 	UpdateTray();
 	return 0;
@@ -298,22 +298,26 @@ int UnhookSystem() {
 		//System not hooked
 		return 1;
 	}
-	
+
 	//Remove keyboard hook
 	if (keyhook) {
 		if (UnhookWindowsHookEx(keyhook) == 0) {
-			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			#ifdef DEBUG
+			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError());
+			#endif
 		}
 		keyhook = NULL;
 	}
-	
+
 	//Remove message hook
 	if (msghook) {
 		if (UnhookWindowsHookEx(msghook) == 0) {
-			Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook message hook. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			#ifdef DEBUG
+			Error(L"UnhookWindowsHookEx(msghook)", L"Could not unhook message hook. Try restarting "APP_NAME".", GetLastError());
+			#endif
 		}
 		msghook = NULL;
-		
+
 		//Close HookWindows_x64.exe
 		if (x64) {
 			HWND window = FindWindow(L"AltDrag-x64", NULL);
@@ -321,28 +325,32 @@ int UnhookSystem() {
 				PostMessage(window, WM_CLOSE, 0, 0);
 			}
 		}
-		
+
 		//Send dummy messages to all processes to make them unload hooks.dll
 		EnumWindows(EnumWindowsProc, 0);
 	}
-	
+
 	//Tell dll file that we are unloading
 	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
 	if (Unload == NULL) {
-		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+		#ifdef DEBUG
+		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
+		#endif
 	}
 	else {
 		Unload();
 	}
-	
+
 	//Unload library
 	if (hinstDLL) {
 		if (FreeLibrary(hinstDLL) == 0) {
-			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			#ifdef DEBUG
+			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError());
+			#endif
 		}
 		hinstDLL = NULL;
 	}
-	
+
 	//Success
 	UpdateTray();
 	return 0;

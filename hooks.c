@@ -33,13 +33,14 @@ GUID my_IID_IAudioEndpointVolume = {0x5CDF2C82,0x841E,0x4546,{0x97,0x22,0x0C,0xF
 #define APP_NAME L"AltDrag"
 #define AERO_THRESHOLD 5
 
-//Timers
-HWND g_hwnd;
+//Boring stuff
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define RESTORE_TIMER WM_APP+1
 #define MOVE_TIMER    WM_APP+2
 #define REHOOK_TIMER  WM_APP+3
 #define INIT_TIMER    WM_APP+4
 #define FOCUS_TIMER   WM_APP+5
+HWND g_hwnd;
 
 //Enumerators
 enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME, ACTION_TRANSPARENCY};
@@ -178,7 +179,7 @@ enum action msgaction shareattr = ACTION_NONE;
 #define ERROR_WRITETOFILE
 #include "include/error.c"
 #else
-#define Error(a,b,c,d,e)
+#define Error(a,b,c)
 #endif
 
 //Blacklist
@@ -273,12 +274,14 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		wnds[numwnds++] = wnd;
 
 		//Use this to print the title and classname of the windows that are snapable
-		/*FILE *f = fopen("C:\\altdrag-log.txt", "ab");
-		char title[100], classname[100];
-		GetWindowTextA(window, title, 100);
-		GetClassNameA(window, classname, 100);
-		fprintf(f, "window: %s|%s\n", title, classname);
-		fclose(f);*/
+		/*
+		FILE *f = OpenLog(L"ab");
+		wchar_t title[100], classname[100];
+		GetWindowText(window, title, ARRAY_SIZE(title));
+		GetClassName(window, classname, ARRAY_SIZE(classname));
+		fwprintf(f, L"window: %s|%s\n", title, classname);
+		fclose(f);
+		*/
 	}
 	return TRUE;
 }
@@ -361,24 +364,20 @@ void Enum() {
 	}
 
 	//Use this to print the monitors and windows
-	/*FILE *f = fopen("C:\\altdrag-log.txt", "wb");
-	fprintf(f, "nummonitors: %d\n", nummonitors);
+	/*
+	FILE *f = OpenLog(L"ab");
+	fwprintf(f, L"nummonitors: %d\n", nummonitors);
 	int k;
 	for (k=0; k < nummonitors; k++) {
-		fprintf(f, "mon #%02d: left %d, top %d, right %d, bottom %d\n", k, monitors[k].left, monitors[k].top, monitors[k].right, monitors[k].bottom);
+		fwprintf(f, L"mon #%02d: left %d, top %d, right %d, bottom %d\n", k, monitors[k].left, monitors[k].top, monitors[k].right, monitors[k].bottom);
 	}
-	fprintf(f, "\n");
-	fprintf(f, "numwnds: %d\n", numwnds);
-	//char title[100], classname[100];
+	fwprintf(f, L"numwnds: %d\n", numwnds);
 	for (k=0; k < numwnds; k++) {
-		//GetWindowTextA(wnds[k], title, 100);
-		//GetClassNameA(wnds[k], classname, 100);
-		//RECT wnd;
-		//GetWindowRect(wnds[k], &wnd);
-		//fprintf(f, "wnd #%02d: %s [%s] (%dx%d @ %dx%d)\n", k, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
-		fprintf(f, "wnd #%02d: %dx%d @ %dx%d\n", k, wnds[k].right-wnds[k].left, wnds[k].bottom-wnds[k].top, wnds[k].left, wnds[k].top);
+		fwprintf(f, L"wnd #%02d: %dx%d @ %dx%d\n", k, wnds[k].right-wnds[k].left, wnds[k].bottom-wnds[k].top, wnds[k].left, wnds[k].top);
 	}
-	fclose(f);*/
+	fwprintf(f, L"\n");
+	fclose(f);
+	*/
 }
 
 void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
@@ -859,15 +858,15 @@ void MouseMove() {
 			}
 
 			/*
-			FILE *f = fopen("C:\\altdrag-wnddb.txt", "wb");
+			FILE *f = OpenLog(L"wb");
 			int k;
 			for (k=0; k < NUMWNDDB; k++) {
 				struct wnddata *wnd = &wnddb.items[k];
-				fprintf(f, "%02d: hwnd:%10d, restore:%d, origin:%4dx%4d, last:%4dx%4d", k, wnd->hwnd, wnd->restore, wnd->width, wnd->height, wnd->last.width, wnd->last.height);
+				fwprintf(f, L"wnd #%03d (0x%08x): restore:%d, origin:%4dx%4d, last:%4dx%4d", k, wnd->hwnd, wnd->restore, wnd->width, wnd->height, wnd->last.width, wnd->last.height);
 				if (wnd == wnddb.pos) {
-					fprintf(f, " <--");
+					fwprintf(f, L" <--");
 				}
-				fprintf(f, "\n");
+				fwprintf(f, L"\n");
 			}
 			fclose(f);
 			*/
@@ -1124,37 +1123,95 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action && sharedsettings.Mouse.Scroll && !state.interrupted) {
 			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
 			if (sharedsettings.Mouse.Scroll == ACTION_ALTTAB) {
-				state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+				numhwnds = 0;
+
+				if (sharedsettings.MDI) {
+					HWND hwnd = WindowFromPoint(pt);
+					//Hide if tooltip
+					wchar_t classname[20] = L"";
+					GetClassName(hwnd, classname, ARRAY_SIZE(classname));
+					if (!wcscmp(classname,TOOLTIPS_CLASS)) {
+						ShowWindow(hwnd, SW_HIDE);
+						hwnd = WindowFromPoint(pt);
+					}
+					if (hwnd != NULL) {
+						//Get MDIClient
+						HWND mdiclient = NULL;
+						char classname[100] = "";
+						GetClassNameA(hwnd, classname, ARRAY_SIZE(classname));
+						if (!strcmp(classname,"MDIClient")) {
+							mdiclient = hwnd;
+						}
+						else {
+							while (hwnd != NULL) {
+								HWND parent = GetParent(hwnd);
+								LONG_PTR style = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+								if (style&WS_EX_MDICHILD) {
+									mdiclient = parent;
+									break;
+								}
+								hwnd = parent;
+							}
+						}
+						//Enumerate and then reorder MDI windows
+						if (mdiclient != NULL) {
+							hwnd = GetWindow(mdiclient, GW_CHILD);
+							while (hwnd != NULL) {
+								if (numhwnds == hwnds_alloc) {
+									hwnds_alloc += 20;
+									hwnds = realloc(hwnds, hwnds_alloc*sizeof(HWND));
+								}
+								hwnds[numhwnds++] = hwnd;
+								hwnd = GetWindow(hwnd, GW_HWNDNEXT);
+							}
+							if (numhwnds > 1) {
+								if (delta > 0) {
+									SendMessage(mdiclient, WM_MDIACTIVATE, (WPARAM) hwnds[numhwnds-1], 0);
+								}
+								else {
+									SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+									SendMessage(mdiclient, WM_MDIACTIVATE, (WPARAM) hwnds[1], 0);
+								}
+							}
+						}
+					}
+				}
 
 				//Enumerate windows
-				numhwnds = 0;
-				EnumWindows(EnumAltTabWindows, 0);
-				if (numhwnds < 2) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				if (numhwnds <= 1) {
+					state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+					numhwnds = 0;
+					EnumWindows(EnumAltTabWindows, 0);
+					if (numhwnds <= 1) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					//Reorder windows
+					if (delta > 0) {
+						SetForegroundWindow(hwnds[numhwnds-1]);
+					}
+					else {
+						SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+						SetForegroundWindow(hwnds[1]);
+					}
 				}
 
 				//Use this to print the windows
-				/*FILE *f = fopen("C:\\altdrag-log.txt", "wb");
-				fprintf(f, "numhwnds: %d\n", numhwnds);
-				char title[100], classname[100];
+				/*
+				FILE *f = OpenLog(L"ab");
+				fwprintf(f, L"numhwnds: %d\n", numhwnds);
+				wchar_t title[100], classname[100];
 				int k;
 				for (k=0; k < numhwnds; k++) {
-					GetWindowTextA(hwnds[k], title, 100);
-					GetClassNameA(hwnds[k], classname, 100);
+					GetWindowText(hwnds[k], title, ARRAY_SIZE(title));
+					GetClassName(hwnds[k], classname, ARRAY_SIZE(classname));
 					RECT wnd;
 					GetWindowRect(hwnds[k], &wnd);
-					fprintf(f, "wnd #%02d: %s [%s] (%dx%d @ %dx%d)\n", k, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
+					fwprintf(f, L"wnd #%03d (0x%08x): %s [%s] (%dx%d @ %dx%d)\n", k, hwnds[k], title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
 				}
-				fclose(f);*/
+				fwprintf(f, L"\n");
+				fclose(f);
+				*/
 
-				//Reorder windows
-				if (delta > 0) {
-					SetForegroundWindow(hwnds[numhwnds-1]);
-				}
-				else {
-					SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
-					SetForegroundWindow(hwnds[1]);
-				}
 			}
 			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
 				IMMDeviceEnumerator *pDevEnumerator = NULL;
@@ -1164,19 +1221,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				//Get audio endpoint
 				HRESULT hr = CoCreateInstance(&my_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &my_IID_IMMDeviceEnumerator, (void**)&pDevEnumerator);
 				if (hr != S_OK) {
-					Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
+					Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", hr);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pDevEnumerator, eRender, eMultimedia, &pDev);
 				IMMDeviceEnumerator_Release(pDevEnumerator);
 				if (hr != S_OK) {
-					Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
+					Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", hr);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				hr = IMMDevice_Activate(pDev, &my_IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, (void**)&pAudioEndpoint);
 				IMMDevice_Release(pDev);
 				if (hr != S_OK) {
-					Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
+					Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", hr);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 
@@ -1195,7 +1252,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				IAudioEndpointVolume_Release(pAudioEndpoint);
 				if (hr != S_OK) {
-					Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", hr, TEXT(__FILE__), __LINE__);
+					Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", hr);
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
@@ -1215,7 +1272,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				BYTE old_alpha;
 				DWORD flags;
 				if (GetLayeredWindowAttributes(hwnd,NULL,&old_alpha,&flags) == FALSE) {
-					Error(L"GetLayeredWindowAttributes()", L"LowLevelMouseProc()", GetLastError(), TEXT(__FILE__), __LINE__);
+					Error(L"GetLayeredWindowAttributes()", L"LowLevelMouseProc()", GetLastError());
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 				int alpha = old_alpha;
@@ -1302,7 +1359,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					else if (i+1 == sharedsettings.Hotkeys.length) {
 						state.alt = 0;
 						UnhookMouse();
-						Error(L"No hotkeys down", L"LowLevelMouseProc()", 0, TEXT(__FILE__), __LINE__);
+						Error(L"No hotkeys down", L"LowLevelMouseProc()", 0);
 						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
 				}
@@ -1322,6 +1379,18 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (state.hwnd == NULL) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
+			//Hide if tooltip
+			//Check for AVL_AVWindow? Adobe pdf tooltip
+			wchar_t classname[20] = L"";
+			GetClassName(state.hwnd, classname, ARRAY_SIZE(classname));
+			if (!wcscmp(classname,TOOLTIPS_CLASS)) {
+				ShowWindow(state.hwnd, SW_HIDE);
+				state.hwnd = WindowFromPoint(pt);
+				if (state.hwnd == NULL) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+			//MDI or not
 			HWND root = GetAncestor(state.hwnd, GA_ROOT);
 			POINT mdiclientpt = {0,0};
 			if (sharedsettings.MDI) {
@@ -1347,14 +1416,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 
 			//Use this to print info about the window which is about to be dragged
 			/*{
-				FILE *f = fopen("C:\\altdrag-log.txt", "wb");
-				char title[100], classname[100];
-				GetWindowTextA(state.hwnd, title, 100);
-				GetClassNameA(state.hwnd, classname, 100);
+				FILE *f = OpenLog(L"wb");
+				wchar_t title[100], classname[100];
+				GetWindowText(state.hwnd, title, ARRAY_SIZE(title));
+				GetClassName(state.hwnd, classname, ARRAY_SIZE(classname));
 				RECT wnd;
 				GetWindowRect(state.hwnd, &wnd);
-				fprintf(f, "hwnd     : %d\nTitle    : %s\nClassname: %s\nSize     : %dx%d\nPosition : %dx%d\nStyle    : 0x%08X\n", state.hwnd, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top, GetWindowLongPtr(state.hwnd,GWL_STYLE));
-				fprintf(f, "Is fullscreen? %d == %d && %d == %d && %d == %d && %d == %d: %d\n", wnd.left, fmon.left, wnd.top, fmon.top, wnd.right, fmon.right, wnd.bottom, fmon.bottom, wnd.left==fmon.left && wnd.top==fmon.top && wnd.right==fmon.right && wnd.bottom==fmon.bottom);
+				fwprintf(f, L"hwnd     : 0x%08x\nTitle    : %s\nClassname: %s\nSize     : %dx%d\nPosition : %dx%d\nStyle    : 0x%08X\n", state.hwnd, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top, GetWindowLongPtr(state.hwnd,GWL_STYLE));
+				fwprintf(f, L"Is fullscreen? %d == %d && %d == %d && %d == %d && %d == %d: %d\n", wnd.left, fmon.left, wnd.top, fmon.top, wnd.right, fmon.right, wnd.bottom, fmon.bottom, wnd.left==fmon.left && wnd.top==fmon.top && wnd.right==fmon.right && wnd.bottom==fmon.bottom);
 				fclose(f);
 			}*/
 
@@ -1719,19 +1788,29 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 
+			//Get class
+			wchar_t classname[20] = L"";
+			GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+
+			//Hide if tooltip
+			if (!wcscmp(classname,TOOLTIPS_CLASS)) {
+				ShowWindow(window, SW_HIDE);
+				window = WindowFromPoint(pt);
+				if (window == NULL) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+				GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+			}
+
 			//If it's a groupbox, grab the real window
 			int style = GetWindowLongPtr(window, GWL_STYLE);
-			if (style&BS_GROUPBOX) {
-				wchar_t classname[20];
-				GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
-				if (!wcscmp(classname,L"Button")) {
-					HWND groupbox = window;
-					EnableWindow(groupbox, FALSE);
-					window = WindowFromPoint(pt);
-					EnableWindow(groupbox, TRUE);
-					if (!window) {
-						return CallNextHookEx(NULL, nCode, wParam, lParam);
-					}
+			if (style&BS_GROUPBOX && !wcscmp(classname,L"Button")) {
+				HWND groupbox = window;
+				EnableWindow(groupbox, FALSE);
+				window = WindowFromPoint(pt);
+				EnableWindow(groupbox, TRUE);
+				if (window == NULL) {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
 			}
 
@@ -1787,7 +1866,7 @@ int HookMouse() {
 	//Set up the mouse hook
 	mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, hinstDLL, 0);
 	if (mousehook == NULL) {
-		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"HookMouse()", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"HookMouse()", GetLastError());
 		return 1;
 	}
 
@@ -1810,7 +1889,7 @@ int UnhookMouse() {
 
 	//Remove mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
-		Error(L"UnhookWindowsHookEx(mousehook)", L"", GetLastError(), TEXT(__FILE__), __LINE__);
+		Error(L"UnhookWindowsHookEx(mousehook)", L"", GetLastError());
 		mousehook = NULL;
 		return 1;
 	}
@@ -1877,7 +1956,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			//Needed for IAudioEndpointVolume, and maybe some future stuff
 			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			if (hr != S_OK && hr != S_FALSE) {
-				Error(L"CoInitializeEx()", L"WindowProc()", hr, TEXT(__FILE__), __LINE__);
+				Error(L"CoInitializeEx()", L"WindowProc()", hr);
 			}
 
 			/*
@@ -1918,7 +1997,7 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 	else if (msg == WM_EXITSIZEMOVE || msg == WM_DESTROY) {
 		subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
 		if (subclassed) {
-			Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
+			Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1);
 			return DefSubclassProc(hwnd, msg, wParam, lParam);
 		}
 		hwnd = NULL;
@@ -1970,7 +2049,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			if (subclassed && IsWindow(state.hwnd)) {
 				subclassed = !RemoveWindowSubclass(state.hwnd, CustomWndProc, 0);
 				if (subclassed) {
-					Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
+					Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1);
 				}
 			}
 
@@ -1992,7 +2071,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			//Subclass window
 			subclassed = SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0);
 			if (!subclassed) {
-				Error(L"SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1, TEXT(__FILE__), __LINE__);
+				Error(L"SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1);
 			}
 		}
 		else if (msg->message == WM_WINDOWPOSCHANGING
@@ -2002,7 +2081,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			//Subclass window
 			subclassed = SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0);
 			if (!subclassed) {
-				Error(L"SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1, TEXT(__FILE__), __LINE__);
+				Error(L"SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0)", L"Failed to subclass window.", -1);
 			}
 		}
 		else if (msg->message == WM_SYSCOMMAND) {
@@ -2052,7 +2131,7 @@ __declspec(dllexport) void Unload() {
 	DestroyWindow(g_hwnd);
 	if (scrollhook) {
 		if (UnhookWindowsHookEx(scrollhook) == 0) {
-			Error(L"UnhookWindowsHookEx(scrollhook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"UnhookWindowsHookEx(scrollhook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError());
 		}
 		scrollhook = NULL;
 	}
@@ -2195,7 +2274,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			if (sharedsettings.InactiveScroll) {
 				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
 				if (scrollhook == NULL) {
-					Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook mouse. Another program might be interfering.", GetLastError(), TEXT(__FILE__), __LINE__);
+					Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook mouse. Another program might be interfering.", GetLastError());
 				}
 				if (sharedsettings.InactiveScroll != 3) {
 					SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL);
@@ -2286,7 +2365,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		if (subclassed && IsWindow(state.hwnd)) {
 			subclassed = !RemoveWindowSubclass(state.hwnd, CustomWndProc, 0);
 			if (subclassed) {
-				Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1, TEXT(__FILE__), __LINE__);
+				Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1);
 			}
 		}
 	}

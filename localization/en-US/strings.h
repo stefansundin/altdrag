@@ -1,10 +1,12 @@
 ﻿/*
 	AltDrag - en-US localization by Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
+
+	Note: For some reason &A will not work as a shortcut.
 */
 
 struct strings en_US = {
@@ -13,7 +15,7 @@ struct strings en_US = {
  /* lang_english       */ L"English",
  /* lang               */ L"English",
  /* author             */ L"Stefan Sundin",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (disabled)",
@@ -31,7 +33,7 @@ struct strings en_US = {
    /* dialog           */ L"A new version is available. Go to website?",
    /* nonew            */ L"No update available.",
  },
- 
+
  /* === config === */
  /* title              */ APP_NAME L" Configuration",
  { /* tabs */
@@ -44,8 +46,9 @@ struct strings en_US = {
  { /* general tab */
    /* box              */ L"General settings",
    /* autofocus        */ L"&Focus windows when dragging.\nYou can also press Ctrl to focus windows.",
-   /* aero             */ L"&Mimic Aero Snap",
+   /* aero             */ L"Mimic Aero S&nap",
    /* inactivescroll   */ L"&Scroll inactive windows",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Automatically snap to:",
    /* autosnap0        */ L"Disabled",
    /* autosnap1        */ L"To screen borders",
@@ -71,7 +74,7 @@ struct strings en_US = {
      /* rmb            */ L"Right mouse button:",
      /* mb4            */ L"Mouse button 4:",
      /* mb5            */ L"Mouse button 5:",
-     /* scroll         */ L"Scrollwheel:",
+     /* scroll         */ L"Scroll wheel:",
      /* more           */ L"If you have a great idea for a mouse action, put in a request <a href=\"http://code.google.com/p/altdrag/issues/list\">on the website</a>!",
    },
    { /* actions */
@@ -89,8 +92,8 @@ struct strings en_US = {
    },
    { /* hotkeys */
      /* box            */ L"Hotkeys",
-     /* leftalt        */ L"Left &Alt",
-     /* rightalt       */ L"Right A&lt",
+     /* leftalt        */ L"&Left Alt",
+     /* rightalt       */ L"&Right Alt",
      /* leftwinkey     */ L"Left &Winkey",
      /* rightwinkey    */ L"Right W&inkey",
      /* leftctrl       */ L"Left &Ctrl",
@@ -111,7 +114,7 @@ struct strings en_US = {
    /* box              */ L"Advanced settings",
    /* hookwindows      */ L"&Enable snapping when normally moving windows.\nWorks in conjunction with automatic snapping!",
    /* hookwindows_warn */ L"Note that this is not 100% safe as this feature works by hooking into other processes. This might be risky to use when playing games with anti-cheat protection.\n\nAre you sure you want to enable this feature?",
-   /* checkonstartup   */ L"Automatically check for &updates",
+   /* checkonstartup   */ L"A&utomatically check for updates",
    /* beta             */ L"Check for &beta versions",
    /* checknow         */ L"&Check now",
    /* ini              */ APP_NAME L"'s settings are saved in "APP_NAME".ini. There are a few things that you can only configure by editing the file manually.",

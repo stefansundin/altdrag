@@ -1,7 +1,7 @@
 /*
 	Check for update.
 	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -30,7 +30,7 @@ int OpenUrl(wchar_t *url) {
 DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	int verbose = *(int*)arg;
 	free(arg);
-	
+
 	//Check if we should check for beta
 	wchar_t path[MAX_PATH], txt[10];
 	GetModuleFileName(NULL, path, ARRAY_SIZE(path));
@@ -38,7 +38,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	wcscat(path, L"\\"APP_NAME".ini");
 	GetPrivateProfileString(L"Update", L"Beta", L"0", txt, ARRAY_SIZE(txt), path);
 	int beta = _wtoi(txt);
-	
+
 	//Check if we are connected to the internet
 	DWORD flags; //Not really used
 	int tries = 0; //Try at least ten times, sleep one second between each attempt
@@ -49,17 +49,17 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		}
 		if (tries >= 10 || verbose) {
 			if (verbose) {
-				Error(L"InternetGetConnectedState()", L"No internet connection.\n\nPlease check for update manually on the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+				Error(L"InternetGetConnectedState()", L"No internet connection.\n\nPlease check for update manually on the website.", GetLastError());
 			}
 			return 1;
 		}
 	}
-	
+
 	//Open connection
 	HINTERNET http = InternetOpen(APP_NAME"/"APP_VERSION, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
 	if (http == NULL) {
 		if (verbose) {
-			Error(L"InternetOpen()", L"Could not establish connection.\n\nPlease check for update manually on the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"InternetOpen()", L"Could not establish connection.\n\nPlease check for update manually on the website.", GetLastError());
 		}
 		return 1;
 	}
@@ -68,7 +68,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	HINTERNET file = InternetOpenUrl(http, (beta?APP_UPDATE_UNSTABLE:APP_UPDATE_STABLE), NULL, 0, INTERNET_FLAG_RELOAD|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_NO_AUTH|INTERNET_FLAG_NO_AUTO_REDIRECT|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI, 0);
 	if (file == NULL) {
 		if (verbose) {
-			Error(L"InternetOpenUrl()", L"Could not establish connection.\n\nPlease check for update manually on the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"InternetOpenUrl()", L"Could not establish connection.\n\nPlease check for update manually on the website.", GetLastError());
 		}
 		InternetCloseHandle(http);
 		return 1;
@@ -78,7 +78,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	DWORD numread;
 	if (InternetReadFile(file,data,sizeof(data),&numread) == FALSE) {
 		if (verbose) {
-			Error(L"InternetReadFile()", L"Could not read response.\n\nPlease check for update manually on the website.", GetLastError(), TEXT(__FILE__), __LINE__);
+			Error(L"InternetReadFile()", L"Could not read response.\n\nPlease check for update manually on the website.", GetLastError());
 		}
 		InternetCloseHandle(file);
 		InternetCloseHandle(http);
@@ -92,7 +92,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	//Close connection
 	InternetCloseHandle(file);
 	InternetCloseHandle(http);
-	
+
 	//Make sure the response is valid
 	//strcpy(data, "Version: 1.0"); //This is the format of the new update string
 	//char header[] = "Version: ";
@@ -102,7 +102,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		}
 		return 2;
 	}
-	
+
 	//New version available?
 	//char *latest = data+strlen(header);
 	//int cmp = strcmp(latest, APP_VERSION);

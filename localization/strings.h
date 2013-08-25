@@ -39,6 +39,7 @@ struct strings {
 		wchar_t *autofocus;
 		wchar_t *aero;
 		wchar_t *inactivescroll;
+		wchar_t *mdi;
 		wchar_t *autosnap;
 		wchar_t *autosnap0;
 		wchar_t *autosnap1;

@@ -1,6 +1,6 @@
 ﻿/*
 	AltDrag - pl-PL localization by Krystian Maksymowicz (krystian.maksymowicz@gmail.com) and Paweł 'Pawouek' Krafczyk (pkrafczyk@gmail.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings pl_PL = {
  /* lang_english       */ L"Polish",
  /* lang               */ L"Polski",
  /* author             */ L"Krystian Maksymowicz, Paweł 'Pawouek' Krafczyk",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (wyłączony)",
@@ -31,7 +31,7 @@ struct strings pl_PL = {
    /* dialog           */ L"Nowa wersja jest dostępna. Odwiedzić stronę?",
    /* nonew            */ L"Brak dostępnych aktualizacji.",
  },
- 
+
  /* === config === */
  /* title              */ L"Ustawienia " APP_NAME,
  { /* tabs */
@@ -43,9 +43,10 @@ struct strings pl_PL = {
  },
  { /* general tab */
    /* box              */ L"Ustawienia ogólne",
-   /* autofocus        */ L"&Aktywuj okno podczas przesuwania.\nMożesz także wcisnąć Ctrl by aktywować okna.",
+   /* autofocus        */ L"A&ktywuj okno podczas przesuwania.\nMożesz także wcisnąć Ctrl by aktywować okna.",
    /* aero             */ L"&Naśladuj Aero Snap",
    /* inactivescroll   */ L"&Przełączaj między nieaktywnymi oknami",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Automatycznie przyciągaj do:",
    /* autosnap0        */ L"Wyłączone",
    /* autosnap1        */ L"Krawędzi ekranu",
@@ -89,8 +90,8 @@ struct strings pl_PL = {
    },
    { /* hotkeys */
      /* box            */ L"Skróty klawiszowe",
-     /* leftalt        */ L"Lewy &Alt",
-     /* rightalt       */ L"Prawy A&lt",
+     /* leftalt        */ L"&Lewy Alt",
+     /* rightalt       */ L"&Prawy Alt",
      /* leftwinkey     */ L"Lewy &Win",
      /* rightwinkey    */ L"Prawy W&in",
      /* leftctrl       */ L"Lewy &Ctrl",
@@ -111,8 +112,8 @@ struct strings pl_PL = {
    /* box              */ L"Ustawienia zaawansowane",
    /* hookwindows      */ L"&Włącz przyciąganie podczas zwykłego przesuwania okien.\nDziała w połączeniu z automatycznym przyciąganiem!",
    /* hookwindows_warn`*/ L"Nie jest to na 100% bezpieczne bo wymaga podczepiania się pod inne procesy itp.",
-   /* checkonstartup   */ L"&Automatycznie sprawdzaj dostępność aktualizacji",
-   /* beta             */ L"&Uwzględniaj wersje testowe",
+   /* checkonstartup   */ L"A&utomatycznie sprawdzaj dostępność aktualizacji",
+   /* beta             */ L"Uw&zględniaj wersje testowe",
    /* checknow         */ L"&Sprawdź teraz",
    /* ini              */ L"Ustawienia programu "APP_NAME" są przechowywane w pliku "APP_NAME".ini. Jest kilka ustawień, które można ustawić jedynie poprzez samodzielną edycję tego pliku.",
    /* openini          */ L"Otwórz plik &ini",

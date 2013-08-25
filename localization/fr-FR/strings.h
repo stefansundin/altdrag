@@ -1,6 +1,6 @@
 ﻿/*
 	AltDrag - fr-FR localization by Samy Mechiri (samy.mechiri@kxen.com)
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ struct strings fr_FR = {
  /* lang_english       */ L"French",
  /* lang               */ L"Français",
  /* author             */ L"Samy Mechiri",
- 
+
  /* === app === */
  /* tray_enabled       */ APP_NAME,
  /* tray_disabled      */ APP_NAME " (désactivé)",
@@ -31,7 +31,7 @@ struct strings fr_FR = {
    /* dialog           */ L"Une nouvelle version est disponible. Aller sur le site web?",
    /* nonew            */ L"Pas de mise-à-jour disponible.",
  },
- 
+
  /* === config === */
  /* title              */ L"Configuration de " APP_NAME,
  { /* tabs */
@@ -43,9 +43,10 @@ struct strings fr_FR = {
  },
  { /* general tab */
    /* box              */ L"Paramètres généraux",
-   /* autofocus        */ L"&Activer les fenêtres en les déplaçant.\nAppuyez sur Ctrl pour activer les fenêtres.",
+   /* autofocus        */ L"Activer les &fenêtres en les déplaçant.\nAppuyez sur Ctrl pour activer les fenêtres.",
    /* aero             */ L"Imiter l'aimantation A&ero",
    /* inactivescroll   */ L"&Défiler les fenêtres inactives",
+   /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Aimanter les fenêtres:",
    /* autosnap0        */ L"Désactivé",
    /* autosnap1        */ L"Bords de l'écran",
@@ -89,8 +90,8 @@ struct strings fr_FR = {
    },
    { /* hotkeys */
      /* box            */ L"Activation",
-     /* leftalt        */ L"&Alt gauche",
-     /* rightalt       */ L"A&lt droit",
+     /* leftalt        */ L"Alt &gauche",
+     /* rightalt       */ L"Alt &droit",
      /* leftwinkey     */ L"&Windows gauche",
      /* rightwinkey    */ L"W&indows droit",
      /* leftctrl       */ L"&Ctrl gauche",
@@ -109,11 +110,11 @@ struct strings fr_FR = {
  },
  { /* advanced tab */
    /* box              */ L"Paramètres avancés",
-   /* hookwindows      */ L"&Aimenter les fenêtres déplacées normalement.\nFonctionne en plus de l'aimantation automatique!",
+   /* hookwindows      */ L"A&imenter les fenêtres déplacées normalement.\nFonctionne en plus de l'aimantation automatique!",
    /* hookwindows_warn`*/ L"Cette fonction n'est pas sûr à 100% car elle s'insère dans des processus étrangers et des choses de ce genre.",
-   /* checkonstartup   */ L"Chercher des mises-à-jours automatiquement",
+   /* checkonstartup   */ L"Chercher des mises-à-jours a&utomatiquement",
    /* beta             */ L"Chercher des versions &beta",
-   /* checknow         */ L"Vérifier la mise-à-jour",
+   /* checknow         */ L"Vérifier la &mise-à-jour",
    /* ini              */ L"Les paramètres de "APP_NAME" sont sauvés dans le fichier "APP_NAME".ini. Certains paramètres ne sont modifiable qu'en éditant le fichier manuellement.",
    /* openini          */ L"&Editer le fichier",
  },
