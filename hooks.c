@@ -70,7 +70,7 @@ struct {
 //State
 struct {
 	HWND hwnd;
-	short mdi;
+	HWND mdiclient;
 	short alt;
 	short activated;
 	short ctrl;
@@ -221,7 +221,7 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 
 //Enumerate
 int monitors_alloc = 0;
-BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+BOOL CALLBACK EnumMonitorsProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
 	//Make sure we have enough space allocated
 	if (nummonitors == monitors_alloc) {
 		monitors_alloc++;
@@ -251,15 +251,14 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 		if (IsZoomed(window)) {
 			//Get monitor size
 			HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-			MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-			GetMonitorInfo(monitor, &monitorinfo);
-			RECT mon = monitorinfo.rcMonitor;
+			MONITORINFO mi = { sizeof(MONITORINFO) };
+			GetMonitorInfo(monitor, &mi);
 			//Crop this window so that it does not exceed the size of the monitor
 			//I do this since the window has an extra, invisible, border when maximized (a border that stretches onto other monitors)
-			wnd.left = (wnd.left < mon.left)?mon.left:wnd.left;
-			wnd.top = (wnd.top < mon.top)?mon.top:wnd.top;
-			wnd.right = (wnd.right > mon.right)?mon.right:wnd.right;
-			wnd.bottom = (wnd.bottom > mon.bottom)?mon.bottom:wnd.bottom;
+			wnd.left = max(wnd.left, mi.rcMonitor.left);
+			wnd.top = max(wnd.top, mi.rcMonitor.top);
+			wnd.right = min(wnd.right, mi.rcMonitor.right);
+			wnd.bottom = min(wnd.bottom, mi.rcMonitor.bottom);
 		}
 
 		//Return if this window is overlapped by another window
@@ -302,17 +301,21 @@ BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
 	return TRUE;
 }
 
-void EnumMdiChildren() {
+void EnumMdi() {
+	//Add MDIClient as the monitor
 	RECT wnd;
-	HWND mdiclient = GetParent(state.hwnd);
-	if (GetClientRect(mdiclient,&wnd) != 0) {
-		wnds[numwnds++] = wnd;
+	if (GetClientRect(state.mdiclient,&wnd) != 0) {
+		monitors[nummonitors++] = wnd;
 	}
-	POINT mdiclientpt = {0,0};
-	if (ClientToScreen(mdiclient,&mdiclientpt) == FALSE) {
+	if (sharedstate.snap < 2) {
 		return;
 	}
-	HWND window = GetWindow(mdiclient, GW_CHILD);
+	//Add all the siblings to the window
+	POINT mdiclientpt = {0,0};
+	if (ClientToScreen(state.mdiclient,&mdiclientpt) == FALSE) {
+		return;
+	}
+	HWND window = GetWindow(state.mdiclient, GW_CHILD);
 	while (window != NULL) {
 		if (window == state.hwnd) {
 			window = GetWindow(window, GW_HWNDNEXT);
@@ -323,7 +326,7 @@ void EnumMdiChildren() {
 			wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
 		}
 		if (GetWindowRect(window,&wnd) != 0) {
-			wnds[numwnds++] = (RECT) {wnd.left-mdiclientpt.x, wnd.top-mdiclientpt.y, wnd.right-mdiclientpt.x, wnd.bottom-mdiclientpt.y};
+			wnds[numwnds++] = (RECT) { wnd.left-mdiclientpt.x, wnd.top-mdiclientpt.y, wnd.right-mdiclientpt.x, wnd.bottom-mdiclientpt.y };
 		}
 		window = GetWindow(window, GW_HWNDNEXT);
 	}
@@ -334,8 +337,8 @@ void Enum() {
 	numwnds = 0;
 
 	//MDI
-	if (state.mdi) {
-		EnumMdiChildren();
+	if (state.mdiclient) {
+		EnumMdi();
 		return;
 	}
 
@@ -345,7 +348,7 @@ void Enum() {
 	}
 
 	//Enumerate monitors
-	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+	EnumDisplayMonitors(NULL, NULL, EnumMonitorsProc, 0);
 
 	//Enumerate windows
 	HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
@@ -643,9 +646,9 @@ void MouseMove() {
 
 	//Restrict pt within origin monitor if Ctrl is being pressed
 	if (GetAsyncKeyState(VK_CONTROL)&0x8000 && !state.ignorectrl) {
-		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-		GetMonitorInfo(state.origin.monitor, &monitorinfo);
-		RECT fmon = monitorinfo.rcMonitor;
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		GetMonitorInfo(state.origin.monitor, &mi);
+		RECT fmon = mi.rcMonitor;
 		pt.x = (pt.x<fmon.left)?fmon.left: (pt.x>=fmon.right)?fmon.right-1: pt.x;
 		pt.y = (pt.y<fmon.top)?fmon.top: (pt.y>=fmon.bottom)?fmon.bottom-1: pt.y;
 	}
@@ -655,12 +658,12 @@ void MouseMove() {
 	HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 
 	//AutoRemaximize has priority over locked flag
-	if (sharedstate.action == ACTION_MOVE && sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor) {
+	if (sharedstate.action == ACTION_MOVE && sharedsettings.AutoRemaximize && state.origin.maximized && monitor != state.origin.monitor && !state.mdiclient) {
 		//Get monitor rect
-		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-		GetMonitorInfo(monitor, &monitorinfo);
-		RECT mon = monitorinfo.rcWork;
-		RECT fmon = monitorinfo.rcMonitor;
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		GetMonitorInfo(monitor, &mi);
+		RECT mon = mi.rcWork;
+		RECT fmon = mi.rcMonitor;
 		//Center window on monitor and maximize it
 		WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
 		GetWindowPlacement(state.hwnd, &wndpl);
@@ -697,34 +700,32 @@ void MouseMove() {
 	}
 
 	//Get window size
-	RECT wnd;
+	RECT wnd, mon, fmon;
 	if (GetWindowRect(state.hwnd,&wnd) == 0) {
 		return;
 	}
 
-	//Get monitor info
-	MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-	GetMonitorInfo(monitor, &monitorinfo);
-	RECT mon = monitorinfo.rcWork;
-	RECT fmon = monitorinfo.rcMonitor;
-
 	//MDI
 	RECT rootwnd = {0,0,0,0};
-	RECT mdiclientwnd = {0,0,0,0};
 	POINT mdiclientpt = {0,0};
-	if (state.mdi) {
+	if (state.mdiclient) {
 		HWND root = GetAncestor(state.hwnd, GA_ROOT);
-		HWND mdiclient = GetParent(state.hwnd);
+		RECT mdiclientwnd;
 		if (GetClientRect(root,&rootwnd) == 0
-		 || GetClientRect(mdiclient,&mdiclientwnd) == 0
-		 || ClientToScreen(mdiclient,&mdiclientpt) == FALSE) {
+		 || GetClientRect(state.mdiclient,&mdiclientwnd) == 0
+		 || ClientToScreen(state.mdiclient,&mdiclientpt) == FALSE) {
 			return;
 		}
+		mon = fmon = (RECT) {0, 0, mdiclientwnd.right-mdiclientwnd.left, mdiclientwnd.bottom-mdiclientwnd.top};
 		pt.x -= mdiclientpt.x;
 		pt.y -= mdiclientpt.y;
-		fmon.right = mdiclientwnd.right-mdiclientwnd.left;
-		fmon.bottom = mdiclientwnd.bottom-mdiclientwnd.top;
-		mon = fmon;
+	}
+	else {
+		//Get monitor info
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		GetMonitorInfo(monitor, &mi);
+		mon = mi.rcWork;
+		fmon = mi.rcMonitor;
 	}
 
 	//Get new position for window
@@ -784,7 +785,7 @@ void MouseMove() {
 				posx = mon.right-wndwidth;
 				posy = mon.bottom-wndheight;
 			}
-			else if (pt.y < mon.top+AERO_THRESHOLD && !state.mdi) {
+			else if (pt.y < mon.top+AERO_THRESHOLD && !state.mdiclient) {
 				//Top
 				if (!maximized) {
 					state.wndentry->restore = 0;
@@ -1248,10 +1249,10 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 
 		//Get monitor info
 		HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-		GetMonitorInfo(monitor, &monitorinfo);
-		RECT mon = monitorinfo.rcWork;
-		RECT fmon = monitorinfo.rcMonitor;
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		GetMonitorInfo(monitor, &mi);
+		RECT mon = mi.rcWork;
+		RECT fmon = mi.rcMonitor;
 
 		//Toggle maximized state if move+resize is clicked
 		if (buttonstate == STATE_DOWN && sharedstate.action == ACTION_MOVE && action == ACTION_RESIZE) {
@@ -1316,13 +1317,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			}
 
 			//Get window
+			state.mdiclient = NULL;
 			state.hwnd = WindowFromPoint(pt);
 			if (state.hwnd == NULL) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			HWND root = GetAncestor(state.hwnd, GA_ROOT);
-			state.mdi = 0;
-			RECT mdiclientwnd = {0,0,0,0};
 			POINT mdiclientpt = {0,0};
 			if (sharedsettings.MDI) {
 				while (state.hwnd != root) {
@@ -1330,12 +1330,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					LONG_PTR style = GetWindowLongPtr(state.hwnd, GWL_EXSTYLE);
 					if (style&WS_EX_MDICHILD) {
 						// Found MDI child, parent is now MDIClient window
-						state.mdi = 1;
-						if (GetClientRect(parent,&mdiclientwnd) == 0
-						 || ClientToScreen(parent,&mdiclientpt) == FALSE) {
+						state.mdiclient = parent;
+						if (GetClientRect(state.mdiclient,&fmon) == 0
+						 || ClientToScreen(state.mdiclient,&mdiclientpt) == FALSE) {
 							return CallNextHookEx(NULL, nCode, wParam, lParam);
 						}
-						mon = fmon = mdiclientwnd;
+						mon = fmon;
 						break;
 					}
 					state.hwnd = parent;
@@ -1483,26 +1483,21 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			else if (action == ACTION_RESIZE) {
 				//Restore the window (to monitor size) if it's maximized
 				if (state.origin.maximized) {
-					if (state.mdi) {
+					wndpl.rcNormalPosition = fmon; //Set size to full monitor to prevent flickering
+					wnd = mon;
+					if (state.mdiclient) {
 						//Make it a little smaller since MDIClients by default have scrollbars that would otherwise appear
-						wndpl.rcNormalPosition = (RECT) { mdiclientwnd.left, mdiclientwnd.top, mdiclientwnd.right-10, mdiclientwnd.bottom-10 };
-					}
-					else {
-						wndpl.rcNormalPosition = fmon; //Set size to full monitor to prevent flickering
-						wnd = mon;
+						wndpl.rcNormalPosition.right -= 10;
+						wndpl.rcNormalPosition.bottom -= 10;
 					}
 					wndpl.showCmd = SW_RESTORE;
 					SetWindowPlacement(state.hwnd, &wndpl);
-					if (state.mdi) {
+					if (state.mdiclient) {
 						//Get new values from MDIClient, since restoring the child have changed them, and the amount they change with differ depending on implementation (compare mIRC and Spy++)
 						Sleep(1); //Sometimes needed
-						HWND mdiclient = GetParent(state.hwnd);
-						if (GetClientRect(mdiclient,&mdiclientwnd) == 0) {
-							return CallNextHookEx(NULL, nCode, wParam, lParam);
-						}
-						wnd = (RECT) { mdiclientwnd.left, mdiclientwnd.top, mdiclientwnd.right, mdiclientwnd.bottom };
 						mdiclientpt = (POINT) {0,0};
-						if (ClientToScreen(mdiclient,&mdiclientpt) == FALSE) {
+						if (GetClientRect(state.mdiclient,&wnd) == 0
+						 || ClientToScreen(state.mdiclient,&mdiclientpt) == FALSE) {
 							return CallNextHookEx(NULL, nCode, wParam, lParam);
 						}
 					}
@@ -1836,9 +1831,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				POINT pt;
 				GetCursorPos(&pt);
 				HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-				MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-				GetMonitorInfo(monitor, &monitorinfo);
-				RECT fmon = monitorinfo.rcMonitor;
+				MONITORINFO mi = { sizeof(MONITORINFO) };
+				GetMonitorInfo(monitor, &mi);
+				RECT fmon = mi.rcMonitor;
 				state.offset.x = (float)(pt.x-fmon.left)/(fmon.right-fmon.left)*state.origin.width;
 				state.offset.y = (float)(pt.y-fmon.top)/(fmon.bottom-fmon.top)*state.origin.height;
 
@@ -2277,7 +2272,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			}
 		}
 
-		//Allocate space for wnds
+		//Allocate some memory
+		monitors_alloc++;
+		monitors = realloc(monitors, monitors_alloc*sizeof(RECT));
 		wnds_alloc += 20;
 		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
 
