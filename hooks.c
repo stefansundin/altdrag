@@ -1013,12 +1013,20 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					//Do not raise, this is a major hack
 					SystemParametersInfo(SPI_SETACTIVEWINDOWTRACKING, 0, (PVOID)TRUE, 0);
 
-					//Move mouse to bottom right corner
-					POINT pt0 = {0, 0};
-					HMONITOR monitor = MonitorFromPoint(pt0, MONITOR_DEFAULTTOPRIMARY);
-					MONITORINFO mi = { sizeof(MONITORINFO) };
-					GetMonitorInfo(monitor, &mi);
-					MOUSEINPUT mm1 = {65535, 65535, 0, MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE, 0, GetMessageExtraInfo()};
+					int virtual_left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+					int virtual_top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+					int virtual_width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+					int virtual_height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+					//Move mouse outside the window (to the taskbar)
+					POINT pt0 = {0,0};
+					ClientToScreen(taskbar,&pt0);
+					//There seems to be some problem moving the cursor to (0,0), which is weird, so make sure it's not (0,0)
+					pt0.x += 1;
+					pt0.y += 1;
+					int normalizedX = ceil((pt0.x-virtual_left)*65536.0/virtual_width);
+					int normalizedY = ceil((pt0.y-virtual_top)*65536.0/virtual_height);
+					MOUSEINPUT mm1 = {normalizedX, normalizedY, 0, MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK, 0, GetMessageExtraInfo()};
 					INPUT input1 = {INPUT_MOUSE, {.mi=mm1}};
 					SendInput(1, &input1, sizeof(INPUT));
 
@@ -1026,9 +1034,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 					Sleep(1);
 
 					//Move mouse back
-					int normalizedX = ceil(pt.x*65536.0/mi.rcMonitor.right);
-					int normalizedY = ceil(pt.y*65536.0/mi.rcMonitor.bottom);
-					MOUSEINPUT mm2 = {normalizedX, normalizedY, 0, MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE, 0, GetMessageExtraInfo()};
+					normalizedX = ceil((pt.x-virtual_left)*65536.0/virtual_width);
+					normalizedY = ceil((pt.y-virtual_top)*65536.0/virtual_height);
+					MOUSEINPUT mm2 = {normalizedX, normalizedY, 0, MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK, 0, GetMessageExtraInfo()};
 					INPUT input2 = {INPUT_MOUSE, {.mi=mm2}};
 					SendInput(1, &input2, sizeof(INPUT));
 
