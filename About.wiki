@@ -97,6 +97,21 @@ If you want AltDrag to launch with administrator privileges on startup, then you
 
 = Known issues =
 
+== AltDrag mysteriously stops working ==
+
+In Windows 7 a change was implemented to stop low-level hooks if they take too long. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot. And then if you try to disable AltDrag, you might get an error about `UnhookWindowsHookEx()`.
+
+There is a way to increase this timeout by editing the registry. Run this command:
+{{{
+cmd /C reg add "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /t REG_DWORD /d 10000 /f & pause
+}}}
+
+To revert, run this command:
+{{{
+cmd /C reg delete "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /f & pause
+}}}
+
+
 == Scrolling too fast causes the computer to beep ==
 
 This happens if you have enabled _Scroll inactive windows_. I do not know why it happens, so let me know if you know a solution.
