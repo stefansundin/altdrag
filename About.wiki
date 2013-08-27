@@ -77,12 +77,12 @@ If you, like me, dislike the ability in Windows 7 to shake a window to minimize 
 
 If you are too lazy to start regedit, then simply run this command. Make sure you are running it with administrator privileges (hold Ctrl+Shift if running from the start menu).
 {{{
-cmd /C reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /t REG_DWORD /d 1 /f & pause
+cmd /C reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /t REG_DWORD /d 1 /f & echo Please log off and in for changes to take effect. & pause
 }}}
 
 To change it back, run this command:
 {{{
-cmd /C reg delete HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /f & pause
+cmd /C reg delete HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /f & echo Please log off and in for changes to take effect. & pause
 }}}
 
 You have to log off and in for the change to take effect.
@@ -103,12 +103,12 @@ In Windows 7, a change was implemented to stop low-level hooks if they take too 
 
 Run this command to increase the timeout to 10 seconds. You have to reboot for the change to take effect.
 {{{
-cmd /C reg add "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /t REG_DWORD /d 10000 /f & pause
+cmd /C reg add "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /t REG_DWORD /d 10000 /f & echo Please reboot for changes to take effect. & pause
 }}}
 
 To revert, run this command:
 {{{
-cmd /C reg delete "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /f & pause
+cmd /C reg delete "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /f & echo Please reboot for changes to take effect. & pause
 }}}
 
 If you get an error that the registry key or value does not exists, this means that the timeout is already at its default setting.
@@ -122,12 +122,12 @@ There are a few ways to disable the beeping. The easiest is to open the volume w
 
 To only disable the beep sound, you have two options. The easiest is to edit a value in the registry. You have to reboot for the changes to take effect. Run this command:
 {{{
-cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d no /f & pause
+cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d no /f & echo Please reboot for changes to take effect. & pause
 }}}
 
 To change it back:
 {{{
-cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d yes /f & pause
+cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d yes /f & echo Please reboot for changes to take effect. & pause
 }}}
 
 Your last option is to disable the beep service. There are GUI instructions [http://technology.mattrude.com/2011/05/how-to-disable-the-system-beep-in-windows-7/ here], but you can also run these commands in cmd:
