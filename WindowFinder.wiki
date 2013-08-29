@@ -18,6 +18,7 @@ Download: [http://altdrag.googlecode.com/files/WindowFinder-0.2.exe WindowFinder
 There are some other programs that offer the same functionality as !WindowFinder. These can useful if !WindowFinder is unable to get you the data you need.
 
   * [http://www.autohotkey.com/ AutoIt3 Window Spy] (available in AutoHotkey)
-  * [http://www.catch22.net/software/winspy WinSpy++]
+  * [http://www.catch22.net/software/winspy-17 WinSpy++]
+  * Spy++, a program delivered along with Visual Studio (not Express Edition)
 
 Leave a comment if you know of more programs.
