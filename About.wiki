@@ -15,6 +15,7 @@ If you have troubles understanding how AltDrag works, you can watch [http://www.
   * While dragging windows, press the Shift key to make the window snap to other windows.
   * AltDrag will not bring windows to front by default. Press Ctrl to bring the window to front, or configure AltDrag to do that automatically in the settings.
   * AltDrag will mimic Aero Snap by default, so try dragging windows to the edges of your monitor. Corners work too!
+  * You can press the resize action (right mouse button by default) while dragging windows to toggle their maximized state.
   * If you use multiple monitors, you can hold Ctrl while dragging to trap the window within the current monitor. This is particularly useful if you want to Aero Snap at edges between monitors.
   * If you drag a maximized window from one monitor to another, the window will automatically be maximized on arrival. You can press Ctrl to temporarily disable this behavior without releasing the mouse button.
   * If you have automatic snapping enabled, you can temporarily disable it by pressing the space bar while dragging.
