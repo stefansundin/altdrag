@@ -20,6 +20,7 @@ If you have troubles understanding how AltDrag works, you can watch [http://www.
   * If you drag a maximized window from one monitor to another, the window will automatically be maximized on arrival. You can press Ctrl to temporarily disable this behavior without releasing the mouse button.
   * If you have automatic snapping enabled, you can temporarily disable it by pressing the space bar while dragging.
   * If you use the scroll wheel to change the volume, you can hold shift to increase the rate the volume is changed. If you use the scroll wheel to change the transparency, you can hold shift to decrease the rate the transparency is changed. Changing volume with the scroll wheel only works if you use Windows Vista or a more recent version of Windows.
+  * If you have _Scroll inactive windows_ enabled, you can hold the Shift key to scroll horizontally. Note that this relies on that the program has support for normal horizontal mouse wheel scrolling, which not all programs have.
   * If you can't move a particular window, try elevating AltDrag. Normal programs can't interact with programs that are started with administrator privileges.
   * You can run multiple instances of AltDrag if you configure `AltDrag.ini`. This is useful if you e.g. want Alt+LMB to move windows and Ctrl+LMB to resize windows.
 
