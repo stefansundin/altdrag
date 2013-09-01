@@ -49,7 +49,7 @@ void OpenConfig(int startpage) {
 		{ IDD_ABOUTPAGE,     AboutPageDialogProc },
 	};
 
-	PROPSHEETPAGE psp[ARRAY_SIZE(pages)] = {0};
+	PROPSHEETPAGE psp[ARRAY_SIZE(pages)] = {};
 	int i;
 	for (i=0; i < ARRAY_SIZE(pages); i++) {
 		psp[i].dwSize      = sizeof(PROPSHEETPAGE);
@@ -59,15 +59,14 @@ void OpenConfig(int startpage) {
 	}
 
 	//Define the property sheet
-	PROPSHEETHEADER psh = {0};
-	psh.dwSize          = sizeof(PROPSHEETHEADER);
+	PROPSHEETHEADER psh = { sizeof(PROPSHEETHEADER) };
 	psh.dwFlags         = PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_USEHICON | PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
 	psh.hwndParent      = NULL;
 	psh.hInstance       = g_hinst;
 	psh.hIcon           = icon[1];
 	psh.pszCaption      = APP_NAME;
 	psh.nPages          = ARRAY_SIZE(pages);
-	psh.ppsp            = (LPCPROPSHEETPAGE)&psp;
+	psh.ppsp            = (LPCPROPSHEETPAGE) &psp;
 	psh.pfnCallback     = PropSheetProc;
 	psh.nStartPage      = startpage;
 
@@ -231,7 +230,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		else if (id == IDC_ELEVATE && MessageBox(NULL,l10n->general.elevate_tip,APP_NAME,MB_ICONINFORMATION|MB_OK)) {
 			wchar_t path[MAX_PATH];
 			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
-			if ((int)ShellExecute(NULL,L"runas",path,L"-config -multi",NULL,SW_SHOWNORMAL) > 32) {
+			if ((INT_PTR)ShellExecute(NULL,L"runas",path,L"-config -multi",NULL,SW_SHOWNORMAL) > 32) {
 				PostMessage(g_hwnd, WM_CLOSE, 0, 0);
 			}
 			else {
@@ -375,6 +374,9 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			if (control == IDC_SCROLL) {
 				int j = ComboBox_GetCurSel(GetDlgItem(hwnd,control));
 				WritePrivateProfileString(L"Input", L"Scroll", scroll_actions[j].action, inipath);
+				if (!vista && !wcscmp(scroll_actions[j].action,L"Volume")) {
+					MessageBox(NULL, L"The Volume action only works on Vista and later. Sorry!", APP_NAME, MB_ICONINFORMATION|MB_OK|MB_TASKMODAL);
+				}
 			}
 		}
 		else {
@@ -502,7 +504,7 @@ INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
 			//Create window
-			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, CursorProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME"-find", NULL};
+			WNDCLASSEX wnd = { sizeof(WNDCLASSEX), 0, CursorProc, 0, 0, g_hinst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME"-find", NULL };
 			wnd.hCursor = LoadImage(g_hinst, MAKEINTRESOURCE(IDI_FIND), IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 			RegisterClassEx(&wnd);
 			HWND findhwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, NULL, WS_POPUP, left, top, width, height, NULL, NULL, g_hinst, NULL);

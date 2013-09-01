@@ -164,7 +164,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		if (elevate) {
 			wchar_t path[MAX_PATH];
 			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
-			int ret = (int)ShellExecute(NULL, L"runas", path, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
+			int ret = (INT_PTR) ShellExecute(NULL, L"runas", path, (hide?L"-hide":NULL), NULL, SW_SHOWNORMAL);
 			if (ret > 32) {
 				return 0;
 			}
@@ -181,7 +181,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 	}
 
 	//Create window
-	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
+	WNDCLASSEX wnd = { sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL };
 	RegisterClassEx(&wnd);
 	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, NULL, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
 	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent

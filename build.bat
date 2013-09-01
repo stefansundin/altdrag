@@ -8,6 +8,10 @@ set prefix32=i686-w64-mingw32-
 set prefix64=x86_64-w64-mingw32-
 set l10n=en-US fr-FR pl-PL pt-BR ru-RU sk-SK zh-CN it-IT de-DE
 
+set x64=0
+if "%1" == "x64" set x64=1
+if "%2" == "x64" set x64=1
+
 taskkill /IM AltDrag.exe
 
 if not exist build. mkdir build
@@ -28,7 +32,7 @@ if "%1" == "all" (
 
 	%prefix32%gcc -o build\ini.exe include\ini.c -lshlwapi
 
-	if "%2" == "x64" (
+	if "%x64%" == "1" (
 		%prefix64%windres include\hookwindows_x64.rc build\hookwindows_x64.o
 		%prefix64%windres include\hooks.rc build\hooks_x64.o
 		%prefix64%gcc -o build\HookWindows_x64.exe hookwindows_x64.c build\hookwindows_x64.o -mwindows -lshlwapi -O2 -s
@@ -45,7 +49,7 @@ if "%1" == "all" (
 		copy build\hooks.dll "build\%%f\AltDrag"
 		copy AltDrag.ini "build\%%f\AltDrag"
 		build\ini "build\%%f\AltDrag\AltDrag.ini" AltDrag Language %%f
-		if "%2" == "x64" (
+		if "%x64%" == "1" (
 			copy build\HookWindows_x64.exe "build\%%f\AltDrag"
 			copy build\hooks_x64.dll "build\%%f\AltDrag"
 		)
@@ -58,7 +62,13 @@ if "%1" == "all" (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -g -DDEBUG
 	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -g -DDEBUG
 
-	if "%1" == "x64" (
+	if "%x64%" == "0" (
+		if exist hooks_x64.dll (
+			echo Found hooks_x64.dll, building x64 even though you didn't ask for it...
+			set x64=1
+		)
+	)
+	if "%x64%" == "1" (
 		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
 		rem "build\unhook_x64.exe"
 
