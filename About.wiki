@@ -102,7 +102,7 @@ If you want AltDrag to launch with administrator privileges on startup, then you
 
 == !AltDrag mysteriously stops working ==
 
-In Windows 7, a change was implemented to stop low-level hooks if they take too long. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot. And then if you try to disable AltDrag, you might get an error about `UnhookWindowsHookEx()`. There is a way to increase this timeout by editing the registry.
+AltDrag relies on hooking to your keyboard and mouse to function, so that it can detect when you press the Alt key and when you move your mouse. In Windows 7, Microsoft implemented a change to stop hooks if they take too long. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot. And then if you try to disable AltDrag, you might get an error. There is a way to increase this timeout by editing the registry.
 
 Run this command to increase the timeout to 10 seconds. You have to reboot for the change to take effect.
 {{{
