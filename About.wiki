@@ -19,7 +19,7 @@ If you have troubles understanding how AltDrag works, you can watch [http://www.
   * If you use multiple monitors, you can hold Ctrl while dragging to trap the window within the current monitor. This is particularly useful if you want to Aero Snap at edges between monitors.
   * If you drag a maximized window from one monitor to another, the window will automatically be maximized on arrival. You can press Ctrl to temporarily disable this behavior without releasing the mouse button.
   * If you have automatic snapping enabled, you can temporarily disable it by pressing the space bar while dragging.
-  * If you use the scroll wheel to change the volume, you can hold shift to increase the rate the volume is changed. If you use the scroll wheel to change the transparency, you can hold shift to decrease the rate the transparency is changed. Changing volume with the scroll wheel only works if you use Windows Vista or a more recent version of Windows.
+  * If you use the scroll wheel to change the volume, you can hold shift to increase the rate the volume is changed. If you use the scroll wheel to change the transparency, you can hold shift to decrease the rate the transparency is changed.
   * If you have _Scroll inactive windows_ enabled, you can hold the Shift key to scroll horizontally. Note that this relies on that the program has support for normal horizontal mouse wheel scrolling, which not all programs have.
   * If you can't move a particular window, try elevating AltDrag. Normal programs can't interact with programs that are started with administrator privileges.
   * You can run multiple instances of AltDrag if you configure `AltDrag.ini`. This is useful if you e.g. want Alt+LMB to move windows and Ctrl+LMB to resize windows.
@@ -47,6 +47,8 @@ Do you want to translate AltDrag? Read how to do that [http://code.google.com/p/
 == Mouse and keyboard ==
 You can reconfigure what the mouse buttons do here. The actions that you can choose from are `Move`, `Resize`, `Minimize`, `AlwaysOnTop`, `Center`, `Close` and `Nothing`.
 
+You can configure the scroll wheel to use `AltTab`, `Volume` or `Transparency`. `Volume` requires at least Windows Vista.
+
 If you have a great idea for a new mouse action, put in a request in the [http://code.google.com/p/altdrag/issues/list issue tracker].
 
 
@@ -63,7 +65,7 @@ Then there are `MoveRate` and `ResizeRate` which controls how often the window i
 
 
 == Updates ==
-AltDrag will by default check if there is a newer version available when it is started. It will only notify you if it finds a new version, it will not download anything for you. You can disable this behavior if you don't like it. You can check for update manually in the tray menu, regardless of this setting.
+AltDrag will by default check if there is a newer version available when it is started. It will only notify you if it finds a new version, it will not download anything for you. You can disable this behavior if you don't like it. You can check for update manually on the _About_ page in the configuration window, regardless of this setting.
 
 Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml the rss feed] for new releases.
 
@@ -95,7 +97,7 @@ You have to log off and in for the change to take effect.
 
 AltDrag does not require administrator privileges. The only case it needs administrator privileges is when you are trying to drag an elevated program, or if an elevated program has focus (in this case, AltDrag does not receive keyboard or mouse events). If you installed AltDrag in `C:\Program Files\`, then you need administrator privileges to edit `AltDrag.ini`. The easiest way to fix this is by right clicking on `AltDrag.ini`, click _Properties_, then go to the _Security_ tab and give the _Users_ group _Full control_ to the file.
 
-If you want AltDrag to launch with administrator privileges on startup, then you have to configure the task scheduler to launch AltDrag on log in. Read [http://botsikas.blogspot.com/2010/05/autostart-application-that-requires-uac.html this blog post] for a tutorial. There is one caveat though, you need to configure *a delay of 30 seconds* before the task is started. Otherwise the tray icon won't be added properly and AltDrag will not work. You must also disable the autostart option in the tray menu. Successfully configuring a task like this will allow AltDrag to be launched on startup with administrator privileges without a UAC prompt.
+If you want AltDrag to launch with administrator privileges on startup, then you have to configure the task scheduler to launch AltDrag on log in. Read [http://botsikas.blogspot.com/2010/05/autostart-application-that-requires-uac.html this blog post] for a tutorial. There is one caveat though, you need to configure *a delay of 30 seconds* before the task is started. Otherwise the tray icon won't be added properly and AltDrag will not work. You must also disable AltDrag's normal autostart option. Successfully configuring a task like this will allow AltDrag to be launched on startup with administrator privileges without a UAC prompt.
 
 
 = Known issues =
