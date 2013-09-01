@@ -73,7 +73,7 @@ struct {
 	HWND hwnd;
 	HWND mdiclient;
 	short alt;
-	short activated;
+	short activated; //Keep track on if an action has begun since the hotkey was depressed, in order to successfully block Alt from triggering a menu
 	short ctrl;
 	short interrupted;
 	short updaterate;
@@ -173,6 +173,7 @@ HHOOK scrollhook = NULL;
 //Msghook data
 BOOL subclassed = FALSE;
 enum action msgaction shareattr = ACTION_NONE;
+short unload shareattr = 0;
 
 //Error()
 #ifdef DEBUG
@@ -197,7 +198,7 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 		DWORD pid;
 		GetWindowThreadProcessId(hwnd, &pid);
 		HANDLE proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
-		GetProcessImageFileName(proc, title, sizeof(title)/sizeof(wchar_t));
+		GetProcessImageFileName(proc, title, ARRAY_SIZE(title));
 		CloseHandle(proc);
 		PathStripPath(title);
 		for (i=0; i < list->length; i++) {
@@ -208,8 +209,8 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
 		return 0;
 	}
 
-	GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
-	GetClassName(hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+	GetWindowText(hwnd, title, ARRAY_SIZE(title));
+	GetClassName(hwnd, classname, ARRAY_SIZE(classname));
 	for (i=0; i < list->length; i++) {
 		if ((list->items[i].title == NULL && !wcscmp(classname,list->items[i].classname))
 		 || (list->items[i].classname == NULL && !wcscmp(title,list->items[i].title))
@@ -243,9 +244,10 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 
 	//Only store window if it's visible, not minimized to taskbar, not the window we are dragging and not blacklisted
 	RECT wnd;
+	LONG_PTR style;
 	if (window != state.hwnd && window != progman
 	 && IsWindowVisible(window) && !IsIconic(window)
-	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION || blacklisted(window,&settings.Snaplist))
+	 && ((style=GetWindowLongPtr(window,GWL_STYLE))&WS_CAPTION || blacklisted(window,&settings.Snaplist))
 	 && GetWindowRect(window,&wnd) != 0
 	) {
 		//Maximized?
@@ -313,6 +315,7 @@ void EnumMdi() {
 	if (sharedstate.snap < 2) {
 		return;
 	}
+
 	//Add all the siblings to the window
 	POINT mdiclientpt = {0,0};
 	if (ClientToScreen(state.mdiclient,&mdiclientpt) == FALSE) {
@@ -705,13 +708,10 @@ void MouseMove() {
 	}
 
 	//MDI
-	RECT rootwnd = {0,0,0,0};
 	POINT mdiclientpt = {0,0};
 	if (state.mdiclient) {
-		HWND root = GetAncestor(state.hwnd, GA_ROOT);
 		RECT mdiclientwnd;
-		if (GetClientRect(root,&rootwnd) == 0
-		 || GetClientRect(state.mdiclient,&mdiclientwnd) == 0
+		if (GetClientRect(state.mdiclient,&mdiclientwnd) == 0
 		 || ClientToScreen(state.mdiclient,&mdiclientpt) == FALSE) {
 			return;
 		}
@@ -891,6 +891,12 @@ void MouseMove() {
 			state.offset.y = pt.y;
 		}
 		else {
+			RECT rootwnd = {0,0,0,0};
+			if (state.mdiclient) {
+				HWND root = GetAncestor(state.hwnd, GA_ROOT);
+				GetClientRect(root, &rootwnd);
+			}
+
 			if (state.resize.y == RESIZE_TOP) {
 				wndheight = max(min((wnd.bottom-pt.y+state.offset.y)-mdiclientpt.y, state.mmi.ptMaxTrackSize.y), state.mmi.ptMinTrackSize.y);
 				posy = state.origin.bottom-wndheight;
@@ -969,7 +975,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 			}
 			else if (vkey == VK_SPACE && (sharedstate.action || msgaction) && sharedstate.snap) {
 				sharedstate.snap = 0;
-				return 1;
+				if (sharedstate.action) {
+					return 1;
+				}
 			}
 			else if (vkey == VK_ESCAPE) {
 				UnhookMouse();
@@ -1153,8 +1161,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 						else {
 							while (hwnd != NULL) {
 								HWND parent = GetParent(hwnd);
-								LONG_PTR style = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-								if (style&WS_EX_MDICHILD) {
+								LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+								if (exstyle&WS_EX_MDICHILD) {
 									mdiclient = parent;
 									break;
 								}
@@ -1219,7 +1227,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				fwprintf(f, L"\n");
 				fclose(f);
 				*/
-
 			}
 			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
 				IMMDeviceEnumerator *pDevEnumerator = NULL;
@@ -1271,9 +1278,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 				hwnd = GetAncestor(hwnd, GA_ROOT);
 
-				LONG_PTR style = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-				if (!(style&WS_EX_LAYERED)) {
-					SetWindowLongPtr(hwnd, GWL_EXSTYLE, style|WS_EX_LAYERED);
+				LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+				if (!(exstyle&WS_EX_LAYERED)) {
+					SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle|WS_EX_LAYERED);
 					SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
 				}
 
@@ -1307,7 +1314,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			return 1;
 		}
 
-		//Return if this isn't a mouse action
+		//Return if no mouse action is in progress
 		if (!action) {
 			return CallNextHookEx(NULL, nCode, wParam, lParam);
 		}
@@ -1388,7 +1395,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			//Hide if tooltip
-			//Check for AVL_AVWindow? Adobe pdf tooltip
 			wchar_t classname[20] = L"";
 			GetClassName(state.hwnd, classname, ARRAY_SIZE(classname));
 			if (!wcscmp(classname,TOOLTIPS_CLASS)) {
@@ -1404,8 +1410,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (sharedsettings.MDI) {
 				while (state.hwnd != root) {
 					HWND parent = GetParent(state.hwnd);
-					LONG_PTR style = GetWindowLongPtr(state.hwnd, GWL_EXSTYLE);
-					if (style&WS_EX_MDICHILD) {
+					LONG_PTR exstyle = GetWindowLongPtr(state.hwnd, GWL_EXSTYLE);
+					if (exstyle&WS_EX_MDICHILD) {
 						// Found MDI child, parent is now MDIClient window
 						state.mdiclient = parent;
 						if (GetClientRect(state.mdiclient,&fmon) == 0
@@ -1422,35 +1428,27 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.hwnd = root;
 			}
 
+			LONG_PTR style = GetWindowLongPtr(state.hwnd, GWL_STYLE);
+			WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
+
 			//Use this to print info about the window which is about to be dragged
 			/*{
-				FILE *f = OpenLog(L"wb");
 				wchar_t title[100], classname[100];
 				GetWindowText(state.hwnd, title, ARRAY_SIZE(title));
 				GetClassName(state.hwnd, classname, ARRAY_SIZE(classname));
-				RECT wnd;
 				GetWindowRect(state.hwnd, &wnd);
-				fwprintf(f, L"hwnd     : 0x%08x\nTitle    : %s\nClassname: %s\nSize     : %dx%d\nPosition : %dx%d\nStyle    : 0x%08X\n", state.hwnd, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top, GetWindowLongPtr(state.hwnd,GWL_STYLE));
-				fwprintf(f, L"Is fullscreen? %d == %d && %d == %d && %d == %d && %d == %d: %d\n", wnd.left, fmon.left, wnd.top, fmon.top, wnd.right, fmon.right, wnd.bottom, fmon.bottom, wnd.left==fmon.left && wnd.top==fmon.top && wnd.right==fmon.right && wnd.bottom==fmon.bottom);
+				FILE *f = OpenLog(L"wb");
+				fwprintf(f, L"hwnd     : 0x%08x\nTitle    : %s\nClassname: %s\nSize     : %dx%d\nPosition : %dx%d\nStyle    : 0x%08X\nWS_THICKFRAME: %d\n", state.hwnd, title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top, style, !!(style&WS_THICKFRAME));
+				fwprintf(f, L"Is fullscreen? %d == %d && %d == %d && %d == %d && %d == %d: %d\n\n", wnd.left, fmon.left, wnd.top, fmon.top, wnd.right, fmon.right, wnd.bottom, fmon.bottom, wnd.left==fmon.left && wnd.top==fmon.top && wnd.right==fmon.right && wnd.bottom==fmon.bottom);
 				fclose(f);
 			}*/
 
-			//Return if window is blacklisted
+			//Return if window is blacklisted, if we can't get information about it, or if the window is fullscreen
 			if (blacklisted(state.hwnd,&settings.ProcessBlacklist)
-			 || blacklisted(state.hwnd,&settings.Blacklist)) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-
-			//Get window placement
-			WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
-			GetWindowPlacement(state.hwnd, &wndpl);
-			if (GetWindowRect(state.hwnd,&wnd) == 0) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-
-			//Return if the window is a fullscreen window (and has no border)
-			if (!(GetWindowLongPtr(state.hwnd,GWL_STYLE)&WS_CAPTION)
-			 && wnd.left == fmon.left && wnd.top == fmon.top && wnd.right == fmon.right && wnd.bottom == fmon.bottom) {
+			 || blacklisted(state.hwnd,&settings.Blacklist)
+			 || GetWindowPlacement(state.hwnd,&wndpl) == 0
+			 || GetWindowRect(state.hwnd,&wnd) == 0
+			 || (!(style&WS_CAPTION) && wnd.left == fmon.left && wnd.top == fmon.top && wnd.right == fmon.right && wnd.bottom == fmon.bottom)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 
@@ -1698,7 +1696,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				MoveWindow(state.hwnd, mon.left+(mon.right-mon.left)/2-state.origin.width/2, mon.top+(mon.bottom-mon.top)/2-state.origin.height/2, state.origin.width, state.origin.height, TRUE);
 			}
 			else if (action == ACTION_ALWAYSONTOP) {
-				int topmost = GetWindowLongPtr(state.hwnd,GWL_EXSTYLE)&WS_EX_TOPMOST;
+				LONG_PTR topmost = GetWindowLongPtr(state.hwnd,GWL_EXSTYLE)&WS_EX_TOPMOST;
 				SetWindowPos(state.hwnd, (topmost?HWND_NOTOPMOST:HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
 			}
 			else if (action == ACTION_CLOSE) {
@@ -1712,7 +1710,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
 				//Don't send WM_ENTERSIZEMOVE if the window is iTunes
 				wchar_t classname[30] = L"";
-				GetClassName(state.hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+				GetClassName(state.hwnd, classname, ARRAY_SIZE(classname));
 				if (wcscmp(classname,L"iTunes")) {
 					SendMessage(state.hwnd, WM_ENTERSIZEMOVE, 0, 0);
 				}
@@ -1757,7 +1755,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			if (action == ACTION_MOVE || action == ACTION_RESIZE) {
 				//Don't send WM_EXITSIZEMOVE if the window is iTunes
 				wchar_t classname[30] = L"";
-				GetClassName(state.hwnd, classname, sizeof(classname)/sizeof(wchar_t));
+				GetClassName(state.hwnd, classname, ARRAY_SIZE(classname));
 				if (wcscmp(classname,L"iTunes")) {
 					SendMessage(state.hwnd, WM_EXITSIZEMOVE, 0, 0);
 				}
@@ -1798,7 +1796,7 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 
 			//Get class
 			wchar_t classname[20] = L"";
-			GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+			GetClassName(window, classname, ARRAY_SIZE(classname));
 
 			//Hide if tooltip
 			if (!wcscmp(classname,TOOLTIPS_CLASS)) {
@@ -1807,11 +1805,11 @@ __declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPAR
 				if (window == NULL) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
-				GetClassName(window, classname, sizeof(classname)/sizeof(wchar_t));
+				GetClassName(window, classname, ARRAY_SIZE(classname));
 			}
 
 			//If it's a groupbox, grab the real window
-			int style = GetWindowLongPtr(window, GWL_STYLE);
+			LONG_PTR style = GetWindowLongPtr(window, GWL_STYLE);
 			if (style&BS_GROUPBOX && !wcscmp(classname,L"Button")) {
 				HWND groupbox = window;
 				EnableWindow(groupbox, FALSE);
@@ -1909,7 +1907,15 @@ int UnhookMouse() {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_TIMER) {
-		if (wParam == RESTORE_TIMER) {
+		if (wParam == INIT_TIMER) {
+			KillTimer(g_hwnd, wParam);
+			//Needed for IAudioEndpointVolume, and maybe some future stuff
+			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+			if (hr != S_OK && hr != S_FALSE) {
+				Error(L"CoInitializeEx()", L"INIT_TIMER", hr);
+			}
+		}
+		else if (wParam == RESTORE_TIMER) {
 			KillTimer(g_hwnd, wParam);
 			state.locked = 0;
 
@@ -1945,12 +1951,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		else if (wParam == REHOOK_TIMER) {
-			//Silently rehook scroll hook if it becomes stale (Windows 7 is very aggressive about hooks)
-			//This can often happen when locking the screen or sleeping the computer a lot
-			//HACK: Set InactiveScroll=3 to disable this behavior
+			//Silently rehook hooks if they have been stopped (Win7+ and LowLevelHooksTimeout)
+			//This can often happen if locking or sleeping the computer a lot
 			POINT pt;
 			GetCursorPos(&pt);
-			if (pt.x != state.prevpt.x || pt.y != state.prevpt.y) {
+			if (scrollhook && (pt.x != state.prevpt.x || pt.y != state.prevpt.y)) {
 				UnhookWindowsHookEx(scrollhook);
 				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
 			}
@@ -1958,24 +1963,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		else if (wParam == FOCUS_TIMER) {
 			KillTimer(g_hwnd, wParam);
 			SystemParametersInfo(SPI_SETACTIVEWINDOWTRACKING, 0, (PVOID)FALSE, 0);
-		}
-		else if (wParam == INIT_TIMER) {
-			KillTimer(g_hwnd, wParam);
-			//Needed for IAudioEndpointVolume, and maybe some future stuff
-			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-			if (hr != S_OK && hr != S_FALSE) {
-				Error(L"CoInitializeEx()", L"WindowProc()", hr);
-			}
-
-			/*
-			BOOL wndtracking, snaptobutton;
-			DWORD trktimeout, trkzorder;
-			SystemParametersInfo(SPI_GETACTIVEWINDOWTRACKING, 0, &wndtracking, 0);
-			SystemParametersInfo(SPI_GETACTIVEWNDTRKTIMEOUT, 0, &trktimeout, 0);
-			SystemParametersInfo(SPI_GETACTIVEWNDTRKZORDER, 0, &trkzorder, 0);
-			SystemParametersInfo(SPI_GETSNAPTODEFBUTTON, 0, &snaptobutton, 0);
-			DBG("SPI_GETACTIVEWINDOWTRACKING: %d\nSPI_GETACTIVEWNDTRKTIMEOUT: %d\nSPI_GETACTIVEWNDTRKZORDER: %d\nSPI_GETSNAPTODEFBUTTON: %d", wndtracking, trktimeout, trkzorder, snaptobutton);
-			*/
 		}
 	}
 	else if (msg == WM_DESTROY) {
@@ -1993,7 +1980,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 //Msghook
 __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
-	if (msg == WM_WINDOWPOSCHANGING && sharedstate.snap) {
+	if (unload) {
+		msgaction = ACTION_NONE;
+		subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
+	}
+	else if (msg == WM_WINDOWPOSCHANGING && sharedstate.snap && !sharedstate.action) {
 		WINDOWPOS *wndpos = (WINDOWPOS*)lParam;
 		if (msgaction == ACTION_MOVE && !(wndpos->flags&SWP_NOMOVE)) {
 			MoveSnap(&wndpos->x, &wndpos->y, wndpos->cx, wndpos->cy);
@@ -2003,13 +1994,13 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 		}
 	}
 	else if (msg == WM_EXITSIZEMOVE || msg == WM_DESTROY) {
+		msgaction = ACTION_NONE;
 		subclassed = !RemoveWindowSubclass(hwnd, CustomWndProc, 0);
 		if (subclassed) {
 			Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1);
 			return DefSubclassProc(hwnd, msg, wParam, lParam);
 		}
-		hwnd = NULL;
-		msgaction = ACTION_NONE;
+		state.hwnd = NULL;
 	}
 
 	/*
@@ -2038,16 +2029,35 @@ __declspec(dllexport) LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM
 //Thus we have to explicitly share the memory we want CallWndProc to be able to access (e.g. sharedstate)
 //Variables that are not shared, e.g. the blacklist, are loaded individually for each process.
 __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION && !sharedstate.action) {
+	if (unload) {
+		msgaction = ACTION_NONE;
+		if (subclassed) {
+			subclassed = !RemoveWindowSubclass(state.hwnd, CustomWndProc, 0);
+		}
+	}
+	else if (nCode == HC_ACTION && !sharedstate.action) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
+		LONG_PTR style;
 
 		if (msg->message == WM_ENTERSIZEMOVE
 		 && (!subclassed || state.hwnd != msg->hwnd)
 		 && IsWindowVisible(msg->hwnd)
-		 && GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION // || !(GetWindowLongPtr(msg->hwnd,GWL_EXSTYLE)&WS_EX_TOOLWINDOW))
+		 && (style=GetWindowLongPtr(msg->hwnd,GWL_STYLE))&WS_CAPTION
 		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
-		 && msg->hwnd == GetAncestor(msg->hwnd,GA_ROOT)
 		) {
+			//MDI or not (note: does not require MDI setting)
+			HWND root = GetAncestor(msg->hwnd, GA_ROOT);
+			HWND mdiclient = NULL;
+			if (msg->hwnd != root) {
+				LONG_PTR exstyle = GetWindowLongPtr(msg->hwnd, GWL_EXSTYLE);
+				if (exstyle&WS_EX_MDICHILD) {
+					mdiclient = GetParent(msg->hwnd);
+				}
+				else {
+					return CallNextHookEx(NULL, nCode, wParam, lParam);
+				}
+			}
+
 			//Return if window is blacklisted
 			if (blacklisted(msg->hwnd,&settings.Blacklist)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -2057,12 +2067,13 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 			if (subclassed && IsWindow(state.hwnd)) {
 				subclassed = !RemoveWindowSubclass(state.hwnd, CustomWndProc, 0);
 				if (subclassed) {
-					Error(L"RemoveWindowSubclass(hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1);
+					Error(L"RemoveWindowSubclass(state.hwnd, CustomWndProc, 0)", L"Failed to remove window subclassing.", -1);
 				}
 			}
 
-			//Set hwnd
+			//Update state
 			state.hwnd = msg->hwnd;
+			state.mdiclient = mdiclient;
 
 			//Double check if a shift key is still being pressed
 			if (sharedstate.shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
@@ -2085,7 +2096,6 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 		else if (msg->message == WM_WINDOWPOSCHANGING
 		 && !subclassed && state.hwnd == msg->hwnd && msgaction != ACTION_NONE
 		 && sharedstate.snap) {
-
 			//Subclass window
 			subclassed = SetWindowSubclass(state.hwnd, CustomWndProc, 0, 0);
 			if (!subclassed) {
@@ -2135,14 +2145,15 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 
 __declspec(dllexport) void Unload() {
 	sharedsettings_loaded = 0;
+	unload = 1;
 	#ifndef _WIN64
-	DestroyWindow(g_hwnd);
 	if (scrollhook) {
 		if (UnhookWindowsHookEx(scrollhook) == 0) {
 			Error(L"UnhookWindowsHookEx(scrollhook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError());
 		}
 		scrollhook = NULL;
 	}
+	DestroyWindow(g_hwnd);
 	#endif
 }
 
@@ -2154,31 +2165,32 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		//Settings shared with CallWndProc hooks
 		if (!sharedsettings_loaded) {
 			sharedsettings_loaded = 1;
+			unload = 0;
 			sharedsettings.Hotkeys.length = 0;
 
 			//Store path to ini file at initial load so CallWndProc hooks can find it
-			GetModuleFileName(NULL, inipath, sizeof(inipath)/sizeof(wchar_t));
+			GetModuleFileName(NULL, inipath, ARRAY_SIZE(inipath));
 			PathRemoveFileSpec(inipath);
 			wcscat(inipath, L"\\"APP_NAME".ini");
 
 			//[General]
-			GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"AutoFocus", L"0", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.AutoFocus = _wtoi(txt);
-			GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.AutoSnap = sharedstate.snap = _wtoi(txt);
-			GetPrivateProfileString(L"General", L"Aero", L"2", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"Aero", L"2", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.Aero = _wtoi(txt);
-			GetPrivateProfileString(L"General", L"InactiveScroll", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"InactiveScroll", L"0", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.InactiveScroll = _wtoi(txt);
-			GetPrivateProfileString(L"General", L"MDI", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"General", L"MDI", L"0", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.MDI = _wtoi(txt);
 
 			//[Advanced]
-			GetPrivateProfileString(L"Advanced", L"AutoRemaximize", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Advanced", L"AutoRemaximize", L"0", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.AutoRemaximize = _wtoi(txt);
-			GetPrivateProfileString(L"Advanced", L"SnapThreshold", L"20", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Advanced", L"SnapThreshold", L"20", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.SnapThreshold = _wtoi(txt);
-			GetPrivateProfileString(L"Advanced", L"FocusOnTyping", L"0", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Advanced", L"FocusOnTyping", L"0", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.FocusOnTyping = _wtoi(txt);
 
 			//Detect if Aero Snap is enabled
@@ -2202,7 +2214,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			}
 
 			//[Performance]
-			GetPrivateProfileString(L"Performance", L"Cursor", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Performance", L"Cursor", L"1", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.Performance.Cursor = _wtoi(txt);
 			if (sharedsettings.Performance.Cursor) {
 				cursorwnd = FindWindow(APP_NAME, NULL);
@@ -2215,10 +2227,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				cursors[SIZEALL]  = LoadImage(NULL, IDC_SIZEALL,  IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR|LR_SHARED);
 				#endif
 			}
-			GetPrivateProfileString(L"Performance", L"MoveRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Performance", L"MoveRate", L"1", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.Performance.MoveRate = _wtoi(txt);
 			if (sharedsettings.Performance.MoveRate < 1) sharedsettings.Performance.MoveRate = 1;
-			GetPrivateProfileString(L"Performance", L"ResizeRate", L"1", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Performance", L"ResizeRate", L"1", txt, ARRAY_SIZE(txt), inipath);
 			sharedsettings.Performance.ResizeRate = _wtoi(txt);
 			if (sharedsettings.Performance.ResizeRate < 1) sharedsettings.Performance.ResizeRate = 1;
 
@@ -2238,7 +2250,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 			};
 			int i;
 			for (i=0; buttons[i].key != NULL; i++) {
-				GetPrivateProfileString(L"Input", buttons[i].key, buttons[i].def, txt, sizeof(txt)/sizeof(wchar_t), inipath);
+				GetPrivateProfileString(L"Input", buttons[i].key, buttons[i].def, txt, ARRAY_SIZE(txt), inipath);
 				if      (!wcsicmp(txt,L"Move"))         *buttons[i].ptr = ACTION_MOVE;
 				else if (!wcsicmp(txt,L"Resize"))       *buttons[i].ptr = ACTION_RESIZE;
 				else if (!wcsicmp(txt,L"Minimize"))     *buttons[i].ptr = ACTION_MINIMIZE;
@@ -2254,7 +2266,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 
 			unsigned int temp;
 			int numread;
-			GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+			GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, ARRAY_SIZE(txt), inipath);
 			wchar_t *pos = txt;
 			while (*pos != '\0' && swscanf(pos,L"%02X%n",&temp,&numread) != EOF) {
 				//Bail if we are out of space
@@ -2274,18 +2286,19 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 
 			//Create window for timers
 			#ifndef _WIN64
-			WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME"-hooks", NULL};
+			WNDCLASSEX wnd = { sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, NULL, NULL, APP_NAME"-hooks", NULL };
 			RegisterClassEx(&wnd);
 			g_hwnd = CreateWindowEx(0, wnd.lpszClassName, wnd.lpszClassName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInst, NULL);
 
+			//Create a timer to do further initialization
+			SetTimer(g_hwnd, INIT_TIMER, 10, NULL);
+
 			//InactiveScroll
+			SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL);
 			if (sharedsettings.InactiveScroll) {
 				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
 				if (scrollhook == NULL) {
 					Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook mouse. Another program might be interfering.", GetLastError());
-				}
-				if (sharedsettings.InactiveScroll != 3) {
-					SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL);
 				}
 			}
 			#endif
@@ -2295,7 +2308,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		int blacklist_alloc = 0;
 		struct blacklist *blacklist = &settings.ProcessBlacklist;
 		//Process ProcessBlacklist first
-		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+		GetPrivateProfileString(L"Blacklist", L"ProcessBlacklist", L"", txt, ARRAY_SIZE(txt), inipath);
 		blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 		wcscpy(blacklist->data, txt);
 		wchar_t *pos = blacklist->data;
@@ -2347,11 +2360,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				blacklist_alloc = 0;
 				if (blacklist == &settings.ProcessBlacklist) {
 					blacklist = &settings.Blacklist;
-					GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+					GetPrivateProfileString(L"Blacklist", L"Blacklist", L"", txt, ARRAY_SIZE(txt), inipath);
 				}
 				else if (blacklist == &settings.Blacklist) {
 					blacklist = &settings.Snaplist;
-					GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, sizeof(txt)/sizeof(wchar_t), inipath);
+					GetPrivateProfileString(L"Blacklist", L"Snaplist", L"", txt, ARRAY_SIZE(txt), inipath);
 				}
 				blacklist->data = malloc((wcslen(txt)+1)*sizeof(wchar_t));
 				wcscpy(blacklist->data, txt);
@@ -2364,9 +2377,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 		monitors = realloc(monitors, monitors_alloc*sizeof(RECT));
 		wnds_alloc += 20;
 		wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
-
-		//Create a timer to do more initialization
-		SetTimer(g_hwnd, INIT_TIMER, 10, NULL);
 	}
 	else if (reason == DLL_PROCESS_DETACH) {
 		//Remove subclassing if a window is currently subclassed
