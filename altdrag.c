@@ -67,6 +67,7 @@ int elevated = 0;
 //Include stuff
 #include "localization/strings.h"
 #include "include/error.c"
+#include "include/localization.c"
 #include "include/tray.c"
 #include "include/update.c"
 #include "config/config.c"
@@ -169,6 +170,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 				return 0;
 			}
 		}
+	}
+
+	//Load Translation.ini if it exists
+	wchar_t translation_ini[300];
+	GetModuleFileName(NULL, translation_ini, ARRAY_SIZE(inipath));
+	PathRemoveFileSpec(translation_ini);
+	wcscat(translation_ini, L"\\Translation.ini");
+	FILE *f = _wfopen(translation_ini, L"rb");
+	if (f != NULL) {
+		fclose(f);
+		LoadTranslation(translation_ini);
 	}
 
 	//Language
@@ -304,6 +316,10 @@ int UnhookSystem() {
 		if (UnhookWindowsHookEx(keyhook) == 0) {
 			#ifdef DEBUG
 			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError());
+			#else
+			if (showerror) {
+				MessageBox(NULL, L"There was an error disabling AltDrag. This was most likely caused by Windows having already disabled AltDrag's hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using AltDrag.\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for 'AltDrag mysteriously stops working' on the About page).", APP_NAME, MB_ICONINFORMATION|MB_OK|MB_TOPMOST|MB_SETFOREGROUND);
+			}
 			#endif
 		}
 		keyhook = NULL;
@@ -333,9 +349,7 @@ int UnhookSystem() {
 	//Tell dll file that we are unloading
 	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
 	if (Unload == NULL) {
-		#ifdef DEBUG
 		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
-		#endif
 	}
 	else {
 		Unload();
@@ -344,9 +358,7 @@ int UnhookSystem() {
 	//Unload library
 	if (hinstDLL) {
 		if (FreeLibrary(hinstDLL) == 0) {
-			#ifdef DEBUG
 			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError());
-			#endif
 		}
 		hinstDLL = NULL;
 	}

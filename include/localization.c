@@ -1,0 +1,50 @@
+/*
+	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+*/
+
+size_t wcslen_resolved(wchar_t *str) {
+	//Return the length of str, having resolved escaped sequences
+	wchar_t *ptr;
+	int num_escape_sequences = 0;
+	for (ptr=str; *ptr != '\0'; ptr++) {
+		if (*ptr == '\\' && *(ptr+1) != '\0') {
+			ptr++;
+			num_escape_sequences++;
+		}
+	}
+	return ptr-str-num_escape_sequences;
+}
+
+void wcscpy_resolve(wchar_t *dest, wchar_t *source) {
+	//Copy from source to dest, resolving \\n to \n
+	for (; *source != '\0'; source++,dest++) {
+		if (*source == '\\' && *(source+1) == 'n') {
+			*dest = '\n';
+			source++;
+		}
+		else {
+			*dest = *source;
+		}
+	}
+	*dest = '\0';
+}
+
+void LoadTranslation(wchar_t *ini) {
+	wchar_t txt[3000];
+	int i;
+	for (i=0; i < ARRAY_SIZE(l10n_mapping); i++) {
+		//Get pointer to default English string to be used if ini entry doesn't exist
+		wchar_t *def = *(wchar_t**) ((void*)&en_US + ((void*)l10n_mapping[i].str - (void*)&l10n_ini));
+		GetPrivateProfileString(L"Translation", l10n_mapping[i].name, def, txt, ARRAY_SIZE(txt), ini);
+		*l10n_mapping[i].str = malloc((wcslen(txt)+1)*sizeof(wchar_t));
+		wcscpy_resolve(*l10n_mapping[i].str, txt);
+	}
+	//Replace English
+	l10n_ini.code = en_US.code;
+	languages[0] = &l10n_ini;
+}
