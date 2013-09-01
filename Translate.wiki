@@ -1,18 +1,29 @@
-#summary How can I help by translating AltDrag?
+#summary How do I translate AltDrag?
 #labels Phase-Implementation
 
 = Introduction =
 
 Okay, so you want to help? Great!
 
-I do however need *you* to understand some things:
-  * Translating is a process. We will do several iterations to make sure your translation is of high quality.
-  * You *must* keep your translation up to date in the future! If you do not respond to emails your translation will be removed!
-  * If you submit your translation when I've just released a new version, it will not be released until the next version. And even then, I will probably need you to update it again. Strings are often finalized during betas/release candidates. I can notify you when I am ready to receive new translations, if you wish.
-  * AltDrag is fully unicode enabled, so all kinds of characters should be possible. There might be some font problems though, but we'll solve that when we get there.
+Before you start translating, I recommend that you take a look [https://code.google.com/p/altdrag/source/browse/#svn/trunk/localization here] and see if your language already has been translated, or if an out-of-date translation exists.
 
-= That makes sense =
+Since version 1.0, AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en-US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
-So you still want to help? Ok, let's do this!
+Some things to note:
+  * Your new translation will replace the English translation.
+  * You have to restart AltDrag between your changes.
+  * AltDrag is fully unicode enabled, so all kinds of characters should be possible. Make sure to save the file with the correct encoding.
+  * The sequence `\n` is translated to a newline.
+  * The `&`-character specify that the next letter will be the shortcut to the control (e.g. the checkbox with the text "`&MDI support`" can be toggled with Alt+M). Note that for some reason you cannot use `&a` or `&A` for these shortcuts.
 
-This whole process starts by you [mailto:recover89@gmail.com?subject=Translate emailing me] and asking to translate AltDrag. I will then instruct you on how you proceed. It's as simple as that!
+
+= The installer =
+
+The installer has to be compiled to be translated. Download [https://altdrag.googlecode.com/svn/trunk/localization/en-US/installer.nsh installer.nsh] and translate the strings. Include it in your submission.
+
+
+= Submit the translation =
+
+Before you submit your translation, please double-check all your strings. Please update the top comments with your name and email.
+
+Simply [mailto:recover89@gmail.com?subject=Translate%20AltDrag email the file to me] to submit the translation for inclusion in the next version.
