@@ -16,6 +16,9 @@ taskkill /IM AltDrag.exe
 
 if not exist build. mkdir build
 
+rem %prefix32%gcc -o localization\export_l10n_ini.exe include\export_l10n_ini.c -lshlwapi
+rem exit /b
+
 rem %prefix32%gcc -o build\unhook.exe include\unhook.c
 rem "build\unhook.exe"
 
