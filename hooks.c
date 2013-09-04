@@ -247,7 +247,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
 	LONG_PTR style;
 	if (window != state.hwnd && window != progman
 	 && IsWindowVisible(window) && !IsIconic(window)
-	 && ((style=GetWindowLongPtr(window,GWL_STYLE))&WS_CAPTION || blacklisted(window,&settings.Snaplist))
+	 && (((style=GetWindowLongPtr(window,GWL_STYLE))&WS_CAPTION) == WS_CAPTION || blacklisted(window,&settings.Snaplist))
 	 && GetWindowRect(window,&wnd) != 0
 	) {
 		//Maximized?
@@ -298,7 +298,7 @@ BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
 
 	//Only store window if it's visible, not minimized to taskbar and on the same monitor as the cursor
 	if (IsWindowVisible(window) && !IsIconic(window)
-	 && GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION
+	 && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION) == WS_CAPTION
 	 && state.origin.monitor == MonitorFromWindow(window,MONITOR_DEFAULTTONULL)
 	) {
 		hwnds[numhwnds++] = window;
@@ -1527,7 +1527,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			 || blacklisted(state.hwnd,&settings.Blacklist)
 			 || GetWindowPlacement(state.hwnd,&wndpl) == 0
 			 || GetWindowRect(state.hwnd,&wnd) == 0
-			 || (!(style&WS_CAPTION) && wnd.left == fmon.left && wnd.top == fmon.top && wnd.right == fmon.right && wnd.bottom == fmon.bottom)) {
+			 || ((style&WS_CAPTION) != WS_CAPTION && wnd.left == fmon.left && wnd.top == fmon.top && wnd.right == fmon.right && wnd.bottom == fmon.bottom)) {
 				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 
@@ -2047,7 +2047,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 		if (msg->message == WM_ENTERSIZEMOVE
 		 && (!subclassed || state.hwnd != msg->hwnd)
 		 && IsWindowVisible(msg->hwnd)
-		 && (style=GetWindowLongPtr(msg->hwnd,GWL_STYLE))&WS_CAPTION
+		 && (((style=GetWindowLongPtr(msg->hwnd,GWL_STYLE))&WS_CAPTION) == WS_CAPTION || blacklisted(msg->hwnd,&settings.Snaplist))
 		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
 		) {
 			//MDI or not (note: does not require MDI setting)
