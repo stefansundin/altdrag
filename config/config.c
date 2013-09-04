@@ -129,9 +129,22 @@ void UpdateStrings() {
 	}
 }
 
+LRESULT CALLBACK PropSheetWinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
+	LRESULT ret = DefSubclassProc(hwnd, msg, wParam, lParam);
+	if (msg == WM_NCHITTEST && (ret == HTBOTTOM || ret == HTBOTTOMLEFT || ret == HTBOTTOMRIGHT || ret == HTLEFT || ret == HTTOPLEFT || ret == HTTOPRIGHT || ret == HTRIGHT || ret == HTTOP)) {
+		ret = HTBORDER;
+	}
+	return ret;
+}
+
 BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
-	if (msg == PSCB_INITIALIZED) {
+	if (msg == PSCB_PRECREATE) {
+		DLGTEMPLATE *pDlgTemplate = (DLGTEMPLATE*) lParam;
+		pDlgTemplate->style |= WS_THICKFRAME;
+	}
+	else if (msg == PSCB_INITIALIZED) {
 		g_cfgwnd = hwnd;
+		SetWindowSubclass(hwnd, PropSheetWinProc, 0, 0);
 		UpdateStrings();
 
 		//OK button replaces Cancel button
