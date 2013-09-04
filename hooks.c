@@ -1585,33 +1585,33 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				}
 
 				//Set edge and offset
-				//Think of the window as nine boxes
+				//Think of the window as nine boxes (corner regions get 38%, middle only 24%)
 				//Does not use state.origin.width/height since that is based on wndpl.rcNormalPosition which is not what you see when resizing a window that Windows Aero resized
 				int wndwidth = wnd.right-wnd.left;
 				int wndheight = wnd.bottom-wnd.top;
-				if (pt.y-wnd.top < wndheight/3) {
-					state.resize.y = RESIZE_TOP;
-					state.offset.y = pt.y-wnd.top;
-				}
-				else if (pt.y-wnd.top < wndheight*2/3) {
-					state.resize.y = RESIZE_CENTER;
-					state.offset.y = pt.y-mdiclientpt.y;
-				}
-				else {
-					state.resize.y = RESIZE_BOTTOM;
-					state.offset.y = wnd.bottom-pt.y;
-				}
-				if (pt.x-wnd.left < wndwidth/3) {
+				if (pt.x-wnd.left < wndwidth*(38/100.0)) {
 					state.resize.x = RESIZE_LEFT;
 					state.offset.x = pt.x-wnd.left;
 				}
-				else if (pt.x-wnd.left < wndwidth*2/3) {
+				else if (pt.x-wnd.left < wndwidth*(62/100.0)) {
 					state.resize.x = RESIZE_CENTER;
 					state.offset.x = pt.x-mdiclientpt.x; //Used only if both x and y are CENTER
 				}
 				else {
 					state.resize.x = RESIZE_RIGHT;
 					state.offset.x = wnd.right-pt.x;
+				}
+				if (pt.y-wnd.top < wndheight*(38/100.0)) {
+					state.resize.y = RESIZE_TOP;
+					state.offset.y = pt.y-wnd.top;
+				}
+				else if (pt.y-wnd.top < wndheight*(62/100.0)) {
+					state.resize.y = RESIZE_CENTER;
+					state.offset.y = pt.y-mdiclientpt.y;
+				}
+				else {
+					state.resize.y = RESIZE_BOTTOM;
+					state.offset.y = wnd.bottom-pt.y;
 				}
 
 				//Set window right/bottom origin
