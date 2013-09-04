@@ -379,6 +379,10 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 				}
 			}
 		}
+		else if (LOWORD(wParam) == IDC_LOWERWITHMMB) {
+			int val = Button_GetCheck(GetDlgItem(hwnd, IDC_LOWERWITHMMB));
+			WritePrivateProfileString(L"Input", L"LowerWithMMB", _itow(val,txt,10), inipath);
+		}
 		else {
 			//Hotkeys
 			int vkey = 0;
@@ -454,7 +458,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			SetDlgItemText(hwnd, IDC_MB4_HEADER,     l10n->input.mouse.mb4);
 			SetDlgItemText(hwnd, IDC_MB5_HEADER,     l10n->input.mouse.mb5);
 			SetDlgItemText(hwnd, IDC_SCROLL_HEADER,  l10n->input.mouse.scroll);
-			SetDlgItemText(hwnd, IDC_MOUSE_MORE,     l10n->input.mouse.more);
+			SetDlgItemText(hwnd, IDC_LOWERWITHMMB,   l10n->input.mouse.lowerwithmmb);
 			SetDlgItemText(hwnd, IDC_HOTKEYS_BOX,    l10n->input.hotkeys.box);
 			SetDlgItemText(hwnd, IDC_LEFTALT,        l10n->input.hotkeys.leftalt);
 			SetDlgItemText(hwnd, IDC_RIGHTALT,       l10n->input.hotkeys.rightalt);

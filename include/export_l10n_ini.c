@@ -44,6 +44,9 @@ int main(int argc, char *argv[]) {
 	int i,j;
 	for (i=0; i < ARRAY_SIZE(languages); i++) {
 		l10n = languages[i];
+		if (l10n == &en_US) {
+			continue;
+		}
 
 		wchar_t ini[MAX_PATH];
 		GetModuleFileName(NULL, ini, ARRAY_SIZE(ini));
@@ -55,6 +58,7 @@ int main(int argc, char *argv[]) {
 		FILE *f = _wfopen(ini, L"wb");
 		fwprintf(f, L"; Translation file for AltDrag 1.0\n\
 ; %s localization by %s\n\
+; Simply put this file in the same directory as AltDrag, then restart AltDrag.\n\
 ; Please read the wiki for help: https://code.google.com/p/altdrag/wiki/Translate\n\
 ; Use encoding UTF-16LE with BOM to be able to use Unicode\n\
 ; Note: For some reason &A will not work as a shortcut.\n\

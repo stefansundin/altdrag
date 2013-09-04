@@ -72,10 +72,10 @@ struct strings pt_BR = {
      /* rmb            */ L"Botão direito:",
      /* mb4            */ L"Botão 4:",
      /* mb5            */ L"Botão 5:",
-     /* scroll        `*/ L"Scroll:",
-     /* more          `*/ L"Se você tem uma boa ideia para uma ação do mouse, cloque seu pedido <a href=\"http://code.google.com/p/altdrag/issues/list\">na nossa página</a>!",
+     /* scroll         */ L"Scroll:",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
-   { /* actions `*/
+   { /* actions */
      /* move           */ L"Move",
      /* resize         */ L"Resize",
      /* close          */ L"Close",
@@ -111,7 +111,7 @@ struct strings pt_BR = {
  { /* advanced tab */
    /* box              */ L"Configurações avançadas",
    /* hookwindows      */ L"A&tivar alinhamento quando mover normalmente uma janela. Funciona em conjunção com o alinhamento automático.",
-   /* hookwindows_warn`*/ L"Note que isto não é totalmente seguro, pois se conecta a outros processos e coisas do tipo. Pode ser arriscado usar com jogos que tenham proteção anti-cheat.",
+   /* hookwindows_warn */ L"Note que isto não é totalmente seguro, pois se conecta a outros processos e coisas do tipo. Pode ser arriscado usar com jogos que tenham proteção anti-cheat.",
    /* checkonstartup   */ L"Checar se há novas at&ualizações automaticamente",
    /* beta             */ L"Checar versões &beta",
    /* checknow         */ L"&Checar agora",
@@ -126,4 +126,7 @@ struct strings pt_BR = {
    /* donate           */ L"&Doar",
    /*translation_credit*/ L"Translation credit",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

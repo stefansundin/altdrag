@@ -72,10 +72,10 @@ struct strings ru_RU = {
      /* rmb            */ L"Правая кнопка:",
      /* mb4            */ L"Кнопка мыши 4:",
      /* mb5            */ L"Кнопка мыши 5:",
-     /* scroll        `*/ L"Колесо прокрутки:",
-     /* more          `*/ L"Запрос на новое действие мыши можно оставить <a href=\"http://code.google.com/p/altdrag/issues/list\">на сайте</a>!",
+     /* scroll         */ L"Колесо прокрутки:",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
-   { /* actions `*/
+   { /* actions */
      /* move           */ L"Переместить",
      /* resize         */ L"Размер",
      /* close          */ L"Закрыть",
@@ -111,7 +111,7 @@ struct strings ru_RU = {
  { /* advanced tab */
    /* box              */ L"Дополнительные настройки",
    /* hookwindows      */ L"Включить стыковку при перетаскавании окна за заголовок.\nРаботает в связке с автоматической стыковкой!",
-   /* hookwindows_warn`*/ L"Имейте в виду, что функция не на 100% безопасна, так как приходится внедряться в другие процессы и т.д. Это может повлиять, например, на игры с системой защитой от жульничества.\n\nВключить стыковку?",
+   /* hookwindows_warn */ L"Имейте в виду, что функция не на 100% безопасна, так как приходится внедряться в другие процессы и т.д. Это может повлиять, например, на игры с системой защитой от жульничества.\n\nВключить стыковку?",
    /* checkonstartup   */ L"&Автоматически проверять наличие обновлений",
    /* beta             */ L"Проверять наличие &бета-версий",
    /* checknow         */ L"&Проверить",
@@ -126,4 +126,7 @@ struct strings ru_RU = {
    /* donate           */ L"&Помочь",
    /*translation_credit*/ L"Авторы перевода",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

@@ -72,10 +72,10 @@ struct strings zh_CN = {
      /* rmb            */ L"鼠标右键:",
      /* mb4            */ L"鼠标第4键:",
      /* mb5            */ L"鼠标第5键:",
-     /* scroll        `*/ L"Scroll:",
-     /* more          `*/ L"如果你有好的鼠标动作想法, 可以在<a href=\"http://code.google.com/p/altdrag/issues/list\">AltDrag网站</a>上提交一个请求!",
+     /* scroll         */ L"Scroll:",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
-   { /* actions `*/
+   { /* actions */
      /* move           */ L"移动",
      /* resize         */ L"更改大小",
      /* close          */ L"关闭",
@@ -111,7 +111,7 @@ struct strings zh_CN = {
  { /* advanced tab */
    /* box              */ L"增强设置",
    /* hookwindows      */ L"(&E)在普通移动中吸附窗口.\n窗口之间自动吸附!",
-   /* hookwindows_warn`*/ L"注意这个特性不是100%安全的，因为他会对其他进程进行挂接或类似操作.",
+   /* hookwindows_warn */ L"注意这个特性不是100%安全的，因为他会对其他进程进行挂接或类似操作.",
    /* checkonstartup   */ L"(&u)自动检查更新",
    /* beta             */ L"为&beta版检查更新",
    /* checknow         */ L"检查更新",
@@ -126,4 +126,7 @@ struct strings zh_CN = {
    /* donate           */ L"(&D)捐赠",
    /*translation_credit*/ L"Translation credit",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

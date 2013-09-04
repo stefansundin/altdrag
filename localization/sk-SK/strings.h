@@ -73,10 +73,10 @@ struct strings sk_SK = {
      /* rmb            */ L"Pravé tlačidlo myši:",
      /* mb4            */ L"4. tlačidlo myši:",
      /* mb5            */ L"5. tlačidlo myši:",
-     /* scroll        `*/ L"Scroll:",
-     /* more          `*/ L"Ak máte skvelý nápad na ďalšie akcie myšou, dajte nám vedieť prostredníctvom <a href=\"http://code.google.com/p/altdrag/issues/list\">web stránky</a>.",
+     /* scroll         */ L"Scroll:",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
-   { /* actions `*/
+   { /* actions */
      /* move           */ L"Move",
      /* resize         */ L"Resize",
      /* close          */ L"Close",
@@ -112,7 +112,7 @@ struct strings sk_SK = {
  { /* advanced tab */
    /* box              */ L"Pokročilé nastavenia",
    /* hookwindows      */ L"&Povoliť prichytávanie počas presunu okien.\nPracuje pri zapnutom automatickom prichytávaní okien!",
-   /* hookwindows_warn`*/ L"Táto funkcia nie je 100% bezpečná, nakoľko je potrebný zásah do iných procesov.",
+   /* hookwindows_warn */ L"Táto funkcia nie je 100% bezpečná, nakoľko je potrebný zásah do iných procesov.",
    /* checkonstartup   */ L"Automatická kontrola akt&ualizácii",
    /* beta             */ L"Kontrolovať aj dostupnosť &beta verzii",
    /* checknow         */ L"Skontrolovať aktualizácie",
@@ -127,4 +127,7 @@ struct strings sk_SK = {
    /* donate           */ L"&Prispej",
    /*translation_credit*/ L"Translation credit",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

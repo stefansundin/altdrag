@@ -66,7 +66,7 @@ struct strings {
 			wchar_t *mb4;
 			wchar_t *mb5;
 			wchar_t *scroll;
-			wchar_t *more;
+			wchar_t *lowerwithmmb;
 		} mouse;
 		struct {
 			wchar_t *move;
@@ -119,6 +119,9 @@ struct strings {
 		wchar_t *donate;
 		wchar_t *translation_credit;
 	} about;
+
+	/* misc */
+	wchar_t *unhook_error;
 };
 
 struct strings l10n_ini;
@@ -192,7 +195,7 @@ struct {
 	{ &l10n_ini.input.mouse.mb4,                         L"InputMouseMB4" },
 	{ &l10n_ini.input.mouse.mb5,                         L"InputMouseMB5" },
 	{ &l10n_ini.input.mouse.scroll,                      L"InputMouseScroll" },
-	{ &l10n_ini.input.mouse.more,                        L"InputMouseMore" },
+	{ &l10n_ini.input.mouse.lowerwithmmb,                L"InputMouseLowerWithMMB" },
 
 	{ &l10n_ini.input.actions.move,                      L"InputActionMove" },
 	{ &l10n_ini.input.actions.resize,                    L"InputActionResize" },
@@ -238,6 +241,8 @@ struct {
 	{ &l10n_ini.about.license,                           L"AboutLicense" },
 	{ &l10n_ini.about.donate,                            L"AboutDonate" },
 	{ &l10n_ini.about.translation_credit,                L"AboutTranslationCredit" },
+
+	{ &l10n_ini.unhook_error,                            L"MiscUnhookError" },
 };
 
 #include "en-US/strings.h"

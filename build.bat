@@ -16,11 +16,12 @@ taskkill /IM AltDrag.exe
 
 if not exist build. mkdir build
 
-rem %prefix32%gcc -o localization\export_l10n_ini.exe include\export_l10n_ini.c -lshlwapi
-rem exit /b
+:: %prefix32%gcc -o localization\export_l10n_ini.exe include\export_l10n_ini.c -lshlwapi
+:: localization\export_l10n_ini.exe
+:: exit /b
 
-rem %prefix32%gcc -o build\unhook.exe include\unhook.c
-rem "build\unhook.exe"
+:: %prefix32%gcc -o build\unhook.exe include\unhook.c
+:: "build\unhook.exe"
 
 %prefix32%windres include\altdrag.rc build\altdrag.o
 %prefix32%windres include\hooks.rc build\hooks.o
@@ -72,8 +73,8 @@ if "%1" == "all" (
 		)
 	)
 	if "%x64%" == "1" (
-		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
-		rem "build\unhook_x64.exe"
+		:: %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
+		:: "build\unhook_x64.exe"
 
 		%prefix64%windres include\hookwindows_x64.rc build\hookwindows_x64.o
 		%prefix64%windres include\hooks.rc build\hooks_x64.o
