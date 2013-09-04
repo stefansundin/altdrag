@@ -14,9 +14,9 @@
 #define IDC_FINDWINDOW                          1000
 #define IDC_CHECKNOW                            1001
 #define IDC_LANGUAGE_HEADER                     1001
+#define IDC_LOWERWITHMMB                        1001
 #define IDC_TRANSLATIONS_BOX                    1001
 #define IDC_INI                                 1002
-#define IDC_MOUSE_MORE                          1002
 #define IDC_NEWRULE                             1002
 #define IDC_MDI                                 1003
 #define IDC_SCROLL                              1003

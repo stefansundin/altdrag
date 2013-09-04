@@ -72,10 +72,10 @@ struct strings fr_FR = {
      /* rmb            */ L"Bouton droit:",
      /* mb4            */ L"Bouton 4:",
      /* mb5            */ L"Bouton 5:",
-     /* scroll        `*/ L"Scroll:",
-     /* more          `*/ L"Si vous avez une autre idée d'utilisation de la souris, <a href=\"http://code.google.com/p/altdrag/issues/list\">envoyez une demande</a>! (ndt:en anglais)",
+     /* scroll         */ L"Scroll:",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
-   { /* actions `*/
+   { /* actions */
      /* move           */ L"Move",
      /* resize         */ L"Resize",
      /* close          */ L"Close",
@@ -111,7 +111,7 @@ struct strings fr_FR = {
  { /* advanced tab */
    /* box              */ L"Paramètres avancés",
    /* hookwindows      */ L"A&imenter les fenêtres déplacées normalement.\nFonctionne en plus de l'aimantation automatique!",
-   /* hookwindows_warn`*/ L"Cette fonction n'est pas sûr à 100% car elle s'insère dans des processus étrangers et des choses de ce genre.",
+   /* hookwindows_warn */ L"Cette fonction n'est pas sûr à 100% car elle s'insère dans des processus étrangers et des choses de ce genre.",
    /* checkonstartup   */ L"Chercher des mises-à-jours a&utomatiquement",
    /* beta             */ L"Chercher des versions &beta",
    /* checknow         */ L"Vérifier la &mise-à-jour",
@@ -126,4 +126,7 @@ struct strings fr_FR = {
    /* donate           */ L"&Donner",
    /*translation_credit*/ L"Translation credit",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

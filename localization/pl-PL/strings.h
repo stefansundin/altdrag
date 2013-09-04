@@ -72,10 +72,10 @@ struct strings pl_PL = {
      /* rmb            */ L"Prawy przycisk:",
      /* mb4            */ L"Czwarty przycisk:",
      /* mb5            */ L"Piąty przycisk:",
-     /* scroll        `*/ L"Scroll:",
-     /* more          `*/ L"Jeżeli masz pomysł na akcję myszy to nie krępuj się zgłosić ją na <a href=\"http://code.google.com/p/altdrag/issues/list\">stronie programu</a>!",
+     /* scroll         */ L"Scroll:",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
-   { /* actions `*/
+   { /* actions */
      /* move           */ L"Move",
      /* resize         */ L"Resize",
      /* close          */ L"Close",
@@ -90,7 +90,7 @@ struct strings pl_PL = {
    },
    { /* hotkeys */
      /* box            */ L"Skróty klawiszowe",
-     /* leftalt        */ L"&Lewy Alt",
+     /* leftalt        */ L"L&ewy Alt",
      /* rightalt       */ L"&Prawy Alt",
      /* leftwinkey     */ L"Lewy &Win",
      /* rightwinkey    */ L"Prawy W&in",
@@ -111,7 +111,7 @@ struct strings pl_PL = {
  { /* advanced tab */
    /* box              */ L"Ustawienia zaawansowane",
    /* hookwindows      */ L"&Włącz przyciąganie podczas zwykłego przesuwania okien.\nDziała w połączeniu z automatycznym przyciąganiem!",
-   /* hookwindows_warn`*/ L"Nie jest to na 100% bezpieczne bo wymaga podczepiania się pod inne procesy itp.",
+   /* hookwindows_warn */ L"Nie jest to na 100% bezpieczne bo wymaga podczepiania się pod inne procesy itp.",
    /* checkonstartup   */ L"A&utomatycznie sprawdzaj dostępność aktualizacji",
    /* beta             */ L"Uw&zględniaj wersje testowe",
    /* checknow         */ L"&Sprawdź teraz",
@@ -126,4 +126,7 @@ struct strings pl_PL = {
    /* donate           */ L"&Dotuj",
    /*translation_credit*/ L"Translation credit",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

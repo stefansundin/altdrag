@@ -73,7 +73,7 @@ struct strings it_IT = {
      /* mb4            */ L"Tasto mouse 4:",
      /* mb5            */ L"Tasto mouse 5:",
      /* scroll         */ L"Rotellina:",
-     /* more           */ L"Se ti viene una grande idea per un'azione mouse, aggiungi una richiesta <a href=\"http://code.google.com/p/altdrag/issues/list\">sul sito web</a>!",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
    { /* actions */
      /* move           */ L"muovi finestra",
@@ -126,4 +126,7 @@ struct strings it_IT = {
    /* donate           */ L"&Dona",
    /*translation_credit*/ L"Crediti traduzione",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

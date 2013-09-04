@@ -127,6 +127,7 @@ struct {
 	int Aero;
 	int MDI;
 	int InactiveScroll;
+	int LowerWithMMB;
 	int SnapThreshold;
 	int FocusOnTyping;
 	struct {
@@ -168,7 +169,6 @@ HCURSOR cursors[6];
 //Hook data
 HINSTANCE hinstDLL = NULL;
 HHOOK mousehook = NULL;
-HHOOK scrollhook = NULL;
 
 //Msghook data
 BOOL subclassed = FALSE;
@@ -980,7 +980,9 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				}
 			}
 			else if (vkey == VK_ESCAPE) {
+				sharedstate.action = ACTION_NONE;
 				UnhookMouse();
+				return CallNextHookEx(NULL, nCode, wParam, lParam);
 			}
 			else {
 				state.interrupted = 1;
@@ -1118,6 +1120,8 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 
 		//Handle mouse move and scroll
 		if (wParam == WM_MOUSEMOVE) {
+			//Store prevpt so we can check if the hook goes stale
+			state.prevpt = pt;
 			//Move the window
 			if (sharedstate.action == ACTION_MOVE || sharedstate.action == ACTION_RESIZE) {
 				state.updaterate = (state.updaterate+1)%(sharedstate.action==ACTION_MOVE?sharedsettings.Performance.MoveRate:sharedsettings.Performance.ResizeRate);
@@ -1136,185 +1140,260 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				state.clicktime = 0;
 			}
 		}
-		else if (wParam == WM_MOUSEWHEEL && !sharedstate.action && sharedsettings.Mouse.Scroll && !state.interrupted) {
-			int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
-			if (sharedsettings.Mouse.Scroll == ACTION_ALTTAB) {
-				numhwnds = 0;
+		else if (wParam == WM_MOUSEWHEEL || wParam == WM_MOUSEHWHEEL) {
+			if (state.alt && !sharedstate.action && sharedsettings.Mouse.Scroll && !state.interrupted) {
+				int delta = GET_WHEEL_DELTA_WPARAM(msg->mouseData);
+				if (sharedsettings.Mouse.Scroll == ACTION_ALTTAB) {
+					numhwnds = 0;
 
-				if (sharedsettings.MDI) {
-					HWND hwnd = WindowFromPoint(pt);
-					//Hide if tooltip
-					wchar_t classname[20] = L"";
-					GetClassName(hwnd, classname, ARRAY_SIZE(classname));
-					if (!wcscmp(classname,TOOLTIPS_CLASS)) {
-						ShowWindow(hwnd, SW_HIDE);
-						hwnd = WindowFromPoint(pt);
+					if (sharedsettings.MDI) {
+						HWND hwnd = WindowFromPoint(pt);
+						//Hide if tooltip
+						wchar_t classname[20] = L"";
+						GetClassName(hwnd, classname, ARRAY_SIZE(classname));
+						if (!wcscmp(classname,TOOLTIPS_CLASS)) {
+							ShowWindow(hwnd, SW_HIDE);
+							hwnd = WindowFromPoint(pt);
+						}
+						if (hwnd != NULL) {
+							//Get MDIClient
+							HWND mdiclient = NULL;
+							char classname[100] = "";
+							GetClassNameA(hwnd, classname, ARRAY_SIZE(classname));
+							if (!strcmp(classname,"MDIClient")) {
+								mdiclient = hwnd;
+							}
+							else {
+								while (hwnd != NULL) {
+									HWND parent = GetParent(hwnd);
+									LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+									if (exstyle&WS_EX_MDICHILD) {
+										mdiclient = parent;
+										break;
+									}
+									hwnd = parent;
+								}
+							}
+							//Enumerate and then reorder MDI windows
+							if (mdiclient != NULL) {
+								hwnd = GetWindow(mdiclient, GW_CHILD);
+								while (hwnd != NULL) {
+									if (numhwnds == hwnds_alloc) {
+										hwnds_alloc += 20;
+										hwnds = realloc(hwnds, hwnds_alloc*sizeof(HWND));
+									}
+									hwnds[numhwnds++] = hwnd;
+									hwnd = GetWindow(hwnd, GW_HWNDNEXT);
+								}
+								if (numhwnds > 1) {
+									if (delta > 0) {
+										SendMessage(mdiclient, WM_MDIACTIVATE, (WPARAM) hwnds[numhwnds-1], 0);
+									}
+									else {
+										SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+										SendMessage(mdiclient, WM_MDIACTIVATE, (WPARAM) hwnds[1], 0);
+									}
+								}
+							}
+						}
 					}
-					if (hwnd != NULL) {
-						//Get MDIClient
-						HWND mdiclient = NULL;
-						char classname[100] = "";
-						GetClassNameA(hwnd, classname, ARRAY_SIZE(classname));
-						if (!strcmp(classname,"MDIClient")) {
-							mdiclient = hwnd;
+
+					//Enumerate windows
+					if (numhwnds <= 1) {
+						state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+						numhwnds = 0;
+						EnumWindows(EnumAltTabWindows, 0);
+						if (numhwnds <= 1) {
+							return CallNextHookEx(NULL, nCode, wParam, lParam);
+						}
+						//Reorder windows
+						if (delta > 0) {
+							SetForegroundWindow(hwnds[numhwnds-1]);
 						}
 						else {
-							while (hwnd != NULL) {
-								HWND parent = GetParent(hwnd);
-								LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-								if (exstyle&WS_EX_MDICHILD) {
-									mdiclient = parent;
-									break;
-								}
-								hwnd = parent;
-							}
-						}
-						//Enumerate and then reorder MDI windows
-						if (mdiclient != NULL) {
-							hwnd = GetWindow(mdiclient, GW_CHILD);
-							while (hwnd != NULL) {
-								if (numhwnds == hwnds_alloc) {
-									hwnds_alloc += 20;
-									hwnds = realloc(hwnds, hwnds_alloc*sizeof(HWND));
-								}
-								hwnds[numhwnds++] = hwnd;
-								hwnd = GetWindow(hwnd, GW_HWNDNEXT);
-							}
-							if (numhwnds > 1) {
-								if (delta > 0) {
-									SendMessage(mdiclient, WM_MDIACTIVATE, (WPARAM) hwnds[numhwnds-1], 0);
-								}
-								else {
-									SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
-									SendMessage(mdiclient, WM_MDIACTIVATE, (WPARAM) hwnds[1], 0);
-								}
-							}
+							SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+							SetForegroundWindow(hwnds[1]);
 						}
 					}
-				}
 
-				//Enumerate windows
-				if (numhwnds <= 1) {
-					state.origin.monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-					numhwnds = 0;
-					EnumWindows(EnumAltTabWindows, 0);
-					if (numhwnds <= 1) {
+					//Use this to print the windows
+					/*
+					FILE *f = OpenLog(L"ab");
+					fwprintf(f, L"numhwnds: %d\n", numhwnds);
+					wchar_t title[100], classname[100];
+					int k;
+					for (k=0; k < numhwnds; k++) {
+						GetWindowText(hwnds[k], title, ARRAY_SIZE(title));
+						GetClassName(hwnds[k], classname, ARRAY_SIZE(classname));
+						RECT wnd;
+						GetWindowRect(hwnds[k], &wnd);
+						fwprintf(f, L"wnd #%03d (0x%08x): %s [%s] (%dx%d @ %dx%d)\n", k, hwnds[k], title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
+					}
+					fwprintf(f, L"\n");
+					fclose(f);
+					*/
+				}
+				else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
+					IMMDeviceEnumerator *pDevEnumerator = NULL;
+					IMMDevice *pDev = NULL;
+					IAudioEndpointVolume *pAudioEndpoint = NULL;
+
+					//Get audio endpoint
+					HRESULT hr = CoCreateInstance(&my_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &my_IID_IMMDeviceEnumerator, (void**)&pDevEnumerator);
+					if (hr != S_OK) {
+						Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", hr);
 						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
-					//Reorder windows
+					hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pDevEnumerator, eRender, eMultimedia, &pDev);
+					IMMDeviceEnumerator_Release(pDevEnumerator);
+					if (hr != S_OK) {
+						Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", hr);
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					hr = IMMDevice_Activate(pDev, &my_IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, (void**)&pAudioEndpoint);
+					IMMDevice_Release(pDev);
+					if (hr != S_OK) {
+						Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", hr);
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+
+					//Function pointer so we only need one for-loop
+					typedef HRESULT WINAPI (*_VolumeStep)(IAudioEndpointVolume*, LPCGUID pguidEventContext);
+					_VolumeStep VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepDown);
 					if (delta > 0) {
-						SetForegroundWindow(hwnds[numhwnds-1]);
+						VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepUp);
+					}
+
+					//Hold shift to make 5 steps
+					int i;
+					int num = (sharedstate.shift)?5:1;
+					for (i=0; i < num; i++) {
+						hr = VolumeStep(pAudioEndpoint, NULL);
+					}
+					IAudioEndpointVolume_Release(pAudioEndpoint);
+					if (hr != S_OK) {
+						Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", hr);
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+				}
+				else if (sharedsettings.Mouse.Scroll == ACTION_TRANSPARENCY) {
+					HWND hwnd = WindowFromPoint(pt);
+					if (hwnd == NULL) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					hwnd = GetAncestor(hwnd, GA_ROOT);
+
+					LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+					if (!(exstyle&WS_EX_LAYERED)) {
+						SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle|WS_EX_LAYERED);
+						SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+					}
+
+					BYTE old_alpha;
+					DWORD flags;
+					if (GetLayeredWindowAttributes(hwnd,NULL,&old_alpha,&flags) == FALSE) {
+						Error(L"GetLayeredWindowAttributes()", L"LowLevelMouseProc()", GetLastError());
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					int alpha = old_alpha;
+
+					int alpha_delta = (sharedstate.shift)?8:64;
+					if (delta > 0) {
+						alpha += alpha_delta;
+						if (alpha > 255) {
+							alpha = 255;
+						}
 					}
 					else {
-						SetWindowPos(hwnds[0], hwnds[numhwnds-1], 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
-						SetForegroundWindow(hwnds[1]);
+						alpha -= alpha_delta;
+						if (alpha < 8) {
+							alpha = 8;
+						}
 					}
+					SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
 				}
 
-				//Use this to print the windows
-				/*
-				FILE *f = OpenLog(L"ab");
-				fwprintf(f, L"numhwnds: %d\n", numhwnds);
-				wchar_t title[100], classname[100];
-				int k;
-				for (k=0; k < numhwnds; k++) {
-					GetWindowText(hwnds[k], title, ARRAY_SIZE(title));
-					GetClassName(hwnds[k], classname, ARRAY_SIZE(classname));
-					RECT wnd;
-					GetWindowRect(hwnds[k], &wnd);
-					fwprintf(f, L"wnd #%03d (0x%08x): %s [%s] (%dx%d @ %dx%d)\n", k, hwnds[k], title, classname, wnd.right-wnd.left, wnd.bottom-wnd.top, wnd.left, wnd.top);
-				}
-				fwprintf(f, L"\n");
-				fclose(f);
-				*/
+				//Block original scroll event
+				state.blockaltup = 1;
+				state.activated = 1;
+				return 1;
 			}
-			else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
-				IMMDeviceEnumerator *pDevEnumerator = NULL;
-				IMMDevice *pDev = NULL;
-				IAudioEndpointVolume *pAudioEndpoint = NULL;
-
-				//Get audio endpoint
-				HRESULT hr = CoCreateInstance(&my_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &my_IID_IMMDeviceEnumerator, (void**)&pDevEnumerator);
-				if (hr != S_OK) {
-					Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", hr);
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-				hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pDevEnumerator, eRender, eMultimedia, &pDev);
-				IMMDeviceEnumerator_Release(pDevEnumerator);
-				if (hr != S_OK) {
-					Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", hr);
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-				hr = IMMDevice_Activate(pDev, &my_IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, (void**)&pAudioEndpoint);
-				IMMDevice_Release(pDev);
-				if (hr != S_OK) {
-					Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", hr);
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-
-				//Function pointer so we only need one for-loop
-				typedef HRESULT WINAPI (*_VolumeStep)(IAudioEndpointVolume*, LPCGUID pguidEventContext);
-				_VolumeStep VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepDown);
-				if (delta > 0) {
-					VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepUp);
-				}
-
-				//Hold shift to make 5 steps
-				int i;
-				int num = (sharedstate.shift)?5:1;
-				for (i=0; i < num; i++) {
-					hr = VolumeStep(pAudioEndpoint, NULL);
-				}
-				IAudioEndpointVolume_Release(pAudioEndpoint);
-				if (hr != S_OK) {
-					Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", hr);
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-			}
-			else if (sharedsettings.Mouse.Scroll == ACTION_TRANSPARENCY) {
+			else if (!state.alt && !sharedstate.action && sharedsettings.InactiveScroll) {
+				//Get window and foreground window
 				HWND hwnd = WindowFromPoint(pt);
-				if (hwnd == NULL) {
+				HWND foreground = GetForegroundWindow();
+
+				//Return if no window or if foreground window is blacklisted
+				if (hwnd == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
 					return CallNextHookEx(NULL, nCode, wParam, lParam);
 				}
-				hwnd = GetAncestor(hwnd, GA_ROOT);
 
-				LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-				if (!(exstyle&WS_EX_LAYERED)) {
-					SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle|WS_EX_LAYERED);
-					SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+				//Get class
+				wchar_t classname[20] = L"";
+				GetClassName(hwnd, classname, ARRAY_SIZE(classname));
+
+				//Hide if tooltip
+				if (!wcscmp(classname,TOOLTIPS_CLASS)) {
+					ShowWindow(hwnd, SW_HIDE);
+					hwnd = WindowFromPoint(pt);
+					if (hwnd == NULL) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					GetClassName(hwnd, classname, ARRAY_SIZE(classname));
 				}
 
-				BYTE old_alpha;
-				DWORD flags;
-				if (GetLayeredWindowAttributes(hwnd,NULL,&old_alpha,&flags) == FALSE) {
-					Error(L"GetLayeredWindowAttributes()", L"LowLevelMouseProc()", GetLastError());
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-				int alpha = old_alpha;
-
-				int alpha_delta = (sharedstate.shift)?8:64;
-				if (delta > 0) {
-					alpha += alpha_delta;
-					if (alpha > 255) {
-						alpha = 255;
+				//If it's a groupbox, grab the real window
+				LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+				if (style&BS_GROUPBOX && !wcscmp(classname,L"Button")) {
+					HWND groupbox = hwnd;
+					EnableWindow(groupbox, FALSE);
+					hwnd = WindowFromPoint(pt);
+					EnableWindow(groupbox, TRUE);
+					if (hwnd == NULL) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
 				}
-				else {
-					alpha -= alpha_delta;
-					if (alpha < 8) {
-						alpha = 8;
-					}
+
+				//Get wheel info
+				WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
+				LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
+
+				//Change WM_MOUSEWHEEL to WM_MOUSEHWHEEL if shift is being depressed
+				//Note that this does not work on all windows, the message was introduced in Vista and far from all programs have implemented it
+				if (wParam == WM_MOUSEWHEEL && sharedstate.shift && GetAsyncKeyState(VK_SHIFT)&0x8000) {
+					wParam = WM_MOUSEHWHEEL;
+					wp = (-GET_WHEEL_DELTA_WPARAM(msg->mouseData)) << 16; //Up is left, down is right
 				}
-				SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
+
+				//Add button information since we don't get it with the hook
+				if (GetAsyncKeyState(VK_CONTROL)&0x8000)  wp |= MK_CONTROL;
+				if (GetAsyncKeyState(VK_LBUTTON)&0x8000)  wp |= MK_LBUTTON;
+				if (GetAsyncKeyState(VK_MBUTTON)&0x8000)  wp |= MK_MBUTTON;
+				if (GetAsyncKeyState(VK_RBUTTON)&0x8000)  wp |= MK_RBUTTON;
+				if (GetAsyncKeyState(VK_SHIFT)&0x8000)    wp |= MK_SHIFT;
+				if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
+				if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
+
+				//Forward scroll message
+				SendMessage(hwnd, wParam, wp, lp);
+
+				//Block original scroll event
+				return 1;
 			}
-
-			//Block original scroll event
-			state.blockaltup = 1;
-			state.activated = 1;
-			return 1;
 		}
 
-		//Return if no mouse action is in progress
+		//Lower window if middle mouse button is used on the title bar
+		//A twist from other programs is that this applies to the top border and corners and the buttons as well, which may be useful if the window has a small title bar (or none), e.g. web browsers with a lot of tabs open
+		if (sharedsettings.LowerWithMMB && !state.alt && !sharedstate.action && buttonstate == STATE_DOWN && button == BUTTON_MMB) {
+			HWND hwnd = WindowFromPoint(pt);
+			int area = SendMessage(hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x,pt.y));
+			if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE) {
+				SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				return 1;
+			}
+		}
+
+		//Return if no mouse action will be started
 		if (!action) {
 			return CallNextHookEx(NULL, nCode, wParam, lParam);
 		}
@@ -1779,94 +1858,15 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-__declspec(dllexport) LRESULT CALLBACK ScrollHook(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode == HC_ACTION) {
-		PMSLLHOOKSTRUCT msg = (PMSLLHOOKSTRUCT)lParam;
-		POINT pt = msg->pt;
-
-		if ((wParam == WM_MOUSEWHEEL || (wParam == WM_MOUSEHWHEEL && sharedsettings.InactiveScroll != 2)) && !state.alt) {
-			//Get window and foreground window
-			HWND window = WindowFromPoint(pt);
-			HWND foreground = GetForegroundWindow();
-
-			//Return if no window or if foreground window is blacklisted
-			if (window == NULL || (foreground != NULL && blacklisted(foreground,&settings.Blacklist))) {
-				return CallNextHookEx(NULL, nCode, wParam, lParam);
-			}
-
-			//Get class
-			wchar_t classname[20] = L"";
-			GetClassName(window, classname, ARRAY_SIZE(classname));
-
-			//Hide if tooltip
-			if (!wcscmp(classname,TOOLTIPS_CLASS)) {
-				ShowWindow(window, SW_HIDE);
-				window = WindowFromPoint(pt);
-				if (window == NULL) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-				GetClassName(window, classname, ARRAY_SIZE(classname));
-			}
-
-			//If it's a groupbox, grab the real window
-			LONG_PTR style = GetWindowLongPtr(window, GWL_STYLE);
-			if (style&BS_GROUPBOX && !wcscmp(classname,L"Button")) {
-				HWND groupbox = window;
-				EnableWindow(groupbox, FALSE);
-				window = WindowFromPoint(pt);
-				EnableWindow(groupbox, TRUE);
-				if (window == NULL) {
-					return CallNextHookEx(NULL, nCode, wParam, lParam);
-				}
-			}
-
-			//Get wheel info
-			WPARAM wp = GET_WHEEL_DELTA_WPARAM(msg->mouseData) << 16;
-			LPARAM lp = (pt.y << 16) | (pt.x & 0xFFFF);
-
-			//Change WM_MOUSEWHEEL to WM_MOUSEHWHEEL if shift is being depressed
-			//Note that this does not work on all windows, the message was introduced in Vista and far from all programs have implemented it
-			if (wParam == WM_MOUSEWHEEL
-			 && sharedsettings.InactiveScroll != 2
-			 && sharedstate.shift
-			 && GetAsyncKeyState(VK_SHIFT)&0x8000) {
-				wParam = WM_MOUSEHWHEEL;
-				wp = (-GET_WHEEL_DELTA_WPARAM(msg->mouseData)) << 16; //Up is left, down is right
-			}
-
-			//Add button information since we don't get it with the hook
-			if (GetAsyncKeyState(VK_CONTROL)&0x8000)  wp |= MK_CONTROL;
-			if (GetAsyncKeyState(VK_LBUTTON)&0x8000)  wp |= MK_LBUTTON;
-			if (GetAsyncKeyState(VK_MBUTTON)&0x8000)  wp |= MK_MBUTTON;
-			if (GetAsyncKeyState(VK_RBUTTON)&0x8000)  wp |= MK_RBUTTON;
-			if (GetAsyncKeyState(VK_SHIFT)&0x8000)    wp |= MK_SHIFT;
-			if (GetAsyncKeyState(VK_XBUTTON1)&0x8000) wp |= MK_XBUTTON1;
-			if (GetAsyncKeyState(VK_XBUTTON2)&0x8000) wp |= MK_XBUTTON2;
-
-			//Forward scroll message
-			SendMessage(window, wParam, wp, lp);
-
-			//Block original scroll event
-			return 1;
-		}
-		else if (wParam == WM_MOUSEMOVE) {
-			//Store prevpt so we can check if the hook goes stale
-			state.prevpt = pt;
-		}
-	}
-
-	return CallNextHookEx(NULL, nCode, wParam, lParam);
-}
-
 int HookMouse() {
-	if (mousehook) {
-		//Mouse already hooked
-		return 1;
+	//Check if mouse hook has become stale
+	if (sharedsettings.InactiveScroll || sharedsettings.LowerWithMMB) {
+		SendMessage(g_hwnd, WM_TIMER, REHOOK_TIMER, 0);
 	}
 
-	//Check if scrollhook has become stale
-	if (sharedsettings.InactiveScroll && sharedsettings.InactiveScroll != 3) {
-		SendMessage(g_hwnd, WM_TIMER, REHOOK_TIMER, 0);
+	//Check if mouse is already hooked
+	if (mousehook) {
+		return 1;
 	}
 
 	//Set up the mouse hook
@@ -1881,16 +1881,16 @@ int HookMouse() {
 }
 
 int UnhookMouse() {
-	if (!mousehook) {
-		//Mouse not hooked
-		return 1;
-	}
-
 	//Stop action
 	sharedstate.action = ACTION_NONE;
 	state.activated = 0;
 	if (sharedsettings.Performance.Cursor) {
 		ShowWindowAsync(cursorwnd, SW_HIDE);
+	}
+
+	//Do not unhook if the hook is still used for something
+	if (sharedsettings.InactiveScroll || sharedsettings.LowerWithMMB) {
+		return 1;
 	}
 
 	//Remove mouse hook
@@ -1913,6 +1913,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			if (hr != S_OK && hr != S_FALSE) {
 				Error(L"CoInitializeEx()", L"INIT_TIMER", hr);
+			}
+			//Hook mouse if a permanent hook is needed
+			if (sharedsettings.InactiveScroll || sharedsettings.LowerWithMMB) {
+				HookMouse();
+				SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL); //Start rehook timer
 			}
 		}
 		else if (wParam == RESTORE_TIMER) {
@@ -1951,13 +1956,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		else if (wParam == REHOOK_TIMER) {
-			//Silently rehook hooks if they have been stopped (Win7+ and LowLevelHooksTimeout)
+			//Silently rehook hooks if they have been stopped (>= Win7 and LowLevelHooksTimeout)
 			//This can often happen if locking or sleeping the computer a lot
 			POINT pt;
 			GetCursorPos(&pt);
-			if (scrollhook && (pt.x != state.prevpt.x || pt.y != state.prevpt.y)) {
-				UnhookWindowsHookEx(scrollhook);
-				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
+			if (mousehook && (pt.x != state.prevpt.x || pt.y != state.prevpt.y)) {
+				UnhookWindowsHookEx(mousehook);
+				mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, hinstDLL, 0);
 			}
 		}
 		else if (wParam == FOCUS_TIMER) {
@@ -2147,11 +2152,11 @@ __declspec(dllexport) void Unload() {
 	sharedsettings_loaded = 0;
 	unload = 1;
 	#ifndef _WIN64
-	if (scrollhook) {
-		if (UnhookWindowsHookEx(scrollhook) == 0) {
-			Error(L"UnhookWindowsHookEx(scrollhook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError());
+	if (mousehook) {
+		if (UnhookWindowsHookEx(mousehook) == 0) {
+			Error(L"UnhookWindowsHookEx(mousehook)", L"Could not unhook mouse. Try restarting "APP_NAME".", GetLastError());
 		}
-		scrollhook = NULL;
+		mousehook = NULL;
 	}
 	DestroyWindow(g_hwnd);
 	#endif
@@ -2264,6 +2269,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 				else                                    *buttons[i].ptr = ACTION_NONE;
 			}
 
+			GetPrivateProfileString(L"Input", L"LowerWithMMB", L"0", txt, ARRAY_SIZE(txt), inipath);
+			sharedsettings.LowerWithMMB = _wtoi(txt);
+
 			unsigned int temp;
 			int numread;
 			GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, ARRAY_SIZE(txt), inipath);
@@ -2292,15 +2300,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
 
 			//Create a timer to do further initialization
 			SetTimer(g_hwnd, INIT_TIMER, 10, NULL);
-
-			//InactiveScroll
-			SetTimer(g_hwnd, REHOOK_TIMER, 5000, NULL);
-			if (sharedsettings.InactiveScroll) {
-				scrollhook = SetWindowsHookEx(WH_MOUSE_LL, ScrollHook, hinstDLL, 0);
-				if (scrollhook == NULL) {
-					Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Could not hook mouse. Another program might be interfering.", GetLastError());
-				}
-			}
 			#endif
 		}
 

@@ -73,7 +73,7 @@ struct strings de_DE = {
      /* mb4            */ L"Maustaste 4:",
      /* mb5            */ L"Maustaste 5:",
      /* scroll         */ L"Scrollrad:",
-     /* more           */ L"Wenn Sie eine gute Idee für einen weiteren Mausbefehl haben, erstellen Sie einen Vorschlag <a href=\"http://code.google.com/p/altdrag/issues/list\">auf der Webseite</a>!",
+     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
    { /* actions */
      /* move           */ L"Fenster verschieben",
@@ -90,7 +90,7 @@ struct strings de_DE = {
    },
    { /* hotkeys */
      /* box            */ L"Tastaturkürzel",
-     /* leftalt        */ L"Alt &links",
+     /* leftalt        */ L"Alt li&nks",
      /* rightalt       */ L"Alt &rechts",
      /* leftwinkey     */ L"&Windows links",
      /* rightwinkey    */ L"W&indows rechts",
@@ -126,4 +126,7 @@ struct strings de_DE = {
    /* donate           */ L"&Spenden",
    /*translation_credit*/ L"Übersetzungen",
  },
+
+ /* === misc === */
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
 };

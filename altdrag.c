@@ -318,7 +318,7 @@ int UnhookSystem() {
 			Error(L"UnhookWindowsHookEx(keyhook)", L"Could not unhook keyboard. Try restarting "APP_NAME".", GetLastError());
 			#else
 			if (showerror) {
-				MessageBox(NULL, L"There was an error disabling AltDrag. This was most likely caused by Windows having already disabled AltDrag's hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using AltDrag.\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for 'AltDrag mysteriously stops working' on the About page).", APP_NAME, MB_ICONINFORMATION|MB_OK|MB_TOPMOST|MB_SETFOREGROUND);
+				MessageBox(NULL, l10n->unhook_error, APP_NAME, MB_ICONINFORMATION|MB_OK|MB_TOPMOST|MB_SETFOREGROUND);
 			}
 			#endif
 		}
