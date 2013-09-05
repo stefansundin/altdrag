@@ -19,6 +19,16 @@ Borderless windows are not snapped to by default. These windows have to be speci
 
 Something worth mentioning is that when AltDrag conflicts with other applications, you can often press the alt button after you press the mouse button to avoid invoking AltDrag.
 
+
+= Identifying windows =
+
+Since version 1.0, you can use AltDrag's configuration window to identify the title and classname of other windows. However, in some cases that little feature is not enough. If you need a better program for this task, try one of these:
+
+  * [http://www.catch22.net/software/winspy-17 WinSpy++]
+  * [http://www.autohotkey.com/ AutoIt3 Window Spy] (available in AutoHotkey)
+  * Spy++, a program delivered along with Visual Studio (not Express Edition)
+
+
 = Windows blacklisted by default =
 
 Here is an explanation of the default entries:
@@ -26,7 +36,7 @@ Here is an explanation of the default entries:
 || *Blacklist rule*           || *Explanation* ||
 || `*|TaskSwitcherWnd`        || This is part of the Alt+Tab window in Vista and Windows 7. ||
 || `*|TaskSwitcherOverlayWnd` || This is part of the Alt+Tab window in Vista and Windows 7. ||
-|| `|#32770`                  || This is the volume window. It is in this list so that you can still use the mouse wheel to change volume even if the mouse is not hovering the small window. ||
+|| `|#32770`                  || This is the system volume window. It is in this list so that you can still use the mouse wheel to change volume even if the mouse is not hovering the small window. ||
 || *Snaplist rule*            || *Explanation* ||
 || `*|BaseWindow_RootWnd`     || The Winamp window. ||
 || `*|SkinWnd`                || The Xfire main window. ||
@@ -35,6 +45,7 @@ Here is an explanation of the default entries:
 || `*|USurface_33202`         || The Steam windows. This identifier changes from version to version so you might have to update it manually. ||
 
 You should not need to edit or remove any of these entries. 
+
 
 = List of applications =
 
