@@ -73,8 +73,8 @@ if "%1" == "all" (
 		)
 	)
 	if "%x64%" == "1" (
-		:: %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
-		:: "build\unhook_x64.exe"
+		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
+		rem "build\unhook_x64.exe"
 
 		%prefix64%windres include\hookwindows_x64.rc build\hookwindows_x64.o
 		%prefix64%windres include\hooks.rc build\hooks_x64.o

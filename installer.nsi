@@ -21,6 +21,7 @@
 !include "Sections.nsh"
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
+!include "WinVer.nsh"
 
 ; General
 
@@ -52,7 +53,8 @@ Page custom PageUpgrade PageUpgradeLeave
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 Page custom PageAltShift
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DisableBackButton
+Page custom PageLowLevelHooksTimeout
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MaybeDisableBackButton
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -211,18 +213,15 @@ Function Launch
 	Exec "$INSTDIR\${APP_NAME}.exe"
 FunctionEnd
 
+
 ;Alt+Shift notification
+Var SkipAltShiftPage
+
 Function PageAltShift
-	ClearErrors
-	ReadRegStr $0 HKCU "Keyboard Layout\Toggle" "Language Hotkey"
-	IfErrors prompt
-	ReadRegStr $1 HKCU "Keyboard Layout\Toggle" "Layout Hotkey"
-	${If} $0 != "1"
-	${AndIf} $1 != "1"
+	${If} $SkipAltShiftPage == "true"
 		Abort
 	${EndIf}
 
-	prompt:
 	nsDialogs::Create 1018
 	!insertmacro MUI_HEADER_TEXT "$(L10N_ALTSHIFT_TITLE)" "$(L10N_ALTSHIFT_SUBTITLE)"
 	${NSD_CreateLabel} 0 0 100% 143 "$(L10N_ALTSHIFT_HEADER)"
@@ -230,19 +229,78 @@ Function PageAltShift
 	Pop $0
 	${NSD_OnClick} $0 OpenKeyboardSettings
 
-	;Disable Cancel button
-	GetDlgItem $0 $HWNDPARENT 2
-	EnableWindow $0 0
-
-	;Disable x button
-	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
-	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
+	;Disable buttons
+	Call DisableXButton
+	Call DisableCancelButton
 
 	nsDialogs::Show
 FunctionEnd
 
 Function OpenKeyboardSettings
 	Exec "rundll32.exe shell32.dll,Control_RunDLL input.dll,,{C07337D3-DB2C-4D0B-9A93-B722A6C106E2}{HOTKEYS}"
+FunctionEnd
+
+
+;LowLevelHooksTimeout notification
+Var SkipLowLevelHooksTimeoutPage
+Var AdjustLowLevelHooksTimeoutButton
+Var RevertLowLevelHooksTimeoutButton
+
+Function PageLowLevelHooksTimeout
+	${If} $SkipLowLevelHooksTimeoutPage == "true"
+		Abort
+	${EndIf}
+
+	nsDialogs::Create 1018
+	!insertmacro MUI_HEADER_TEXT "$(L10N_HOOKTIMEOUT_TITLE)" "$(L10N_HOOKTIMEOUT_SUBTITLE)"
+	${NSD_CreateLabel} 0 0 100% 142 "$(L10N_HOOKTIMEOUT_HEADER)"
+
+	${NSD_CreateButton} 0 162 92u 17u "$(L10N_HOOKTIMEOUT_APPLYBUTTON)"
+	Pop $AdjustLowLevelHooksTimeoutButton
+	${NSD_OnClick} $AdjustLowLevelHooksTimeoutButton AdjustLowLevelHooksTimeout
+
+	${NSD_CreateButton} 200 162 92u 17u "$(L10N_HOOKTIMEOUT_REVERTBUTTON)"
+	Pop $RevertLowLevelHooksTimeoutButton
+	${NSD_OnClick} $RevertLowLevelHooksTimeoutButton RevertLowLevelHooksTimeout
+	EnableWindow $RevertLowLevelHooksTimeoutButton 0
+
+	${NSD_CreateLabel} 0 195 100% 30 "$(L10N_HOOKTIMEOUT_FOOTER)"
+
+	;Disable buttons
+	Call DisableXButton
+	Call DisableCancelButton
+	${If} $SkipAltShiftPage == "true"
+		Call DisableBackButton
+	${EndIf}
+
+	ClearErrors
+	ReadRegDWORD $0 HKCU "Control Panel\Desktop" "LowLevelHooksTimeout"
+	IfErrors done
+
+	${NSD_CreateLabel} 0 140 100% 20 "$(L10N_HOOKTIMEOUT_ALREADYAPPLIED)"
+	Pop $0
+	CreateFont $1 "MS Shell Dlg" 7 700
+	SendMessage $0 ${WM_SETFONT} $1 0
+
+	EnableWindow $AdjustLowLevelHooksTimeoutButton 0
+	EnableWindow $RevertLowLevelHooksTimeoutButton 1
+
+	done:
+	nsDialogs::Show
+FunctionEnd
+
+Function AdjustLowLevelHooksTimeout
+	WriteRegDWORD HKCU "Control Panel\Desktop" "LowLevelHooksTimeout" 5000
+	EnableWindow $AdjustLowLevelHooksTimeoutButton 0
+	EnableWindow $RevertLowLevelHooksTimeoutButton 1
+	Call FocusNextButton ;Otherwise Alt shortcuts won't work
+FunctionEnd
+
+Function RevertLowLevelHooksTimeout
+	DeleteRegValue HKCU "Control Panel\Desktop" "LowLevelHooksTimeout"
+	EnableWindow $AdjustLowLevelHooksTimeoutButton 1
+	EnableWindow $RevertLowLevelHooksTimeoutButton 0
+	Call FocusNextButton ;Otherwise Alt shortcuts won't work
 FunctionEnd
 
 
@@ -303,6 +361,29 @@ Function DisableBackButton
 	EnableWindow $0 0
 FunctionEnd
 
+Function DisableCancelButton
+	GetDlgItem $0 $HWNDPARENT 2
+	EnableWindow $0 0
+FunctionEnd
+
+Function FocusNextButton
+	GetDlgItem $0 $HWNDPARENT 1
+	${NSD_SetFocus} $0
+FunctionEnd
+
+Function DisableXButton
+	;Disables the close button in the title bar
+	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
+	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
+FunctionEnd
+
+Function MaybeDisableBackButton
+	${If} $SkipAltShiftPage == "true"
+	${AndIf} $SkipLowLevelHooksTimeoutPage == "true"
+		Call DisableBackButton
+	${EndIf}
+FunctionEnd
+
 Function .onInit
 	Call AddTray
 
@@ -324,8 +405,27 @@ Function .onInit
 	!insertmacro SetLang $0 "ru-RU" ${LANG_RUSSIAN}
 	!insertmacro SetLang $0 "sk-SK" ${LANG_SLOVAK}
 	!insertmacro SetLang $0 "zh-CN" ${LANG_SIMPCHINESE}
+	!insertmacro SetLang $0 "it-IT" ${LANG_ITALIAN}
+	!insertmacro SetLang $0 "de-DE" ${LANG_GERMAN}
 	WriteRegStr ${MUI_LANGDLL_REGISTRY_ROOT} "${MUI_LANGDLL_REGISTRY_KEY}" "${MUI_LANGDLL_REGISTRY_VALUENAME}" "$LANGUAGE"
 	done2:
+
+	StrCpy $SkipAltShiftPage "false"
+	StrCpy $SkipLowLevelHooksTimeoutPage "false"
+
+	ClearErrors
+	ReadRegStr $0 HKCU "Keyboard Layout\Toggle" "Language Hotkey"
+	IfErrors done3
+	ReadRegStr $1 HKCU "Keyboard Layout\Toggle" "Layout Hotkey"
+	${If} $0 != "1"
+	${AndIf} $1 != "1"
+		StrCpy $SkipAltShiftPage "true"
+	${EndIf}
+	done3:
+
+	${If} ${AtMostWinVista}
+		StrCpy $SkipLowLevelHooksTimeoutPage "true"
+	${EndIf}
 
 	;Display language selection and add tray if program is running
 	!insertmacro MUI_LANGDLL_DISPLAY
