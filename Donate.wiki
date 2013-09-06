@@ -8,17 +8,6 @@ Donations are a great motivation for me to keep updating my programs. They are a
 You can get in touch with me by sending an email to `stefan(at)stefansundin.com`. You can also [http://stefansundin.com/ visit my website] to read a little more about me.
 
 
-== Who else have contributed ==
-
-While I have done most of the work, here are some people who have contributed.
-  * Alexander De Sousa: Spanish and Galician translation
-  * Jack Jin: Chinese translation
-  * Neek Eoneof: Russian translation
-  * Miroslav Miklus: Slovakian translation
-
-Also thanks to everyone who have reported bugs and suggested great features!
-
-
 = How to donate =
 
 Currently you can choose to donate with PayPal, Flattr or Bitcoin.
