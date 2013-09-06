@@ -1,5 +1,14 @@
 #summary History of changes
 
+*1.0 release candidate* - 2013-09-06:
+  * Add support for MDI windows. Works with many features (e.g. `HookWindows`, `AltTab` scrolling, snapping).
+  * Add ability to lower windows by middle clicking title bars.
+  * Add ability to translate AltDrag with an ini file.
+  * Many small fixes for multiple monitors.
+  * Made the corner regions for resizing bigger, now corners are 38% and middle regions 24%. Before all regions were 33%.
+  * Fixed `HookWindows` sometimes blocking the space key.
+  * Fixed a few issues with `InactiveScroll`.
+
 *1.0 beta 3* - 2013-06-20:
   * If you enable `InactiveScroll`, you can now hold the shift key to scroll horizontally. Note that this only works in programs that have implemented horizontal scrolling.
   * New scroll action: `Transparency`. It allows you to set the transparency of arbitrary windows.
