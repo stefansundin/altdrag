@@ -1098,7 +1098,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 		}
 	}
 
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -1118,7 +1118,6 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 		POINT pt = msg->pt;
 		// Handle mouse move and scroll
 		if (wParam == WM_MOUSEMOVE) {
-			DBG("%d,%d", pt.x, pt.y);
 			// Store prevpt so we can check if the hook goes stale
 			state.prevpt = pt;
 			// Move the window
