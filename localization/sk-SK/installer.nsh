@@ -1,9 +1,9 @@
-﻿;AltDrag - sk-SK localization by Miroslav Miklus (miroslav.miklus@gmail.com)
+﻿; AltDrag - sk-SK localization by Miroslav Miklus (miroslav.miklus@gmail.com)
 ;
-;This program is free software: you can redistribute it and/or modify
-;it under the terms of the GNU General Public License as published by
-;the Free Software Foundation, either version 3 of the License, or
-;(at your option) any later version.
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
 
 !insertmacro MUI_LANGUAGE "Slovak"
 LangString L10N_LANG ${LANG_SLOVAK} ""

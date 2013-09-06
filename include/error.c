@@ -1,6 +1,5 @@
 /*
-	Error message handler.
-	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -17,17 +16,24 @@ int showerror = 1;
 wchar_t log_filename[1000] = L"";
 
 FILE *OpenLog(wchar_t *mode) {
-	//Put the file on the desktop (since we should always be able to write there)
+	//return stdout;
+	// Put the file on the desktop (since we should always be able to write there)
 	if (log_filename[0] == '\0') {
 		SHGetFolderPath(NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, log_filename);
 		wcscat(log_filename, L"\\"APP_NAME"-log.txt");
 	}
 	FILE *f = _wfopen(log_filename, mode);
 	if (f == NULL) {
-		// if it fails to open the file, it should print to the terminal (recompile with -mconsole)
+		// If it fails to open the file, it should print to the terminal (recompile with -mconsole)
 		return stdout;
 	}
 	return f;
+}
+
+void CloseLog(FILE *f) {
+	if (f != stdout) {
+		fclose(f);
+	}
 }
 
 #endif
@@ -35,7 +41,7 @@ FILE *OpenLog(wchar_t *mode) {
 
 LRESULT CALLBACK ErrorMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
-		//Edit the caption of the buttons
+		// Edit the caption of the buttons
 		SetDlgItemText((HWND)wParam, IDYES, L"Copy error");
 		SetDlgItemText((HWND)wParam, IDNO,  L"OK");
 	}
@@ -46,27 +52,27 @@ void _Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line
 	if (!showerror) {
 		return;
 	}
-	//Format message
+	// Format message
 	wchar_t msg[1000], *errormsg;
 	int length = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorcode, 0, (wchar_t*)&errormsg, 0, NULL);
 	if (length != 0) {
-		errormsg[length-2] = '\0'; //Remove that damn newline at the end of the formatted error message
+		errormsg[length-2] = '\0'; // Remove that damn newline at the end of the formatted error message
 	}
 	swprintf(msg, L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, file, line, errormsg, errorcode, info);
 	LocalFree(errormsg);
-	//Display message
+	// Display message
 	#ifdef ERROR_WRITETOFILE
 	FILE *f = OpenLog(L"ab");
 	fputws(msg, f);
 	fputws(L"\n\n", f);
-	fclose(f);
+	CloseLog(f);
 	#else
-	//Tip: You can also press Ctrl+C in a MessageBox window to copy the text
+	// Tip: You can also press Ctrl+C in a MessageBox window to copy the text
 	HHOOK hhk = SetWindowsHookEx(WH_CBT, &ErrorMsgProc, 0, GetCurrentThreadId());
 	int response = MessageBox(NULL, msg, APP_NAME" Error", MB_ICONERROR|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
-		//Copy message to clipboard
+		// Copy message to clipboard
 		int size = (wcslen(msg)+1)*sizeof(msg[0]);
 		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
 		memcpy(data, msg, size);
@@ -90,7 +96,7 @@ void _Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line
 	FILE *f = OpenLog(L"ab"); \
 	fwprintf(f, TEXT(fmt), ##__VA_ARGS__); \
 	fputws(L"\n\n", f); \
-	fclose(f); \
+	CloseLog(f); \
 }
 
 #else

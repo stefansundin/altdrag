@@ -1,17 +1,17 @@
-;Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
+; Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 ;
-;This program is free software: you can redistribute it and/or modify
-;it under the terms of the GNU General Public License as published by
-;the Free Software Foundation, either version 3 of the License, or
-;(at your option) any later version.
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
 
-;For silent install you can use these switches: /S /L=es-ES /D=C:\installdir
+; For silent install you can use these switches: /S /L=es-ES /D=C:\installdir
 
-;Requires AccessControl plug-in
-;http://nsis.sourceforge.net/AccessControl_plug-in
+; Requires AccessControl plug-in
+; http://nsis.sourceforge.net/AccessControl_plug-in
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "1.0b3"
+!define APP_VERSION   "1.0rc"
 !define APP_URL       "http://code.google.com/p/altdrag/"
 !define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
 
@@ -77,7 +77,7 @@ ${EndIf}
 
 !macro SetLang lang1 lang2 id
 ${If} ${lang1} == ${lang2}
-	;Beautiful NSIS-way of doing $LANGUAGE = ${id}
+	; Beautiful NSIS-way of doing $LANGUAGE = ${id}
 	IntOp $LANGUAGE 0 + ${id}
 ${EndIf}
 !macroend
@@ -86,7 +86,7 @@ ${EndIf}
 
 !macro AddTray un
 Function ${un}AddTray
-	;Add tray icon if program is running
+	; Add tray icon if program is running
 	FindWindow $0 "${APP_NAME}" ""
 	IntCmp $0 0 done
 		DetailPrint "Adding tray icon."
@@ -100,7 +100,7 @@ FunctionEnd
 
 !macro CloseApp un
 Function ${un}CloseApp
-	;Close app if running
+	; Close app if running
 	FindWindow $0 "${APP_NAME}" ""
 	IntCmp $0 0 done
 		DetailPrint "Closing running ${APP_NAME}."
@@ -110,8 +110,8 @@ Function ${un}CloseApp
 			FindWindow $0 "${APP_NAME}" ""
 			IntCmp $0 0 closed waitloop waitloop
 	closed:
-	Sleep 100 ;Sleep a little extra to let Windows do its thing
-	;If HookWindows is enabled, sleep even longer
+	Sleep 100 ; Sleep a little extra to let Windows do its thing
+	; If HookWindows is enabled, sleep even longer
 	ReadINIStr $0 "$INSTDIR\${APP_NAME}.ini" "Advanced" "HookWindows"
 	${If} $0 == "1"
 		Sleep 1000
@@ -144,21 +144,21 @@ Section "" sec_update
 SectionEnd
 
 Section "" sec_app
-	;Close app if running
+	; Close app if running
 	Call CloseApp
 
 	SetOutPath "$INSTDIR"
 
-	;Rename old ini file if it exists
+	; Rename old ini file if it exists
 	IfFileExists "${APP_NAME}.ini" 0 +3
 		Delete "${APP_NAME}-old.ini"
 		Rename "${APP_NAME}.ini" "${APP_NAME}-old.ini"
 
-	;Delete files that existed in earlier versions
-	Delete /REBOOTOK "$INSTDIR\info.txt" ;existed in <= 0.9
-	Delete /REBOOTOK "$INSTDIR\Config.exe" ;existed in 1.0b1
+	; Delete files that existed in earlier versions
+	Delete /REBOOTOK "$INSTDIR\info.txt" ; existed in <= 0.9
+	Delete /REBOOTOK "$INSTDIR\Config.exe" ; existed in 1.0b1
 
-	;Install files
+	; Install files
 	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
 	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
 	File "build\en-US\${APP_NAME}\hooks.dll"
@@ -175,19 +175,19 @@ Section "" sec_app
 	!insertmacro Lang "it-IT" ${LANG_ITALIAN}
 	!insertmacro Lang "de-DE" ${LANG_GERMAN}
 
-	;Deactivate CheckOnStartup if check for update was deselected
+	; Deactivate CheckOnStartup if check for update was deselected
 	${IfNot} ${SectionIsSelected} ${sec_update}
 		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "Update" "CheckOnStartup" "0"
 	${EndIf}
 
-	;Grant write rights to ini file to all users
+	; Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
 
-	;Update registry
+	; Update registry
 	WriteRegStr HKCU "Software\${APP_NAME}" "Install_Dir" "$INSTDIR"
 	WriteRegStr HKCU "Software\${APP_NAME}" "Version" "${APP_VERSION}"
 
-	;Create uninstaller
+	; Create uninstaller
 	WriteUninstaller "Uninstall.exe"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
@@ -199,7 +199,7 @@ Section "" sec_app
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
 
-	;Compute size for uninstall information
+	; Compute size for uninstall information
 	${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
 	IntFmt $0 "0x%08X" $0
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "EstimatedSize" "$0"
@@ -214,7 +214,7 @@ Function Launch
 FunctionEnd
 
 
-;Alt+Shift notification
+; Alt+Shift notification
 Var SkipAltShiftPage
 
 Function PageAltShift
@@ -229,7 +229,7 @@ Function PageAltShift
 	Pop $0
 	${NSD_OnClick} $0 OpenKeyboardSettings
 
-	;Disable buttons
+	; Disable buttons
 	Call DisableXButton
 	Call DisableCancelButton
 
@@ -241,7 +241,7 @@ Function OpenKeyboardSettings
 FunctionEnd
 
 
-;LowLevelHooksTimeout notification
+; LowLevelHooksTimeout notification
 Var SkipLowLevelHooksTimeoutPage
 Var AdjustLowLevelHooksTimeoutButton
 Var RevertLowLevelHooksTimeoutButton
@@ -266,7 +266,7 @@ Function PageLowLevelHooksTimeout
 
 	${NSD_CreateLabel} 0 195 100% 30 "$(L10N_HOOKTIMEOUT_FOOTER)"
 
-	;Disable buttons
+	; Disable buttons
 	Call DisableXButton
 	Call DisableCancelButton
 	${If} $SkipAltShiftPage == "true"
@@ -293,14 +293,14 @@ Function AdjustLowLevelHooksTimeout
 	WriteRegDWORD HKCU "Control Panel\Desktop" "LowLevelHooksTimeout" 5000
 	EnableWindow $AdjustLowLevelHooksTimeoutButton 0
 	EnableWindow $RevertLowLevelHooksTimeoutButton 1
-	Call FocusNextButton ;Otherwise Alt shortcuts won't work
+	Call FocusNextButton ; Otherwise Alt shortcuts won't work
 FunctionEnd
 
 Function RevertLowLevelHooksTimeout
 	DeleteRegValue HKCU "Control Panel\Desktop" "LowLevelHooksTimeout"
 	EnableWindow $AdjustLowLevelHooksTimeoutButton 1
 	EnableWindow $RevertLowLevelHooksTimeoutButton 0
-	Call FocusNextButton ;Otherwise Alt shortcuts won't work
+	Call FocusNextButton ; Otherwise Alt shortcuts won't work
 FunctionEnd
 
 
@@ -344,7 +344,7 @@ Function PageUpgradeLeave
 	${EndIf}
 FunctionEnd
 
-;Used when upgrading to skip the directory page
+; Used when upgrading to skip the directory page
 Function SkipPage
 	${If} $UpgradeState == ${BST_CHECKED}
 		Abort
@@ -372,7 +372,7 @@ Function FocusNextButton
 FunctionEnd
 
 Function DisableXButton
-	;Disables the close button in the title bar
+	; Disables the close button in the title bar
 	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
 	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
 FunctionEnd
@@ -387,12 +387,12 @@ FunctionEnd
 Function .onInit
 	Call AddTray
 
-	;Handle silent install
+	; Handle silent install
 	IfSilent 0 done
 		!insertmacro UnselectSection ${sec_update}
 	done:
 
-	;Set language from command line
+	; Set language from command line
 	ClearErrors
 	${GetParameters} $0
 	IfErrors done2
@@ -427,7 +427,7 @@ Function .onInit
 		StrCpy $SkipLowLevelHooksTimeoutPage "true"
 	${EndIf}
 
-	;Display language selection and add tray if program is running
+	; Display language selection and add tray if program is running
 	!insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
 

@@ -24,7 +24,7 @@ BEGIN
 #endif
 			VALUE "FileVersion", "1.0"
 			VALUE "CompanyName", "Stefan Sundin"
-			VALUE "LegalCopyright", "© Stefan Sundin 2011"
+			VALUE "LegalCopyright", "© Stefan Sundin 2013"
 		END
 	END
 	BLOCK "VarFileInfo"

@@ -1,6 +1,5 @@
 /*
-	Check for update.
-	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -13,7 +12,7 @@
 int update = 0;
 
 int OpenUrl(wchar_t *url) {
-	int ret = (INT_PTR)ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWDEFAULT);
+	int ret = (INT_PTR) ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWDEFAULT);
 	if (ret <= 32 && MessageBox(NULL,L"Failed to open browser. Copy url to clipboard?",APP_NAME,MB_ICONWARNING|MB_YESNO) == IDYES) {
 		int size = (wcslen(url)+1)*sizeof(url[0]);
 		wchar_t *data = LocalAlloc(LMEM_FIXED, size);
@@ -28,10 +27,10 @@ int OpenUrl(wchar_t *url) {
 }
 
 DWORD WINAPI _CheckForUpdate(LPVOID arg) {
-	int verbose = *(int*)arg;
+	int verbose = *(int*) arg;
 	free(arg);
 
-	//Check if we should check for beta
+	// Check if we should check for beta
 	wchar_t path[MAX_PATH], txt[10];
 	GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 	PathRemoveFileSpec(path);
@@ -39,9 +38,9 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	GetPrivateProfileString(L"Update", L"Beta", L"0", txt, ARRAY_SIZE(txt), path);
 	int beta = _wtoi(txt);
 
-	//Check if we are connected to the internet
-	DWORD flags; //Not really used
-	int tries = 0; //Try at least ten times, sleep one second between each attempt
+	// Check if we are connected to the internet
+	DWORD flags; // Not really used
+	int tries = 0; // Try at least ten times, sleep one second between each attempt
 	while (InternetGetConnectedState(&flags,0) == FALSE) {
 		tries++;
 		if (!verbose) {
@@ -55,7 +54,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		}
 	}
 
-	//Open connection
+	// Open connection
 	HINTERNET http = InternetOpen(APP_NAME"/"APP_VERSION, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
 	if (http == NULL) {
 		if (verbose) {
@@ -73,7 +72,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		InternetCloseHandle(http);
 		return 1;
 	}
-	//Read file
+	// Read file
 	char data[20];
 	DWORD numread;
 	if (InternetReadFile(file,data,sizeof(data),&numread) == FALSE) {
@@ -85,16 +84,16 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		return 1;
 	}
 	data[numread] = '\0';
-	//Get response code
+	// Get response code
 	wchar_t code[4];
 	DWORD len = sizeof(code);
 	HttpQueryInfo(file, HTTP_QUERY_STATUS_CODE, &code, &len, NULL);
-	//Close connection
+	// Close connection
 	InternetCloseHandle(file);
 	InternetCloseHandle(http);
 
-	//Make sure the response is valid
-	//strcpy(data, "Version: 1.0"); //This is the format of the new update string
+	// Make sure the response is valid
+	//strcpy(data, "Version: 1.0"); // This is the format of the new update string
 	//char header[] = "Version: ";
 	if (wcscmp(code,L"200") /*|| strstr(data,header) != data*/) {
 		if (verbose) {
@@ -103,7 +102,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 		return 2;
 	}
 
-	//New version available?
+	// New version available?
 	//char *latest = data+strlen(header);
 	//int cmp = strcmp(latest, APP_VERSION);
 	int cmp = strcmp(data, APP_VERSION);
