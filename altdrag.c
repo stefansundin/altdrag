@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-//App
+// App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.0b3"
+#define APP_VERSION         "1.0rc"
 #define APP_URL             L"http://code.google.com/p/altdrag/"
 #define APP_UPDATE_STABLE   L"http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
 #define APP_UPDATE_UNSTABLE L"http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
 
-//Messages
+// Messages
 #define WM_TRAY                WM_USER+1
 #define SWM_TOGGLE             WM_APP+1
 #define SWM_HIDE               WM_APP+2
@@ -33,7 +33,7 @@
 #define SWM_ABOUT              WM_APP+5
 #define SWM_EXIT               WM_APP+6
 
-//Stuff missing in MinGW
+// Stuff missing in MinGW
 #ifndef NIIF_USER
 #define NIIF_USER 4
 #define NIN_BALLOONSHOW        WM_USER+2
@@ -42,7 +42,7 @@
 #define NIN_BALLOONUSERCLICK   WM_USER+5
 #endif
 
-//Boring stuff
+// Boring stuff
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define ENABLED() (keyhook || msghook)
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
@@ -56,7 +56,7 @@ UINT WM_OPENCONFIG = 0;
 UINT WM_CLOSECONFIG = 0;
 wchar_t inipath[MAX_PATH];
 
-//Cool stuff
+// Cool stuff
 HINSTANCE hinstDLL = NULL;
 HHOOK keyhook = NULL;
 HHOOK msghook = NULL;
@@ -64,7 +64,7 @@ BOOL x64 = FALSE;
 int vista = 0;
 int elevated = 0;
 
-//Include stuff
+// Include stuff
 #include "localization/strings.h"
 #include "include/error.c"
 #include "include/localization.c"
@@ -72,18 +72,18 @@ int elevated = 0;
 #include "include/update.c"
 #include "config/config.c"
 
-//Entry point
+// Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
 	IsWow64Process(GetCurrentProcess(), &x64);
 
-	//Get ini path
+	// Get ini path
 	GetModuleFileName(NULL, inipath, ARRAY_SIZE(inipath));
 	PathRemoveFileSpec(inipath);
 	wcscat(inipath, L"\\"APP_NAME".ini");
 	wchar_t txt[10];
 
-	//Convert szCmdLine to argv and argc (max 10 arguments)
+	// Convert szCmdLine to argv and argc (max 10 arguments)
 	char *argv[10];
 	int argc = 1;
 	argv[0] = szCmdLine;
@@ -93,33 +93,33 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		argv[argc++]++;
 	}
 
-	//Check arguments
+	// Check arguments
 	int i;
 	int elevate=0, quiet=0, config=-1, multi=0;
 	for (i=0; i < argc; i++) {
 		if (!strcmp(argv[i],"-hide") || !strcmp(argv[i],"-h")) {
-			//-hide = do not add tray icon, hide it if already running
+			// -hide = do not add tray icon, hide it if already running
 			hide = 1;
 		}
 		else if (!strcmp(argv[i],"-quiet") || !strcmp(argv[i],"-q")) {
-			//-quiet = do nothing if already running
+			// -quiet = do nothing if already running
 			quiet = 1;
 		}
 		else if (!strcmp(argv[i],"-elevate") || !strcmp(argv[i],"-e")) {
-			//-elevate = create a new instance with administrator privileges
+			// -elevate = create a new instance with administrator privileges
 			elevate = 1;
 		}
 		else if (!strcmp(argv[i],"-config") || !strcmp(argv[i],"-c")) {
-			//-config = open config (with requested page)
+			// -config = open config (with requested page)
 			config = (i+1 < argc)?atoi(argv[i+1]):0;
 		}
 		else if (!strcmp(argv[i],"-multi")) {
-			//-multi = allow multiple instances, used internally when elevating via config window
+			// -multi = allow multiple instances, used internally when elevating via config window
 			multi = 1;
 		}
 	}
 
-	//Check if elevated if in >= Vista
+	// Check if elevated if in >= Vista
 	OSVERSIONINFO vi = { sizeof(OSVERSIONINFO) };
 	GetVersionEx(&vi);
 	vista = (vi.dwMajorVersion >= 6);
@@ -132,14 +132,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 
-	//Register some messages
+	// Register some messages
 	WM_UPDATESETTINGS = RegisterWindowMessage(L"UpdateSettings");
 	WM_OPENCONFIG = RegisterWindowMessage(L"OpenConfig");
 	WM_CLOSECONFIG = RegisterWindowMessage(L"CloseConfig");
 	WM_ADDTRAY = RegisterWindowMessage(L"AddTray");
 	WM_HIDETRAY = RegisterWindowMessage(L"HideTray");
 
-	//Look for previous instance
+	// Look for previous instance
 	GetPrivateProfileString(L"Advanced", L"MultipleInstances", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (!_wtoi(txt) && !multi) {
 		HWND previnst = FindWindow(APP_NAME, NULL);
@@ -154,14 +154,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 
-	//Check AlwaysElevate
+	// Check AlwaysElevate
 	if (!elevated) {
 		GetPrivateProfileString(L"Advanced", L"AlwaysElevate", L"0", txt, ARRAY_SIZE(txt), inipath);
 		if (_wtoi(txt)) {
 			elevate = 1;
 		}
 
-		//Handle request to elevate to administrator privileges
+		// Handle request to elevate to administrator privileges
 		if (elevate) {
 			wchar_t path[MAX_PATH];
 			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
@@ -172,7 +172,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 
-	//Load Translation.ini if it exists
+	// Load Translation.ini if it exists
 	wchar_t translation_ini[300];
 	GetModuleFileName(NULL, translation_ini, ARRAY_SIZE(inipath));
 	PathRemoveFileSpec(translation_ini);
@@ -183,7 +183,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		LoadTranslation(translation_ini);
 	}
 
-	//Language
+	// Language
 	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
 	for (i=0; i < ARRAY_SIZE(languages); i++) {
 		if (!wcsicmp(txt,languages[i]->code)) {
@@ -192,37 +192,37 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 
-	//Create window
+	// Create window
 	WNDCLASSEX wnd = { sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL };
 	RegisterClassEx(&wnd);
 	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, NULL, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
-	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
+	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); // Almost transparent
 
-	//Tray icon
+	// Tray icon
 	InitTray();
 	UpdateTray();
 
-	//Hook system
+	// Hook system
 	HookSystem();
 
-	//Add tray if hook failed, even though -hide was supplied
+	// Add tray if hook failed, even though -hide was supplied
 	if (hide && !keyhook) {
 		hide = 0;
 		UpdateTray();
 	}
 
-	//Check for update
+	// Check for update
 	GetPrivateProfileString(L"Update", L"CheckOnStartup", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (_wtoi(txt)) {
 		CheckForUpdate(0);
 	}
 
-	//Open config if -config was supplied
+	// Open config if -config was supplied
 	if (config != -1) {
 		PostMessage(g_hwnd, WM_OPENCONFIG, config, 0);
 	}
 
-	//Message loop
+	// Message loop
 	MSG msg;
 	while (GetMessage(&msg,NULL,0,0)) {
 		TranslateMessage(&msg);
@@ -233,11 +233,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 
 int HookSystem() {
 	if (keyhook && msghook) {
-		//System already hooked
+		// System already hooked
 		return 1;
 	}
 
-	//Load library
+	// Load library
 	if (!hinstDLL) {
 		wchar_t path[MAX_PATH];
 		GetModuleFileName(NULL, path, ARRAY_SIZE(path));
@@ -250,16 +250,16 @@ int HookSystem() {
 		}
 	}
 
-	//Load keyboard hook
+	// Load keyboard hook
 	HOOKPROC procaddr;
 	if (!keyhook) {
-		//Get address to keyboard hook (beware name mangling)
+		// Get address to keyboard hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc@12");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
 		}
-		//Set up the keyboard hook
+		// Set up the keyboard hook
 		keyhook = SetWindowsHookEx(WH_KEYBOARD_LL, procaddr, hinstDLL, 0);
 		if (keyhook == NULL) {
 			Error(L"SetWindowsHookEx(WH_KEYBOARD_LL)", L"Could not hook keyboard. Another program might be interfering.", GetLastError());
@@ -267,24 +267,24 @@ int HookSystem() {
 		}
 	}
 
-	//HookWindows
+	// HookWindows
 	wchar_t txt[10];
 	GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (!msghook && _wtoi(txt)) {
-		//Get address to message hook (beware name mangling)
+		// Get address to message hook (beware name mangling)
 		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
 		}
-		//Set up the message hook
+		// Set up the message hook
 		msghook = SetWindowsHookEx(WH_CALLWNDPROC, procaddr, hinstDLL, 0);
 		if (msghook == NULL) {
 			Error(L"SetWindowsHookEx(WH_CALLWNDPROC)", L"Could not hook message hook. Another program might be interfering.", GetLastError());
 			return 1;
 		}
 
-		//x64
+		// x64
 		if (x64) {
 			wchar_t path[MAX_PATH];
 			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
@@ -294,12 +294,13 @@ int HookSystem() {
 		}
 	}
 
-	//Success
+	// Success
 	UpdateTray();
 	return 0;
 }
 
-//Force processes to unload hooks.dll by sending them a dummy message
+// Force processes to unload hooks.dll by sending them a dummy message (HookWindows)
+// To be honest I don't really know if this makes a difference anymore
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	PostMessage(hwnd, WM_NULL, 0, 0);
 	return TRUE;
@@ -307,11 +308,11 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 
 int UnhookSystem() {
 	if (!keyhook && !msghook) {
-		//System not hooked
+		// System not hooked
 		return 1;
 	}
 
-	//Remove keyboard hook
+	// Remove keyboard hook
 	if (keyhook) {
 		if (UnhookWindowsHookEx(keyhook) == 0) {
 			#ifdef DEBUG
@@ -325,7 +326,7 @@ int UnhookSystem() {
 		keyhook = NULL;
 	}
 
-	//Remove message hook
+	// Remove message hook
 	if (msghook) {
 		if (UnhookWindowsHookEx(msghook) == 0) {
 			#ifdef DEBUG
@@ -334,7 +335,7 @@ int UnhookSystem() {
 		}
 		msghook = NULL;
 
-		//Close HookWindows_x64.exe
+		// Close HookWindows_x64.exe
 		if (x64) {
 			HWND window = FindWindow(L"AltDrag-x64", NULL);
 			if (window != NULL) {
@@ -342,12 +343,12 @@ int UnhookSystem() {
 			}
 		}
 
-		//Send dummy messages to all processes to make them unload hooks.dll
+		// Send dummy messages to all processes to make them unload hooks.dll
 		EnumWindows(EnumWindowsProc, 0);
 	}
 
-	//Tell dll file that we are unloading
-	void (*Unload)() = (void*)GetProcAddress(hinstDLL, "Unload");
+	// Tell dll file that we are unloading
+	void (*Unload)() = (void*) GetProcAddress(hinstDLL, "Unload");
 	if (Unload == NULL) {
 		Error(L"GetProcAddress('Unload')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 	}
@@ -355,7 +356,7 @@ int UnhookSystem() {
 		Unload();
 	}
 
-	//Unload library
+	// Unload library
 	if (hinstDLL) {
 		if (FreeLibrary(hinstDLL) == 0) {
 			Error(L"FreeLibrary()", L"Could not free hooks.dll. Try restarting "APP_NAME".", GetLastError());
@@ -363,7 +364,7 @@ int UnhookSystem() {
 		hinstDLL = NULL;
 	}
 
-	//Success
+	// Success
 	UpdateTray();
 	return 0;
 }
@@ -404,7 +405,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	else if (msg == WM_UPDATESETTINGS) {
 		wchar_t txt[10];
-		//Language
+		// Language
 		GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
 		int i;
 		for (i=0; i < ARRAY_SIZE(languages); i++) {
@@ -413,7 +414,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				break;
 			}
 		}
-		//Reload hooks
+		// Reload hooks
 		if (ENABLED()) {
 			UnhookSystem();
 			HookSystem();
@@ -472,7 +473,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		PostQuitMessage(0);
 	}
 	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
-		//Hide cursorwnd if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
+		// Hide cursorwnd if clicked on, this might happen if it wasn't hidden by hooks.c for some reason
 		ShowWindow(hwnd, SW_HIDE);
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);

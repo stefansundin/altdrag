@@ -140,6 +140,3 @@ IDI_ALTDRAG        ICON           "../media/icon-big.ico"
 
 
 IDI_FIND           ICON           "../media/find.ico"
-
-
-IDI_MONEY          ICON           "../media/money.ico"

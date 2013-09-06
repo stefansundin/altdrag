@@ -1,8 +1,5 @@
 /*
-	Read/write to ini files.
-	Used to batch-write the Language setting when using 'build all'.
-
-	Copyright (C) 2012  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -25,7 +22,7 @@
 #include "../localization/strings.h"
 
 void wcscpy_escape(wchar_t *dest, wchar_t *source) {
-	//Copy from source to dest, resolving \\n to \n
+	// Copy from source to dest, resolving \\n to \n
 	for (; *source != '\0'; source++,dest++) {
 		if (*source == '\n') {
 			*dest = '\\';
@@ -68,11 +65,11 @@ int main(int argc, char *argv[]) {
 
 		for (j=0; j < ARRAY_SIZE(l10n_mapping); j++) {
 			wchar_t txt[3000];
-			//Get pointer to string
+			// Get pointer to string
 			wchar_t *str = *(wchar_t**) ((void*)l10n + ((void*)l10n_mapping[j].str - (void*)&l10n_ini));
-			//Escape
+			// Escape
 			wcscpy_escape(txt, str);
-			//Write
+			// Write
 			WritePrivateProfileString(L"Translation", l10n_mapping[j].name, txt, ini);
 		}
 	}

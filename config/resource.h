@@ -3,7 +3,6 @@
 #endif
 
 #define IDI_ALTDRAG                             112
-#define IDI_MONEY                               113
 #define IDD_GENERALPAGE                         201
 #define IDD_INPUTPAGE                           202
 #define IDD_BLACKLISTPAGE                       203

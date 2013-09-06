@@ -1,11 +1,15 @@
-/*
-	WindowFinder - en-US localization by Stefan Sundin (recover89@gmail.com)
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-*/
+
+struct strings {
+	wchar_t *menu_find;
+	wchar_t *menu_finddelay;
+	wchar_t *menu_findall;
+	wchar_t *menu_about;
+	wchar_t *menu_exit;
+	wchar_t *wnddetails;
+	wchar_t *allwnds;
+	wchar_t *about_title;
+	wchar_t *about;
+};
 
 struct strings en_US = {
  /* menu_find      */ L"Find",
@@ -30,3 +34,5 @@ They are provided purely for informational purposes!\n\
 Read more on wiki page: "APP_URL"\n\
 Visit the author's website at http://stefansundin.com/"
 };
+
+struct strings *l10n=&en_US;
