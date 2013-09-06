@@ -5,7 +5,7 @@
 
 Okay, so you want to help? Great!
 
-Before you start translating, I recommend that you take a look [https://code.google.com/p/altdrag/source/browse/#svn/trunk/localization here] and see if your language already has been translated, or if an out-of-date translation exists.
+Before you start translating, I recommend that you take a look [https://code.google.com/p/altdrag/source/browse/#svn/trunk/localization in the source tree] and see if your language already has been translated, or if an out-of-date translation exists.
 
 Since version 1.0, AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en-US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
