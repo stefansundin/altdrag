@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2011  Stefan Sundin (recover89@gmail.com)
+	Copyright (C) 2013  Stefan Sundin (recover89@gmail.com)
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@
 #include <shlwapi.h>
 #include <wchar.h>
 
-//App
+// App
 #define APP_NAME      L"WindowFinder"
 #define APP_VERSION   "0.2"
-#define APP_URL       L"http://code.google.com/p/altdrag/wiki/WindowFinder"
+#define APP_URL       L"http://code.google.com/p/altdrag/"
 //#define DEBUG
 
-//Messages
+// Messages
 #define WM_TRAY                WM_USER+1
 #define SWM_FIND               WM_APP+1
 #define SWM_FINDDELAY          WM_APP+2
@@ -33,7 +33,7 @@
 #define SWM_ABOUT              WM_APP+5
 #define SWM_EXIT               WM_APP+6
 
-//Balloon stuff missing in MinGW
+// Balloon stuff missing in MinGW
 #ifndef NIIF_USER
 #define NIIF_USER 4
 #define NIN_BALLOONSHOW        WM_USER+2
@@ -42,52 +42,52 @@
 #define NIN_BALLOONUSERCLICK   WM_USER+5
 #endif
 
-//Boring stuff
+// Boring stuff
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hinst = NULL;
 HWND g_hwnd = NULL;
 UINT WM_TASKBARCREATED = 0;
 wchar_t txt[2000];
 
-//Cool stuff
+// Cool stuff
 HHOOK mousehook = NULL;
 HWND *wnds = NULL;
 int numwnds = 0;
 int find = 0;
 
-//Include stuff
-#include "localization/strings.h"
+// Include stuff
+#include "include/strings.h"
 #include "../include/error.c"
 #include "include/tray.c"
 
-//Entry point
+// Entry point
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	g_hinst = hInst;
 
-	//Look for previous instance
+	// Look for previous instance
 	HWND previnst = FindWindow(APP_NAME, NULL);
 	if (previnst != NULL) {
 		SendMessage(previnst, WM_COMMAND, SWM_FIND, 0);
 		return 0;
 	}
 
-	//Create window
+	// Create window
 	WNDCLASSEX wnd = {sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL};
 	wnd.hCursor = LoadImage(hInst, L"find", IMAGE_CURSOR, 0, 0, LR_DEFAULTCOLOR);
 	RegisterClassEx(&wnd);
 	g_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_LAYERED, wnd.lpszClassName, APP_NAME, WS_POPUP, 0, 0, 0, 0, NULL, NULL, hInst, NULL);
-	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); //Almost transparent
+	SetLayeredWindowAttributes(g_hwnd, 0, 1, LWA_ALPHA); // Almost transparent
 
-	//Tray icon
+	// Tray icon
 	InitTray();
 	UpdateTray();
 
-	//Hook mouse
+	// Hook mouse
 	if ((GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 		HookMouse();
 	}
 
-	//Message loop
+	// Message loop
 	MSG msg;
 	while (GetMessage(&msg,NULL,0,0)) {
 		TranslateMessage(&msg);
@@ -98,7 +98,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR szCmdLine, in
 
 LRESULT CALLBACK WndDetailsMsgProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HCBT_ACTIVATE) {
-		//Edit the caption of the buttons
+		// Edit the caption of the buttons
 		SetDlgItemText((HWND)wParam, IDYES, L"Copy");
 		SetDlgItemText((HWND)wParam, IDNO,  L"OK");
 	}
@@ -117,7 +117,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	}
 	HWND hwnd = GetAncestor(hwnd_component, GA_ROOT);
 
-	//Get child window
+	// Get child window
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
 		#ifdef DEBUG
@@ -134,7 +134,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 		#endif
 	}
 
-	//Get title and class
+	// Get title and class
 	wchar_t title[256], title_child[256], title_component[256];
 	wchar_t classname[256], classname_child[256], classname_component[256];
 	GetWindowText(hwnd, title, sizeof(title)/sizeof(wchar_t));
@@ -144,7 +144,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	GetWindowText(hwnd_component, title_component, sizeof(title_component)/sizeof(wchar_t));
 	GetClassName(hwnd_component, classname_component, sizeof(classname_component)/sizeof(wchar_t));
 
-	//Assemble message
+	// Assemble message
 	swprintf(txt, L"Window:\n title: %s\n class: %s", title, classname);
 	if (hwnd_child != hwnd) {
 		swprintf(txt, L"%s\n\nChild:\n title: %s\n class: %s", txt, title_child, classname_child);
@@ -153,12 +153,12 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 		swprintf(txt, L"%s\n\nComponent:\n title: %s\n class: %s", txt, title_component, classname_component);
 	}
 	swprintf(txt, L"%s\n\nExample blacklist rules:\n%s|%s\n*|%s", txt, title, classname, classname);
-	//Show message
+	// Show message
 	HHOOK hhk = SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
 	int response = MessageBox(NULL, txt, l10n->wnddetails, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2|MB_SYSTEMMODAL);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
-		//Copy message to clipboard
+		// Copy message to clipboard
 		OpenClipboard(NULL);
 		EmptyClipboard();
 		wchar_t *data = LocalAlloc(LMEM_FIXED, (wcslen(txt)+1)*sizeof(wchar_t));
@@ -170,12 +170,12 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 
 int wnds_alloc = 0;
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
-	//Make sure we have enough space allocated
+	// Make sure we have enough space allocated
 	if (numwnds == wnds_alloc) {
 		wnds_alloc += 100;
 		wnds = realloc(wnds, wnds_alloc*sizeof(HWND));
 	}
-	//Store window if it's visible
+	// Store window if it's visible
 	if (IsWindowVisible(hwnd)) {
 		wnds[numwnds++] = hwnd;
 	}
@@ -183,7 +183,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 }
 
 void FindAllWnds() {
-	//Enumerate windows
+	// Enumerate windows
 	numwnds = 0;
 	EnumWindows(EnumWindowsProc, 0);
 	wchar_t title[256];
@@ -200,12 +200,12 @@ void FindAllWnds() {
 		}
 	}
 
-	//Show message
+	// Show message
 	HHOOK hhk = SetWindowsHookEx(WH_CBT, &WndDetailsMsgProc, 0, GetCurrentThreadId());
 	int response = MessageBox(NULL, txt, l10n->allwnds, MB_ICONINFORMATION|MB_YESNO|MB_DEFBUTTON2);
 	UnhookWindowsHookEx(hhk);
 	if (response == IDYES) {
-		//Copy message to clipboard
+		// Copy message to clipboard
 		OpenClipboard(NULL);
 		EmptyClipboard();
 		wchar_t *data = LocalAlloc(LMEM_FIXED, (wcslen(txt)+1)*sizeof(wchar_t));
@@ -215,36 +215,36 @@ void FindAllWnds() {
 	}
 }
 
-//Hooks
+// Hooks
 LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		if (wParam == WM_LBUTTONDOWN && find) {
 			POINT pt = ((PMSLLHOOKSTRUCT)lParam)->pt;
 
-			//Make sure cursorwnd isn't in the way
+			// Make sure cursorwnd isn't in the way
 			ShowWindow(g_hwnd, SW_HIDE);
 
-			//Print window info
+			// Print window info
 			POINT *p_pt = malloc(sizeof(pt));
 			*p_pt = pt;
 			CreateThread(NULL, 0, FindWnd, p_pt, 0, NULL);
 
-			//Unhook mouse
+			// Unhook mouse
 			UnhookMouse();
 
-			//Prevent mousedown from propagating
+			// Prevent mousedown from propagating
 			return 1;
 		}
 		else if (wParam == WM_RBUTTONDOWN) {
-			//Disable mouse
+			// Disable mouse
 			DisableMouse();
-			//Prevent mousedown from propagating
+			// Prevent mousedown from propagating
 			return 1;
 		}
 		else if (wParam == WM_RBUTTONUP) {
-			//Unhook mouse
+			// Unhook mouse
 			UnhookMouse();
-			//Prevent mouseup from propagating
+			// Prevent mouseup from propagating
 			return 1;
 		}
 	}
@@ -254,18 +254,18 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
 int HookMouse() {
 	if (mousehook) {
-		//Mouse already hooked
+		// Mouse already hooked
 		return 1;
 	}
 
-	//Set up the hook
+	// Set up the hook
 	mousehook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, g_hinst, 0);
 	if (mousehook == NULL) {
 		Error(L"SetWindowsHookEx(WH_MOUSE_LL)", L"Check the "APP_NAME" website if there is an update, if the latest version doesn't fix this, please report it.", GetLastError());
 		return 1;
 	}
 
-	//Show cursor
+	// Show cursor
 	int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
 	int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
@@ -273,46 +273,46 @@ int HookMouse() {
 	MoveWindow(g_hwnd, left, top, width, height, FALSE);
 	ShowWindowAsync(g_hwnd, SW_SHOWNA);
 
-	//Success
+	// Success
 	find = 1;
 	return 0;
 }
 
 DWORD WINAPI DelayedUnhookMouse() {
-	//Sleep so mouse events have time to be canceled
+	// Sleep so mouse events have time to be canceled
 	Sleep(100);
 
-	//Unhook the mouse hook
+	// Unhook the mouse hook
 	if (UnhookWindowsHookEx(mousehook) == 0) {
 		Error(L"UnhookWindowsHookEx(mousehook)", L"UnhookMouse()", GetLastError());
 		return 1;
 	}
 
-	//Success
+	// Success
 	mousehook = NULL;
 }
 
 int UnhookMouse() {
 	if (!mousehook) {
-		//Mouse not hooked
+		// Mouse not hooked
 		return 1;
 	}
 
-	//Disable
+	// Disable
 	DisableMouse();
 
-	//Unhook
+	// Unhook
 	CreateThread(NULL, 0, DelayedUnhookMouse, NULL, 0, NULL);
 
-	//Success
+	// Success
 	return 0;
 }
 
 int DisableMouse() {
-	//Disable
+	// Disable
 	find = 0;
 
-	//Hide cursor
+	// Hide cursor
 	ShowWindow(g_hwnd, SW_HIDE);
 }
 
@@ -360,9 +360,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return 0;
 	}
 	else if (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN) {
-		//Hide the window if clicked on, this might happen if it wasn't hidden by the hooks for some reason
+		// Hide the window if clicked on, this might happen if it wasn't hidden by the hooks for some reason
 		ShowWindow(hwnd, SW_HIDE);
-		//Since we take away the cursor, make sure the mouse is unhooked
+		// Since we take away the cursor, make sure the mouse is unhooked
 		UnhookMouse();
 	}
 	return DefWindowProc(hwnd, msg, wParam, lParam);
