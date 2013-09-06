@@ -13,7 +13,7 @@ Some things to note:
   * Your new translation will replace the English translation.
   * You have to restart AltDrag between your changes.
   * AltDrag is fully unicode enabled, so all kinds of characters should be possible. Make sure to save the file with the correct encoding.
-  * The sequence `\n` is translated to a newline.
+  * The sequence `\n` is converted to a newline.
   * The `&`-character specify that the next letter will be the shortcut to the control (e.g. the checkbox with the text "`&MDI support`" can be toggled with Alt+M). Note that for some reason you cannot use `&a` or `&A` for these shortcuts.
 
 
