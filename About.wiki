@@ -1,7 +1,7 @@
 #summary A more in-depth introduction
 #labels Featured,Phase-Deploy
 
-<wiki:toc max_depth="2" />
+<wiki:toc />
 
 = Introduction =
 AltDrag gives you the ability to move and resize your windows in a new way. After you have started AltDrag, you can simply hold down the Alt key and then click and drag any window.
@@ -26,7 +26,7 @@ If you have troubles understanding how AltDrag works, you can watch [http://www.
 
 
 == Resize ==
-You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press.
+You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press. The corners are slightly bigger than the middle regions.
 
 If you double-click these regions, the window will move moved to the respective corner on your screen (like Aero Snap), so you can quickly arrange your windows to fit on the screen.
 
@@ -34,20 +34,20 @@ http://altdrag.googlecode.com/svn/wiki/resize.png
 
 
 = Configuration =
-Since 1.0, AltDrag has a configuration GUI. The simplest way to open it is by double-clicking the tray icon. The settings are saved in a file called `AltDrag.ini`.
+The simplest way to open the configuration window is by double-clicking the tray icon. The settings are saved in a file called `AltDrag.ini`.
 
 http://altdrag.googlecode.com/svn/wiki/configuration_window.png
 
 == Language ==
-You can currently choose between English, Spanish, Galician and Chinese. I used to offer translations for Russian and Korean, but they have been discontinued because they are out of date.
-
-Do you want to translate AltDrag? Read how to do that [http://code.google.com/p/altdrag/wiki/Translate here].
+There are a few languages that are embedded inside AltDrag, but you can add an additional languages by translating an ini file. Read how to do that [http://code.google.com/p/altdrag/wiki/Translate here].
 
 
 == Mouse and keyboard ==
 You can reconfigure what the mouse buttons do here. The actions that you can choose from are `Move`, `Resize`, `Minimize`, `AlwaysOnTop`, `Center`, `Close` and `Nothing`.
 
 You can configure the scroll wheel to use `AltTab`, `Volume` or `Transparency`. `Volume` requires at least Windows Vista.
+
+You can also make AltDrag lower windows if you middle click their titlebars.
 
 If you have a great idea for a new mouse action, put in a request in the [http://code.google.com/p/altdrag/issues/list issue tracker].
 
