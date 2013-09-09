@@ -1,4 +1,4 @@
- ; AltDrag - ru-RU localization by Nick Eoneof (eoneof@gmail.com)
+; AltDrag - ru-RU localization by Nick Eoneof (eoneof@gmail.com)
 ; and Dmitry Trubin (dtruebin@gmail.com)
 ;
 ; This program is free software: you can redistribute it and/or modify

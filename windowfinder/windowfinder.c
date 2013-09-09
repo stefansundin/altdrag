@@ -117,6 +117,9 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	}
 	HWND hwnd = GetAncestor(hwnd_component, GA_ROOT);
 
+	DWORD pid;
+	GetWindowThreadProcessId(hwnd, &pid);
+
 	// Get child window
 	RECT wnd;
 	if (GetWindowRect(hwnd,&wnd) == 0) {
@@ -145,7 +148,7 @@ DWORD WINAPI FindWnd(LPVOID arg) {
 	GetClassName(hwnd_component, classname_component, sizeof(classname_component)/sizeof(wchar_t));
 
 	// Assemble message
-	swprintf(txt, L"Window:\n title: %s\n class: %s", title, classname);
+	swprintf(txt, L"Window: (pid: %d)\n title: %s\n class: %s", pid, title, classname);
 	if (hwnd_child != hwnd) {
 		swprintf(txt, L"%s\n\nChild:\n title: %s\n class: %s", txt, title_child, classname_child);
 	}
