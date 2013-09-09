@@ -5,8 +5,6 @@
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
-
-	Note: For some reason &A will not work as a shortcut.
 */
 
 struct strings en_US = {
@@ -46,7 +44,7 @@ struct strings en_US = {
  { /* general tab */
    /* box              */ L"General settings",
    /* autofocus        */ L"&Focus windows when dragging.\nYou can also press Ctrl to focus windows.",
-   /* aero             */ L"Mimic Aero S&nap",
+   /* aero             */ L"Mimic &Aero Snap",
    /* inactivescroll   */ L"&Scroll inactive windows",
    /* mdi              */ L"&MDI support",
    /* autosnap         */ L"Automatically snap to:",

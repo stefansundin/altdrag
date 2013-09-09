@@ -11,6 +11,7 @@
 #include <prsht.h>
 #include <windowsx.h>
 #include <winnt.h>
+#define IDAPPLY 0x3021
 
 // Boring stuff
 BOOL CALLBACK PropSheetProc(HWND, UINT, LPARAM);
@@ -149,11 +150,16 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 
 		// OK button replaces Cancel button
 		SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
-		Button_Enable(GetDlgItem(g_cfgwnd,IDCANCEL), TRUE); // Re-enable to enable escape key
+		HWND cancel = GetDlgItem(g_cfgwnd, IDCANCEL);
+		HWND ok = GetDlgItem(g_cfgwnd, IDOK);
+		Button_Enable(cancel, TRUE); // Re-enable to enable escape key
 		WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
-		GetWindowPlacement(GetDlgItem(g_cfgwnd,IDCANCEL), &wndpl);
-		SetWindowPlacement(GetDlgItem(g_cfgwnd,IDOK), &wndpl);
-		ShowWindow(GetDlgItem(g_cfgwnd,IDCANCEL), SW_HIDE);
+		GetWindowPlacement(cancel, &wndpl);
+		SetWindowPlacement(ok, &wndpl);
+		ShowWindow(cancel, SW_HIDE);
+
+		HWND apply = GetDlgItem(g_cfgwnd, IDAPPLY);
+		Button_SetText(apply, L""); // Remove text to remove it's shortcut (Alt+A in English)
 	}
 }
 
@@ -237,7 +243,18 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 			int hide = Button_GetCheck(GetDlgItem(hwnd,IDC_AUTOSTART_HIDE));
 			SetAutostart(1, hide, val);
 			if (val) {
-				MessageBox(NULL, l10n->general.autostart_elevate_tip, APP_NAME, MB_ICONINFORMATION|MB_OK);
+				// Don't nag if UAC is disabled, only check if elevated
+				DWORD uac_enabled = 1;
+				if (elevated) {
+					DWORD len = sizeof(uac_enabled);
+					HKEY key;
+					RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0, KEY_QUERY_VALUE, &key);
+					RegQueryValueEx(key, L"EnableLUA", NULL, NULL, (LPBYTE)&uac_enabled, &len);
+					RegCloseKey(key);
+				}
+				if (uac_enabled) {
+					MessageBox(NULL, l10n->general.autostart_elevate_tip, APP_NAME, MB_ICONINFORMATION|MB_OK);
+				}
 			}
 		}
 		else if (id == IDC_ELEVATE && MessageBox(NULL,l10n->general.elevate_tip,APP_NAME,MB_ICONINFORMATION|MB_OK)) {

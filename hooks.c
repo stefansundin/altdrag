@@ -1885,8 +1885,8 @@ int UnhookMouse() {
 		ShowWindowAsync(cursorwnd, SW_HIDE);
 	}
 
-	// Do not unhook if the hook is still used for something
-	if (sharedsettings.InactiveScroll || sharedsettings.LowerWithMMB) {
+	// Do not unhook if not hooked or if the hook is still used for something
+	if (!mousehook || sharedsettings.InactiveScroll || sharedsettings.LowerWithMMB) {
 		return 1;
 	}
 

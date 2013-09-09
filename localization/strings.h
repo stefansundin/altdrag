@@ -130,6 +130,7 @@ struct {
 	wchar_t **str;
 	wchar_t *name;
 } l10n_mapping[] = {
+	{ &l10n_ini.code,                                    L"Code" },
 	{ &l10n_ini.lang,                                    L"Lang" },
 	{ &l10n_ini.lang_english,                            L"LangEnglish" },
 	{ &l10n_ini.author,                                  L"Author" },

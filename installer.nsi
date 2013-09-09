@@ -10,10 +10,12 @@
 ; Requires AccessControl plug-in
 ; http://nsis.sourceforge.net/AccessControl_plug-in
 
+
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "1.0rc"
+!define APP_VERSION   "1.0"
 !define APP_URL       "http://code.google.com/p/altdrag/"
-!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-unstable.txt"
+!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
+
 
 ; Libraries
 
@@ -22,6 +24,7 @@
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
 !include "WinVer.nsh"
+
 
 ; General
 
@@ -34,16 +37,15 @@ ShowInstDetails hide
 ShowUninstDetails show
 SetCompressor /SOLID lzma
 
+
 ; Interface
 
 !define MUI_LANGDLL_REGISTRY_ROOT HKCU
 !define MUI_LANGDLL_REGISTRY_KEY "Software\${APP_NAME}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Language"
-
-!define MUI_COMPONENTSPAGE_NODESC
-
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION "Launch"
+
 
 ; Pages
 
@@ -60,9 +62,13 @@ Page custom PageLowLevelHooksTimeout
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
+
 ; Variables
 
 Var UpgradeState
+Var SkipAltShiftPage
+Var SkipLowLevelHooksTimeoutPage
+
 
 ; Languages
 
@@ -81,6 +87,7 @@ ${If} ${lang1} == ${lang2}
 	IntOp $LANGUAGE 0 + ${id}
 ${EndIf}
 !macroend
+
 
 ; Functions
 
@@ -122,8 +129,52 @@ FunctionEnd
 !insertmacro CloseApp ""
 !insertmacro CloseApp "un."
 
-; Installer
+; Used when upgrading to skip the directory page
+Function SkipPage
+	${If} $UpgradeState == ${BST_CHECKED}
+		Abort
+	${EndIf}
+FunctionEnd
 
+Function HideBackButton
+	GetDlgItem $0 $HWNDPARENT 3
+	ShowWindow $0 ${SW_HIDE}
+FunctionEnd
+
+Function DisableBackButton
+	GetDlgItem $0 $HWNDPARENT 3
+	EnableWindow $0 0
+FunctionEnd
+
+Function DisableCancelButton
+	GetDlgItem $0 $HWNDPARENT 2
+	EnableWindow $0 0
+FunctionEnd
+
+Function FocusNextButton
+	GetDlgItem $0 $HWNDPARENT 1
+	${NSD_SetFocus} $0
+FunctionEnd
+
+Function DisableXButton
+	; Disables the close button in the title bar
+	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
+	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
+FunctionEnd
+
+Function MaybeDisableBackButton
+	${If} $SkipAltShiftPage == "true"
+	${AndIf} $SkipLowLevelHooksTimeoutPage == "true"
+		Call DisableBackButton
+	${EndIf}
+FunctionEnd
+
+Function Launch
+	Exec "$INSTDIR\${APP_NAME}.exe"
+FunctionEnd
+
+
+; Installer
 
 Section "" sec_update
 	NSISdl::download /TIMEOUT=5000 "${APP_UPDATEURL}" "$TEMP\${APP_NAME}-updatecheck.txt"
@@ -159,11 +210,11 @@ Section "" sec_app
 	Delete /REBOOTOK "$INSTDIR\Config.exe" ; existed in 1.0b1
 
 	; Install files
-	File "build\en-US\${APP_NAME}\${APP_NAME}.exe"
-	File "build\en-US\${APP_NAME}\${APP_NAME}.ini"
-	File "build\en-US\${APP_NAME}\hooks.dll"
-	File /nonfatal "build\en-US\${APP_NAME}\HookWindows_x64.exe"
-	File /nonfatal "build\en-US\${APP_NAME}\hooks_x64.dll"
+	File "build\${APP_NAME}.exe"
+	File "${APP_NAME}.ini"
+	File "build\hooks.dll"
+	File /nonfatal "build\HookWindows_x64.exe"
+	File /nonfatal "build\hooks_x64.dll"
 
 	!insertmacro Lang "en-US" ${LANG_ENGLISH}
 	!insertmacro Lang "fr-FR" ${LANG_FRENCH}
@@ -174,11 +225,7 @@ Section "" sec_app
 	!insertmacro Lang "zh-CN" ${LANG_SIMPCHINESE}
 	!insertmacro Lang "it-IT" ${LANG_ITALIAN}
 	!insertmacro Lang "de-DE" ${LANG_GERMAN}
-
-	; Deactivate CheckOnStartup if check for update was deselected
-	${IfNot} ${SectionIsSelected} ${sec_update}
-		WriteINIStr "$INSTDIR\${APP_NAME}.ini" "Update" "CheckOnStartup" "0"
-	${EndIf}
+	; Add new translations here!
 
 	; Grant write rights to ini file to all users
 	AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
@@ -209,14 +256,8 @@ Section "" sec_shortcut
 	CreateShortCut "$SMPROGRAMS\${APP_NAME}.lnk" "$INSTDIR\${APP_NAME}.exe" "" "$INSTDIR\${APP_NAME}.exe" 0
 SectionEnd
 
-Function Launch
-	Exec "$INSTDIR\${APP_NAME}.exe"
-FunctionEnd
-
 
 ; Alt+Shift notification
-Var SkipAltShiftPage
-
 Function PageAltShift
 	${If} $SkipAltShiftPage == "true"
 		Abort
@@ -242,7 +283,6 @@ FunctionEnd
 
 
 ; LowLevelHooksTimeout notification
-Var SkipLowLevelHooksTimeoutPage
 Var AdjustLowLevelHooksTimeoutButton
 Var RevertLowLevelHooksTimeoutButton
 
@@ -305,7 +345,6 @@ FunctionEnd
 
 
 ; Detect previous installation
-
 Var Upgradebox
 Var Uninstallbox
 
@@ -344,45 +383,6 @@ Function PageUpgradeLeave
 	${EndIf}
 FunctionEnd
 
-; Used when upgrading to skip the directory page
-Function SkipPage
-	${If} $UpgradeState == ${BST_CHECKED}
-		Abort
-	${EndIf}
-FunctionEnd
-
-Function HideBackButton
-	GetDlgItem $0 $HWNDPARENT 3
-	ShowWindow $0 ${SW_HIDE}
-FunctionEnd
-
-Function DisableBackButton
-	GetDlgItem $0 $HWNDPARENT 3
-	EnableWindow $0 0
-FunctionEnd
-
-Function DisableCancelButton
-	GetDlgItem $0 $HWNDPARENT 2
-	EnableWindow $0 0
-FunctionEnd
-
-Function FocusNextButton
-	GetDlgItem $0 $HWNDPARENT 1
-	${NSD_SetFocus} $0
-FunctionEnd
-
-Function DisableXButton
-	; Disables the close button in the title bar
-	System::Call "user32::GetSystemMenu(i $HWNDPARENT, i 0) i .r1"
-	System::Call "user32::EnableMenuItem(i $1, i 0xF060, i 1) v"
-FunctionEnd
-
-Function MaybeDisableBackButton
-	${If} $SkipAltShiftPage == "true"
-	${AndIf} $SkipLowLevelHooksTimeoutPage == "true"
-		Call DisableBackButton
-	${EndIf}
-FunctionEnd
 
 Function .onInit
 	Call AddTray
@@ -398,6 +398,7 @@ Function .onInit
 	IfErrors done2
 	${GetOptionsS} $0 "/L=" $0
 	IfErrors done2
+
 	!insertmacro SetLang $0 "en-US" ${LANG_ENGLISH}
 	!insertmacro SetLang $0 "fr-FR" ${LANG_FRENCH}
 	!insertmacro SetLang $0 "pl-PL" ${LANG_POLISH}
@@ -407,12 +408,13 @@ Function .onInit
 	!insertmacro SetLang $0 "zh-CN" ${LANG_SIMPCHINESE}
 	!insertmacro SetLang $0 "it-IT" ${LANG_ITALIAN}
 	!insertmacro SetLang $0 "de-DE" ${LANG_GERMAN}
+	; Add new translations here!
+
 	WriteRegStr ${MUI_LANGDLL_REGISTRY_ROOT} "${MUI_LANGDLL_REGISTRY_KEY}" "${MUI_LANGDLL_REGISTRY_VALUENAME}" "$LANGUAGE"
 	done2:
 
+	; Check if special pages should appear
 	StrCpy $SkipAltShiftPage "false"
-	StrCpy $SkipLowLevelHooksTimeoutPage "false"
-
 	ClearErrors
 	ReadRegStr $0 HKCU "Keyboard Layout\Toggle" "Language Hotkey"
 	IfErrors done3
@@ -423,13 +425,15 @@ Function .onInit
 	${EndIf}
 	done3:
 
+	StrCpy $SkipLowLevelHooksTimeoutPage "false"
 	${If} ${AtMostWinVista}
 		StrCpy $SkipLowLevelHooksTimeoutPage "true"
 	${EndIf}
 
-	; Display language selection and add tray if program is running
+	; Display language selection
 	!insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
+
 
 ; Uninstaller
 

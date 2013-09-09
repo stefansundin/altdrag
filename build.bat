@@ -27,14 +27,12 @@ if not exist build. mkdir build
 %prefix32%windres include\hooks.rc build\hooks.o
 
 if "%1" == "all" (
-	@echo.
+	echo.
 	echo Building release build
 	%prefix32%gcc -o build\AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -O2 -s
 	if not exist build\AltDrag.exe. exit /b
 	%prefix32%gcc -o build\hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -O2 -s
 	if not exist build\hooks.dll. exit /b
-
-	%prefix32%gcc -o build\ini.exe include\ini.c -lshlwapi
 
 	if "%x64%" == "1" (
 		%prefix64%windres include\hookwindows_x64.rc build\hookwindows_x64.o
@@ -45,21 +43,6 @@ if "%1" == "all" (
 		if not exist build\hooks_x64.dll. exit /b
 	)
 
-	for %%f in (%l10n%) do (
-		@echo.
-		echo Putting together %%f
-		if not exist "build\%%f\AltDrag". mkdir "build\%%f\AltDrag"
-		copy build\AltDrag.exe "build\%%f\AltDrag"
-		copy build\hooks.dll "build\%%f\AltDrag"
-		copy AltDrag.ini "build\%%f\AltDrag"
-		build\ini "build\%%f\AltDrag\AltDrag.ini" AltDrag Language %%f
-		if "%x64%" == "1" (
-			copy build\HookWindows_x64.exe "build\%%f\AltDrag"
-			copy build\hooks_x64.dll "build\%%f\AltDrag"
-		)
-	)
-
-	@echo.
 	echo Building installer
 	makensis /V2 installer.nsi
 ) else (
