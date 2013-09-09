@@ -43,7 +43,7 @@ struct strings zh_CN = {
  },
  { /* general tab */
    /* box              */ L"通用设置",
-   /* autofocus        */ L"(&F)拖动时聚焦窗口.\n按Ctrl也可以聚焦到窗口.",
+   /* autofocus        */ L"(&F)拖动时聚焦窗口.\nCtrl也可以聚焦到窗口.",
    /* aero             */ L"(&N)Win7窗口贴边自动调整",
    /* inactivescroll   */ L"&滚动非活动窗口",
    /* mdi              */ L"&MDI support",
@@ -96,7 +96,7 @@ struct strings zh_CN = {
      /* rightwinkey    */ L"右W&inkey",
      /* leftctrl       */ L"左&Ctrl",
      /* rightctrl      */ L"右Ct&rl",
-     /* more           */ L"你可以通过修改ini配置文件来加入任何键!\n使用shift键使窗口间进行吸附.",
+     /* more           */ L"你可以通过修改ini配置文件来加入任何键!\n用shift键使窗口间进行吸附.",
    },
  },
  { /* blacklist tab */
@@ -110,7 +110,7 @@ struct strings zh_CN = {
  },
  { /* advanced tab */
    /* box              */ L"增强设置",
-   /* hookwindows      */ L"(&E)在普通移动中吸附窗口.\n窗口之间自动吸附!",
+   /* hookwindows      */ L"(&E)在普通移动中吸附窗口.\n口之间自动吸附!",
    /* hookwindows_warn */ L"注意这个特性不是100%安全的，因为他会对其他进程进行挂接或类似操作.",
    /* checkonstartup   */ L"(&u)自动检查更新",
    /* beta             */ L"为&beta版检查更新",
@@ -122,7 +122,7 @@ struct strings zh_CN = {
    /* box              */ L"关于"APP_NAME,
    /* version          */ L"版本"APP_VERSION,
    /* author           */ L"作者: Stefan Sundin",
-   /* license          */ APP_NAME L" 是自由和开源软件!\n欢迎重新发布!",
+   /* license          */ APP_NAME L" 是自由和开源软件!\n迎重新发布!",
    /* donate           */ L"(&D)捐赠",
    /*translation_credit*/ L"Translation credit",
  },
