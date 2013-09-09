@@ -27,6 +27,8 @@ Once you have the source code, create the directory "`build`" inside the directo
 
 Then use the NSIS wizard to compile `installer.nsi`.
 
+If the installer isn't prompting you for a language, it means that it has stored the language you used previously. Simply uninstall AltDrag using the installer, and then try again.
+
 
 = Submit the translation =
 
