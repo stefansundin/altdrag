@@ -10,6 +10,8 @@ This behavior already exists in Linux and other operating systems, and AltDrag w
 
 If you have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=8yw1i2FBAss this short video] that a user has posted to YouTube.
 
+There's also a good article describing AltDrag on [http://howik.com/Make_windows_snap_to_each_other_and_screen_borders_and_quickly_resize_windows_using_the_AltDrag_windows_utility howik.com].
+
 
 == Tricks you should know about ==
   * While dragging windows, press the Shift key to make the window snap to other windows.
