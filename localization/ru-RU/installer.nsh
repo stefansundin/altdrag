@@ -1,4 +1,4 @@
-﻿; AltDrag - ru-RU localization by Nick Eoneof (eoneof@gmail.com)
+ ; AltDrag - ru-RU localization by Nick Eoneof (eoneof@gmail.com)
 ; and Dmitry Trubin (dtruebin@gmail.com)
 ;
 ; This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ LangString L10N_ALTSHIFT_BUTTON   0 "Настройки &клавиатуры"
 
 LangString L10N_HOOKTIMEOUT_TITLE          0 "Твик реестра"
 LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "Твик, позволяющий предотвратить внезапную остановку ${APP_NAME}."
-LangString L10N_HOOKTIMEOUT_HEADER         0 "In Windows 7, Microsoft implemented a feature that stops keyboard and mouse hooks if they take too long to respond. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot.$\n$\nIf this happens, you will find that ${APP_NAME} stop functioning without warning, and you have to manually disable and enable ${APP_NAME} to make it work again.$\n$\nThere is a registry tweak to make Windows wait longer before stopping hooks, which you can enable or disable by using the buttons below. Please note that this registry tweak is completely optional."
+LangString L10N_HOOKTIMEOUT_HEADER         0 "В Windows 7, Microsoft реализовали функцию, которая останавливает перехват нажатий клавиатуры и мыши, если они занимают слишком много времени. К сожалению, очень часто эта функция срабатывает ошибочно(особенно, если вы отправили компьютер в гибернацию, режим сна или заблокировали систему).$\n$\nЕсли это произошло, ${APP_NAME} прекратит функционировать без предупреждения и для возобновления работы вам будет необходимо вручную выключить и включить ${APP_NAME}. $\n$\nСуществует твик реестра, увеличивающий время ожидания перед остановкой перехвата. Его можно включить и выключить кнопками ниже. Имейте ввиду, что этот твик не является обязательным."
 LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "&Включить твик реестра"
 LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "&Отключить твик реестра"
 LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "Твик реестра уже включен."
