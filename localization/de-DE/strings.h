@@ -44,9 +44,9 @@ struct strings de_DE = {
  { /* general tab */
    /* box              */ L"Allgemeine Einstellungen",
    /* autofocus        */ L"&Fenster beim Verschieben nach vorn bringen.\n(Dafür kann wahlweise auch Strg gedrückt werden)",
-   /* aero             */ L"Aero S&nap immitieren",
-   /* inactivescroll   */ L"&Scrollen des Mausrades in inaktiven Fenstern",
-   /* mdi              */ L"&MDI support",
+   /* aero             */ L"Aero Snap &immitieren",
+   /* inactivescroll   */ L"Mausrad-&Scrollen in inaktiven Fenstern",
+   /* mdi              */ L"&MDI Unterstützung",
    /* autosnap         */ L"Fenster automatisch einrasten an:",
    /* autosnap0        */ L"Deaktiviert",
    /* autosnap1        */ L"Bildschirmkanten",
@@ -73,7 +73,7 @@ struct strings de_DE = {
      /* mb4            */ L"Maustaste 4:",
      /* mb5            */ L"Maustaste 5:",
      /* scroll         */ L"Scrollrad:",
-     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
+     /* lowerwithmmb   */ L"&Mittlere Maustaste auf Titelleisten bringt Fenster in den Hintergrund",
    },
    { /* actions */
      /* move           */ L"Fenster verschieben",
@@ -89,13 +89,13 @@ struct strings de_DE = {
      /* transparency   */ L"Transparenz",
    },
    { /* hotkeys */
-     /* box            */ L"Tastaturkürzel",
-     /* leftalt        */ L"Alt li&nks",
-     /* rightalt       */ L"Alt &rechts",
+     /* box            */ L"Tastaturkürzel:",
+     /* leftalt        */ L"A&lt links",
+     /* rightalt       */ L"Al&t rechts",
      /* leftwinkey     */ L"&Windows links",
      /* rightwinkey    */ L"W&indows rechts",
      /* leftctrl       */ L"&Strg links",
-     /* rightctrl      */ L"S&trg rechts",
+     /* rightctrl      */ L"St&rg rechts",
      /* more           */ L"Weitere Tasten können in der ini Datei hinzugefügt werden.\nBenutzen Sie Shift um Fenster einrasten zu lassen.",
    },
  },
@@ -121,12 +121,12 @@ struct strings de_DE = {
  { /* about tab */
    /* box              */ L"Über "APP_NAME,
    /* version          */ L"Version "APP_VERSION,
-   /* author           */ L"Ertellt von Stefan Sundin",
+   /* author           */ L"Erstellt von Stefan Sundin",
    /* license          */ APP_NAME L" ist freie Open-Source Software!\nGeben Sie es ruhig weiter!",
    /* donate           */ L"&Spenden",
    /*translation_credit*/ L"Übersetzungen",
  },
 
  /* === misc === */
- /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
+ /* unhook_error       */ L"Beim Deaktivieren von "APP_NAME" ist ein Fehler aufgetreten. Dies ist höchstwahrscheinlich darauf zurückzuführen, dass Windows bereits die Hooks von "APP_NAME" deaktiviert hat.\n\nSollte dieser Fehler zum ersten Mal auftreten, können Sie diese Meldung ignorieren und "APP_NAME" weiterhin normal nutzen.\n\nSollte der Fehler jedoch mehrfach auftreten, können Sie in der Wiki auf der Webseite nachlesen, wie dies verhindert werden kann (Suchen Sie nach '"APP_NAME" mysteriously stops working' auf der 'About'-Seite).",
 };

@@ -46,7 +46,7 @@ struct strings ru_RU = {
    /* autofocus        */ L"&Активировать окно при перетаскивании.\nИначе, с зажатой клавишей Ctrl.",
    /* aero             */ L"&Имитировать Aero Snap",
    /* inactivescroll   */ L"&Прокручивать содержимое неактивных окон",
-   /* mdi              */ L"&MDI support",
+   /* mdi              */ L"П&оддержка многодокументного интерфейса (MDI)",
    /* autosnap         */ L"Автоматическая стыковка:",
    /* autosnap0        */ L"Отключена",
    /* autosnap1        */ L"К краям экрана",
@@ -60,7 +60,7 @@ struct strings ru_RU = {
    /*       elevate_tip*/ L"Подтверждение UAC будет запрашиваться при каждом входе в систему, если не отключить UAC полностью.",
    /* elevate          */ L"П&овысить",
    /* elevated         */ L"Повышено",
-   /* elevate_tip      */ L"Новый экземпляр "APP_NAME" будет запущен от имени администратора. Это позволит программе "APP_NAME" управлять другими приложениями, запущенными от имени администратора.\n\nНеобходимо выполнить подтверждение UAC, чтобы разрешить запуск "APP_NAME" с полномочиями администратора.",
+   /* elevate_tip      */ L"Новый экземпляр "APP_NAME" будет запущен от имени администратора. Это позволит программе "APP_NAME" управлять другими приложениями, запущенными от имени администратора.\n\nНеобходимо выполнить подтверждение UAC, чтёобы разрешить запуск "APP_NAME" с полномочиями администратора.",
    /* elevation_aborted*/ L"Повышение полномочий отменено.",
    /* autosave         */ L"Внимание, настройки применяются немедленно!",
  },
@@ -73,7 +73,7 @@ struct strings ru_RU = {
      /* mb4            */ L"Кнопка мыши 4:",
      /* mb5            */ L"Кнопка мыши 5:",
      /* scroll         */ L"Колесо прокрутки:",
-     /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
+     /* lowerwithmmb   */ L"&Перемещать окно на задний план кликом средней кнопки по заголовку",
    },
    { /* actions */
      /* move           */ L"Переместить",
@@ -111,7 +111,7 @@ struct strings ru_RU = {
  { /* advanced tab */
    /* box              */ L"Дополнительные настройки",
    /* hookwindows      */ L"Включить стыковку при перетаскавании окна за заголовок.\nРаботает в связке с автоматической стыковкой!",
-   /* hookwindows_warn */ L"Имейте в виду, что функция не на 100% безопасна, так как приходится внедряться в другие процессы и т.д. Это может повлиять, например, на игры с системой защитой от жульничества.\n\nВключить стыковку?",
+   /* hookwindows_warn */ L"Имейте в виду, при включении этой функции, "APP_NAME" может конфликтовать, например, с играми с системой защиты от жульничества.\n\nВключить стыковку?",
    /* checkonstartup   */ L"&Автоматически проверять наличие обновлений",
    /* beta             */ L"Проверять наличие &бета-версий",
    /* checknow         */ L"&Проверить",
@@ -128,5 +128,5 @@ struct strings ru_RU = {
  },
 
  /* === misc === */
- /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
+ /* unhook_error       */ L"Произошла ошибка при выключении "APP_NAME". Скорее всего это вызвано тем, что Windows уже отключила перехватчики "APP_NAME".\n\nЕсли это произошло впервые, вы можете проигнорировать это сообщение и продолжить пользоваться программой как обычно.\n\nЕсли это уже случалось ранее, решение проблемы можно найти в разделе '"APP_NAME" mysteriously stops working' вики-статьи About на сайте программы.",
 };
