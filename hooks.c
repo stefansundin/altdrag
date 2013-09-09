@@ -647,7 +647,7 @@ void MouseMove() {
 	GetCursorPos(&pt);
 
 	// Restrict pt within origin monitor if Ctrl is being pressed
-	if (GetAsyncKeyState(VK_CONTROL)&0x8000 && !state.ignorectrl) {
+	if ((GetAsyncKeyState(VK_CONTROL)&0x8000) && !state.ignorectrl) {
 		MONITORINFO mi = { sizeof(MONITORINFO) };
 		GetMonitorInfo(state.origin.monitor, &mi);
 		RECT fmon = mi.rcMonitor;
@@ -1066,7 +1066,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 				// Double check that all the hotkeys have been released
 				int i;
 				for (i=0; i < sharedsettings.Hotkeys.length; i++) {
-					if (vkey != sharedsettings.Hotkeys.keys[i] && GetAsyncKeyState(sharedsettings.Hotkeys.keys[i])&0x8000) {
+					if (vkey != sharedsettings.Hotkeys.keys[i] && (GetAsyncKeyState(sharedsettings.Hotkeys.keys[i])&0x8000)) {
 						return CallNextHookEx(NULL, nCode, wParam, lParam);
 					}
 				}
@@ -1358,7 +1358,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 
 				// Change WM_MOUSEWHEEL to WM_MOUSEHWHEEL if shift is being depressed
 				// Note that this does not work on all windows, the message was introduced in Vista and far from all programs have implemented it
-				if (wParam == WM_MOUSEWHEEL && sharedstate.shift && GetAsyncKeyState(VK_SHIFT)&0x8000) {
+				if (wParam == WM_MOUSEWHEEL && sharedstate.shift && (GetAsyncKeyState(VK_SHIFT)&0x8000)) {
 					wParam = WM_MOUSEHWHEEL;
 					wp = (-GET_WHEEL_DELTA_WPARAM(msg->mouseData)) << 16; // Up is left, down is right
 				}
