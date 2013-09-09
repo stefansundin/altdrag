@@ -21,6 +21,12 @@ Some things to note:
 
 The installer has to be compiled to be translated. Download [https://altdrag.googlecode.com/svn/trunk/localization/en-US/installer.nsh installer.nsh] and translate the strings. Include it in your submission.
 
+It is possible to build the installer without compiling AltDrag itself, so it is not that difficult to test by yourself. You still have to download the source code, [http://code.google.com/p/unsis/downloads/list NSIS Unicode] and the [http://nsis.sourceforge.net/AccessControl_plug-in AccessControl plug-in]. Watch the video on the [Build] page if you need more help.
+
+Once you have the source code, create the directory "`build`" inside the directory you checked out, and copy the files `AltDrag.exe` and `hooks.dll` to it. If you have `HookWindows_x64.exe` and `hooks_x64.dll`, you can copy those as well.
+
+Then use the NSIS wizard to compile `installer.nsi`.
+
 
 = Submit the translation =
 
