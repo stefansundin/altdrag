@@ -2,13 +2,13 @@
 #define IDC_STATIC (-1)
 #endif
 
-#define IDI_ALTDRAG                             112
 #define IDD_GENERALPAGE                         201
 #define IDD_INPUTPAGE                           202
 #define IDD_BLACKLISTPAGE                       203
 #define IDD_ADVANCEDPAGE                        204
 #define IDD_ABOUTPAGE                           205
 #define IDI_FIND                                206
+#define IDI_BIGICON                             207
 #define IDC_AUTOSNAP_HEADER                     1000
 #define IDC_FINDWINDOW                          1000
 #define IDC_CHECKNOW                            1001

@@ -1,11 +1,11 @@
-﻿;AltDrag - de-DE localization by Markus Hentsch
+﻿; AltDrag - de-DE localization by Markus Hentsch
 ;
-;This program is free software: you can redistribute it and/or modify
-;it under the terms of the GNU General Public License as published by
-;the Free Software Foundation, either version 3 of the License, or
-;(at your option) any later version.
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
 
-!insertmacro MUI_LANGUAGE "German" ;English name of this language
+!insertmacro MUI_LANGUAGE "German"
 LangString L10N_LANG ${LANG_GERMAN} ""
 
 LangString L10N_UPGRADE_TITLE     0 "Bereits installiert"

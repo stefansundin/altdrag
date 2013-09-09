@@ -17,7 +17,8 @@
 #include <shlwapi.h>
 
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.0b3"
+#define APP_VERSION         "1.0"
+#define HELP_URL            "https://code.google.com/p/altdrag/wiki/Translate"
 
 #include "../localization/strings.h"
 
@@ -28,7 +29,6 @@ void wcscpy_escape(wchar_t *dest, wchar_t *source) {
 			*dest = '\\';
 			dest++;
 			*dest = 'n';
-			source++;
 		}
 		else {
 			*dest = *source;
@@ -38,6 +38,7 @@ void wcscpy_escape(wchar_t *dest, wchar_t *source) {
 }
 
 int main(int argc, char *argv[]) {
+	char utf16le_bom[2] = { 0xFF, 0xFE };
 	int i,j;
 	for (i=0; i < ARRAY_SIZE(languages); i++) {
 		l10n = languages[i];
@@ -53,12 +54,12 @@ int main(int argc, char *argv[]) {
 		wcscat(ini, L"\\Translation.ini");
 
 		FILE *f = _wfopen(ini, L"wb");
-		fwprintf(f, L"; Translation file for AltDrag 1.0\n\
+		fwrite(utf16le_bom, 1, 2, f); // Write BOM
+		fwprintf(f, L"; Translation file for "APP_NAME" "APP_VERSION"\n\
 ; %s localization by %s\n\
-; Simply put this file in the same directory as AltDrag, then restart AltDrag.\n\
-; Please read the wiki for help: https://code.google.com/p/altdrag/wiki/Translate\n\
+; Simply put this file in the same directory as "APP_NAME", then restart "APP_NAME".\n\
+; Please read the wiki for help: "HELP_URL"\n\
 ; Use encoding UTF-16LE with BOM to be able to use Unicode\n\
-; Note: For some reason &A will not work as a shortcut.\n\
 \n\
 ", l10n->code, l10n->author);
 		fclose(f);
@@ -69,6 +70,13 @@ int main(int argc, char *argv[]) {
 			wchar_t *str = *(wchar_t**) ((void*)l10n + ((void*)l10n_mapping[j].str - (void*)&l10n_ini));
 			// Escape
 			wcscpy_escape(txt, str);
+			// Remove version number from about.version
+			if (l10n_mapping[j].str == &l10n_ini.about.version) {
+				txt[wcslen(txt)-strlen(APP_VERSION)] = '\0';
+				if (txt[wcslen(txt)-1] == ' ') {
+					txt[wcslen(txt)-1] = '\0';
+				}
+			}
 			// Write
 			WritePrivateProfileString(L"Translation", l10n_mapping[j].name, txt, ini);
 		}

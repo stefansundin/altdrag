@@ -93,9 +93,8 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	InternetCloseHandle(http);
 
 	// Make sure the response is valid
-	//strcpy(data, "Version: 1.0"); // This is the format of the new update string
-	//char header[] = "Version: ";
-	if (wcscmp(code,L"200") /*|| strstr(data,header) != data*/) {
+	char header[] = "Version: ";
+	if (wcscmp(code,L"200") || strstr(data,header) != data) {
 		if (verbose) {
 			MessageBox(NULL, L"Could not determine if an update is available.\n\nPlease check for update manually on the website.", APP_NAME, MB_ICONWARNING|MB_OK);
 		}
@@ -103,9 +102,8 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	}
 
 	// New version available?
-	//char *latest = data+strlen(header);
-	//int cmp = strcmp(latest, APP_VERSION);
-	int cmp = strcmp(data, APP_VERSION);
+	char *latest = data+strlen(header);
+	int cmp = strcmp(latest, APP_VERSION);
 	if (cmp > 0 || (beta && cmp != 0)) {
 		update = 1;
 		if (verbose) {
