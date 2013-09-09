@@ -5,7 +5,7 @@
 
 This document explains how to compile AltDrag. There are two distinct parts that you have to compile separately, the 32-bit part and the 64-bit part.
 
-Your first task is to download the AltDrag source code, [http://code.google.com/p/altdrag/source/checkout instructions here].
+Your first task is to download the AltDrag source code, [http://code.google.com/p/altdrag/source/checkout instructions here]. I recommend that you use [http://tortoisesvn.net/ TortoiseSVN].
 
 
 = Compiler =
