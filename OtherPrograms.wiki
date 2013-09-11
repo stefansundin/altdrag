@@ -16,6 +16,7 @@
   * [http://wincmd.ru/plugring/LinuxMove.html LinuxMove] (quite buggy)
   * [http://flashwheel.sourceforge.net/ FlashWheel] (Scroll inactive windows)
   * [http://www.mobzystems.com/Tools/SeeThroughWindows.aspx SeeThroughWindows] (Transparency toggler)
+  * [http://rbtray.sourceforge.net/ RBTray] (Minimize to tray by right clicking minimize buttons)
 
 
 = Freeware =
@@ -29,6 +30,8 @@
   * [http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/ WizMouse] (Scroll inactive windows)
   * [http://amlpages.com/mousehunter.shtml Mouse Hunter] (Scroll inactive windows)
   * [http://www.nirsoft.net/utils/volumouse.html Volumouse] (Change volume with scroll wheel)
+  * [http://www.4t-niagara.com/tray.html 4t Tray Minimizer] (Adds minimize to tray, roll up/down, toggle always on top, and transparent buttons to titlebars)
+  * [http://www.abstractpath.com/powermenu/ PowerMenu] (Adds minimize to tray, transparency and toggle always on top to sysmenus. Only works on 32-bit windows and does not work properly on Windows 7)
 
 
 = Related =
