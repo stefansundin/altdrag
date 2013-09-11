@@ -108,7 +108,7 @@ If you want AltDrag to launch with administrator privileges on startup, then you
 
 AltDrag relies on hooking to your keyboard and mouse to function, so that it can detect when you press the Alt key and when you move your mouse. In Windows 7, Microsoft implemented a change to stop hooks if they take too long. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot. And then if you try to disable AltDrag, you might get an error. There is a way to increase this timeout by editing the registry.
 
-Note that other programs may also set this registry tweak, and may do so without asking for your permission. Run this command to see if the registry tweak is already enabled:
+Note that other programs may also set this registry tweak, and may do so without asking for your permission. Run this command to see if the registry tweak is already enabled. If enabled, you will get a hex value which you can convert to decimal to get the value in milliseconds.
 {{{
 cmd /C reg query "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout & pause
 }}}
