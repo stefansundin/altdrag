@@ -18,4 +18,4 @@ The installer accepts a few options. It has been designed to be able to run sile
 || *Option*           || *Explanation* ||
 || `/S`               || Run silently. The installer will not check for updates. ||
 || `/L=fr-FR`         || Use supplied language. ||
-|| `/D=C:\installdir` || Set destination directory. ||
+|| `/D=C:\installdir` || Set destination directory. It must be the last parameter and must not contain any quotes, even if the path contains spaces. Only absolute paths are supported. ||
