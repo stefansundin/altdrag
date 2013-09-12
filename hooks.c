@@ -1310,6 +1310,52 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 					}
 					SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
 				}
+				else if (sharedsettings.Mouse.Scroll == ACTION_LOWER) {
+					HWND hwnd = WindowFromPoint(pt);
+					if (hwnd == NULL) {
+						return CallNextHookEx(NULL, nCode, wParam, lParam);
+					}
+					hwnd = GetAncestor(hwnd, GA_ROOT);
+
+					if (delta > 0) {
+						if (sharedstate.shift) {
+							// Get monitor info
+							WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
+							GetWindowPlacement(hwnd, &wndpl);
+							HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+							MONITORINFO mi = { sizeof(MONITORINFO) };
+							GetMonitorInfo(monitor, &mi);
+							RECT mon = mi.rcWork;
+							RECT fmon = mi.rcMonitor;
+							// Toggle maximized state
+							wndpl.showCmd = (wndpl.showCmd==SW_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE;
+							// If maximizing, also center window on monitor, if needed
+							if (wndpl.showCmd == SW_MAXIMIZE) {
+								HMONITOR wndmonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+								if (monitor != wndmonitor) {
+									int width = wndpl.rcNormalPosition.right-wndpl.rcNormalPosition.left;
+									int height = wndpl.rcNormalPosition.bottom-wndpl.rcNormalPosition.top;
+									wndpl.rcNormalPosition.left = fmon.left+(mon.right-mon.left)/2-width/2;
+									wndpl.rcNormalPosition.top = fmon.top+(mon.bottom-mon.top)/2-height/2;
+									wndpl.rcNormalPosition.right = wndpl.rcNormalPosition.left+width;
+									wndpl.rcNormalPosition.bottom = wndpl.rcNormalPosition.top+height;
+								}
+							}
+							SetWindowPlacement(hwnd, &wndpl);
+						}
+						else {
+							SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+						}
+					}
+					else {
+						if (sharedstate.shift) {
+							SendMessage(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+						}
+						else {
+							SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+						}
+					}
+				}
 
 				// Block original scroll event
 				state.blockaltup = 1;
@@ -1386,7 +1432,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 			HWND hwnd = WindowFromPoint(pt);
 			int area = SendMessage(hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x,pt.y));
 			if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE) {
-				SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				if (sharedstate.shift) {
+					SendMessage(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+				}
+				else {
+					SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				}
 				return 1;
 			}
 		}
@@ -1780,7 +1831,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 				SendMessage(state.hwnd, WM_CLOSE, 0, 0);
 			}
 			else if (action == ACTION_LOWER) {
-				SetWindowPos(state.hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				if (sharedstate.shift) {
+					SendMessage(state.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+				}
+				else {
+					SetWindowPos(state.hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE);
+				}
 			}
 
 			// Send WM_ENTERSIZEMOVE and prepare update timer

@@ -295,11 +295,11 @@ Function PageLowLevelHooksTimeout
 	!insertmacro MUI_HEADER_TEXT "$(L10N_HOOKTIMEOUT_TITLE)" "$(L10N_HOOKTIMEOUT_SUBTITLE)"
 	${NSD_CreateLabel} 0 0 100% 142 "$(L10N_HOOKTIMEOUT_HEADER)"
 
-	${NSD_CreateButton} 0 162 92u 17u "$(L10N_HOOKTIMEOUT_APPLYBUTTON)"
+	${NSD_CreateButton} 0 162 100u 17u "$(L10N_HOOKTIMEOUT_APPLYBUTTON)"
 	Pop $AdjustLowLevelHooksTimeoutButton
 	${NSD_OnClick} $AdjustLowLevelHooksTimeoutButton AdjustLowLevelHooksTimeout
 
-	${NSD_CreateButton} 200 162 92u 17u "$(L10N_HOOKTIMEOUT_REVERTBUTTON)"
+	${NSD_CreateButton} 200 162 100u 17u "$(L10N_HOOKTIMEOUT_REVERTBUTTON)"
 	Pop $RevertLowLevelHooksTimeoutButton
 	${NSD_OnClick} $RevertLowLevelHooksTimeoutButton RevertLowLevelHooksTimeout
 	EnableWindow $RevertLowLevelHooksTimeoutButton 0
