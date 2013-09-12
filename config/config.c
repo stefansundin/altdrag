@@ -352,6 +352,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		{ L"AltTab",       l10n->input.actions.alttab },
 		{ L"Volume",       l10n->input.actions.volume },
 		{ L"Transparency", l10n->input.actions.transparency },
+		{ L"Lower",        l10n->input.actions.lower },
 		{ L"Nothing",      l10n->input.actions.nothing },
 	};
 
@@ -388,24 +389,31 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		}
 	}
 	else if (msg == WM_COMMAND) {
+		int id = LOWORD(wParam);
+		int event = HIWORD(wParam);
 		wchar_t txt[50] = L"";
 		int i;
-		if (HIWORD(wParam) == CBN_SELCHANGE) {
-			int control = LOWORD(wParam);
+		if (event == CBN_SELCHANGE) {
+			HWND control = GetDlgItem(hwnd, id);
 			// Mouse actions
 			for (i=0; i < ARRAY_SIZE(mouse_buttons); i++) {
-				if (control == mouse_buttons[i].control) {
-					int j = ComboBox_GetCurSel(GetDlgItem(hwnd,control));
+				if (id == mouse_buttons[i].control) {
+					int j = ComboBox_GetCurSel(control);
 					WritePrivateProfileString(L"Input", mouse_buttons[i].option, mouse_actions[j].action, inipath);
 					break;
 				}
 			}
 			// Scroll
-			if (control == IDC_SCROLL) {
-				int j = ComboBox_GetCurSel(GetDlgItem(hwnd,control));
-				WritePrivateProfileString(L"Input", L"Scroll", scroll_actions[j].action, inipath);
+			if (id == IDC_SCROLL) {
+				int j = ComboBox_GetCurSel(control);
 				if (!vista && !wcscmp(scroll_actions[j].action,L"Volume")) {
 					MessageBox(NULL, L"The Volume action only works on Vista and later. Sorry!", APP_NAME, MB_ICONINFORMATION|MB_OK|MB_TASKMODAL);
+					GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, ARRAY_SIZE(txt), inipath);
+					for (i=0; wcscmp(txt,scroll_actions[i].action) && i < ARRAY_SIZE(scroll_actions)-1; i++) {}
+					ComboBox_SetCurSel(control, i);
+				}
+				else {
+					WritePrivateProfileString(L"Input", L"Scroll", scroll_actions[j].action, inipath);
 				}
 			}
 		}
@@ -463,8 +471,9 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 				GetPrivateProfileString(L"Input", mouse_buttons[i].option, L"Nothing", txt, ARRAY_SIZE(txt), inipath);
 				for (j=0; j < ARRAY_SIZE(mouse_actions); j++) {
 					ComboBox_AddString(control, mouse_actions[j].l10n);
-					if (!wcscmp(txt,mouse_actions[j].action)) {
+					if (!wcscmp(txt,mouse_actions[j].action) || j == ARRAY_SIZE(mouse_actions)-1) {
 						ComboBox_SetCurSel(control, j);
+						break;
 					}
 				}
 			}
@@ -475,7 +484,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, ARRAY_SIZE(txt), inipath);
 			for (j=0; j < ARRAY_SIZE(scroll_actions); j++) {
 				ComboBox_AddString(control, scroll_actions[j].l10n);
-				if (!wcscmp(txt,scroll_actions[j].action)) {
+				if (!wcscmp(txt,scroll_actions[j].action) || j == ARRAY_SIZE(scroll_actions)-1) {
 					ComboBox_SetCurSel(control, j);
 				}
 			}
