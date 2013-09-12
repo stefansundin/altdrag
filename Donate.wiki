@@ -1,35 +1,26 @@
 #summary If AltDrag is useful to you, please consider donating money.
 #labels Featured
 
-My name is Stefan Sundin. I am a university student in Sweden, programming my tools in my free time.
-
 Donations are a great motivation for me to keep updating my programs. They are also perfect to get my attention if you want me to add some special feature.
-
-You can get in touch with me by sending an email to `stefan(at)stefansundin.com`. You can also [http://stefansundin.com/ visit my website] to read a little more about me.
-
-
-= How to donate =
-
-Currently you can choose to donate with PayPal, Flattr or Bitcoin.
 
 
 == Donate with PayPal ==
 
-The easiest way to donate is by sending money with PayPal to `recover89(at)gmail.com`. You can donate with PayPal without a PayPal account, using only your credit card.
+The easiest way to donate is by [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=8727MAF7NTYRE sending money with PayPal]. You can donate with PayPal without a PayPal account, using only your credit card.
 
-[https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=8727MAF7NTYRE http://altdrag.googlecode.com/svn/wiki/donate.png]
+<wiki:gadget border="0" url="http://stefansundin.com/stuff/paypal-gadget.xml?14" up_business="8727MAF7NTYRE" up_item_number="AltDrag" up_amount="$5.00" width="200" height="80" />
 
 
 == Donate with Flattr ==
 
-[http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. If you have Flattr, then you can flattr me by clicking this button:
+[http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. You can flattr me by clicking this button:
 
 <wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="55" height="62" up_uid="recover" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
 
 
 == Donate with Bitcoin ==
 
-[http://bitcoin.org/ Bitcoin] is a very new and exciting digital currency that enables peer to peer transactions. With Bitcoin, there are no almost no transaction fees.
+[http://bitcoin.org/ Bitcoin] is a new and exciting digital currency that enables peer to peer transactions. With Bitcoin, there are no almost no transaction fees.
 
 Send BTC to: `1EhDUbc5MjC6JavC6idKiTCxnqSxY2sbTX`
 
