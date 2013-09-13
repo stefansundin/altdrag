@@ -80,7 +80,7 @@ void CloseConfig() {
 }
 
 void UpdateSettings() {
-	PostMessage(g_hwnd, WM_UPDATESETTINGS, 0, 0);
+	PostMessage(g_hwnd, WM_UPDATESETTINGS, 1, 0);
 }
 
 void UpdateStrings() {
@@ -133,7 +133,14 @@ void UpdateStrings() {
 LRESULT CALLBACK PropSheetWinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
 	LRESULT ret = DefSubclassProc(hwnd, msg, wParam, lParam);
 	if (msg == WM_NCHITTEST && (ret == HTBOTTOM || ret == HTBOTTOMLEFT || ret == HTBOTTOMRIGHT || ret == HTLEFT || ret == HTTOPLEFT || ret == HTTOPRIGHT || ret == HTRIGHT || ret == HTTOP)) {
-		ret = HTBORDER;
+		ret = HTCAPTION;
+	}
+	else if (msg == WM_UPDATESETTINGS) {
+		UpdateStrings();
+		HWND page = PropSheet_GetCurrentPageHwnd(g_cfgwnd);
+		SendMessage(page, WM_INITDIALOG, 0, 0);
+		NMHDR pnmh = { g_cfgwnd, 0, PSN_SETACTIVE };
+		SendMessage(page, WM_NOTIFY, 0, (LPARAM) &pnmh);
 	}
 	return ret;
 }
@@ -145,7 +152,7 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
 	}
 	else if (msg == PSCB_INITIALIZED) {
 		g_cfgwnd = hwnd;
-		SetWindowSubclass(hwnd, PropSheetWinProc, 0, 0);
+		SetWindowSubclass(g_cfgwnd, PropSheetWinProc, 0, 0);
 		UpdateStrings();
 
 		// OK button replaces Cancel button
@@ -179,11 +186,21 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		GetPrivateProfileString(L"General", L"MDI", L"0", txt, ARRAY_SIZE(txt), inipath);
 		Button_SetCheck(GetDlgItem(hwnd,IDC_MDI), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
 
-		int i;
-		for (i=0; i < ARRAY_SIZE(languages); i++) {
-			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), languages[i]->lang);
-			if (l10n == languages[i]) {
-				ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_LANGUAGE), i);
+		HWND control = GetDlgItem(hwnd, IDC_LANGUAGE);
+		ComboBox_ResetContent(control);
+		if (l10n == &l10n_ini) {
+			ComboBox_AddString(control, l10n->lang);
+			ComboBox_SetCurSel(control, 0);
+			ComboBox_Enable(control, FALSE);
+		}
+		else {
+			ComboBox_Enable(control, TRUE);
+			int i;
+			for (i=0; i < ARRAY_SIZE(languages); i++) {
+				ComboBox_AddString(control, languages[i]->lang);
+				if (l10n == languages[i]) {
+					ComboBox_SetCurSel(control, i);
+				}
 			}
 		}
 
@@ -271,7 +288,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		UpdateSettings();
 	}
 	else if (msg == WM_NOTIFY) {
-		LPNMHDR pnmh = (LPNMHDR)lParam;
+		LPNMHDR pnmh = (LPNMHDR) lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			updatestrings = 1;
 
@@ -302,19 +319,21 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		SetDlgItemText(hwnd, IDC_AUTOSAVE,           l10n->general.autosave);
 
 		// AutoSnap
-		ComboBox_ResetContent(GetDlgItem(hwnd,IDC_AUTOSNAP));
-		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap0);
-		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap1);
-		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap2);
-		ComboBox_AddString(GetDlgItem(hwnd,IDC_AUTOSNAP), l10n->general.autosnap3);
+		HWND control = GetDlgItem(hwnd, IDC_AUTOSNAP);
+		ComboBox_ResetContent(control);
+		ComboBox_AddString(control, l10n->general.autosnap0);
+		ComboBox_AddString(control, l10n->general.autosnap1);
+		ComboBox_AddString(control, l10n->general.autosnap2);
+		ComboBox_AddString(control, l10n->general.autosnap3);
 		wchar_t txt[10];
 		GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, ARRAY_SIZE(txt), inipath);
-		ComboBox_SetCurSel(GetDlgItem(hwnd,IDC_AUTOSNAP), _wtoi(txt));
+		ComboBox_SetCurSel(control, _wtoi(txt));
 
 		// Language
-		ComboBox_DeleteString(GetDlgItem(hwnd,IDC_LANGUAGE), ARRAY_SIZE(languages));
+		control = GetDlgItem(hwnd, IDC_LANGUAGE);
+		ComboBox_DeleteString(control, ARRAY_SIZE(languages));
 		if (l10n == &en_US) {
-			ComboBox_AddString(GetDlgItem(hwnd,IDC_LANGUAGE), L"How can I help translate?");
+			ComboBox_AddString(control, L"How can I help translate?");
 		}
 	}
 	return FALSE;
@@ -462,32 +481,35 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			wchar_t txt[50];
-			int i, j;
+			int i, j, sel;
 
 			// Mouse actions
 			for (i=0; i < ARRAY_SIZE(mouse_buttons); i++) {
 				HWND control = GetDlgItem(hwnd, mouse_buttons[i].control);
 				ComboBox_ResetContent(control);
 				GetPrivateProfileString(L"Input", mouse_buttons[i].option, L"Nothing", txt, ARRAY_SIZE(txt), inipath);
+				sel = ARRAY_SIZE(mouse_actions)-1;
 				for (j=0; j < ARRAY_SIZE(mouse_actions); j++) {
 					ComboBox_AddString(control, mouse_actions[j].l10n);
-					if (!wcscmp(txt,mouse_actions[j].action) || j == ARRAY_SIZE(mouse_actions)-1) {
-						ComboBox_SetCurSel(control, j);
-						break;
+					if (!wcscmp(txt,mouse_actions[j].action)) {
+						sel = j;
 					}
 				}
+				ComboBox_SetCurSel(control, sel);
 			}
 
 			// Scroll
 			HWND control = GetDlgItem(hwnd, IDC_SCROLL);
 			ComboBox_ResetContent(control);
 			GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, ARRAY_SIZE(txt), inipath);
+			sel = ARRAY_SIZE(scroll_actions)-1;
 			for (j=0; j < ARRAY_SIZE(scroll_actions); j++) {
 				ComboBox_AddString(control, scroll_actions[j].l10n);
-				if (!wcscmp(txt,scroll_actions[j].action) || j == ARRAY_SIZE(scroll_actions)-1) {
-					ComboBox_SetCurSel(control, j);
+				if (!wcscmp(txt,scroll_actions[j].action)) {
+					sel = j;
 				}
 			}
+			ComboBox_SetCurSel(control, sel);
 
 			// Update text
 			SetDlgItemText(hwnd, IDC_MOUSE_BOX,      l10n->input.mouse.box);
