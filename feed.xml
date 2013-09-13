@@ -4,11 +4,23 @@
 	<title>AltDrag</title>
 	<link href="http://altdrag.googlecode.com/svn/wiki/feed.xml" rel="self" />
 	<link href="http://code.google.com/p/altdrag/" />
-	<updated>2013-09-06T22:00:00Z</updated>
+	<updated>2013-09-13T13:30:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
 		<uri>http://stefansundin.com/</uri>
 	</author>
+
+	<entry>
+		<id>urn:uuid:6db7ca10-0b42-4c26-8715-bbe3a9837ae3</id>
+		<title>AltDrag - 1.0</title>
+		<link href="http://code.google.com/p/altdrag/" />
+		<updated>2013-09-13T13:30:00Z</updated>
+		<author><name>Stefan Sundin</name></author>
+		<content type="html">
+&lt;p>Released 1.0. Finally!&lt;/p>
+&lt;p>&lt;a href="http://code.google.com/p/altdrag/">Go to the website to read more&lt;/a>.&lt;/p>
+		</content>
+	</entry>
 
 	<entry>
 		<id>urn:uuid:577a6317-f926-453b-a2dc-f824c8d77612</id>
