@@ -172,25 +172,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, in
 		}
 	}
 
-	// Load Translation.ini if it exists
-	wchar_t translation_ini[300];
-	GetModuleFileName(NULL, translation_ini, ARRAY_SIZE(inipath));
-	PathRemoveFileSpec(translation_ini);
-	wcscat(translation_ini, L"\\Translation.ini");
-	FILE *f = _wfopen(translation_ini, L"rb");
-	if (f != NULL) {
-		fclose(f);
-		LoadTranslation(translation_ini);
-	}
-
 	// Language
-	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
-	for (i=0; i < ARRAY_SIZE(languages); i++) {
-		if (!wcsicmp(txt,languages[i]->code)) {
-			l10n = languages[i];
-			break;
-		}
-	}
+	memset(&l10n_ini, 0, sizeof(l10n_ini));
+	UpdateLanguage();
 
 	// Create window
 	WNDCLASSEX wnd = { sizeof(WNDCLASSEX), 0, WindowProc, 0, 0, hInst, NULL, NULL, (HBRUSH)(COLOR_WINDOW+1), NULL, APP_NAME, NULL };
@@ -254,7 +238,7 @@ int HookSystem() {
 	HOOKPROC procaddr;
 	if (!keyhook) {
 		// Get address to keyboard hook (beware name mangling)
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "LowLevelKeyboardProc@12");
+		procaddr = (HOOKPROC) GetProcAddress(hinstDLL, "LowLevelKeyboardProc@12");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('LowLevelKeyboardProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
@@ -272,7 +256,7 @@ int HookSystem() {
 	GetPrivateProfileString(L"Advanced", L"HookWindows", L"0", txt, ARRAY_SIZE(txt), inipath);
 	if (!msghook && _wtoi(txt)) {
 		// Get address to message hook (beware name mangling)
-		procaddr = (HOOKPROC)GetProcAddress(hinstDLL, "CallWndProc@12");
+		procaddr = (HOOKPROC) GetProcAddress(hinstDLL, "CallWndProc@12");
 		if (procaddr == NULL) {
 			Error(L"GetProcAddress('CallWndProc@12')", L"This probably means that the file hooks.dll is from an old version or corrupt. You can try reinstalling "APP_NAME".", GetLastError());
 			return 1;
@@ -404,20 +388,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 	}
 	else if (msg == WM_UPDATESETTINGS) {
-		wchar_t txt[10];
-		// Language
-		GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
-		int i;
-		for (i=0; i < ARRAY_SIZE(languages); i++) {
-			if (!wcsicmp(txt,languages[i]->code)) {
-				l10n = languages[i];
-				break;
-			}
-		}
+		UpdateLanguage();
 		// Reload hooks
 		if (ENABLED()) {
 			UnhookSystem();
 			HookSystem();
+		}
+		// Reload config language
+		if (!wParam && IsWindow(g_cfgwnd)) {
+			SendMessage(g_cfgwnd, WM_UPDATESETTINGS, 0, 0);
 		}
 	}
 	else if (msg == WM_ADDTRAY) {

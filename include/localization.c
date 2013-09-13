@@ -38,12 +38,6 @@ void LoadTranslation(wchar_t *ini) {
 	wchar_t txt[3000];
 	int i;
 	for (i=0; i < ARRAY_SIZE(l10n_mapping); i++) {
-		// Replace English
-		if (l10n_mapping[i].str == &l10n_ini.code) {
-			languages[0] = &l10n_ini;
-			l10n_ini.code = en_US.code;
-			continue;
-		}
 		// Get pointer to default English string to be used if ini entry doesn't exist
 		wchar_t *def = *(wchar_t**) ((void*)&en_US + ((void*)l10n_mapping[i].str - (void*)&l10n_ini));
 		GetPrivateProfileString(L"Translation", l10n_mapping[i].name, def, txt, ARRAY_SIZE(txt), ini);
@@ -51,7 +45,31 @@ void LoadTranslation(wchar_t *ini) {
 			wcscat(txt, L" ");
 			wcscat(txt, TEXT(APP_VERSION));
 		}
-		*l10n_mapping[i].str = malloc((wcslen(txt)+1)*sizeof(wchar_t));
+		*l10n_mapping[i].str = realloc(*l10n_mapping[i].str, (wcslen_resolved(txt)+1)*sizeof(wchar_t));
 		wcscpy_resolve(*l10n_mapping[i].str, txt);
+	}
+}
+
+void UpdateLanguage() {
+	wchar_t path[MAX_PATH];
+	GetModuleFileName(NULL, path, ARRAY_SIZE(path));
+	PathRemoveFileSpec(path);
+	wcscat(path, L"\\Translation.ini");
+	FILE *f = _wfopen(path, L"rb");
+	if (f != NULL) {
+		fclose(f);
+		LoadTranslation(path);
+		l10n = &l10n_ini;
+		return;
+	}
+
+	wchar_t txt[10];
+	GetPrivateProfileString(L"General", L"Language", L"en-US", txt, ARRAY_SIZE(txt), inipath);
+	int i;
+	for (i=0; i < ARRAY_SIZE(languages); i++) {
+		if (!wcsicmp(txt,languages[i]->code)) {
+			l10n = languages[i];
+			break;
+		}
 	}
 }
