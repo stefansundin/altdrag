@@ -1,5 +1,10 @@
 #summary History of changes
 
+*1.0 final* - 2013-09-13:
+  * Add `Lower` scroll wheel action. Scroll down to lower windows, up to raise windows, shift+down to minimize windows, shift+up to toggle maximized state.
+  * Old `Lower` actions will now also minimize the window if you hold shift.
+  * Updated most of the translations.
+
 *1.0 release candidate* - 2013-09-06:
   * Add support for MDI windows. Works with many features (e.g. `HookWindows`, `AltTab` scrolling, snapping).
   * Add ability to lower windows by middle clicking title bars.
