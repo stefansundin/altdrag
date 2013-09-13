@@ -7,11 +7,10 @@ Okay, so you want to help? Great!
 
 Before you start translating, I recommend that you take a look [https://code.google.com/p/altdrag/source/browse/#svn/trunk/localization in the source tree] and see if your language already has been translated, or if an out-of-date translation exists.
 
-Since version 1.0, AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en-US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
+AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en-US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
 Some things to note:
-  * Your new translation will replace the English translation.
-  * You have to restart AltDrag between your changes.
+  * You have to reload AltDrag between your changes (click the tray icon two times).
   * AltDrag is fully unicode enabled, so all kinds of characters should be possible. Make sure to save the file with the correct encoding.
   * The sequence `\n` is converted to a newline.
   * The `&`-character specify that the next letter will be the shortcut to the control (e.g. the checkbox with the text "`&MDI support`" can be toggled with Alt+M).
@@ -32,6 +31,9 @@ If the installer isn't prompting you for a language, it means that it has stored
 
 = Submit the translation =
 
-Before you submit your translation, please double-check all your strings. Please update the top comments with your name and email.
+Checklist before you submit your translation:
+  * Please double-check all your strings.
+  * Please make sure that the Alt shortcuts do not conflict with each other. There should not be two on the same page with the same shortcut.
+  * Please update the top comments with your name and email.
 
-Simply [mailto:recover89@gmail.com?subject=Translate%20AltDrag email the file to me] to submit the translation for inclusion in the next version.
+Then [mailto:recover89@gmail.com?subject=AltDrag%20Translation email the file to me] to submit the translation for inclusion in the next version.
