@@ -24,7 +24,7 @@ LangString L10N_ALTSHIFT_BUTTON   0 "(&O)打开键盘设置"
 
 LangString L10N_HOOKTIMEOUT_TITLE          0 "注册表优化"
 LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "注山表优化是可选的，以保持${APP_NAME}不会意外中止."
-LangString L10N_HOOKTIMEOUT_HEADER         0 "In Windows 7, Microsoft implemented a feature that stops keyboard and mouse hooks if they take too long to respond. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot.$\n$\nIf this happens, you will find that ${APP_NAME} stop functioning without warning, and you have to manually disable and enable ${APP_NAME} to make it work again.$\n$\nThere is a registry tweak to make Windows wait longer before stopping hooks, which you can enable or disable by using the buttons below. Please note that this registry tweak is completely optional."
+LangString L10N_HOOKTIMEOUT_HEADER         0 "在Windows 7中, 微软加入了一个特性，如果键盘和鼠标勾子长时间没有响应，则会停用它们. 不幸的是, 这个检查会出错, 特别是当你对电脑进行长时间休眠，睡眠或锁定时.$\n$\n如果发生这种情况, 你会发现${APP_NAME}没有任何提示而停止工作, 你必须先停用并再启用${APP_NAME}使之再次工作.$\n$\n有一个注册表项可以设定windows7等待hooks响应的时间,你可以通过下面的按钮来启用或停用这个注册表项. 请注意,这个注册表项完全是可选的."
 LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "&E启用注册表优化"
 LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "&D禁用注册表优化"
 LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "注册表优化已经成功应用."
