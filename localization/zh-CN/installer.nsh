@@ -1,4 +1,4 @@
-﻿; AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com)
+ ; AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com)
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@ LangString L10N_ALTSHIFT_SUBTITLE 0 "快捷键Alt + Shift和${APP_NAME}冲突."
 LangString L10N_ALTSHIFT_HEADER   0 "安装程序检测到当前windows切换键盘布局的快捷键为Alt + Shift.$\n$\n而在使用${APP_NAME}时, 按住shift键可以在窗口之间相互吸附. 所以切换键盘布局和窗口相互吸附这两个功能的快捷键相同. 当${APP_NAME}内部试图阻止意外的键盘布局切换时, 会造成按住shift键移动窗口操作的失败.$\n$\n此时，你可以禁止或修改切换键盘布局的快捷键. 点击下一步继续."
 LangString L10N_ALTSHIFT_BUTTON   0 "(&O)打开键盘设置"
 
-LangString L10N_HOOKTIMEOUT_TITLE          0 "Registry tweak"
-LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "Optional tweak to keep ${APP_NAME} from stopping unexpectedly."
+LangString L10N_HOOKTIMEOUT_TITLE          0 "注册表优化"
+LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "注山表优化是可选的，以保持${APP_NAME}不会意外中止."
 LangString L10N_HOOKTIMEOUT_HEADER         0 "In Windows 7, Microsoft implemented a feature that stops keyboard and mouse hooks if they take too long to respond. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot.$\n$\nIf this happens, you will find that ${APP_NAME} stop functioning without warning, and you have to manually disable and enable ${APP_NAME} to make it work again.$\n$\nThere is a registry tweak to make Windows wait longer before stopping hooks, which you can enable or disable by using the buttons below. Please note that this registry tweak is completely optional."
-LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "&Enable registry tweak"
-LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "&Disable registry tweak"
-LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "The registry tweak has already been applied."
-LangString L10N_HOOKTIMEOUT_FOOTER         0 "The change will take effect on your next login."
+LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "&E启用注册表优化"
+LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "&D禁用注册表优化"
+LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "注册表优化已经成功应用."
+LangString L10N_HOOKTIMEOUT_FOOTER         0 "改动将会在你下次登录时起作用."
