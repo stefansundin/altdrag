@@ -1,4 +1,4 @@
-﻿/*
+ /*
 	AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com)
 
 	This program is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ struct strings zh_CN = {
      /* rmb            */ L"鼠标右键:",
      /* mb4            */ L"鼠标第4键:",
      /* mb5            */ L"鼠标第5键:",
-     /* scroll         */ L"Scroll:",
+     /* scroll         */ L"滚动:",
      /* lowerwithmmb   */ L"&Lower windows by middle clicking on title bars",
    },
    { /* actions */
@@ -83,10 +83,10 @@ struct strings zh_CN = {
      /* lower          */ L"降低",
      /* alwaysontop    */ L"一直在最上层",
      /* center         */ L"居中",
-     /* nothing        */ L"Nothing",
+     /* nothing        */ L"无动作",
      /* alttab         */ L"Alt+Tab",
-     /* volume         */ L"Volume",
-     /* transparency   */ L"Transparency",
+     /* volume         */ L"音量",
+     /* transparency   */ L"透明度",
    },
    { /* hotkeys */
      /* box            */ L"热键",
@@ -124,9 +124,9 @@ struct strings zh_CN = {
    /* author           */ L"作者: Stefan Sundin",
    /* license          */ APP_NAME L" 是自由和开源软件!\n迎重新发布!",
    /* donate           */ L"(&D)捐赠",
-   /*translation_credit*/ L"Translation credit",
+   /*translation_credit*/ L"翻译贡献者",
  },
 
  /* === misc === */
- /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
+ /* unhook_error       */ L"在禁用"APP_NAME"时发生错误. 这可能是因为windows已经禁用了"APP_NAME"的勾子而引起的.\n\n如果是第一次发生这种情况, 你可以安全的忽略并继续使用"APP_NAME".\n\n如果这个错误重复出现, 你可以阅读wiki来防范这种情况的再次发生 (在About页上寻找'"APP_NAME"意外停止工作').",
 };
