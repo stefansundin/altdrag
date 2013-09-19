@@ -1,5 +1,5 @@
 ﻿/*
-	AltDrag 1.0 - sk-SK localization by Miroslav Miklus
+	AltDrag 1.0 - localization by Miroslav Miklus
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by

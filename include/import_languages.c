@@ -20,25 +20,22 @@
 #define APP_VERSION         "1.0"
 #define HELP_URL            "https://code.google.com/p/altdrag/wiki/Translate"
 
-wchar_t *inipath;
-
 #include "../localization/strings.h"
-#include "../localization/en-US/strings.h"
-struct strings *l10n = &en_US;
+#include "../localization/en_US/strings.h"
 #include "../include/localization.c"
 
 char *languages[] = {
-	"en-US",
-	"fr-FR",
-	"pl-PL",
-	"pt-BR",
-	"sk-SK",
-	"ru-RU",
-	"zh-CN",
-	"it-IT",
-	"de-DE",
-	"es-ES",
-	"gl-ES",
+	"en_US",
+	"fr_FR",
+	"pl_PL",
+	"pt_BR",
+	"sk_SK",
+	"ru_RU",
+	"zh_CN",
+	"it_IT",
+	"de_DE",
+	"es_ES",
+	"gl_ES",
 };
 
 void wcscpy_escape(wchar_t *dest, wchar_t *source) {
@@ -58,17 +55,13 @@ void wcscpy_escape(wchar_t *dest, wchar_t *source) {
 
 int main(int argc, char *argv[]) {
 	char utf8_bom[3] = { 0xEF,0xBB,0xBF };
-	char utf16le_bom[2] = { 0xFF, 0xFE };
 	int i,j;
-	for (i=0; i < ARRAY_SIZE(languages); i++) {
+	for (i=1; i < ARRAY_SIZE(languages); i++) {
 		char *code = languages[i];
 		wchar_t code_utf16[10];
 		int ret = MultiByteToWideChar(CP_UTF8, 0, code, -1, code_utf16, sizeof(code_utf16));
 		if (ret == 0) {
 			wprintf(L"MultiByteToWideChar() failed. Something is wrong...\n");
-		}
-		if (!strcmp(code,"en-US")) {
-			continue;
 		}
 
 		wchar_t ini[MAX_PATH], path[MAX_PATH];
@@ -80,11 +73,7 @@ int main(int argc, char *argv[]) {
 		wcscat(ini, L"\\Translation.ini");
 		wcscat(path, L"\\strings.h");
 		LoadTranslation(ini);
-		l10n = &l10n_ini;
-
-		char code2[5];
-		strcpy(code2, code);
-		code2[2] = '_';
+		struct strings *l10n = &l10n_ini;
 
 		char author[100];
 		ret = WideCharToMultiByte(CP_UTF8, 0, l10n->author, -1, author, sizeof(author), NULL, NULL);
@@ -92,7 +81,7 @@ int main(int argc, char *argv[]) {
 		FILE *f = _wfopen(path, L"wb");
 		fwrite(utf8_bom, 1, sizeof(utf8_bom), f); // Write BOM
 		fprintf(f, "/*\n\
-	"APP_NAME" "APP_VERSION" - %s localization by %s\n\
+	"APP_NAME" "APP_VERSION" - localization by %s\n\
 \n\
 	This program is free software: you can redistribute it and/or modify\n\
 	it under the terms of the GNU General Public License as published by\n\
@@ -103,7 +92,7 @@ int main(int argc, char *argv[]) {
 */\n\
 \n\
 struct strings %s = {\n\
-", code, author, code2);
+", author, code);
 
 		for (j=0; j < ARRAY_SIZE(l10n_mapping); j++) {
 			wchar_t txt[3000];
@@ -138,10 +127,7 @@ struct strings %s = {\n\
 	}
 	fprintf(f, "\nstruct strings *languages[] = {\n");
 	for (i=0; i < ARRAY_SIZE(languages); i++) {
-		char code[5];
-		strcpy(code, languages[i]);
-		code[2] = '_';
-		fprintf(f, "\t&%s,\n", code);
+		fprintf(f, "\t&%s,\n", languages[i]);
 	}
 	fprintf(f, "};\n\nstruct strings *l10n = &en_US;\n");
 

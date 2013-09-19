@@ -1,5 +1,5 @@
 ﻿/*
-	AltDrag 1.0 - fr-FR localization by Samy Mechiri
+	AltDrag 1.0 - localization by Samy Mechiri
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by

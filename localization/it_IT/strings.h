@@ -1,5 +1,5 @@
 ﻿/*
-	AltDrag 1.0 - it-IT localization by Hexaae
+	AltDrag 1.0 - localization by Hexaae
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
