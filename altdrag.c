@@ -66,8 +66,10 @@ int elevated = 0;
 
 // Include stuff
 #include "localization/strings.h"
+#include "localization/languages.h"
 #include "include/error.c"
 #include "include/localization.c"
+#include "include/languages.c"
 #include "include/tray.c"
 #include "include/update.c"
 #include "config/config.c"
@@ -427,7 +429,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			RemoveTray();
 		}
 		else if (wmId == SWM_UPDATE) {
-			if (MessageBox(NULL,l10n->update.dialog,APP_NAME,MB_ICONINFORMATION|MB_YESNO|MB_TOPMOST|MB_SETFOREGROUND) == IDYES) {
+			if (MessageBox(NULL,l10n->update_dialog,APP_NAME,MB_ICONINFORMATION|MB_YESNO|MB_TOPMOST|MB_SETFOREGROUND) == IDYES) {
 				OpenUrl(APP_URL);
 			}
 		}

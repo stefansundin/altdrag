@@ -76,20 +76,20 @@ void ShowContextMenu(HWND hwnd) {
 	GetCursorPos(&pt);
 	HMENU menu = CreatePopupMenu();
 
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_TOGGLE, (ENABLED()?l10n->menu.disable:l10n->menu.enable));
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_HIDE, l10n->menu.hide);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_TOGGLE, (ENABLED()?l10n->menu_disable:l10n->menu_enable));
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_HIDE, l10n->menu_hide);
 
 	if (update) {
 		InsertMenu(menu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-		InsertMenu(menu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu.update);
+		InsertMenu(menu, -1, MF_BYPOSITION, SWM_UPDATE, l10n->menu_update);
 	}
 
 	InsertMenu(menu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_CONFIG, l10n->menu.config);
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu.about);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_CONFIG, l10n->menu_config);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_ABOUT, l10n->menu_about);
 
 	InsertMenu(menu, -1, MF_BYPOSITION|MF_SEPARATOR, 0, NULL);
-	InsertMenu(menu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu.exit);
+	InsertMenu(menu, -1, MF_BYPOSITION, SWM_EXIT, l10n->menu_exit);
 
 	// Track menu
 	SetForegroundWindow(hwnd);

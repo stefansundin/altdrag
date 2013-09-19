@@ -110,7 +110,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 			SendMessage(g_hwnd, WM_COMMAND, SWM_UPDATE, 0);
 		}
 		else {
-			wcsncpy(tray.szInfo, l10n->update.balloon, ARRAY_SIZE(tray.szInfo));
+			wcsncpy(tray.szInfo, l10n->update_balloon, ARRAY_SIZE(tray.szInfo));
 			tray.uFlags |= NIF_INFO;
 			UpdateTray();
 			tray.uFlags ^= NIF_INFO;
@@ -119,7 +119,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
 	else {
 		update = 0;
 		if (verbose) {
-			MessageBox(NULL, l10n->update.nonew, APP_NAME, MB_ICONINFORMATION|MB_OK);
+			MessageBox(NULL, l10n->update_nonew, APP_NAME, MB_ICONINFORMATION|MB_OK);
 		}
 	}
 	return 0;

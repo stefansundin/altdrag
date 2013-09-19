@@ -90,7 +90,7 @@ void UpdateStrings() {
 	// Update tab titles
 	HWND tc = PropSheet_GetTabControl(g_cfgwnd);
 	int numrows_prev = TabCtrl_GetRowCount(tc);
-	wchar_t *titles[] = { l10n->tabs.general, l10n->tabs.input, l10n->tabs.blacklist, l10n->tabs.advanced, l10n->tabs.about };
+	wchar_t *titles[] = { l10n->tab_general, l10n->tab_input, l10n->tab_blacklist, l10n->tab_advanced, l10n->tab_about };
 	int i;
 	for (i=0; i < ARRAY_SIZE(titles); i++) {
 		TCITEM ti;
@@ -270,18 +270,18 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 					RegCloseKey(key);
 				}
 				if (uac_enabled) {
-					MessageBox(NULL, l10n->general.autostart_elevate_tip, APP_NAME, MB_ICONINFORMATION|MB_OK);
+					MessageBox(NULL, l10n->general_autostart_elevate_tip, APP_NAME, MB_ICONINFORMATION|MB_OK);
 				}
 			}
 		}
-		else if (id == IDC_ELEVATE && MessageBox(NULL,l10n->general.elevate_tip,APP_NAME,MB_ICONINFORMATION|MB_OK)) {
+		else if (id == IDC_ELEVATE && MessageBox(NULL,l10n->general_elevate_tip,APP_NAME,MB_ICONINFORMATION|MB_OK)) {
 			wchar_t path[MAX_PATH];
 			GetModuleFileName(NULL, path, ARRAY_SIZE(path));
 			if ((INT_PTR)ShellExecute(NULL,L"runas",path,L"-config -multi",NULL,SW_SHOWNORMAL) > 32) {
 				PostMessage(g_hwnd, WM_CLOSE, 0, 0);
 			}
 			else {
-				MessageBox(NULL, l10n->general.elevation_aborted, APP_NAME, MB_ICONINFORMATION|MB_OK);
+				MessageBox(NULL, l10n->general_elevation_aborted, APP_NAME, MB_ICONINFORMATION|MB_OK);
 			}
 			return;
 		}
@@ -304,27 +304,27 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	}
 	if (updatestrings) {
 		// Update text
-		SetDlgItemText(hwnd, IDC_GENERAL_BOX,        l10n->general.box);
-		SetDlgItemText(hwnd, IDC_AUTOFOCUS,          l10n->general.autofocus);
-		SetDlgItemText(hwnd, IDC_AERO,               l10n->general.aero);
-		SetDlgItemText(hwnd, IDC_INACTIVESCROLL,     l10n->general.inactivescroll);
-		SetDlgItemText(hwnd, IDC_MDI,                l10n->general.mdi);
-		SetDlgItemText(hwnd, IDC_AUTOSNAP_HEADER,    l10n->general.autosnap);
-		SetDlgItemText(hwnd, IDC_LANGUAGE_HEADER,    l10n->general.language);
-		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX,      l10n->general.autostart_box);
-		SetDlgItemText(hwnd, IDC_AUTOSTART,          l10n->general.autostart);
-		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE,     l10n->general.autostart_hide);
-		SetDlgItemText(hwnd, IDC_AUTOSTART_ELEVATE,  l10n->general.autostart_elevate);
-		SetDlgItemText(hwnd, IDC_ELEVATE,            (elevated?l10n->general.elevated:l10n->general.elevate));
-		SetDlgItemText(hwnd, IDC_AUTOSAVE,           l10n->general.autosave);
+		SetDlgItemText(hwnd, IDC_GENERAL_BOX,        l10n->general_box);
+		SetDlgItemText(hwnd, IDC_AUTOFOCUS,          l10n->general_autofocus);
+		SetDlgItemText(hwnd, IDC_AERO,               l10n->general_aero);
+		SetDlgItemText(hwnd, IDC_INACTIVESCROLL,     l10n->general_inactivescroll);
+		SetDlgItemText(hwnd, IDC_MDI,                l10n->general_mdi);
+		SetDlgItemText(hwnd, IDC_AUTOSNAP_HEADER,    l10n->general_autosnap);
+		SetDlgItemText(hwnd, IDC_LANGUAGE_HEADER,    l10n->general_language);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_BOX,      l10n->general_autostart_box);
+		SetDlgItemText(hwnd, IDC_AUTOSTART,          l10n->general_autostart);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_HIDE,     l10n->general_autostart_hide);
+		SetDlgItemText(hwnd, IDC_AUTOSTART_ELEVATE,  l10n->general_autostart_elevate);
+		SetDlgItemText(hwnd, IDC_ELEVATE,            (elevated?l10n->general_elevated:l10n->general_elevate));
+		SetDlgItemText(hwnd, IDC_AUTOSAVE,           l10n->general_autosave);
 
 		// AutoSnap
 		HWND control = GetDlgItem(hwnd, IDC_AUTOSNAP);
 		ComboBox_ResetContent(control);
-		ComboBox_AddString(control, l10n->general.autosnap0);
-		ComboBox_AddString(control, l10n->general.autosnap1);
-		ComboBox_AddString(control, l10n->general.autosnap2);
-		ComboBox_AddString(control, l10n->general.autosnap3);
+		ComboBox_AddString(control, l10n->general_autosnap0);
+		ComboBox_AddString(control, l10n->general_autosnap1);
+		ComboBox_AddString(control, l10n->general_autosnap2);
+		ComboBox_AddString(control, l10n->general_autosnap3);
 		wchar_t txt[10];
 		GetPrivateProfileString(L"General", L"AutoSnap", L"0", txt, ARRAY_SIZE(txt), inipath);
 		ComboBox_SetCurSel(control, _wtoi(txt));
@@ -356,23 +356,23 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		wchar_t *l10n;
 	};
 	struct action mouse_actions[] = {
-		{ L"Move",        l10n->input.actions.move },
-		{ L"Resize",      l10n->input.actions.resize },
-		{ L"Close",       l10n->input.actions.close },
-		{ L"Minimize",    l10n->input.actions.minimize },
-		{ L"Lower",       l10n->input.actions.lower },
-		{ L"AlwaysOnTop", l10n->input.actions.alwaysontop },
-		{ L"Center",      l10n->input.actions.center },
-		{ L"Nothing",     l10n->input.actions.nothing },
+		{ L"Move",        l10n->input_actions_move },
+		{ L"Resize",      l10n->input_actions_resize },
+		{ L"Close",       l10n->input_actions_close },
+		{ L"Minimize",    l10n->input_actions_minimize },
+		{ L"Lower",       l10n->input_actions_lower },
+		{ L"AlwaysOnTop", l10n->input_actions_alwaysontop },
+		{ L"Center",      l10n->input_actions_center },
+		{ L"Nothing",     l10n->input_actions_nothing },
 	};
 
 	// Scroll
 	struct action scroll_actions[] = {
-		{ L"AltTab",       l10n->input.actions.alttab },
-		{ L"Volume",       l10n->input.actions.volume },
-		{ L"Transparency", l10n->input.actions.transparency },
-		{ L"Lower",        l10n->input.actions.lower },
-		{ L"Nothing",      l10n->input.actions.nothing },
+		{ L"AltTab",       l10n->input_actions_alttab },
+		{ L"Volume",       l10n->input_actions_volume },
+		{ L"Transparency", l10n->input_actions_transparency },
+		{ L"Lower",        l10n->input_actions_lower },
+		{ L"Nothing",      l10n->input_actions_nothing },
 	};
 
 	// Hotkeys
@@ -512,22 +512,22 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 			ComboBox_SetCurSel(control, sel);
 
 			// Update text
-			SetDlgItemText(hwnd, IDC_MOUSE_BOX,      l10n->input.mouse.box);
-			SetDlgItemText(hwnd, IDC_LMB_HEADER,     l10n->input.mouse.lmb);
-			SetDlgItemText(hwnd, IDC_MMB_HEADER,     l10n->input.mouse.mmb);
-			SetDlgItemText(hwnd, IDC_RMB_HEADER,     l10n->input.mouse.rmb);
-			SetDlgItemText(hwnd, IDC_MB4_HEADER,     l10n->input.mouse.mb4);
-			SetDlgItemText(hwnd, IDC_MB5_HEADER,     l10n->input.mouse.mb5);
-			SetDlgItemText(hwnd, IDC_SCROLL_HEADER,  l10n->input.mouse.scroll);
-			SetDlgItemText(hwnd, IDC_LOWERWITHMMB,   l10n->input.mouse.lowerwithmmb);
-			SetDlgItemText(hwnd, IDC_HOTKEYS_BOX,    l10n->input.hotkeys.box);
-			SetDlgItemText(hwnd, IDC_LEFTALT,        l10n->input.hotkeys.leftalt);
-			SetDlgItemText(hwnd, IDC_RIGHTALT,       l10n->input.hotkeys.rightalt);
-			SetDlgItemText(hwnd, IDC_LEFTWINKEY,     l10n->input.hotkeys.leftwinkey);
-			SetDlgItemText(hwnd, IDC_RIGHTWINKEY,    l10n->input.hotkeys.rightwinkey);
-			SetDlgItemText(hwnd, IDC_LEFTCTRL,       l10n->input.hotkeys.leftctrl);
-			SetDlgItemText(hwnd, IDC_RIGHTCTRL,      l10n->input.hotkeys.rightctrl);
-			SetDlgItemText(hwnd, IDC_HOTKEYS_MORE,   l10n->input.hotkeys.more);
+			SetDlgItemText(hwnd, IDC_MOUSE_BOX,      l10n->input_mouse_box);
+			SetDlgItemText(hwnd, IDC_LMB_HEADER,     l10n->input_mouse_lmb);
+			SetDlgItemText(hwnd, IDC_MMB_HEADER,     l10n->input_mouse_mmb);
+			SetDlgItemText(hwnd, IDC_RMB_HEADER,     l10n->input_mouse_rmb);
+			SetDlgItemText(hwnd, IDC_MB4_HEADER,     l10n->input_mouse_mb4);
+			SetDlgItemText(hwnd, IDC_MB5_HEADER,     l10n->input_mouse_mb5);
+			SetDlgItemText(hwnd, IDC_SCROLL_HEADER,  l10n->input_mouse_scroll);
+			SetDlgItemText(hwnd, IDC_LOWERWITHMMB,   l10n->input_mouse_lowerwithmmb);
+			SetDlgItemText(hwnd, IDC_HOTKEYS_BOX,    l10n->input_hotkeys_box);
+			SetDlgItemText(hwnd, IDC_LEFTALT,        l10n->input_hotkeys_leftalt);
+			SetDlgItemText(hwnd, IDC_RIGHTALT,       l10n->input_hotkeys_rightalt);
+			SetDlgItemText(hwnd, IDC_LEFTWINKEY,     l10n->input_hotkeys_leftwinkey);
+			SetDlgItemText(hwnd, IDC_RIGHTWINKEY,    l10n->input_hotkeys_rightwinkey);
+			SetDlgItemText(hwnd, IDC_LEFTCTRL,       l10n->input_hotkeys_leftctrl);
+			SetDlgItemText(hwnd, IDC_RIGHTCTRL,      l10n->input_hotkeys_rightctrl);
+			SetDlgItemText(hwnd, IDC_HOTKEYS_MORE,   l10n->input_hotkeys_more);
 		}
 	}
 
@@ -584,13 +584,13 @@ INT_PTR CALLBACK BlacklistPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			// Update text
-			SetDlgItemText(hwnd, IDC_BLACKLIST_BOX,           l10n->blacklist.box);
-			SetDlgItemText(hwnd, IDC_PROCESSBLACKLIST_HEADER, l10n->blacklist.processblacklist);
-			SetDlgItemText(hwnd, IDC_BLACKLIST_HEADER,        l10n->blacklist.blacklist);
-			SetDlgItemText(hwnd, IDC_SNAPLIST_HEADER,         l10n->blacklist.snaplist);
-			SetDlgItemText(hwnd, IDC_BLACKLIST_EXPLANATION,   l10n->blacklist.explanation);
-			SetDlgItemText(hwnd, IDC_FINDWINDOW_BOX,          l10n->blacklist.findwindow_box);
-			SetDlgItemText(hwnd, IDC_FINDWINDOW_EXPLANATION,  l10n->blacklist.findwindow_explanation);
+			SetDlgItemText(hwnd, IDC_BLACKLIST_BOX,           l10n->blacklist_box);
+			SetDlgItemText(hwnd, IDC_PROCESSBLACKLIST_HEADER, l10n->blacklist_processblacklist);
+			SetDlgItemText(hwnd, IDC_BLACKLIST_HEADER,        l10n->blacklist_blacklist);
+			SetDlgItemText(hwnd, IDC_SNAPLIST_HEADER,         l10n->blacklist_snaplist);
+			SetDlgItemText(hwnd, IDC_BLACKLIST_EXPLANATION,   l10n->blacklist_explanation);
+			SetDlgItemText(hwnd, IDC_FINDWINDOW_BOX,          l10n->blacklist_findwindow_box);
+			SetDlgItemText(hwnd, IDC_FINDWINDOW_EXPLANATION,  l10n->blacklist_findwindow_explanation);
 		}
 	}
 
@@ -644,7 +644,7 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 			wchar_t txt[10];
 			int val = Button_GetCheck(GetDlgItem(hwnd,wParam));
 			if (wParam == IDC_HOOKWINDOWS) {
-				if (val && MessageBox(NULL, l10n->advanced.hookwindows_warn, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_TASKMODAL) == IDNO) {
+				if (val && MessageBox(NULL, l10n->advanced_hookwindows_warn, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_TASKMODAL) == IDNO) {
 					Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), BST_UNCHECKED);
 					return;
 				}
@@ -666,13 +666,13 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			// Update text
-			SetDlgItemText(hwnd, IDC_ADVANCED_BOX,    l10n->advanced.box);
-			SetDlgItemText(hwnd, IDC_HOOKWINDOWS,     l10n->advanced.hookwindows);
-			SetDlgItemText(hwnd, IDC_CHECKONSTARTUP,  l10n->advanced.checkonstartup);
-			SetDlgItemText(hwnd, IDC_BETA,            l10n->advanced.beta);
-			SetDlgItemText(hwnd, IDC_CHECKNOW,        l10n->advanced.checknow);
-			SetDlgItemText(hwnd, IDC_INI,             l10n->advanced.ini);
-			SetDlgItemText(hwnd, IDC_OPENINI,         l10n->advanced.openini);
+			SetDlgItemText(hwnd, IDC_ADVANCED_BOX,    l10n->advanced_box);
+			SetDlgItemText(hwnd, IDC_HOOKWINDOWS,     l10n->advanced_hookwindows);
+			SetDlgItemText(hwnd, IDC_CHECKONSTARTUP,  l10n->advanced_checkonstartup);
+			SetDlgItemText(hwnd, IDC_BETA,            l10n->advanced_beta);
+			SetDlgItemText(hwnd, IDC_CHECKNOW,        l10n->advanced_checknow);
+			SetDlgItemText(hwnd, IDC_INI,             l10n->advanced_ini);
+			SetDlgItemText(hwnd, IDC_OPENINI,         l10n->advanced_openini);
 		}
 	}
 	return FALSE;
@@ -688,12 +688,12 @@ INT_PTR CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 		LPNMHDR pnmh = (LPNMHDR)lParam;
 		if (pnmh->code == PSN_SETACTIVE) {
 			// Update text
-			SetDlgItemText(hwnd, IDC_ABOUT_BOX,        l10n->about.box);
-			SetDlgItemText(hwnd, IDC_VERSION,          l10n->about.version);
-			SetDlgItemText(hwnd, IDC_AUTHOR,           l10n->about.author);
-			SetDlgItemText(hwnd, IDC_LICENSE,          l10n->about.license);
-			SetDlgItemText(hwnd, IDC_DONATE,           l10n->about.donate);
-			SetDlgItemText(hwnd, IDC_TRANSLATIONS_BOX, l10n->about.translation_credit);
+			SetDlgItemText(hwnd, IDC_ABOUT_BOX,        l10n->about_box);
+			SetDlgItemText(hwnd, IDC_VERSION,          l10n->about_version);
+			SetDlgItemText(hwnd, IDC_AUTHOR,           l10n->about_author);
+			SetDlgItemText(hwnd, IDC_LICENSE,          l10n->about_license);
+			SetDlgItemText(hwnd, IDC_DONATE,           l10n->about_donate);
+			SetDlgItemText(hwnd, IDC_TRANSLATIONS_BOX, l10n->about_translation_credit);
 
 			wchar_t txt[1024] = L"";
 			int i;

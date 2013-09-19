@@ -6,7 +6,6 @@
 
 set prefix32=i686-w64-mingw32-
 set prefix64=x86_64-w64-mingw32-
-set l10n=en-US fr-FR pl-PL pt-BR ru-RU sk-SK zh-CN it-IT de-DE
 
 set x64=0
 if "%1" == "x64" set x64=1
@@ -45,6 +44,9 @@ if "%1" == "all" (
 
 	echo Building installer
 	makensis /V2 installer.nsi
+) else if "%1" == "lang" (
+	%prefix32%gcc -o localization\import_languages.exe include\import_languages.c -lshlwapi
+	localization\import_languages.exe
 ) else (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -g -DDEBUG
 	%prefix32%gcc -o hooks.dll hooks.c build\hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -g -DDEBUG
