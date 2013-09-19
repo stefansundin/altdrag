@@ -1,5 +1,5 @@
 ﻿/*
-	AltDrag 1.0 - ru-RU localization by Neek Eoneof, Dmitry Trubin
+	AltDrag 1.0 - localization by Neek Eoneof, Dmitry Trubin
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by

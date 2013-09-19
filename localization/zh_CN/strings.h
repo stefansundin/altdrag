@@ -1,5 +1,5 @@
 ﻿/*
-	AltDrag 1.0 - zh-CN localization by Jack Jin
+	AltDrag 1.0 - localization by Jack Jin
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by

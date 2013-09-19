@@ -1,5 +1,5 @@
 ﻿/*
-	AltDrag 1.0 - pt-BR localization by Jucá Costa
+	AltDrag 1.0 - localization by Jucá Costa
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
