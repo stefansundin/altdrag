@@ -23,7 +23,7 @@
 #include "../localization/strings.h"
 
 void wcscpy_escape(wchar_t *dest, wchar_t *source) {
-	// Copy from source to dest, resolving \\n to \n
+	// Copy from source to dest, escaping \n to \\n
 	for (; *source != '\0'; source++,dest++) {
 		if (*source == '\n') {
 			*dest = '\\';
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 		wcscat(ini, L"\\Translation.ini");
 
 		FILE *f = _wfopen(ini, L"wb");
-		fwrite(utf16le_bom, 1, 2, f); // Write BOM
+		fwrite(utf16le_bom, 1, sizeof(utf16le_bom), f); // Write BOM
 		fwprintf(f, L"; Translation file for "APP_NAME" "APP_VERSION"\n\
 ; %s localization by %s\n\
 ; Simply put this file in the same directory as "APP_NAME", then restart "APP_NAME".\n\

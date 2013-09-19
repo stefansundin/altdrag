@@ -1,35 +1,31 @@
-﻿;AltDrag - gl-ES localization by Alexander De Sousa (xandy.lua@gmail.com)
+﻿; AltDrag - gl-ES localization by Jorge Amigo (alpof@yahoo.com)
 ;
-;This program is free software: you can redistribute it and/or modify
-;it under the terms of the GNU General Public License as published by
-;the Free Software Foundation, either version 3 of the License, or
-;(at your option) any later version.
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
 
 !insertmacro MUI_LANGUAGE "Galician"
 LangString L10N_LANG ${LANG_GALICIAN} ""
 
-LangString L10N_UPGRADE_TITLE     0 "Xa está instalado."
-LangString L10N_UPGRADE_SUBTITLE  0 "Escolle como queres instalar ${APP_NAME}."
-LangString L10N_UPGRADE_HEADER    0 "${APP_NAME} xa está instalado no teu sistema. Selecciona a operación que queres realizar e preme Seguinte para continuar."
-LangString L10N_UPGRADE_UPGRADE   0 "&Actualizar ${APP_NAME} á versión ${APP_VERSION}."
-LangString L10N_UPGRADE_INI       0 "A configuración actual copiarase a ${APP_NAME}-old.ini."
-LangString L10N_UPGRADE_INSTALL   0 "&Instalar de novo."
-LangString L10N_UPGRADE_UNINSTALL 0 "&Desinstalar ${APP_NAME}."
-LangString L10N_UPDATE_SECTION    0 "Comprobar actualizacións antes de instalar"
-LangString L10N_UPDATE_DIALOG     0 "Unha nova versión está dispoñible.$\nQueres abortar a instalación e ir á páxina web?"
-LangString L10N_SHORTCUT          0 "Atallo no menú de inicio"
-LangString L10N_AUTOSTART         0 "Arrancar ó iniciar o sistema"
-LangString L10N_AUTOSTART_HIDE    0 "Esconder a icona na bandexa do sistema"
+LangString L10N_UPGRADE_TITLE     0 "Xa instalado"
+LangString L10N_UPGRADE_SUBTITLE  0 "Elixa cómo instalar ${APP_NAME}."
+LangString L10N_UPGRADE_HEADER    0 "${APP_NAME} xa está instalado neste sistema. Escolla a operación que quere realizar e prema Seguinte para continuar."
+LangString L10N_UPGRADE_UPGRADE   0 "&Actualizar ${APP_NAME} a ${APP_VERSION}."
+LangString L10N_UPGRADE_INI       0 "A configuración existente será copiada a ${APP_NAME}-old.ini."
+LangString L10N_UPGRADE_INSTALL   0 "&Instalar nunha nova ubicación."
+LangString L10N_UPGRADE_UNINSTALL 0 "Desinstalar ${APP_NAME}."
+LangString L10N_UPDATE_DIALOG     0 "Existe unha nova versión dispoñible.$\nAborta-la instalación e ir ó sitio web?"
 
-LangString L10N_ALTSHIFT_TITLE    0 "Atallo no teclado"
-LangString L10N_ALTSHIFT_SUBTITLE 0 "O atallo Alt + Shift interfire con ${APP_NAME}."
-LangString L10N_ALTSHIFT_HEADER   0 "O instalador detectou que o atallo para cambiar de esquema de teclado é Alt + Shift.$\n$\nCando usas ${APP_NAME}, podes premer Shift mentras moves ventás para facer que se peguen a outras ventás. Isto significa que é probable que premas Alt + Shift, a mesma combinación que activa o cambio de distribución do teclado. ${APP_NAME} trata de bloquear o cambio accidental de teclado internamente, non será posible se premes Shift antes de comezar a mover a ventá.$\n$\nPodes desactivar ou cambiar o atallo que activa o cambio de teclado premendo este botón. Preme Seguinte para continuar."
-LangString L10N_ALTSHIFT_BUTTON   0 "&Config. do teclado"
+LangString L10N_ALTSHIFT_TITLE    0 "Atallo de teclado"
+LangString L10N_ALTSHIFT_SUBTITLE 0 "O atallo Alt + Maiúsculas entra en conflicto con ${APP_NAME}."
+LangString L10N_ALTSHIFT_HEADER   0 "O instalador detectou que o atallo de Windows para activa-la actual distribución de teclado é Alt + Maiúsculas.$\n$\nCando se usa ${APP_NAME}, pódese premer Maiúsculas mentres arrástranse as ventás para facer que se peguen a outras ventás. Esto significa que é posible que se prema Alt + Maiúsculas, a mesma combinación que activa a distribución de teclado. Mentres que ${APP_NAME} internamente trata de bloquea-lo cambio accidental de distribución de teclado, non o conseguirá se prémese Maiúsculas antes de comenza-lo arrastre dunha ventá.$\n$\nPódese deshabilitar ou cambia-lo atallo que activa a distribución de teclado premendo este botón. Prema Seguinte para continuar."
+LangString L10N_ALTSHIFT_BUTTON   0 "&Abri-la configuración do teclado"
 
-LangString L10N_HOOKTIMEOUT_TITLE          0 "Registry tweak"
-LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "Optional tweak to keep ${APP_NAME} from stopping unexpectedly."
-LangString L10N_HOOKTIMEOUT_HEADER         0 "In Windows 7, Microsoft implemented a feature that stops keyboard and mouse hooks if they take too long to respond. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot.$\n$\nIf this happens, you will find that ${APP_NAME} stop functioning without warning, and you have to manually disable and enable ${APP_NAME} to make it work again.$\n$\nThere is a registry tweak to make Windows wait longer before stopping hooks, which you can enable or disable by using the buttons below. Please note that this registry tweak is completely optional."
-LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "&Enable registry tweak"
-LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "&Disable registry tweak"
-LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "The registry tweak has already been applied."
-LangString L10N_HOOKTIMEOUT_FOOTER         0 "The change will take effect on your next login."
+LangString L10N_HOOKTIMEOUT_TITLE          0 "Axuste do rexistro"
+LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "Axuste opcional para evitar que ${APP_NAME} péchese inesperadamente."
+LangString L10N_HOOKTIMEOUT_HEADER         0 "En Windows 7, Microsoft implementóu unha funcionalidade para evitar ganchos de teclado e rato se tardan de máis en respostar. Desgraciadamente, esta funcionalidade pode comportarse erróneamente, especialmente se hiberna, suspende o bloquéase moito o equipo.$\n$\nSe esto ocurre, observarase que ${APP_NAME} deixará de funcionar sen avisar, e ${APP_NAME} deberá ser manualmente deshabilitado e habilitado para facer que volte a funcionar.$\n$\nExiste un axuste de rexistro para facer que Windows espere máis tempo antes de para-los ganchos, que pode ser habilitado ou deshabilitado usando os botóns de abaixo. Por favor, nótese que este axuste de rexistro é completamente opcional."
+LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "&Habilita-lo axuste de rexistro"
+LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "&Deshabilita-lo axuste de rexistro"
+LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "O axuste de registro xa se aplicóu."
+LangString L10N_HOOKTIMEOUT_FOOTER         0 "O cambio farase efectivo no próximo inicio de sesión."
