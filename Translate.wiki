@@ -1,4 +1,4 @@
-#summary How do I translate AltDrag?
+#summary Help translate AltDrag!
 #labels Phase-Implementation
 
 = Introduction =
@@ -7,7 +7,7 @@ Okay, so you want to help? Great!
 
 Before you start translating, I recommend that you take a look [https://code.google.com/p/altdrag/source/browse/#svn/trunk/localization in the source tree] and see if your language already has been translated, or if an out-of-date translation exists.
 
-AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en-US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
+AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en_US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
 Some things to note:
   * You have to reload AltDrag between your changes (click the tray icon two times).
@@ -18,7 +18,7 @@ Some things to note:
 
 = The installer =
 
-The installer has to be compiled to be translated. Download [https://altdrag.googlecode.com/svn/trunk/localization/en-US/installer.nsh installer.nsh] and translate the strings. Include it in your submission.
+The installer has to be compiled to be translated. Download [https://altdrag.googlecode.com/svn/trunk/localization/en_US/installer.nsh installer.nsh] and translate the strings. Include it in your submission.
 
 It is possible to build the installer without compiling AltDrag itself, so it is not that difficult to test by yourself. You still have to download the source code, [http://code.google.com/p/unsis/downloads/list NSIS Unicode] and the [http://nsis.sourceforge.net/AccessControl_plug-in AccessControl plug-in]. Watch the video on the [Build] page if you need more help.
 
