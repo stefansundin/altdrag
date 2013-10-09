@@ -53,7 +53,7 @@
   * [http://boastr.net/ BetterTouchTool]
   * [http://www.atomicbird.com/about/mac-apps MondoMouse]
 
-BetterTouchTool and MondoMouse can not be configured to be used with mouse buttons, they both activate when you press the keyboard buttons. All Mac programs resize from the bottom right corner.
+BetterTouchTool and MondoMouse can *not* be configured to be used with mouse buttons, instead they both activate when you press the keyboard buttons. All of these programs always resize from the bottom right corner.
 
 = Other =
   * [http://www.techsupportalert.com/content/best-free-window-manager-resizer-arranger.htm List of window management programs]
