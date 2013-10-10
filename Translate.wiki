@@ -9,6 +9,8 @@ Before you start translating, I recommend that you take a look [https://code.goo
 
 AltDrag can be translated via an ini file. Download the English [https://altdrag.googlecode.com/svn/trunk/localization/en_US/Translation.ini Translation.ini] file. Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
+Look for your language code in the [http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes ISO 639-1 standard], and your territory code in the [http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements ISO 3166-1 alpha-2 standard].
+
 Some things to note:
   * You have to reload AltDrag between your changes (click the tray icon two times).
   * AltDrag is fully unicode enabled, so all kinds of characters should be possible. Make sure to save the file with the correct encoding.
