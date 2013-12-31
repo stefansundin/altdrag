@@ -8,14 +8,14 @@ Donations are a great motivation for me to keep updating my programs. They are a
 
 The easiest way to donate is by [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=8727MAF7NTYRE sending money with PayPal]. You can donate with PayPal without a PayPal account, using only your credit card.
 
-<wiki:gadget border="0" url="http://stefansundin.com/stuff/paypal-gadget.xml" up_business="8727MAF7NTYRE" up_item_number="AltDrag" up_amount="$5.00" up_return_url="http://stefansundin.com/thx" up_return_text="Learn why you just became awesome" width="200" height="80" />
+<wiki:gadget border="0" url="https://gist.github.com/stefansundin/6540861/raw/paypal-gadget.xml" up_business="8727MAF7NTYRE" up_item_number="AltDrag" up_amount="$5.00" up_return_url="http://stefansundin.com/thx" up_return_text="Learn why you just became awesome" width="200" height="80" />
 
 
 == Donate with Flattr ==
 
 [http://flattr.com/ Flattr] is a service that allows you to easily donate a very small amount. You can flattr me by clicking this button:
 
-<wiki:gadget url="http://stefansundin.com/stuff/flattr/google-project-hosting.xml" border="0" width="55" height="62" up_uid="recover" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
+<wiki:gadget url="https://gist.github.com/stefansundin/8195226/raw/flattr-gadget.xml" border="0" width="55" height="62" up_uid="recover" up_title="AltDrag" up_desc="Drag windows when pressing the alt key" up_tags="stefansundin" up_url="http://code.google.com/p/altdrag/" />
 
 
 == Donate with Bitcoin ==
