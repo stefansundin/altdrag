@@ -1,0 +1,165 @@
+#summary A more in-depth introduction
+#labels Featured,Phase-Deploy
+
+<wiki:toc />
+
+= Introduction =
+AltDrag gives you the ability to move and resize your windows in a new way. After you have started AltDrag, you can simply hold down the Alt key and then click and drag any window.
+
+This behavior already exists in Linux and other operating systems, and AltDrag was made with the mission to copy that behavior to the Windows platform.
+
+If you have troubles understanding how AltDrag works, you can watch [http://www.youtube.com/watch?v=8yw1i2FBAss this short video] that a user has posted to YouTube.
+
+There's also a good article describing AltDrag on [http://howik.com/Make_windows_snap_to_each_other_and_screen_borders_and_quickly_resize_windows_using_the_AltDrag_windows_utility howik.com].
+
+
+== Tricks you should know about ==
+  * While dragging windows, press the Shift key to make the window snap to other windows.
+  * AltDrag will not bring windows to front by default. Press Ctrl to bring the window to front, or configure AltDrag to do that automatically in the settings.
+  * AltDrag will mimic Aero Snap by default, so try dragging windows to the edges of your monitor. Corners work too!
+  * You can press the resize action (right mouse button by default) while dragging windows to toggle their maximized state.
+  * If you use multiple monitors, you can hold Ctrl while dragging to trap the window within the current monitor. This is particularly useful if you want to Aero Snap at edges between monitors.
+  * If you drag a maximized window from one monitor to another, the window will automatically be maximized on arrival. You can press Ctrl to temporarily disable this behavior without releasing the mouse button.
+  * If you have automatic snapping enabled, you can temporarily disable it by pressing the space bar while dragging.
+  * If you use the scroll wheel to change the volume, you can hold shift to increase the rate the volume is changed. If you use the scroll wheel to change the transparency, you can hold shift to decrease the rate the transparency is changed.
+  * If you have _Scroll inactive windows_ enabled, you can hold the Shift key to scroll horizontally. Note that this relies on that the program has support for normal horizontal mouse wheel scrolling, which not all programs have.
+  * If you can't move a particular window, try elevating AltDrag. Normal programs can't interact with programs that are started with administrator privileges.
+  * You can run multiple instances of AltDrag if you configure `AltDrag.ini`. This is useful if you e.g. want Alt+LMB to move windows and Ctrl+LMB to resize windows.
+
+
+== Resize ==
+You can use either the middle or right mouse button to resize windows. Imagine the window divided into nine squares, and you will resize the corner nearest to where you press. The corners are slightly bigger than the middle regions.
+
+If you double-click these regions, the window will move moved to the respective corner on your screen (like Aero Snap), so you can quickly arrange your windows to fit on the screen.
+
+http://altdrag.googlecode.com/svn/wiki/resize.png
+
+
+= Configuration =
+The simplest way to open the configuration window is by double-clicking the tray icon. The settings are saved in a file called `AltDrag.ini`.
+
+http://altdrag.googlecode.com/svn/wiki/configuration_window.png
+
+== Language ==
+There are a few languages that are embedded inside AltDrag, but you can add an additional languages by translating an ini file. Read how to do that [http://code.google.com/p/altdrag/wiki/Translate here].
+
+
+== Mouse and keyboard ==
+You can reconfigure what the mouse buttons do here. The actions that you can choose from are `Move`, `Resize`, `Minimize`, `AlwaysOnTop`, `Center`, `Close` and `Nothing`.
+
+You can configure the scroll wheel to use `AltTab`, `Volume` or `Transparency`. `Volume` requires at least Windows Vista.
+
+You can also make AltDrag lower windows if you middle click their titlebars.
+
+If you have a great idea for a new mouse action, put in a request in the [http://code.google.com/p/altdrag/issues/list issue tracker].
+
+
+== Blacklist ==
+There are three blacklists in AltDrag. They let you disable AltDrag from affecting some windows. This is a pretty advanced option and even has [Blacklist its own wiki page]. I recommend you to skip this option until you have learned more about AltDrag.
+
+
+== Performance ==
+If you open the ini file, you can configure a few settings related to performance.
+
+First there is the `Cursor` option which disables the mouse cursor from changing shape during dragging and resizing.
+
+Then there are `MoveRate` and `ResizeRate` which controls how often the window is redrawn during move and resize. Increase the values to make AltDrag redraw the window less often. Set these values to `1` to make AltDrag use pre-1.0 behavior.
+
+
+== Updates ==
+AltDrag will by default check if there is a newer version available when it is started. It will only notify you if it finds a new version, it will not download anything for you. You can disable this behavior if you don't like it. You can check for update manually on the _About_ page in the configuration window, regardless of this setting.
+
+Remember that you can monitor [http://altdrag.googlecode.com/svn/wiki/feed.xml the rss feed] for new releases.
+
+
+= Windows hacks =
+
+== X-Mouse ==
+
+There is a hidden setting in Windows that allows for window activation on mouse hovering. This setting is first exposed in the control panel in Windows 7. For previous Windows versions you have to use the [http://windows.microsoft.com/en-US/windows/downloads/windows-xp TweakUI utility] and enable the "X-Mouse" setting. You can find out what registry settings does this [http://blogs.msdn.com/b/oldnewthing/archive/2011/06/02/10170483.aspx here].
+
+== Disable Aero Shake ==
+
+If you, like me, dislike the ability in Windows 7 to shake a window to minimize all other windows, then you can disable it with the following registry hack. Create the DWORD value `NoWindowMinimizingShortcuts` in `HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer` and give it the value `1`.
+
+If you are too lazy to start regedit, then simply run this command. Make sure you are running it with administrator privileges (hold Ctrl+Shift if running from the start menu).
+{{{
+cmd /C reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /t REG_DWORD /d 1 /f & echo The change will take effect on your next login. & pause
+}}}
+
+To change it back, run this command:
+{{{
+cmd /C reg delete HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /f & echo The change will take effect on your next login. & pause
+}}}
+
+You have to log off and in for the change to take effect.
+
+
+= UAC =
+
+AltDrag does not require administrator privileges. The only case it needs administrator privileges is when you are trying to drag an elevated program, or if an elevated program has focus (in this case, AltDrag does not receive keyboard or mouse events). If you installed AltDrag in `C:\Program Files\`, then you need administrator privileges to edit `AltDrag.ini`. The easiest way to fix this is by right clicking on `AltDrag.ini`, click _Properties_, then go to the _Security_ tab and give the _Users_ group _Full control_ to the file.
+
+If you want AltDrag to launch with administrator privileges on startup, then you have to configure the task scheduler to launch AltDrag on log in. Read [http://botsikas.blogspot.com/2010/05/autostart-application-that-requires-uac.html this blog post] for a tutorial. There is one caveat though, you need to configure *a delay of 30 seconds* before the task is started. Otherwise the tray icon won't be added properly and AltDrag will not work. You must also disable AltDrag's normal autostart option. Successfully configuring a task like this will allow AltDrag to be launched on startup with administrator privileges without a UAC prompt.
+
+
+= Known issues =
+
+== !AltDrag mysteriously stops working ==
+
+AltDrag relies on hooking to your keyboard and mouse to function, so that it can detect when you press the Alt key and when you move your mouse. In Windows 7, Microsoft implemented a change to stop hooks if they take too long. Unfortunately, this check can erroneously misbehave, especially if you hibernate, sleep, or lock the computer a lot. And then if you try to disable AltDrag, you might get an error. There is a way to increase this timeout by editing the registry.
+
+Note that other programs may also set this registry tweak, and may do so without asking for your permission. Run this command to see if the registry tweak is already enabled. If enabled, you will get a hex value which you can convert to decimal to get the value in milliseconds.
+{{{
+cmd /C reg query "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout & pause
+}}}
+
+Run this command to increase the timeout to 5 seconds. The change will take effect on your next login.
+{{{
+cmd /C reg add "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /t REG_DWORD /d 5000 /f & echo The change will take effect on your next login. & pause
+}}}
+
+To revert, run this command:
+{{{
+cmd /C reg delete "HKCU\Control Panel\Desktop" /v LowLevelHooksTimeout /f & echo The change will take effect on your next login. & pause
+}}}
+
+If you get an error that the registry key or value does not exists, this means that the timeout is already at its default setting.
+
+
+== Scrolling too fast causes the computer to beep ==
+
+This happens if you have enabled _Scroll inactive windows_. I do not know why it happens, so let me know if you know a solution.
+
+There are a few ways to disable the beeping. The easiest is to open the volume window in the tray, then expand by pressing _Mixer_, then press the mute button for _System Sounds_. Note that this will mute all system sounds on your computer.
+
+To only disable the beep sound, you have two options. The easiest is to edit a value in the registry. You have to reboot for the changes to take effect. Run this command:
+{{{
+cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d no /f & echo Please reboot for changes to take effect. & pause
+}}}
+
+To change it back:
+{{{
+cmd /C reg add "HKCU\Control Panel\Sound" /v Beep /t REG_SZ /d yes /f & echo Please reboot for changes to take effect. & pause
+}}}
+
+Your last option is to disable the beep service. There are GUI instructions [http://technology.mattrude.com/2011/05/how-to-disable-the-system-beep-in-windows-7/ here], but you can also run these commands in cmd:
+{{{
+net stop beep
+sc config beep start= disabled
+}}}
+
+The space between `start=` and `disabled` is intentional. If you remove it the command will fail.
+
+
+= Reporting bugs and suggesting new features =
+
+You should report bugs and suggest new features in [http://code.google.com/p/altdrag/issues/list the issue tracker]. If you send them by email I might forget them.
+
+When suggesting new features, just keep this in mind; I *don't* want AltDrag to become this:
+
+http://www.geekiegadgets.com/wp-content/uploads/2010/11/Wenger-Giant-Swiss-Army-Knife.jpg
+
+
+= About the author =
+
+AltDrag was created and is maintained by Stefan Sundin. You can visit my website at [http://stefansundin.com/ stefansundin.com].

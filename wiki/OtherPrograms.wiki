@@ -1,0 +1,75 @@
+#summary Other programs that do the same thing
+#labels Phase-QA
+
+
+= Open source =
+  * [http://taekwindow.net/ Taekwindow]
+  * [http://virtuawin.sourceforge.net/modules.php Win32WM], a module for [http://virtuawin.sourceforge.net/ VirtuaWin], but can also be used independently.
+  * [http://winxmove.sourceforge.net/ Win-X-Move]
+  * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
+  * [http://code.google.com/p/wmove/ wmove]
+  * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], an AutoHotkey script.
+  * [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/ AltWindowDrag], another AutoHotkey script.
+  * [http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm EasyWindowDrag], a third AutoHotkey script.
+  * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotkey script.
+  * [http://www.donationcoder.com/Software/Skrommel/index.html#MoveInactiveWin MoveInactiveWin], a fifth AutoHotkey script.
+  * [http://wincmd.ru/plugring/LinuxMove.html LinuxMove] (quite buggy)
+  * [http://flashwheel.sourceforge.net/ FlashWheel] (Scroll inactive windows)
+  * [http://www.mobzystems.com/Tools/SeeThroughWindows.aspx SeeThroughWindows] (Transparency toggler)
+  * [http://rbtray.sourceforge.net/ RBTray] (Minimize to tray by right clicking minimize buttons)
+
+
+= Freeware =
+  * [http://www.nurgo-software.com/products/aquasnap AquaSnap] (Snap on move and resize)
+  * [http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml EasyMove]
+  * [http://pitaschio.ara3.net/ Pitaschio] (Snap on move and resize)
+  * [http://www.ivanheckman.com/allsnap/ allSnap] (Window snapping)
+  * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
+  * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
+  * [http://ehiti.de/katmouse/ KatMouse] (Scroll inactive windows)
+  * [http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/ WizMouse] (Scroll inactive windows)
+  * [http://amlpages.com/mousehunter.shtml Mouse Hunter] (Scroll inactive windows)
+  * [http://www.nirsoft.net/utils/volumouse.html Volumouse] (Change volume with scroll wheel)
+  * [http://www.4t-niagara.com/tray.html 4t Tray Minimizer] (Adds minimize to tray, roll up/down, toggle always on top, and transparent buttons to titlebars)
+  * [http://www.abstractpath.com/powermenu/ PowerMenu] (Adds minimize to tray, transparency and toggle always on top to sysmenus. Only works on 32-bit windows and does not work properly on Windows 7)
+  * [http://www.highrez.co.uk/downloads/XMouseButtonControl.htm X-Mouse Button Control]
+
+
+= Related =
+  * [http://www.mouseimp.com/ MouseImp]
+  * [http://www.donationcoder.com/Software/Skrommel/#DragLock DragLock]
+  * [http://fy.chalmers.se/~appro/nt/TXMouse/ True X-Mouse]
+  * [http://www.palma.com.au/winroll/ WinRoll]
+  * [http://www.addictivetips.com/windows-tips/wrap-mouse-pointer-around-the-screen-in-windows-with-edgeless-2/ Edgeless 2]
+
+
+= Commercial =
+  * [http://www.actualtools.com/multiplemonitors/ Actual Multiple Monitors] (Window snapping, $25 to buy)
+  * [http://www.dandeware.com/products/ ScreenSpace] (Trial available, $13 to buy)
+
+
+= Mac OS X =
+  * [http://nulana.com/flexiglass/ Flexiglass] (15-day sharenagware, $10 to buy, still works when expired)
+  * [http://coderage-software.com/zooom/ Zooom] (Nagware, $20 to buy)
+  * [http://boastr.net/ BetterTouchTool]
+  * [http://www.atomicbird.com/about/mac-apps MondoMouse]
+
+BetterTouchTool and MondoMouse can *not* be configured to be used with mouse buttons, instead they both activate when you press the keyboard buttons. All of these programs always resize from the bottom right corner.
+
+== Flexiglass ==
+
+To set your Flexiglass trial expire date to the future, run:
+{{{
+defaults write com.nulana.flexiglassWild v1_trialStartDate -date 3000
+}}}
+
+To reset Flexiglass trial (and preferences), run:
+{{{
+rm ~/Library/Preferences/com.nulana.flexiglassWild.plist
+}}}
+
+
+= Other =
+  * [http://www.techsupportalert.com/content/best-free-window-manager-resizer-arranger.htm List of window management programs]
+
+Feel free to add more programs in the comments below.
