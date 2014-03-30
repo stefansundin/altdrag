@@ -7,3 +7,4 @@
 !include "localization\zh_CN\installer.nsh"
 !include "localization\it_IT\installer.nsh"
 !include "localization\de_DE\installer.nsh"
+!include "localization\ct_ES\installer.nsh"

@@ -7,6 +7,7 @@
 #include "sk_SK/strings.h"
 #include "ru_RU/strings.h"
 #include "zh_CN/strings.h"
+#include "zh_TW/strings.h"
 #include "it_IT/strings.h"
 #include "de_DE/strings.h"
 #include "es_ES/strings.h"
@@ -20,6 +21,7 @@ struct strings *languages[] = {
 	&sk_SK,
 	&ru_RU,
 	&zh_CN,
+	&zh_TW,
 	&it_IT,
 	&de_DE,
 	&es_ES,
