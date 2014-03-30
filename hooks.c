@@ -2098,12 +2098,11 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 	}
 	else if (nCode == HC_ACTION && !sharedstate.action) {
 		CWPSTRUCT *msg = (CWPSTRUCT*)lParam;
-		LONG_PTR style;
 
 		if (msg->message == WM_ENTERSIZEMOVE
 		 && (!subclassed || state.hwnd != msg->hwnd)
 		 && IsWindowVisible(msg->hwnd)
-		 && (((style=GetWindowLongPtr(msg->hwnd,GWL_STYLE))&WS_CAPTION) == WS_CAPTION || blacklisted(msg->hwnd,&settings.Snaplist))
+		 && ((GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION) == WS_CAPTION || blacklisted(msg->hwnd,&settings.Snaplist))
 		 && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
 		) {
 			// MDI or not (note: does not require MDI setting)
