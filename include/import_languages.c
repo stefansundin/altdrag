@@ -32,10 +32,12 @@ char *languages[] = {
 	"sk_SK",
 	"ru_RU",
 	"zh_CN",
+	"zh_TW",
 	"it_IT",
 	"de_DE",
 	"es_ES",
 	"gl_ES",
+	"ct_ES",
 };
 
 void wcscpy_escape(wchar_t *dest, wchar_t *source) {

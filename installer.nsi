@@ -225,6 +225,7 @@ Section "" sec_app
 	!insertmacro Lang "zh-CN" ${LANG_SIMPCHINESE}
 	!insertmacro Lang "it-IT" ${LANG_ITALIAN}
 	!insertmacro Lang "de-DE" ${LANG_GERMAN}
+	!insertmacro Lang "ct-ES" ${LANG_CATALAN}
 	; Add new translations here!
 
 	; Grant write rights to ini file to all users
