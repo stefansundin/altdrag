@@ -1,0 +1,4 @@
+build
+*.dll
+*.exe
+Translation.ini
