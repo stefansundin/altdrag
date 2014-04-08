@@ -1,4 +1,4 @@
 build
 *.dll
 *.exe
-Translation.ini
+/Translation.ini
