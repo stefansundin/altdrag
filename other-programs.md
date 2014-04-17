@@ -1,75 +1,74 @@
-#summary Other programs that do the same thing
-#labels Phase-QA
+# Open source
+  * [Taekwindow](http://taekwindow.net/)
+  * [Win32WM](http://virtuawin.sourceforge.net/modules.php), a module for [VirtuaWin](http://virtuawin.sourceforge.net/), but can also be used independently.
+  * [Win-X-Move](http://winxmove.sourceforge.net/)
+  * ComfortResize in [ac'tivAid](http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html)
+  * [wmove](http://code.google.com/p/wmove/)
+  * [KDE Mover-Sizer](http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php), an AutoHotkey script.
+  * [AltWindowDrag](http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/), another AutoHotkey script.
+  * [EasyWindowDrag](http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm), a third AutoHotkey script.
+  * [NiftyWindows](http://www.enovatic.org/products/niftywindows/introduction/), a fourth AutoHotkey script.
+  * [MoveInactiveWin](http://www.donationcoder.com/Software/Skrommel/index.html#MoveInactiveWin), a fifth AutoHotkey script.
+  * [LinuxMove](http://wincmd.ru/plugring/LinuxMove.html) (quite buggy)
+  * [FlashWheel](http://flashwheel.sourceforge.net/) (Scroll inactive windows)
+  * [SeeThroughWindows](http://www.mobzystems.com/Tools/SeeThroughWindows.aspx) (Transparency toggler)
+  * [RBTray](http://rbtray.sourceforge.net/) (Minimize to tray by right clicking minimize buttons)
 
 
-= Open source =
-  * [http://taekwindow.net/ Taekwindow]
-  * [http://virtuawin.sourceforge.net/modules.php Win32WM], a module for [http://virtuawin.sourceforge.net/ VirtuaWin], but can also be used independently.
-  * [http://winxmove.sourceforge.net/ Win-X-Move]
-  * ComfortResize in [http://www.heise.de/ct/projekte/Windows-weitergedacht-ac-tivAid-284115.html ac'tivAid]
-  * [http://code.google.com/p/wmove/ wmove]
-  * [http://corz.org/windows/software/accessories/KDE-resizing-moving-for-XP-or-Vista.php KDE Mover-Sizer], an AutoHotkey script.
-  * [http://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/ AltWindowDrag], another AutoHotkey script.
-  * [http://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm EasyWindowDrag], a third AutoHotkey script.
-  * [http://www.enovatic.org/products/niftywindows/introduction/ NiftyWindows], a fourth AutoHotkey script.
-  * [http://www.donationcoder.com/Software/Skrommel/index.html#MoveInactiveWin MoveInactiveWin], a fifth AutoHotkey script.
-  * [http://wincmd.ru/plugring/LinuxMove.html LinuxMove] (quite buggy)
-  * [http://flashwheel.sourceforge.net/ FlashWheel] (Scroll inactive windows)
-  * [http://www.mobzystems.com/Tools/SeeThroughWindows.aspx SeeThroughWindows] (Transparency toggler)
-  * [http://rbtray.sourceforge.net/ RBTray] (Minimize to tray by right clicking minimize buttons)
+# Freeware
+  * [AquaSnap](http://www.nurgo-software.com/products/aquasnap) (Snap on move and resize)
+  * [EasyMove](http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml)
+  * [Pitaschio](http://pitaschio.ara3.net/) (Snap on move and resize)
+  * [allSnap](http://www.ivanheckman.com/allsnap/) (Window snapping)
+  * [FreeShade](http://www.hmmn.org/FreeShade/) (Rollups)
+  * [WinMover](http://majorgeeks.com/WinMover_d4961.html) (**Note:** This program didn't work for me and hung my Vista machine when I tried to run it)
+  * [KatMouse](http://ehiti.de/katmouse/) (Scroll inactive windows)
+  * [WizMouse](http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/) (Scroll inactive windows)
+  * [Mouse Hunter](http://amlpages.com/mousehunter.shtml) (Scroll inactive windows)
+  * [Volumouse](http://www.nirsoft.net/utils/volumouse.html) (Change volume with scroll wheel)
+  * [4t Tray Minimizer](http://www.4t-niagara.com/tray.html) (Adds minimize to tray, roll up/down, toggle always on top, and transparent buttons to titlebars)
+  * [PowerMenu](http://www.abstractpath.com/powermenu/) (Adds minimize to tray, transparency and toggle always on top to sysmenus. Only works on 32-bit windows and does not work properly on Windows 7)
+  * [X-Mouse Button Control](http://www.highrez.co.uk/downloads/XMouseButtonControl.htm)
 
 
-= Freeware =
-  * [http://www.nurgo-software.com/products/aquasnap AquaSnap] (Snap on move and resize)
-  * [http://www.softpedia.com/get/System/OS-Enhancements/EasyMove.shtml EasyMove]
-  * [http://pitaschio.ara3.net/ Pitaschio] (Snap on move and resize)
-  * [http://www.ivanheckman.com/allsnap/ allSnap] (Window snapping)
-  * [http://www.hmmn.org/FreeShade/ FreeShade] (Rollups)
-  * [http://majorgeeks.com/WinMover_d4961.html WinMover] (*Note:* This program didn't work for me and hung my Vista machine when I tried to run it)
-  * [http://ehiti.de/katmouse/ KatMouse] (Scroll inactive windows)
-  * [http://antibody-software.com/web/software/software/wizmouse-makes-your-mouse-wheel-work-on-the-window-under-the-mouse/ WizMouse] (Scroll inactive windows)
-  * [http://amlpages.com/mousehunter.shtml Mouse Hunter] (Scroll inactive windows)
-  * [http://www.nirsoft.net/utils/volumouse.html Volumouse] (Change volume with scroll wheel)
-  * [http://www.4t-niagara.com/tray.html 4t Tray Minimizer] (Adds minimize to tray, roll up/down, toggle always on top, and transparent buttons to titlebars)
-  * [http://www.abstractpath.com/powermenu/ PowerMenu] (Adds minimize to tray, transparency and toggle always on top to sysmenus. Only works on 32-bit windows and does not work properly on Windows 7)
-  * [http://www.highrez.co.uk/downloads/XMouseButtonControl.htm X-Mouse Button Control]
+# Related
+  * [MouseImp](http://www.mouseimp.com/)
+  * [DragLock](http://www.donationcoder.com/Software/Skrommel/#DragLock)
+  * [True X-Mouse](http://fy.chalmers.se/~appro/nt/TXMouse/)
+  * [WinRoll](http://www.palma.com.au/winroll/)
+  * [Edgeless 2](http://www.addictivetips.com/windows-tips/wrap-mouse-pointer-around-the-screen-in-windows-with-edgeless-2/)
 
 
-= Related =
-  * [http://www.mouseimp.com/ MouseImp]
-  * [http://www.donationcoder.com/Software/Skrommel/#DragLock DragLock]
-  * [http://fy.chalmers.se/~appro/nt/TXMouse/ True X-Mouse]
-  * [http://www.palma.com.au/winroll/ WinRoll]
-  * [http://www.addictivetips.com/windows-tips/wrap-mouse-pointer-around-the-screen-in-windows-with-edgeless-2/ Edgeless 2]
+# Commercial
+  * [Actual Multiple Monitors](http://www.actualtools.com/multiplemonitors/) (Window snapping, $25 to buy)
+  * [ScreenSpace](http://www.dandeware.com/products/) (Trial available, $13 to buy)
 
 
-= Commercial =
-  * [http://www.actualtools.com/multiplemonitors/ Actual Multiple Monitors] (Window snapping, $25 to buy)
-  * [http://www.dandeware.com/products/ ScreenSpace] (Trial available, $13 to buy)
+# Mac OS X
+  * [Flexiglass](http://nulana.com/flexiglass/) (15-day sharenagware, $10 to buy, still works when expired)
+  * [Zooom](http://coderage-software.com/zooom/) (Nagware, $20 to buy)
+  * [BetterTouchTool](http://boastr.net/)
+  * [MondoMouse](http://www.atomicbird.com/about/mac-apps)
 
+BetterTouchTool and MondoMouse can **not** be configured to be used with mouse buttons, instead they both activate when you press the keyboard buttons. All of these programs always resize from the bottom right corner.
 
-= Mac OS X =
-  * [http://nulana.com/flexiglass/ Flexiglass] (15-day sharenagware, $10 to buy, still works when expired)
-  * [http://coderage-software.com/zooom/ Zooom] (Nagware, $20 to buy)
-  * [http://boastr.net/ BetterTouchTool]
-  * [http://www.atomicbird.com/about/mac-apps MondoMouse]
-
-BetterTouchTool and MondoMouse can *not* be configured to be used with mouse buttons, instead they both activate when you press the keyboard buttons. All of these programs always resize from the bottom right corner.
-
-== Flexiglass ==
+## Flexiglass
 
 To set your Flexiglass trial expire date to the future, run:
-{{{
+```bash
 defaults write com.nulana.flexiglassWild v1_trialStartDate -date 3000
-}}}
+```
 
 To reset Flexiglass trial (and preferences), run:
-{{{
+```bash
 rm ~/Library/Preferences/com.nulana.flexiglassWild.plist
-}}}
+```
 
 
-= Other =
-  * [http://www.techsupportalert.com/content/best-free-window-manager-resizer-arranger.htm List of window management programs]
+# Other
+  * [List of window management programs](http://www.techsupportalert.com/content/best-free-window-manager-resizer-arranger.htm)
 
-Feel free to add more programs in the comments below.
+
+# Improve this page
+
+Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
