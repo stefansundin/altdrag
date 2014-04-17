@@ -1,3 +1,23 @@
+- [Introduction](#introduction)
+  - [Tricks you should know about](#tricks-you-should-know-about)
+  - [Resize](#resize)
+- [Configuration](#configuration)
+  - [Language](#language)
+  - [Mouse and keyboard](#mouse-and-keyboard)
+  - [Blacklist](#blacklist)
+  - [Performance](#performance)
+  - [Updates](#updates)
+- [Windows hacks](#windows-hacks)
+  - [X-Mouse](#x-mouse)
+  - [Disable Aero Shake](#disable-aero-shake)
+- [UAC](#uac)
+- [Known issues](#known-issues)
+  - [AltDrag mysteriously stops working](#altdrag-mysteriously-stops-working)
+  - [Scrolling too fast causes the computer to beep](#scrolling-too-fast-causes-the-computer-to-beep)
+- [Reporting bugs and suggesting new features](#reporting-bugs-and-suggesting-new-features)
+- [About the author](#about-the-author)
+
+
 # Introduction
 AltDrag gives you the ability to move and resize your windows in a new way. After you have started AltDrag, you can simply hold down the Alt key and then click and drag any window.
 
