@@ -4,7 +4,7 @@ Okay, so you want to help? Great!
 
 Before you start translating, I recommend that you take a look [in the source tree](https://github.com/stefansundin/altdrag/tree/master/localization) and see if your language already has been translated, or if an out-of-date translation exists.
 
-AltDrag can be translated via an ini file. Download the [English Translation.ini file](https://altdrag.googlecode.com/svn/trunk/localization/en_US/Translation.ini). Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
+AltDrag can be translated via an ini file. Download the [English Translation.ini file](https://raw.githubusercontent.com/stefansundin/altdrag/master/localization/en_US/Translation.ini). Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
 Look for your language code in the [ISO 639-1 standard](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes), and your territory code in the [ISO 3166-1 alpha-2 standard](http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements).
 
@@ -17,7 +17,7 @@ Some things to note:
 
 # The installer
 
-The installer has to be compiled to be translated. Download [installer.nsh](https://altdrag.googlecode.com/svn/trunk/localization/en_US/installer.nsh) and translate the strings. Include it in your submission.
+The installer has to be compiled to be translated. Download [installer.nsh](https://raw.githubusercontent.com/stefansundin/altdrag/master/localization/en_US/installer.nsh) and translate the strings. Include it in your submission.
 
 It is possible to build the installer without compiling AltDrag itself, so it is not that difficult to test by yourself. You still have to download the source code, [NSIS Unicode](http://code.google.com/p/unsis/downloads/list) and the [AccessControl plug-in](http://nsis.sourceforge.net/AccessControl_plug-in). Watch the video on the [build page](build.md) if you need more help.
 
