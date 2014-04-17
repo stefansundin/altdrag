@@ -1,34 +1,33 @@
-#summary How to compile AltDrag
-#labels Featured,Phase-Implementation
-
-= Introduction =
+# Introduction
 
 This document explains how to compile AltDrag. There are two distinct parts that you have to compile separately, the 32-bit part and the 64-bit part.
 
-Your first task is to download the AltDrag source code, [https://code.google.com/p/altdrag/source/checkout instructions here]. I recommend that you use [http://tortoisesvn.net/ TortoiseSVN].
+Your first task is to download the AltDrag source code from Github, either through Git or by [downloading a zip of the latest code](https://github.com/stefansundin/altdrag/zipball/master).
+
+If you get the code through Git, I recommend TortoiseGit. You need to download two packages:
+- https://msysgit.github.io/
+- https://code.google.com/p/tortoisegit/wiki/Download
 
 
-== Compiler ==
+## Compiler
 
-I use [http://mingw-w64.sourceforge.net/ mingw-w64] to build AltDrag. Contrary to its name, there is also a 32-bit compiler available. You need the 32-bit toolchain to build 32-bit binaries, and the 64-bit toolchain to build 64-bit binaries. So if you want to build for both 32-bit and 64-bit, you will need to get both toolchains.
+I use [mingw-w64](http://mingw-w64.sourceforge.net/) to build AltDrag. Contrary to its name, there is also a 32-bit compiler available. You need the 32-bit toolchain to build 32-bit binaries, and the 64-bit toolchain to build 64-bit binaries. So if you want to build for both 32-bit and 64-bit, you will need to get both toolchains.
 
-To compile the latest code, you will need a recent version of mingw-w64 (at least v2.0.3, or `r4966`). These work: [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/gcc-4.7-release/i686-w64-mingw32-gcc-4.7.4-release-win32_rubenvb.7z/download mingw-w32] (rename `windres.exe` to `i686-w64-mingw32-windres.exe`), [http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/gcc-4.7-release/x86_64-w64-mingw32-gcc-4.7.4-release-win32_rubenvb.7z/download mingw-w64]. Their buildbot seems to have problems building nightly versions for windows lately. If you get errors about `windres`, open `build.bat` and set `prefix32` to an empty string.
-
-~~The [http://sourceforge.net/projects/mingw-w64/files/ mingw-w64 file download] section is a mess, so to find the files you want, search for the prefix `mingw-w32-1.0-bin_i686-mingw` to get the correct 32-bit download and `mingw-w64-1.0-bin_i686-mingw` for the 64-bit download.~~
+To compile the latest code, you will need a recent version of mingw-w64 (at least v2.0.3, or `r4966`). These work: [mingw-w32](http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/gcc-4.7-release/i686-w64-mingw32-gcc-4.7.4-release-win32_rubenvb.7z/download) (rename `windres.exe` to `i686-w64-mingw32-windres.exe`), [mingw-w64](http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/gcc-4.7-release/x86_64-w64-mingw32-gcc-4.7.4-release-win32_rubenvb.7z/download). Their buildbot seems to have problems building nightly versions for windows lately. If you get errors about `windres`, open `build.bat` and set `prefix32` to an empty string.
 
 It doesn't matter where you extract them, but I usually use `C:\mingw-w32` and `C:\mingw-w64`.
 
-I previously used the normal [http://www.mingw.org/ MinGW] to build the 32-bit part of AltDrag, but moved from it because they never update it anymore. Note that you should still be able to build the 32-bit part with MinGW, but you must modify `build.bat`. You do need mingw-w64 if you want to compile the 64-bit part.
+I previously used the normal [MinGW](http://www.mingw.org/) to build the 32-bit part of AltDrag, but moved from it because they never update it anymore. Note that you should still be able to build the 32-bit part with MinGW, but you must modify `build.bat`. You do need mingw-w64 if you want to compile the 64-bit part.
 
 Note that the mingw-w32 and mingw-w64 toolchains have prefixed binaries, e.g. the name of `gcc` for mingw-w32 is `i686-w64-mingw32-gcc` and for mingw-w64 is `x86_64-w64-mingw32-gcc`. The normal MinGW binaries does not have any prefixes. This means that you can have MinGW, mingw-w32 and mingw-w64 installed and all three in PATH without any conflicts. It does make it a bit annoying to type manually though, but I have a build script that will make it easier.
 
 
-=== Missing function definitions ===
+### Missing function definitions
 
 Note that in previous versions of MinGW, there were some missing library definitions for the subclassing API. The latest version should be fine however. If you get errors about `DefSubclassProc` and `RemoveWindowSubclass`, be sure to check that you have the latest version.
 
 
-== Configure PATH ==
+## Configure PATH
 
 After downloading the compilers, you need to add them to the PATH variable so the build script can use the them. Do this by _right clicking_ on the _Computer_ desktop icon, go to the _Advanced_ tab, press the _Environment variables_ button, locate the PATH variable and add _<mingw-w32 path>\bin_ to the list, and press ok on all the dialogs. If you want to build the 64-bit part, add mingw-w64 to the PATH as well.
 
@@ -37,36 +36,34 @@ Here is an example of my PATH variable: `C:\mingw-w32\bin;C:\mingw-w64\bin`
 If you had the terminal open when you changed the PATH variable, you must restart it.
 
 
-== 32-bit part ==
+## 32-bit part
 
 The 32-bit part is `AltDrag.exe` and `hooks.dll`. They are compiled by mingw-w32 or MinGW. To compile the 32-bit part run `build.bat`. It's convenient to run `build` in a terminal so you can see any error messages. You can also run `build run` to automatically run AltDrag after it has been built.
 
 
-== 64-bit part ==
+## 64-bit part
 
 The 64-bit part is `HookWindows_x64.exe` and `hooks_x64.dll`. These files are only used if you enable HookWindows and are running x64. They need to be 64-bit so that they can hook into 64-bit processes. To compile them you must use mingw-w64. Run `build x64` to build the files.
 
 Note that `AltDrag.exe` and `hooks.dll` are not supposed to be compiled as 64-bit programs. You still need a 32-bit component to be able to use HookWindows for 32-bit processes, and because there is a prevalence of 32-bit programs that we use even on 64-bit Windows, it doesn't make sense to make AltDrag 64-bit only (yet).
 
 
-== GUI ==
+## GUI
 
-The configuration window was made with [http://www.resedit.net/ ResEdit], a compact resource editor. ResEdit is not needed to build AltDrag.
+The configuration window was made with [ResEdit](http://www.resedit.net/), a compact resource editor. ResEdit is not needed to build AltDrag.
 
-== Languages ==
+## Languages
 
 Run `build lang` to generate `strings.h` files from `Translate.ini` files. This is used to hard-code new translations before a release. The new languages have to be added to `import_languages.c` to be generated.
 
 
-== Installer ==
+## Installer
 
-To build the installer you need to download [http://www.scratchpaper.com/ NSIS Unicode] and the [http://nsis.sourceforge.net/AccessControl_plug-in AccessControl plug-in]. Put NSIS in PATH, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
+To build the installer you need to download [NSIS Unicode](http://www.scratchpaper.com/) and the [AccessControl plug-in](http://nsis.sourceforge.net/AccessControl_plug-in). Put NSIS in PATH, then run `build all` in the terminal to automatically build the installer. Run `build all x64` to build and include the 64-bit part in the installer.
 
 
-= Video walkthrough =
+# Video walkthrough
 
-If you don't get it working, it might help to watch [https://www.youtube.com/watch?v=4ENwQxSr_So this video]. In it I explain how to compile another program of mine, SuperF4. These instructions should work just as well with AltDrag.
+If you don't get it working, it might help to watch [this video](https://www.youtube.com/watch?v=4ENwQxSr_So). In it I explain how to compile another program of mine, SuperF4. These instructions should work just as well with AltDrag. Note that the instructions are old and use the old Google Code website.
 
-<wiki:gadget border="0" url="https://gist.github.com/stefansundin/8194147/raw/youtube-iframe.xml" up_id="4ENwQxSr_So" up_args="rel=0" width="640" height="390" />
-
-Add a comment if you need help.
+[![Watch video on YouTube](http://i1.ytimg.com/vi/4ENwQxSr_So/mqdefault.jpg)](https://www.youtube.com/watch?v=4ENwQxSr_So)
