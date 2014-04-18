@@ -38,3 +38,8 @@ Checklist before you submit your translation:
   * Please update the top comments with your name and (optional) email.
 
 Then either [create an issue report](https://github.com/stefansundin/altdrag/issues/new?labels[]=translation&title=Swedish%20(se-SE)&body=-%20[%20]%20I%20have%20double-checked%20all%20strings%0A-%20[%20]%20I%20have%20double-checked%20the%20Alt-shortcuts%0A-%20[%20]%20I%20have%20updated%20the%20top%20comments%20with%20my%20name%20and%20(optional)%20email%0A-%20[%20]%20I%20have%20attached%20the%20files) and attach the files, or create a pull request from a forked branch.
+
+
+# Improve this page
+
+Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
