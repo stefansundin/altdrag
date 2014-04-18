@@ -67,3 +67,8 @@ To build the installer you need to download [NSIS Unicode](http://www.scratchpap
 If you don't get it working, it might help to watch [this video](https://www.youtube.com/watch?v=4ENwQxSr_So). In it I explain how to compile another program of mine, SuperF4. These instructions should work just as well with AltDrag. Note that the instructions are old and use the old Google Code website.
 
 [![Watch video on YouTube](http://i1.ytimg.com/vi/4ENwQxSr_So/mqdefault.jpg)](https://www.youtube.com/watch?v=4ENwQxSr_So)
+
+
+# Improve this page
+
+Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
