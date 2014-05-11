@@ -23,7 +23,7 @@ It is possible to build the installer without compiling AltDrag itself, so it is
 
 Once you have the source code, create the directory `build` inside the directory you checked out, and copy the files `AltDrag.exe` and `hooks.dll` to it. If you have `HookWindows_x64.exe` and `hooks_x64.dll`, you can copy those as well.
 
-You then need to add a line in `localization/installer.nsh` to make your language appear. To make the installer update the ini file with your language after install, you need to add a line in the middle of [`installer.nsi`](https://github.com/stefansundin/altdrag/blob/bdd76dd0ac6d24e447d43c7d378d8c13f17a3099/installer.nsi#L219)
+You then need to add a line in `localization/installer.nsh` to make your language appear. To make the installer update the ini file with your language after install, you need to add a line in the middle of [`installer.nsi`](https://github.com/stefansundin/altdrag/blob/bdd76dd0ac6d24e447d43c7d378d8c13f17a3099/installer.nsi#L229).
 
 Then use the NSIS wizard to compile `installer.nsi`.
 
@@ -42,4 +42,4 @@ Then either [create an issue report](https://github.com/stefansundin/altdrag/iss
 
 # Improve this page
 
-Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
+Post [in the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.

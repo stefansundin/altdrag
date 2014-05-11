@@ -9,6 +9,7 @@ AltDrag has historically only had one command line option; `-hide`. With the rel
 | `-e`         | `-elevate`    | Request elevation to administrator privileges when run. |
 | `-c [n]`     | `-config [n]` | Open the configuration window (optionally go to page number `n`). |
 
+
 # Installer
 
 The installer accepts a few options. It has been designed to be able to run silently, which means it should be easy to deploy in large networks.
@@ -18,3 +19,8 @@ The installer accepts a few options. It has been designed to be able to run sile
 | `/S`               | Run silently. The installer will not check for updates. |
 | `/L=fr-FR`         | Use supplied language. |
 | `/D=C:\installdir` | Set destination directory. It must be the last parameter and must not contain any quotes, even if the path contains spaces. Only absolute paths are supported. |
+
+
+# Improve this page
+
+Post [in the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.

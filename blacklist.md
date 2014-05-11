@@ -46,7 +46,7 @@ Here is an explanation of the default entries:
 | <code>*&#124;SpotifyMainWindow</code>      | The Spotify window. |
 | <code>*&#124;USurface_33202</code>         | The Steam windows. This identifier changes from version to version so you might have to update it manually. |
 
-You should not need to edit or remove any of these entries. 
+You should not need to edit or remove any of these entries.
 
 
 # List of applications
@@ -62,4 +62,4 @@ Here is a list of applications with their blacklist rule. Add the rule to `Black
 
 # Improve this page
 
-Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
+Post [in the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.

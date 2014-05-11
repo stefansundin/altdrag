@@ -71,4 +71,4 @@ If you don't get it working, it might help to watch [this video](https://www.you
 
 # Improve this page
 
-Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
+Post [in the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.

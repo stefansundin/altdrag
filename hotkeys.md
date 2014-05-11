@@ -31,4 +31,4 @@ Note that if you assign one of the shift keys to alt-drag windows, that shift ke
 
 # Improve this page
 
-Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
+Post [in the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
