@@ -15,11 +15,11 @@ taskkill /IM AltDrag.exe
 
 if not exist build. mkdir build
 
-:: %prefix32%gcc -o localization\export_l10n_ini.exe include\export_l10n_ini.c -lshlwapi
+:: %prefix32%gcc -o localization\export_l10n_ini.exe tools\export_l10n_ini.c -lshlwapi
 :: localization\export_l10n_ini.exe
 :: exit /b
 
-:: %prefix32%gcc -o build\unhook.exe include\unhook.c
+:: %prefix32%gcc -o build\unhook.exe tools\unhook.c
 :: "build\unhook.exe"
 
 %prefix32%windres include\altdrag.rc build\altdrag.o
@@ -45,7 +45,7 @@ if "%1" == "all" (
 	echo Building installer
 	makensis /V2 installer.nsi
 ) else if "%1" == "lang" (
-	%prefix32%gcc -o localization\import_languages.exe include\import_languages.c -lshlwapi
+	%prefix32%gcc -o localization\import_languages.exe tools\import_languages.c -lshlwapi
 	localization\import_languages.exe
 ) else (
 	%prefix32%gcc -o AltDrag.exe altdrag.c build\altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -g -DDEBUG
@@ -58,7 +58,7 @@ if "%1" == "all" (
 		)
 	)
 	if "%x64%" == "1" (
-		rem %prefix64%gcc -o build\unhook_x64.exe include\unhook.c
+		rem %prefix64%gcc -o build\unhook_x64.exe tools\unhook.c
 		rem "build\unhook_x64.exe"
 
 		%prefix64%windres include\hookwindows_x64.rc build\hookwindows_x64.o

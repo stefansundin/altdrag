@@ -47,13 +47,13 @@ You can use either the middle or right mouse button to resize windows. Imagine t
 
 If you double-click these regions, the window will move moved to the respective corner on your screen (like Aero Snap), so you can quickly arrange your windows to fit on the screen.
 
-![](resize.png)
+![](img/resize.png)
 
 
 # Configuration
 The simplest way to open the configuration window is by double-clicking the tray icon. The settings are saved in a file called `AltDrag.ini`.
 
-![](configuration_window.png)
+![](img/configuration_window.png)
 
 ## Language
 There are a few languages that are embedded inside AltDrag, but you can add an additional languages by translating an ini file. Read how to do that [here](translate.md).
@@ -66,7 +66,7 @@ You can configure the scroll wheel to use `AltTab`, `Volume` or `Transparency`. 
 
 You can also make AltDrag lower windows if you middle click their titlebars.
 
-If you have a great idea for a new mouse action, post it [on the subreddit](http://www.reddit.com/r/stefansundin/).
+If you have a great idea for a new mouse action, post it [in the subreddit](http://www.reddit.com/r/stefansundin/).
 
 
 ## Blacklist
@@ -95,7 +95,7 @@ There is a hidden setting in Windows that allows for window activation on mouse 
 
 If you, like me, dislike the ability in Windows 7 to shake a window to minimize all other windows, then you can disable it with the following registry hack. Create the DWORD value `NoWindowMinimizingShortcuts` in `HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer` and give it the value `1`.
 
-If you are too lazy to start regedit, then simply run this command. Make sure you are running it with administrator privileges (hold Ctrl+Shift if running from the start menu).
+If you are too lazy to start regedit, then simply run this command. Make sure you are running it with administrator privileges, hold Ctrl+Shift if running from the start menu. In Windows 8, press Win+S, paste the command and then right-click the entry and click _Run as administrator_.
 ```
 cmd /C reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /v NoWindowMinimizingShortcuts /t REG_DWORD /d 1 /f & echo The change will take effect on your next login. & pause
 ```
@@ -166,7 +166,7 @@ The space between `start=` and `disabled` is intentional. If you remove it the c
 
 # Reporting bugs and suggesting new features
 
-You should report bugs [in the issue tracker](https://github.com/stefansundin/altdrag/issues/new?labels%5B%5D=bug&body=%3CExcellent%20bug%20description%20here%3E%0A%0ASteps%20to%20reproduce:%0A-%20Step%201%0A-%20Step%202) and suggest new features [on the subreddit](http://www.reddit.com/r/stefansundin/).
+You should report bugs [in the issue tracker](https://github.com/stefansundin/altdrag/issues/new?labels%5B%5D=bug&body=%3CExcellent%20bug%20description%20here%3E%0A%0ASteps%20to%20reproduce:%0A-%20Step%201%0A-%20Step%202) and suggest new features [in the subreddit](http://www.reddit.com/r/stefansundin/).
 
 When suggesting new features, just keep this in mind; I **don't** want AltDrag to become this:
 

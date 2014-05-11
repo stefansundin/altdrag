@@ -71,4 +71,4 @@ rm ~/Library/Preferences/com.nulana.flexiglassWild.plist
 
 # Improve this page
 
-Post [on the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
+Post [in the subreddit](http://www.reddit.com/r/stefansundin/) to suggest improvements to this page.
