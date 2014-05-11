@@ -11,6 +11,7 @@
 #define _UNICODE
 #define _WIN32_WINNT 0x0600
 #define COBJMACROS
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <stdio.h>
 #include <stdlib.h>
