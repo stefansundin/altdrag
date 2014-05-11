@@ -11,6 +11,7 @@
 #define _UNICODE
 #define _WIN32_WINNT 0x0500
 #define _WIN32_IE 0x0600
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,7 @@
 // App
 #define APP_NAME      L"WindowFinder"
 #define APP_VERSION   "0.2"
-#define APP_URL       L"http://code.google.com/p/altdrag/"
+#define APP_URL       L"https://github.com/stefansundin/altdrag"
 //#define DEBUG
 
 // Messages
@@ -57,7 +58,7 @@ int find = 0;
 
 // Include stuff
 #include "include/strings.h"
-#include "../include/error.c"
+#include "include/error.c"
 #include "include/tray.c"
 
 // Entry point
