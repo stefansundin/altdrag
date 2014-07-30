@@ -6,6 +6,49 @@ h3 small {
 	color: gray;
 }
 
+
+/* Donate box */
+
+#donate {
+	width: 300px;
+	display: block;
+	text-align: center;
+}
+
+#donate form, #donate input {
+	display: inline-block;
+}
+#donate form {
+	font-family: "Droid Sans", sans-serif;
+}
+
+#donate input[type=text] {
+	width: 120px;
+	padding: 8px;
+	margin: 10px 13px;
+	box-shadow: 0px 1px 3px rgb(240, 240, 240) inset;
+	border: 1px solid rgb(198, 198, 198);
+}
+#donate input[type=text]:focus {
+	box-shadow: 0px 1px 3px rgb(238, 238, 238) inset;
+	margin: 10px;
+}
+
+#donate input[type=submit] {
+	padding: 4px 15px;
+	border-radius: 15px;
+	box-shadow: 0px 0px 3px rgb(204, 204, 204);
+	background: linear-gradient(rgb(149, 249, 149), rgb(148, 238, 148)) repeat scroll 0% 0% transparent;
+	border: medium none;
+	color: rgb(38, 38, 38);
+	outline: none;
+}
+#donate input[type=submit]:hover {
+	box-shadow: 0px 0px 5px rgb(170, 170, 170);
+	cursor: pointer;
+}
+
+
 /*******************************************************************************
 Slate Theme for GitHub Pages
 by Jason Costello, @jsncostello
@@ -260,7 +303,6 @@ td {
 
 form {
   background: #f2f2f2;
-  padding: 20px;
 }
 
 /*******************************************************************************
