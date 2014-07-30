@@ -3,16 +3,15 @@
 <head>
 	<meta charset='utf-8'>
 	<meta http-equiv="X-UA-Compatible" content="chrome=1">
-	<meta name="description" content="AltDrag : Easily drag windows when pressing the alt key">
-	<link rel="stylesheet" type="text/css" media="screen" href="site/style.css">
-	<link rel="icon" type="image/x-icon" href="site/icon.png">
+	<meta name="description" content="AltDrag: Easily drag windows when pressing the alt key">
+	<link rel="stylesheet" media="screen" href="site/style.css">
+	<link rel="icon" href="site/icon.png">
 	<title>AltDrag</title>
 </head>
 <body>
 	<div id="header_wrap" class="outer">
 	<header class="inner">
 		<a id="forkme_banner" href="https://github.com/stefansundin/altdrag" target="_blank">View on GitHub</a>
-
 		<h1 id="project_title">AltDrag</h1>
 		<h2 id="project_tagline">Easily drag windows when pressing the alt key</h2>
 	</header>
@@ -27,9 +26,10 @@
 
 		<p><a href="https://github.com/stefansundin/altdrag/blob/master/doc/about.md">Read more...</a></p>
 
-		<ul class="downloads">
+		<ul id="downloads">
 			<li><a href="http://altdrag.googlecode.com/files/AltDrag-1.0.exe">Download installer</a></li>
 			<li><a href="http://altdrag.googlecode.com/files/AltDrag-1.0.7z">Download 7-zip archive</a></li>
+			<li><a href="#languages">New languages since last release</a></li>
 		</ul>
 
 		<div id="donate">
@@ -45,16 +45,24 @@
 			</form>
 		</div>
 
-		<h3>Handy links</h3>
-		<p><a href="https://github.com/stefansundin/altdrag/blob/master/doc/about.md#tricks-you-should-know-about">Read important notes about how to use AltDrag</a></p>
-		<p><a href="http://www.reddit.com/r/stefansundin">Discuss AltDrag on reddit</a></p>
-		<p><a href="https://stefansundin.github.io/">View more projects from the author.</a></p>
+		<h3 id="links">Handy links</h3>
+		<ul>
+			<li><a href="https://github.com/stefansundin/altdrag/blob/master/doc/about.md#tricks-you-should-know-about">Read important notes about how to use AltDrag</a></li>
+			<li><a href="http://www.reddit.com/r/stefansundin">Discuss AltDrag on reddit</a></li>
+			<li><a href="https://stefansundin.github.io/">View more projects from the author.</a></li>
+		</ul>
 
-		<h3 name="updates">Updates <small>(<a href="feed.xml" target="_blank">rss feed</a>)</small></h3>
+		<h3 id="updates">Updates</h3>
 		<p><b>2014-05-10:</b> This will be the new AltDrag website, but it is currently work in progress.</p>
 		<p><b>2013-09-13:</b> AltDrag 1.0 was released.</p>
 
-		<h3 name="languages">New languages since last release</h3>
+		<h3 id="feeds">Feeds <img src="site/feed.png"></h3>
+		<ul>
+			<li><a href="feed.xml" target="_blank">Atom feed</a></li>
+			<li><a href="https://github.com/stefansundin/altdrag/releases.atom" target="_blank">GitHub releases feed</a></li>
+		</ul>
+
+		<h3 id="languages">New languages since last release</h3>
 		<p>Simply save the desired language file in AltDrag's directory. <b>Right-click and <i>Save link as...</i></b></p>
 		<ul>
 			<li><a href="localization/nl_NL/Translation.ini">Dutch</a></li>
@@ -67,7 +75,7 @@
 		</ul>
 		<p>Read <a href="https://github.com/stefansundin/altdrag/blob/master/doc/translate.md" target="_blank">this page</a> to learn how to translate AltDrag to your own language.</p>
 
-		<h3 name="changelog">Changelog</h3>
+		<h3 id="changelog">Changelog</h3>
 		<p><b>1.0 final</b> - 2013-09-13:</p>
 		<ul>
 			<li>Add <code>Lower</code> scroll wheel action. Scroll down to lower windows, up to raise windows, shift+down to minimize windows, shift+up to toggle maximized state.</li>
@@ -81,7 +89,7 @@
 
 	<div id="footer_wrap" class="outer">
 	<footer class="inner">
-		<p class="copyright">AltDrag maintained by <a href="https://github.com/stefansundin" target="_blank">Stefan Sundin</a></p>
+		<p class="copyright">AltDrag maintained by <a href="https://stefansundin.github.io/" target="_blank">Stefan Sundin</a></p>
 	</footer>
 	</div>
 

@@ -3,7 +3,10 @@
 	<id>urn:uuid:d7e43e4b-8da4-4214-a13d-c6c2a489f6cd</id>
 	<title>AltDrag</title>
 	<link href="https://stefansundin.github.io/altdrag/feed.xml" rel="self" />
-	<link href="https://stefansundin.github.io/altdrag/" />
+	<link href="https://stefansundin.github.io/altdrag/" rel="alternate" />
+	<link href="https://github.com/stefansundin/altdrag/releases.atom" rel="related" />
+	<link href="https://github.com/stefansundin/altdrag/tags.atom" rel="related" />
+	<link href="https://github.com/stefansundin/altdrag/commits/master.atom" rel="related" />
 	<updated>2014-05-10T12:00:00Z</updated>
 	<author>
 		<name>Stefan Sundin</name>
