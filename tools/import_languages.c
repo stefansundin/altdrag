@@ -37,7 +37,7 @@ char *languages[] = {
 	"de_DE",
 	"es_ES",
 	"gl_ES",
-	"ct_ES",
+	"ca_ES",
 };
 
 void wcscpy_escape(wchar_t *dest, wchar_t *source) {
