@@ -12,6 +12,7 @@
 #include "de_DE/strings.h"
 #include "es_ES/strings.h"
 #include "gl_ES/strings.h"
+#include "ca_ES/strings.h"
 
 struct strings *languages[] = {
 	&en_US,
@@ -26,6 +27,7 @@ struct strings *languages[] = {
 	&de_DE,
 	&es_ES,
 	&gl_ES,
+	&ca_ES,
 };
 
 struct strings *l10n = &en_US;
