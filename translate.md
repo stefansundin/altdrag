@@ -4,6 +4,8 @@ Okay, so you want to help? Great!
 
 Before you start translating, I recommend that you take a look [in the source tree](https://github.com/stefansundin/altdrag/tree/master/localization) and see if your language already has been translated, or if an out-of-date translation exists.
 
+**Note:** I have created an account on [transifex.com](https://www.transifex.com/projects/p/altdrag/), which is a website which makes it easy to submit translations. If you find the instructions below confusing, you might want to give it a try. You can create an account or sign-in using GitHub, Google+ or LinkedIn. Let me know if you have any thoughts on the process.
+
 AltDrag can be translated via an ini file. Download the [English Translation.ini file](https://raw.githubusercontent.com/stefansundin/altdrag/master/localization/en_US/Translation.ini). Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
 Look for your language code in the [ISO 639-1 standard](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes), and your territory code in the [ISO 3166-1 alpha-2 standard](http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements).
