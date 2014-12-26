@@ -25,33 +25,33 @@
   <meta property="og:image" content="https://stefansundin.github.io/altdrag/img/icon128.png">
 </head>
 <body>
+  <header>
+    <img src="img/icon128.png" width="128" height="128" alt="AltDrag Icon" itemprop="image">
+    <hgroup>
+      <h1 itemprop="name">AltDrag</h1>
+      <h2 itemprop="description">Easily drag windows when pressing the alt key</h2>
+    </hgroup>
+  </header>
+
+  <div class="text-center" id="os-warning" style="display:none;">
+    <h3><b>Note:</b> AltDrag is a Windows only application!</h3>
+  </div>
+  <script>
+  if (navigator.platform.indexOf('Win') === -1) {
+    document.getElementById('os-warning').style.display = 'block';
+  }
+  </script>
+
+
+  <div class="buttons">
+    <a target="_self" class="btn btn-lg btn-primary" href="https://github.com/stefansundin/altdrag/releases/download/v1.0/AltDrag-1.0.exe" track><span class="glyphicon glyphicon-download-alt"></span> Download v1.0</a>
+    <a target="_self" class="btn btn-lg btn-default" href="https://github.com/stefansundin/altdrag/releases/download/v1.0/AltDrag-1.0.7z" track><span class="glyphicon glyphicon-send"></span> Portable</a>
+    <a class="btn btn-lg btn-default" href="https://github.com/stefansundin/altdrag/releases" track><span class="glyphicon glyphicon-list"></span> Changelog</a>
+    <a class="btn btn-lg btn-default" href="https://github.com/stefansundin/altdrag" track><span class="glyphicon glyphicon-list-alt"></span> Source code</a>
+    <a class="btn btn-lg btn-default" href="https://www.reddit.com/r/stefansundin"><span class="glyphicon glyphicon-comment"></span> Discuss</a>
+  </div>
+
   <div class="container">
-    <header>
-      <img src="img/icon128.png" width="128" height="128" alt="AltDrag Icon" itemprop="image">
-      <hgroup>
-        <h1 itemprop="name">AltDrag</h1>
-        <h2 itemprop="description">Easily drag windows when pressing the alt key</h2>
-      </hgroup>
-    </header>
-
-    <div class="text-center" id="os-warning" style="display:none;">
-      <h3><b>Note:</b> AltDrag is a Windows only application!</h3>
-    </div>
-    <script>
-    if (navigator.platform.indexOf('Win') === -1) {
-      document.getElementById('os-warning').style.display = 'block';
-    }
-    </script>
-
-
-    <div class="buttons">
-      <a target="_self" class="btn btn-lg btn-primary" href="https://github.com/stefansundin/altdrag/releases/download/v1.0/AltDrag-1.0.exe" track><span class="glyphicon glyphicon-download-alt"></span> Download v1.0</a>
-      <a target="_self" class="btn btn-lg btn-default" href="https://github.com/stefansundin/altdrag/releases/download/v1.0/AltDrag-1.0.7z" track><span class="glyphicon glyphicon-send"></span> Portable</a>
-      <a class="btn btn-lg btn-default" href="https://github.com/stefansundin/altdrag/releases" track><span class="glyphicon glyphicon-list"></span> Changelog</a>
-      <a class="btn btn-lg btn-default" href="https://github.com/stefansundin/altdrag" track><span class="glyphicon glyphicon-list-alt"></span> Source code</a>
-    </div>
-
-
     <h2>Donate</h2>
 
     <p>AltDrag is free software and a one-man endeavor. If you find it useful, please make a donation. You may include a personal message which I will read.</p>
