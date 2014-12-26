@@ -30,6 +30,7 @@
   * [PowerMenu](http://www.abstractpath.com/powermenu/) (Adds minimize to tray, transparency and toggle always on top to sysmenus. Only works on 32-bit windows and does not work properly on Windows 7)
   * [X-Mouse Button Control](http://www.highrez.co.uk/downloads/XMouseButtonControl.htm)
   * [AltMove](http://www.deskex.com/altmove/) (**Note:** I could not get it working in Windows 8.1)
+  * [FeeWhee](http://www.nattyware.com/feewhee.php) (Resize windows by scrolling the titlebar, hold the Shift key to change transparency)
 
 
 # Related
