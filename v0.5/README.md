@@ -1,4 +1,4 @@
-# v0.5
+# AltDrag v0.5
 
 2009-01-12:
 - You can now resize windows with the middle or right mouse button.

@@ -1,4 +1,4 @@
-# v0.8
+# AltDrag v0.8
 
 2009-11-15:
 - Added `AutoStick`, enable it to make windows always stick without needing to press shift. This replaces `StickyScreen`.

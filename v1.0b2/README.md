@@ -1,4 +1,4 @@
-# v1.0b2
+# AltDrag v1.0b2
 
 2013-04-20:
 - Merged `Config.exe` with `AltDrag.exe`.

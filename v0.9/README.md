@@ -1,4 +1,4 @@
-# v0.9
+# AltDrag v0.9
 
 2011-02-01:
 - Added `Aero` option. Alt-drag windows to the left, right and top side of the screen. Corners work too!

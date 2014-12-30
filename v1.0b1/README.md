@@ -1,4 +1,4 @@
-# v1.0b1
+# AltDrag v1.0b1
 
 2011-07-31:
 - Added configuration GUI.

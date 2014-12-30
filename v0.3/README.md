@@ -1,4 +1,4 @@
-# v0.3
+# AltDrag v0.3
 
 2008-08-03:
 - Fixed a bug that made AltDrag ignore all windows which were at the screen borders since it thought they were fullscreen windows.

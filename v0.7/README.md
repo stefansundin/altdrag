@@ -1,4 +1,4 @@
-# v0.7
+# AltDrag v0.7
 
 2009-04-24:
 - Added `StickyScreen` which makes windows automatically stick to the screen borders without needing shift (off by default).

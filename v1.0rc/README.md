@@ -1,4 +1,4 @@
-# v1.0rc
+# AltDrag v1.0rc
 
 2013-09-06:
 - Add support for MDI windows. Works with many features (e.g. `HookWindows`, `AltTab` scrolling, snapping).

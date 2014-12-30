@@ -1,4 +1,4 @@
-# v1.0b3
+# AltDrag v1.0b3
 
 2013-06-20:
 - If you enable `InactiveScroll`, you can now hold the shift key to scroll horizontally. Note that this only works in programs that have implemented horizontal scrolling.

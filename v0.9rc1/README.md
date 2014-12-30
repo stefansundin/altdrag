@@ -1,4 +1,4 @@
-# v0.9rc1
+# AltDrag v0.9rc1
 
 2011-01-22:
 - Added `InactiveScroll`. Enable it to scroll inactive windows.

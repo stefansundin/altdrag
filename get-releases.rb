@@ -78,7 +78,7 @@ eos
 
     open("#{r["tag_name"]}/README.md", 'wb') do |tag_readme|
       tag_readme.write <<-eos
-# #{r["tag_name"]}
+# #{r["name"]}
 
 #{r["body"]}
 

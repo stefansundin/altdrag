@@ -1,4 +1,4 @@
-# v0.6
+# AltDrag v0.6
 
 2009-02-12:
 - Sticky behavior now works with resize (except when resizing in all directions).

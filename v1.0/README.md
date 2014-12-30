@@ -1,4 +1,4 @@
-# v1.0
+# AltDrag v1.0
 
 [Get RSS updates by monitoring the release feed.](https://github.com/stefansundin/altdrag/releases.atom)
 
@@ -47,5 +47,5 @@
 
 Filename | Download Count
 -------- | --------------
-AltDrag-1.0.7z | 79
-AltDrag-1.0.exe | 239
+AltDrag-1.0.7z | 80
+AltDrag-1.0.exe | 240

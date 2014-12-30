@@ -1,4 +1,4 @@
-# v0.2
+# AltDrag v0.2
 
 2008-08-01:
 - You can no longer drag fullscreen windows.

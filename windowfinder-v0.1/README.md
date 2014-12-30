@@ -1,10 +1,9 @@
-# AltDrag v0.1
+# WindowFinder v0.1
 
-2008-06-05:
-- Initial release.
+2009-01-12
 
 ## Downloads by filename
 
 Filename | Download Count
 -------- | --------------
-AltDrag-0.1.7z | 3
+WindowFinder-0.1.7z | 1

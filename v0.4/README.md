@@ -1,4 +1,4 @@
-# v0.4
+# AltDrag v0.4
 
 2008-09-14:
 - You can now press the shift key to make the window stick to other windows.
