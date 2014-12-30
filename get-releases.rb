@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 
+# note that when this script downloads a file, it also increases the download counter
+
 require 'net/http'
 require 'json'
+require 'date'
 
 def download(url, dest=nil, limit=10)
   # puts url
@@ -63,8 +66,8 @@ open("README.md", 'wb') do |readme|
 
 ## Downloads by release
 
-Release | Downloads
-------- | ---------
+Date       | Release | Downloads
+---------- | ------- | ---------
 eos
 
   releases.sort_by { |r| r["created_at"] }.reverse!.each do |r|
@@ -96,11 +99,10 @@ eos
 
         puts "- #{a["name"]}"
         path = "#{r["tag_name"]}/#{a["name"]}"
-        unless File.exists?(path) and File.size(path) == a["size"]
-          download(a["browser_download_url"], path)
-        end
+        download(a["browser_download_url"], path) unless File.exists?(path) and File.size(path) == a["size"]
       end
-      readme.write "[#{r["tag_name"]}](#{r["tag_name"]}) | #{humanize(release_downloads)}\n"
+      date = Date.parse r["created_at"]
+      readme.write "#{date.strftime('%Y-%m-%d')} | [#{r["tag_name"]}](#{r["tag_name"]}) | #{humanize(release_downloads)}\n"
     end
   end
 
@@ -111,7 +113,7 @@ eos
 Filetype | Download Count
 -------- | --------------
 eos
-  filetype_downloads.sort.each do |filetype, downloads|
+  filetype_downloads.sort.reverse!.each do |filetype, downloads|
     readme.write "#{filetype} | #{downloads}\n"
   end
   readme.write "\nTotal downloads: #{total_downloads}\n"
