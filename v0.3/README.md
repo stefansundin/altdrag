@@ -5,6 +5,8 @@
 - Improved performance by only installing the mouse hook when the alt key is pressed.
 
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.3.7z | 3

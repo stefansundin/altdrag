@@ -6,6 +6,8 @@
 - Fixed some bugs in `ExperimentalFeatures`, it's working pretty well now so give it a try.
 - Fixed an annoying error message that sometimes popped up when AltDrag was on autostart.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.7.7z | 3

@@ -6,6 +6,8 @@
 - Fixed mouse cursor not changing when Aero was disabled in Vista.
 - Language can now be changed in `AltDrag.ini`.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.6.7z | 3

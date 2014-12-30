@@ -7,6 +7,8 @@
 - Expanded `AutoRemaximized` option.
 - It is now possible to toggle the maximized state with a resize button while dragging.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.9rc1.7z | 2

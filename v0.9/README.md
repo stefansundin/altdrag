@@ -11,6 +11,8 @@
 - Fixed some bugs that prevented `HookWindows` from working properly.
 - Tweaked the blacklist.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.9.7z | 3

@@ -9,6 +9,8 @@
 - Fixed `HookWindows` sometimes blocking the space key.
 - Fixed a few issues with `InactiveScroll`.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-1.0rc.7z | 3

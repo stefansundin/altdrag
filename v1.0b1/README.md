@@ -12,6 +12,8 @@
 - Installer now grants access to `AltDrag.ini` to all users. Should help people who use UAC.
 - Removed `info.txt`. Use the website for help.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-1.0b1.7z | 2

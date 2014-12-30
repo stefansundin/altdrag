@@ -9,6 +9,8 @@
 - Improved multi-monitor support a lot.
 - Tweaked the blacklist.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.8.7z | 3

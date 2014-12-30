@@ -10,6 +10,8 @@
 - Only one instance of AltDrag can now be run. Starting AltDrag again will make the first copy add its tray icon.
 - Experimental feature disabled by default: you can now press the shift key while normally moving windows (dragging the titlebar) to make them stick. Doesn't work on all windows in Vista. Doesn't work with 64-bit processes.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-0.5.7z | 3

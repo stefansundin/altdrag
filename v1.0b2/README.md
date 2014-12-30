@@ -10,6 +10,8 @@
 - Added experimental feature `FocusOnTyping` that moves focus to the window the mouse is hovering when you start typing. This is a new approach to the hidden X-Mouse feature in Windows. See the ini file for more details.
 - Fixed issue with iTunes.
 
+## Downloads by filename
+
 Filename | Download Count
 -------- | --------------
 AltDrag-1.0b2.7z | 2
