@@ -2,3 +2,4 @@ build
 *.dll
 *.exe
 /Translation.ini
+.DS_Store

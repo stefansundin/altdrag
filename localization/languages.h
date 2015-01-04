@@ -15,19 +15,19 @@
 #include "ca_ES/strings.h"
 
 struct strings *languages[] = {
-	&en_US,
-	&fr_FR,
-	&pl_PL,
-	&pt_BR,
-	&sk_SK,
-	&ru_RU,
-	&zh_CN,
-	&zh_TW,
-	&it_IT,
-	&de_DE,
-	&es_ES,
-	&gl_ES,
-	&ca_ES,
+  &en_US,
+  &fr_FR,
+  &pl_PL,
+  &pt_BR,
+  &sk_SK,
+  &ru_RU,
+  &zh_CN,
+  &zh_TW,
+  &it_IT,
+  &de_DE,
+  &es_ES,
+  &gl_ES,
+  &ca_ES,
 };
 
 struct strings *l10n = &en_US;
