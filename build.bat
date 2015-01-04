@@ -48,6 +48,8 @@ if "%1" == "all" (
 
   echo Building installer
   makensis /V2 installer.nsi
+
+  (cd build && sha256sum AltDrag.exe hooks.dll HookWindows_x64.exe hooks_x64.dll AltDrag-1.0.exe > sha256sum.txt)
 ) else if "%1" == "lang" (
   %prefix32%gcc -o localization/import_languages.exe tools/import_languages.c -lshlwapi
   start localization/import_languages.exe
