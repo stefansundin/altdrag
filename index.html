@@ -54,17 +54,19 @@
   <div class="container">
     <h2>Donate</h2>
 
-    <p>AltDrag is free software and a one-man endeavor. If you find it useful, please make a donation. You may include a personal message which I will read.</p>
+    <p>AltDrag is free software and a one-man endeavor. If you find it useful, please make a donation.</p>
 
-    <form class="form-horizontal" method="post" action="https://www.paypal.com/cgi-bin/webscr" track="donate">
+    <form method="post" action="https://www.paypal.com/cgi-bin/webscr" track="donate">
       <input type="hidden" name="cmd" value="_xclick">
       <input type="hidden" name="business" value="KYMVEK692RF5Q">
       <input type="hidden" name="item_number" value="AltDrag v1.0">
       <input type="hidden" name="return" value="https://stefansundin.github.io/thx">
       <input type="hidden" name="cbt" value="Learn why you just became awesome">
-      <div class="form-group">
-        <div class="col-sm-2"><input class="form-control" type="text" name="amount" id="amount" value="$5.00" placeholder="Amount"></div>
-        <div class="col-sm-3"><input class="btn btn-success" type="submit" value="Donate with PayPal"></div>
+      <div class="input-group col-sm-5">
+        <input class="form-control" type="text" name="amount" id="amount" value="$5.00" placeholder="Amount">
+        <span class="input-group-btn">
+          <input class="btn btn-success" type="submit" value="Donate with PayPal">
+        </span>
       </div>
     </form>
 
