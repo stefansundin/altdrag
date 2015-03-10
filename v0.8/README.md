@@ -14,4 +14,4 @@
 Filename | Download Count
 -------- | --------------
 AltDrag-0.8.7z | 3
-AltDrag-0.8.exe | 5
+AltDrag-0.8.exe | 7
