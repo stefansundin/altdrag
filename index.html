@@ -10,6 +10,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+  <meta property="og:site_name" content="AltDrag">
+  <meta property="og:title" content="AltDrag">
+  <meta property="og:description" content="AltDrag brings the window moving behavior from Linux to Windows.">
+  <meta property="og:url" content="https://stefansundin.github.io/altdrag/">
+  <meta property="og:image" content="https://stefansundin.github.io/altdrag/img/icon256.png">
+
   <link rel="icon" href="img/icon32.png">
   <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
@@ -17,12 +23,7 @@
   <link rel="alternate" type="application/atom+xml" href="feed.xml" title="AltDrag news">
   <link rel="alternate" type="application/atom+xml" href="https://github.com/stefansundin/altdrag/releases.atom" title="AltDrag release feed">
   <link rel="license" href="https://www.gnu.org/licenses/gpl-3.0.html" title="GNU GPL v3 or later">
-
-  <meta property="og:site_name" content="AltDrag">
-  <meta property="og:title" content="AltDrag">
-  <meta property="og:description" content="AltDrag brings the window moving behavior from Linux to Windows.">
-  <meta property="og:url" content="https://stefansundin.github.io/altdrag/">
-  <meta property="og:image" content="https://stefansundin.github.io/altdrag/img/icon256.png">
+  <script src="https://stefansundin.github.io/js/https.js"></script>
 </head>
 <body>
   <header>
@@ -34,7 +35,7 @@
   </header>
 
   <div class="text-center" id="os-warning" style="display:none;">
-    <h3><b>Note:</b> AltDrag is a Windows only application!</h3>
+    <h3><strong>Note:</strong> AltDrag is a Windows only application!</h3>
   </div>
   <script>
   if (navigator.platform.indexOf('Win') === -1) {
@@ -52,9 +53,9 @@
   </div>
 
   <div class="container">
-    <h2>Donate</h2>
+    <h2 id="donate">Donate</h2>
 
-    <p>AltDrag is free software and a one-man endeavor. If you find it useful, please make a donation.</p>
+    <p>AltDrag is free software and a one-man endeavor. If you find it useful, please make a donation. I greatly appreciate any support!</p>
 
     <form method="post" action="https://www.paypal.com/cgi-bin/webscr" track="donate">
       <input type="hidden" name="cmd" value="_xclick">
@@ -70,12 +71,17 @@
       </div>
     </form>
 
-    <p>Or you can send Bitcoin to: <tt>1EhDUbc5MjC6JavC6idKiTCxnqSxY2sbTX</tt> (<a href="../img/btc-qr.png">QR code</a>)</p>
+    <p><small><a class="expander" expand="donation-options">Show other donation options: Bitcoin, Square Cash.</a></small></p>
+    <div class="expandable" id="donation-options">
+      <p>Other donation options:</p>
+      <ul>
+        <li>Bitcoin: <tt>1EhDUbc5MjC6JavC6idKiTCxnqSxY2sbTX</tt> (<a href="../img/btc-qr.png">QR code</a>)</li>
+        <li>Square Cash: <a fubar>squarEStefansundinCom</a></li>
+      </ul>
+    </div>
 
-    <p>You can also send Square Cash to: <a>squarEStefansundinCom</a></p>
 
-
-    <h2>What is AltDrag?</h2>
+    <h2 id="intro">What is AltDrag?</h2>
 
     <p>AltDrag gives you the ability to move and resize windows in a new way. After starting AltDrag, you can simply hold down the Alt key and then click and drag any window.</p>
 
@@ -103,18 +109,18 @@
     <p>AltDrag has more tricks up its sleeve, read through <a href="https://github.com/stefansundin/altdrag/tree/doc">the documentation</a> to learn more.</p>
 
 
-    <h2>News <a href="feed.xml"><img src="../img/feed.png" alt="RSS feed"></a></h2>
+    <h2 id="news">News <a href="feed.xml"><img src="../img/feed.png" alt="RSS feed"></a></h2>
 
-    <p><b>2014-12-25:</b> New website design!</p>
-    <p><b>2014-05-10:</b> This will be the new website, but it is currently work in progress.</p>
-    <p><b>2013-09-13:</b> AltDrag v1.0 was released.</p>
+    <p><strong>2014-12-25:</strong> New website design!</p>
+    <p><strong>2014-05-10:</strong> This will be the new website, but it is currently work in progress.</p>
+    <p><strong>2013-09-13:</strong> AltDrag v1.0 was released.</p>
 
     <p>For an RSS feed with only new releases, use <a href="https://github.com/stefansundin/altdrag/releases.atom">the GitHub release feed</a>.</p>
 
 
     <h2 id="languages">New languages since last release</h2>
 
-    <p>Simply save the desired language file in AltDrag's directory. <b>Right-click and <i>Save link as...</i></b></p>
+    <p>Simply save the desired language file in AltDrag's directory. <strong>Right-click</strong> and <strong><em>Save link as...</em></strong></p>
 
     <ul>
       <li><a target="_self" href="localization/nl_NL/Translation.ini" track="translation">Dutch</a></li>
@@ -129,7 +135,7 @@
     <p>Read <a href="https://github.com/stefansundin/altdrag/blob/doc/translate.md">this page</a> to learn how to make your own translation.</p>
 
 
-    <h2>Known issues</h2>
+    <h2 id="issues">Known issues</h2>
 
     <ul>
       <li>AltDrag has some issues with high-DPI displays, <a href="https://github.com/stefansundin/altdrag/issues/7#issuecomment-50701359">read here for a workaround</a>. As I do not have a high-DPI display, I don't know when I will be able to fix this.</li>
@@ -137,7 +143,7 @@
     </ul>
 
 
-    <h2>Support</h2>
+    <h2 id="support">Support</h2>
 
     <p>Before reporting bugs, look through the <a href="https://github.com/stefansundin/altdrag/issues">list of issues</a> on GitHub, and also the <a href="https://code.google.com/p/altdrag/issues/list">list of issues</a> on the old website.</p>
 
@@ -148,7 +154,7 @@
     <p>When reporting bugs, please specify what version of Windows you are using, and be sure to include any error messages you might see.</p>
 
 
-    <h2>Contribute</h2>
+    <h2 id="contribute">Contribute</h2>
 
     <p>Want to contribute to the project? Here are some great ways you can help:</p>
 
@@ -160,16 +166,16 @@
     </ul>
 
 
-    <h2>License</h2>
+    <h2 id="license">License</h2>
 
     <p>AltDrag is free software and licensed under <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a>. Get <a href="https://github.com/stefansundin/altdrag">the source code</a> on GitHub.</p>
 
-    <p>You may redistribute AltDrag on your own website, but please provide a link to this website on the same page. Please do not bundle AltDrag together with toolbars or other annoying adware, or otherwise degrade the installation experience.</p>
+    <p>You may redistribute AltDrag on your own website, but please provide a link to this website on the same page. Please do not bundle AltDrag together with toolbars or other annoying adware, or otherwise degrade the experience.</p>
 
 
-    <h2>Credits</h2>
+    <h2 id="credits">Credits</h2>
 
-    <p>AltDrag was created and is maintained by Stefan Sundin.</p>
+    <p>Made by Stefan Sundin.</p>
 
     <p>You can <a href="https://stefansundin.github.io/">browse my other projects</a>, or <a href="https://stefansundin.com/">visit my personal website</a>.</p>
 
@@ -179,8 +185,8 @@
     </div>
   </div>
 
-  <script src="https://stefansundin.github.io/js/https.js"></script>
   <script src="../js/ga.js"></script>
   <script src="../js/fubar.js"></script>
+  <script src="../js/main.js"></script>
 </body>
 </html>
