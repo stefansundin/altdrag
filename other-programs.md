@@ -39,7 +39,7 @@
   * [True X-Mouse](http://fy.chalmers.se/~appro/nt/TXMouse/)
   * [WinRoll](http://www.palma.com.au/winroll/)
   * [Edgeless 2](http://www.addictivetips.com/windows-tips/wrap-mouse-pointer-around-the-screen-in-windows-with-edgeless-2/)
-
+  * [7+ Taskbar Tweaker](http://rammichael.com/7-taskbar-tweaker)
 
 # Commercial
   * [Actual Multiple Monitors](http://www.actualtools.com/multiplemonitors/) (Window snapping, $25 to buy)
