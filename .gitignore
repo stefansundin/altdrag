@@ -1,5 +1,8 @@
+Thumbs.db
+.DS_Store
+*.swp
+
 build
 *.dll
 *.exe
 /Translation.ini
-.DS_Store

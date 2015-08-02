@@ -9,6 +9,20 @@
 
 #include <wininet.h>
 
+const wchar_t const *update_urls[] = {
+  L"https://update.stefansundin.com/altdrag/latest-stable.txt",
+  L"https://stefansundin.github.io/altdrag/latest-stable.txt",
+  L"https://stefansundin.com/altdrag-latest-stable.txt",
+  L""
+};
+
+const wchar_t const *beta_update_urls[] = {
+  L"https://update.stefansundin.com/altdrag/latest-beta.txt",
+  L"https://stefansundin.github.io/altdrag/latest-beta.txt",
+  L"https://stefansundin.com/altdrag-latest-beta.txt",
+  L""
+};
+
 int update = 0;
 
 int OpenUrl(wchar_t *url) {
@@ -54,7 +68,7 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
     }
   }
 
-  // Open connection
+  // Configure client
   HINTERNET http = InternetOpen(APP_NAME"/"APP_VERSION, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
   if (http == NULL) {
     if (verbose) {
@@ -64,64 +78,91 @@ DWORD WINAPI _CheckForUpdate(LPVOID arg) {
   }
   unsigned long timeout = 5000;
   InternetSetOption(http, INTERNET_OPTION_CONNECT_TIMEOUT, &timeout, sizeof(timeout));
-  HINTERNET file = InternetOpenUrl(http, (beta?APP_UPDATE_UNSTABLE:APP_UPDATE_STABLE), NULL, 0, INTERNET_FLAG_RELOAD|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_NO_AUTH|INTERNET_FLAG_NO_AUTO_REDIRECT|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI, 0);
-  if (file == NULL) {
-    if (verbose) {
-      Error(L"InternetOpenUrl()", L"Could not establish connection.\n\nPlease check for update manually on the website.", GetLastError());
+
+  short success = 0;
+  int i = 0;
+  const wchar_t const **urls = (beta ? beta_update_urls : update_urls);
+
+  for (i=0; urls[i][0] != '\0'; i++) {
+    const wchar_t const *url = urls[i];
+
+    // Open connection
+    // DBG("Checking %s", url);
+    HINTERNET file = InternetOpenUrl(http, url, NULL, 0, INTERNET_FLAG_RELOAD|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_NO_AUTH|INTERNET_FLAG_NO_AUTO_REDIRECT|INTERNET_FLAG_NO_COOKIES|INTERNET_FLAG_NO_UI, 0);
+    if (file == NULL) {
+      // Error(L"InternetOpenUrl(http) == NULL", L"", GetLastError());
+      continue;
     }
-    InternetCloseHandle(http);
-    return 1;
-  }
-  // Read file
-  char data[20];
-  DWORD numread;
-  if (InternetReadFile(file,data,sizeof(data),&numread) == FALSE) {
-    if (verbose) {
-      Error(L"InternetReadFile()", L"Could not read response.\n\nPlease check for update manually on the website.", GetLastError());
+
+    // Read response
+    char data[20];
+    DWORD numread;
+    if (InternetReadFile(file,data,sizeof(data),&numread) == FALSE) {
+      // Error(L"InternetReadFile(file) == NULL", L"", GetLastError());
+      InternetCloseHandle(file);
+      continue;
     }
+    data[numread] = '\0';
+    // Get response code
+    wchar_t code[4];
+    DWORD len = sizeof(code);
+    HttpQueryInfo(file, HTTP_QUERY_STATUS_CODE, &code, &len, NULL);
+    // Close handle
     InternetCloseHandle(file);
-    InternetCloseHandle(http);
-    return 1;
+
+    // Make sure the response is valid
+    char header[] = "Version: ";
+    if (wcscmp(code,L"200") || strstr(data,header) != data) {
+      continue;
+    }
+
+    // We have found the version number
+    success = 1;
+
+    // New version available?
+    char *latest = data+strlen(header);
+
+    // Terminate newline, if any
+    char *p;
+    for (p=latest; *p != '\0'; p++) {
+      if (*p == '\r' || *p == '\n') {
+        *p = '\0';
+        break;
+      }
+    }
+
+    // Compare version numbers
+    int cmp = strcmp(latest, APP_VERSION);
+    if (cmp > 0 || (beta && cmp != 0)) {
+      update = 1;
+      if (verbose) {
+        SendMessage(g_hwnd, WM_COMMAND, SWM_UPDATE, 0);
+      }
+      else {
+        wcsncpy(tray.szInfo, l10n->update_balloon, ARRAY_SIZE(tray.szInfo));
+        tray.uFlags |= NIF_INFO;
+        UpdateTray();
+        tray.uFlags ^= NIF_INFO;
+      }
+    }
+    else {
+      update = 0;
+      if (verbose) {
+        MessageBox(NULL, l10n->update_nonew, APP_NAME, MB_ICONINFORMATION|MB_OK);
+      }
+    }
+    break;
   }
-  data[numread] = '\0';
-  // Get response code
-  wchar_t code[4];
-  DWORD len = sizeof(code);
-  HttpQueryInfo(file, HTTP_QUERY_STATUS_CODE, &code, &len, NULL);
-  // Close connection
-  InternetCloseHandle(file);
+
   InternetCloseHandle(http);
 
-  // Make sure the response is valid
-  char header[] = "Version: ";
-  if (wcscmp(code,L"200") || strstr(data,header) != data) {
+  if (!success) {
     if (verbose) {
       MessageBox(NULL, L"Could not determine if an update is available.\n\nPlease check for update manually on the website.", APP_NAME, MB_ICONWARNING|MB_OK);
     }
-    return 2;
+    return 3;
   }
 
-  // New version available?
-  char *latest = data+strlen(header);
-  int cmp = strcmp(latest, APP_VERSION);
-  if (cmp > 0 || (beta && cmp != 0)) {
-    update = 1;
-    if (verbose) {
-      SendMessage(g_hwnd, WM_COMMAND, SWM_UPDATE, 0);
-    }
-    else {
-      wcsncpy(tray.szInfo, l10n->update_balloon, ARRAY_SIZE(tray.szInfo));
-      tray.uFlags |= NIF_INFO;
-      UpdateTray();
-      tray.uFlags ^= NIF_INFO;
-    }
-  }
-  else {
-    update = 0;
-    if (verbose) {
-      MessageBox(NULL, l10n->update_nonew, APP_NAME, MB_ICONINFORMATION|MB_OK);
-    }
-  }
   return 0;
 }
 

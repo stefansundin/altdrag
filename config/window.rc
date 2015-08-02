@@ -18,7 +18,7 @@ STYLE DS_3DLOOK | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_CH
 CAPTION "About"
 FONT 8, "Ms Shell Dlg", 400, 0, 1
 {
-    CONTROL         "<a href=""http://stefansundin.com/"">http://stefansundin.com/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 50, 130, 10
+    CONTROL         "<a href=""https://stefansundin.com/"">https://stefansundin.com/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 50, 130, 10
     GROUPBOX        "About", IDC_ABOUT_BOX, 3, 1, 212, 105
     ICON            IDI_BIGICON, IDC_STATIC, 15, 15, 45, 42, SS_ICON | SS_REALSIZEIMAGE
     LTEXT           "Version", IDC_VERSION, 75, 15, 130, 8, SS_LEFT
