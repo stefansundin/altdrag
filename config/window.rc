@@ -22,7 +22,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     GROUPBOX        "About", IDC_ABOUT_BOX, 3, 1, 212, 105
     ICON            IDI_BIGICON, IDC_STATIC, 15, 15, 45, 42, SS_ICON | SS_REALSIZEIMAGE
     LTEXT           "Version", IDC_VERSION, 75, 15, 130, 8, SS_LEFT
-    CONTROL         "<a href=""http://code.google.com/p/altdrag/"">http://code.google.com/p/altdrag/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 25, 130, 10
+    CONTROL         "<a href=""https://stefansundin.github.io/altdrag/"">https://stefansundin.github.io/altdrag/</a>", IDC_STATIC, "SysLink", 0x50020000, 75, 25, 130, 10
     LTEXT           "Created by Stefan Sundin", IDC_AUTHOR, 75, 40, 130, 8, SS_LEFT
     LTEXT           "Free and open source software!", IDC_LICENSE, 10, 65, 195, 20, SS_LEFT
     DEFPUSHBUTTON   "Donate", IDC_DONATE, 10, 85, 45, 14

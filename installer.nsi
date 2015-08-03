@@ -7,14 +7,10 @@
 
 ; For silent install you can use these switches: /S /L=es-ES /D=C:\installdir
 
-; Requires AccessControl plug-in
-; http://nsis.sourceforge.net/AccessControl_plug-in
-
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "1.0"
-!define APP_URL       "http://code.google.com/p/altdrag/"
-!define APP_UPDATEURL "http://altdrag.googlecode.com/svn/wiki/latest-stable.txt"
+!define APP_VERSION   "1.1b1"
+!define APP_URL       "https://stefansundin.github.io/altdrag/"
 
 
 ; Libraries
@@ -30,9 +26,9 @@
 
 Name "${APP_NAME} ${APP_VERSION}"
 OutFile "build\${APP_NAME}-${APP_VERSION}.exe"
-InstallDir "$PROGRAMFILES\${APP_NAME}"
+InstallDir "$APPDATA\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${APP_NAME}" "Install_Dir"
-RequestExecutionLevel admin
+RequestExecutionLevel user
 ShowInstDetails hide
 ShowUninstDetails show
 SetCompressor /SOLID lzma
@@ -110,7 +106,7 @@ Function ${un}CloseApp
   ; Close app if running
   FindWindow $0 "${APP_NAME}" ""
   IntCmp $0 0 done
-    DetailPrint "Closing running ${APP_NAME}."
+    DetailPrint "Attempting to close running ${APP_NAME}."
     SendMessage $0 ${WM_CLOSE} 0 0 /TIMEOUT=500
     waitloop:
       Sleep 10
@@ -176,24 +172,6 @@ FunctionEnd
 
 ; Installer
 
-Section "" sec_update
-  NSISdl::download /TIMEOUT=5000 "${APP_UPDATEURL}" "$TEMP\${APP_NAME}-updatecheck.txt"
-  Pop $0
-  StrCmp $0 "success" +3
-    DetailPrint "Update check failed. Error: $0."
-    Goto done
-  FileOpen $0 "$TEMP\${APP_NAME}-updatecheck.txt" r
-  IfErrors done
-  FileRead $0 $1
-  FileClose $0
-  Delete /REBOOTOK "$TEMP\${APP_NAME}-updatecheck.txt"
-  StrCmp $1 ${APP_VERSION} done
-    MessageBox MB_ICONINFORMATION|MB_YESNO "$(L10N_UPDATE_DIALOG)" /SD IDNO IDNO done
-      ExecShell "open" "${APP_URL}"
-      Quit
-  done:
-SectionEnd
-
 Section "" sec_app
   ; Close app if running
   Call CloseApp
@@ -228,29 +206,27 @@ Section "" sec_app
   !insertmacro Lang "ca-ES" ${LANG_CATALAN}
   ; Add new translations here!
 
-  ; Grant write rights to ini file to all users
-  AccessControl::GrantOnFile "$INSTDIR\${APP_NAME}.ini" "(BU)" "FullAccess"
-
   ; Update registry
   WriteRegStr HKCU "Software\${APP_NAME}" "Install_Dir" "$INSTDIR"
   WriteRegStr HKCU "Software\${APP_NAME}" "Version" "${APP_VERSION}"
 
   ; Create uninstaller
   WriteUninstaller "Uninstall.exe"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayName" "${APP_NAME}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayIcon" '"$INSTDIR\${APP_NAME}.exe"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayVersion" "${APP_VERSION}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "HelpLink" "${APP_URL}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "Publisher" "Stefan Sundin"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayName" "${APP_NAME}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayIcon" '"$INSTDIR\${APP_NAME}.exe"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayVersion" "${APP_VERSION}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "HelpLink" "${APP_URL}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "Publisher" "Stefan Sundin"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "InstallLocation" "$INSTDIR"
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
 
   ; Compute size for uninstall information
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   IntFmt $0 "0x%08X" $0
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "EstimatedSize" "$0"
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "EstimatedSize" "$0"
 SectionEnd
 
 Section "" sec_shortcut
@@ -367,19 +343,20 @@ Function PageUpgrade
   ${NSD_CreateRadioButton} 0 130 100% 10u "$(L10N_UPGRADE_UNINSTALL)"
   Pop $Uninstallbox
 
+  ${NSD_CreateLabel} 0 160 100% 30u "Note: version 1.1 and later defaults to install to the user directory. If you are upgrading from a previous version, then I recommend that you first uninstall and then install from scratch. Otherwise you have to right click the installer and use 'Run as administrator'."
+
   nsDialogs::Show
 FunctionEnd
 
 Function PageUpgradeLeave
   ${NSD_GetState} $Uninstallbox $0
   ${If} $0 == ${BST_CHECKED}
-    Exec "$INSTDIR\Uninstall.exe"
+    ExecShell "open" '"$INSTDIR\Uninstall.exe"'
     Quit
   ${EndIf}
 
   ${NSD_GetState} $Upgradebox $UpgradeState
   ${If} $UpgradeState == ${BST_CHECKED}
-    !insertmacro UnselectSection ${sec_update}
     !insertmacro UnselectSection ${sec_shortcut}
   ${EndIf}
 FunctionEnd
@@ -387,11 +364,6 @@ FunctionEnd
 
 Function .onInit
   Call AddTray
-
-  ; Handle silent install
-  IfSilent 0 done
-    !insertmacro UnselectSection ${sec_update}
-  done:
 
   ; Set language from command line
   ClearErrors
@@ -459,5 +431,5 @@ Section "Uninstall"
 
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP_NAME}"
   DeleteRegKey /ifempty HKCU "Software\${APP_NAME}"
-  DeleteRegKey /ifempty HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
+  DeleteRegKey /ifempty HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 SectionEnd
