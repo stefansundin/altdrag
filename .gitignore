@@ -2,7 +2,7 @@ Thumbs.db
 .DS_Store
 *.swp
 
-build
+bin
 *.dll
 *.exe
 /Translation.ini

@@ -25,7 +25,7 @@
 ; General
 
 Name "${APP_NAME} ${APP_VERSION}"
-OutFile "build\${APP_NAME}-${APP_VERSION}.exe"
+OutFile "bin\${APP_NAME}-${APP_VERSION}.exe"
 InstallDir "$APPDATA\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${APP_NAME}" "Install_Dir"
 RequestExecutionLevel user
@@ -188,11 +188,11 @@ Section "" sec_app
   Delete /REBOOTOK "$INSTDIR\Config.exe" ; existed in 1.0b1
 
   ; Install files
-  File "build\${APP_NAME}.exe"
+  File "bin\${APP_NAME}.exe"
   File "${APP_NAME}.ini"
-  File "build\hooks.dll"
-  File /nonfatal "build\HookWindows_x64.exe"
-  File /nonfatal "build\hooks_x64.dll"
+  File "bin\hooks.dll"
+  File /nonfatal "bin\HookWindows_x64.exe"
+  File /nonfatal "bin\hooks_x64.dll"
 
   !insertmacro Lang "en-US" ${LANG_ENGLISH}
   !insertmacro Lang "fr-FR" ${LANG_FRENCH}
