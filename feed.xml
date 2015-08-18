@@ -1,40 +1,29 @@
+---
+---
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <id>urn:uuid:d7e43e4b-8da4-4214-a13d-c6c2a489f6cd</id>
-  <title>AltDrag</title>
-  <icon>https://stefansundin.github.io/img/altdrag32.png</icon>
-  <link href="https://stefansundin.github.io/altdrag/feed.xml" rel="self" />
-  <link href="https://stefansundin.github.io/altdrag/" rel="alternate" />
-  <link href="https://github.com/stefansundin/altdrag/releases.atom" rel="related" />
-  <link href="https://github.com/stefansundin/altdrag/tags.atom" rel="related" />
-  <link href="https://github.com/stefansundin/altdrag/commits/master.atom" rel="related" />
-  <updated>2014-12-26T14:00:00Z</updated>
+  <id>{{ site.url }}{{ site.baseurl }}/feed.xml</id>
+  <title>{{ site.title | xml_escape }}</title>
+  <icon>{{ site.url }}{{ site.baseurl }}/img/icon32.png</icon>
+  <link href="{{ site.url }}{{ site.baseurl }}/feed.xml" rel="self" />
+  <link href="{{ site.url }}{{ site.baseurl }}/" rel="alternate" />
+  <link href="{{ site.url }}{{ site.baseurl }}/releases.atom" rel="related" />
+  <link href="{{ site.url }}{{ site.baseurl }}/tags.atom" rel="related" />
+  <link href="https://github.com/{{ site.github_username }}/commits/master.atom" rel="related" />
+  <updated>{{ site.time | date_to_xmlschema }}</updated>
   <author>
     <name>Stefan Sundin</name>
     <uri>https://stefansundin.com/</uri>
   </author>
 
+  {% for post in site.posts limit:10 %}
   <entry>
-    <id>urn:uuid:14c1469a-1fa2-4e6e-ad6a-a9d7e4aa87e2</id>
-    <title>AltDrag - New website</title>
-    <link href="https://stefansundin.github.io/altdrag/" />
-    <updated>2014-12-26T14:00:00Z</updated>
+    <id>{{ site.url }}{{ site.baseurl }}/news/#{{ post.date | date: "%Y-%m-%d" }}</id>
+    <title>{{ post.title | xml_escape }}</title>
+    <link href="{{ site.url }}{{ site.baseurl }}/news/#{{ post.date | date: "%Y-%m-%d" }}" />
+    <updated>{{ post.date | date_to_xmlschema }}</updated>
     <author><name>Stefan Sundin</name></author>
-    <content type="html">
-&lt;p>The new website is done!&lt;/p>
-&lt;p>- &lt;a href="https://github.com/stefansundin/altdrag/releases.atom">You might want to subscribe to the release-only GitHub RSS feed&lt;/a>.&lt;/p>
-    </content>
+    <content type="html">{{ post.content | xml_escape }}</content>
   </entry>
-
-  <entry>
-    <id>urn:uuid:6db7ca10-0b42-4c26-8715-bbe3a9837ae3</id>
-    <title>AltDrag - 1.0</title>
-    <link href="https://stefansundin.github.io/altdrag/" />
-    <updated>2013-09-13T13:30:00Z</updated>
-    <author><name>Stefan Sundin</name></author>
-    <content type="html">
-&lt;p>Released 1.0. Finally!&lt;/p>
-&lt;p>&lt;a href="https://stefansundin.github.io/altdrag/">Go to the website to read more&lt;/a>.&lt;/p>
-    </content>
-  </entry>
+  {% endfor %}
 </feed>

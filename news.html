@@ -1,0 +1,10 @@
+---
+layout: page
+title: AltDrag News
+permalink: /news/
+---
+
+    {% for post in site.posts %}
+    <p id="{{ post.date | date: "%Y-%m-%d" }}"><strong>{{ post.date | date: "%Y-%m-%d" }} - {{ post.title }}</strong></p>
+    <div class="post-body">{{ post.content }}</div>
+    {% endfor %}

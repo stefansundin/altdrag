@@ -1,0 +1,25 @@
+<head>
+  <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+
+  <meta charset="utf-8">
+  <meta name="author" content="{{ site.author }}">
+  <meta name="description" content="{{ site.description | strip_newlines }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:title" content="{{ site.title }}">
+  <meta property="og:description" content="{{ site.description | strip_newlines }}">
+  <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}/">
+  <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/img/icon256.png">
+
+  <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url | replace:'index.html','' }}">
+  <link rel="icon" href="{{ site.baseurl }}/img/icon32.png">
+  <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="{{ site.baseurl }}/css/main.css">
+  <link rel="alternate" type="application/atom+xml" href="{{ site.baseurl }}/feed.xml" title="{{ site.title }} news">
+  <link rel="alternate" type="application/atom+xml" href="https://github.com/{{ site.github_repo }}/releases.atom" title="{{ site.title }} release feed">
+  <link rel="license" href="https://www.gnu.org/licenses/gpl-3.0.html" title="GNU GPL v3 or later">
+  <script src="{{ site.baseurl }}/js/https.js"></script>
+</head>

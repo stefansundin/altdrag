@@ -1,0 +1,14 @@
+title: AltDrag
+url: https://stefansundin.github.io
+baseurl: /altdrag
+github_repo: stefansundin/altdrag
+description: AltDrag brings the window moving behavior from Linux to Windows.
+author: Stefan Sundin
+
+# posts
+permalink: /news/:year-:month-:day-:title.html
+
+# build
+markdown: kramdown
+kramdown:
+  input: GFM
