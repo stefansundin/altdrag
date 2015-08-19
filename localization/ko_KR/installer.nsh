@@ -1,4 +1,4 @@
-﻿; AltDrag - en-US localization by Stefan Sundin
+﻿; AltDrag - ko-KR localization by @jeyraof
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "(&U) ${APP_NAME}을 ${APP_VERSION}로 업�
 LangString L10N_UPGRADE_INI       0 "기존 세팅을 ${APP_NAME}-old.ini 파일로 백업합니다."
 LangString L10N_UPGRADE_INSTALL   0 "(&I) 새로운 위치에 설치합니다."
 LangString L10N_UPGRADE_UNINSTALL 0 "${APP_NAME}을 제거합니다."
-LangString L10N_UPDATE_DIALOG     0 "새로운 버전이 있습니다.$\n설치를 중단하고 웹사이트를 열시겠습니까?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "키보드 단축키"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "단축키 Alt + Shift 가 ${APP_NAME}과 충돌합니다."
