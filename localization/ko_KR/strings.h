@@ -115,7 +115,7 @@ struct strings en_US = {
  /* beta               */ L"(&b) 베타 버전 체크",
  /* checknow           */ L"(&C) 지금 업데이트 체크",
  /* ini                */ APP_NAME L"의 설정은 "APP_NAME".ini 에 저장됩니다. 이 파일을 직접 수정해야만 사용가능한 몇가지의 기능들이 존재합니다.",
- /* openini            */ L"Open &ini file",
+ /* openini            */ L"(&i) ini 파일 열기",
 
  /* about tab */
  /* box                */ L""APP_NAME" 에 대하여",
