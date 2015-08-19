@@ -36,11 +36,13 @@ Since version 1.0, you can use AltDrag's configuration window to identify the ti
 
 Here is an explanation of the default entries:
 
-| Blacklist                  | Explanation |
-| -----------                | ----------- |
-| `*|TaskSwitcherWnd`        | This is part of the Alt+Tab window in Vista and Windows 7. |
-| `*|TaskSwitcherOverlayWnd` | This is part of the Alt+Tab window in Vista and Windows 7. |
-| `|#32770`                  | This is the system volume window. It is in this list so that you can still use the mouse wheel to change volume even if the mouse is not hovering the small window. |
+| Blacklist                                   | Explanation |
+| -----------                                 | ----------- |
+| `*|MultitaskingViewFrame`                   | This is the Alt+Tab window in Windows 10. |
+| `Volume Control|Windows.UI.Core.CoreWindow` | This is the volume control window in Windows 10. It is in this list so that you can still use the mouse wheel to change volume if you activated _Scroll inactive windows_ and the mouse is not hovering the small window. |
+| `*|TaskSwitcherWnd`                         | This is part of the Alt+Tab window in Vista and Windows 7. |
+| `*|TaskSwitcherOverlayWnd`                  | This is part of the Alt+Tab window in Vista and Windows 7. |
+| `|#32770`                                   | This was the volume control window before Windows 10. It is in the list for the same reason the Windows 10 volume control window is in the list. |
 {: class="table"}
 
 | Snaplist                   | Explanation |
