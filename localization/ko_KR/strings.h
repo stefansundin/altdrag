@@ -120,10 +120,10 @@ struct strings en_US = {
  /* about tab */
  /* box                */ L""APP_NAME" 에 대하여",
  /* version            */ L"버젼 "APP_VERSION,
- /* author             */ L"Created by Stefan Sundin",
- /* license            */ APP_NAME L" is free and open source software!\nFeel free to redistribute!",
- /* donate             */ L"&Donate",
- /* translation_credit */ L"Jeyraof translates it to korean",
+ /* author             */ L"제작: Stefan Sundin",
+ /* license            */ APP_NAME L"는 무료이며 오픈소스 소프트웨어입니다!\n마음껏 재배포하세요!",
+ /* donate             */ L"(&D) 기부",
+ /* translation_credit */ L"@jeyraof",
 
  /* === misc === */
  /* unhook_error       */ L""APP_NAME"을 비활성화시킨 에러가 있습니다. 이 에러는 "APP_NAME"의 훅들이 이미 비활성화 된경우 자주 발생합니다.\n\n만약 이 에러가 처음이라면, 무시하고 "APP_NAME"를 이용하시면 됩니다.\n\n만약 반복적으로 에러가 발생한다면, 위키에서 해결 방법을 읽으실 수 있습니다. (해당 문서: 'AltDrag mysteriously stops working' on the About page).",
