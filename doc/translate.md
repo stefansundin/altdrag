@@ -7,6 +7,8 @@ Before you start translating, I recommend that you take a look [in the source tr
 
 AltDrag can be translated via an ini file. Download the [English Translation.ini file](https://raw.githubusercontent.com/stefansundin/altdrag/master/localization/en_US/Translation.ini). Save it in the same directory as `AltDrag.exe`. Start translating the strings and launch AltDrag to try it out.
 
+**Note:** There are files called `strings.h` in the source tree. These files are used when hard-coding the translation into AltDrag, and you normally do not need to create this file (or submit it to me). After your translation has been accepted, I will automatically generate this file from your `Translation.ini`.
+
 Look for your language code in the [ISO 639-1 standard](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes), and your territory code in the [ISO 3166-1 alpha-2 standard](http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements).
 
 Some things to note:
