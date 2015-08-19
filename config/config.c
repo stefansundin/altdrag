@@ -155,6 +155,10 @@ BOOL CALLBACK PropSheetProc(HWND hwnd, UINT msg, LPARAM lParam) {
     SetWindowSubclass(g_cfgwnd, PropSheetWinProc, 0, 0);
     UpdateStrings();
 
+    // Set new icon specifically for the taskbar and Alt+Tab, without changing window icon
+    HICON taskbar_icon = LoadImage(g_hinst, L"taskbar_icon", IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    SendMessage(g_cfgwnd, WM_SETICON, ICON_BIG, (LPARAM)taskbar_icon);
+
     // OK button replaces Cancel button
     SendMessage(g_cfgwnd, PSM_CANCELTOCLOSE, 0, 0);
     HWND cancel = GetDlgItem(g_cfgwnd, IDCANCEL);
