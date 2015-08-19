@@ -1,5 +1,5 @@
 ﻿/*
-  AltDrag 1.0 - localization by Àlfons Sánchez
+  AltDrag 1.0 - localization by Ã€lfons SÃ¡nchez
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ struct strings ca_ES = {
   L"Llista negra de processos:",
   L"Llista negra:",
   L"Llista d'adaptaciÃ³ automÃ tica:",
-  L"Llig <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">el wiki</a> en la web per a una explicaciÃ³ de com funcionen les llistes negres!",
+  L"Llig <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">el wiki</a> en la web per a una explicaciÃ³ de com funcionen les llistes negres!",
   L"Identificar finestra",
   L"Fes clic en la icona per identificar el nom de la classe d'una finestra i aixÃ­ podras afegir-la a la llista negra o a la d'adaptaciÃ³ automÃ tica.",
   L"ParÃ metres avanÃ§ats",

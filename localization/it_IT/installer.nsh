@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Aggiorna ${APP_NAME} alla ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "Le tue impostazioni verranno copiate come ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Installa in una nuova posizione."
 LangString L10N_UPGRADE_UNINSTALL 0 "Disins&talla ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "È disponibile una nuova versione.$\nInterrompi l'installazione e vai al sito web?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Tasto di scelta rapida"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Il tasto di scelta rapida Alt + Shift è in conflitto con ${APP_NAME}."

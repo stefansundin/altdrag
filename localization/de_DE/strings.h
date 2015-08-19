@@ -84,7 +84,7 @@ struct strings de_DE = {
   L"Blacklist für Prozesse:",
   L"Blacklist:",
   L"Snaplist (Einrasten verhindern):",
-  L"Eine umfassende Erklärung, wie die Blacklist funktioniert, finden Sie in <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">der Wiki</a>!",
+  L"Eine umfassende Erklärung, wie die Blacklist funktioniert, finden Sie in <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">der Wiki</a>!",
   L"Fenster identifizieren",
   L"Klicken Sie auf das Symbol um den Klassennamen eines Fensters zu ermitteln, sodass dieser oben der Blacklist oder Snaplist hinzugefügt werden kann.",
   L"Erweiterte Einstellungen",

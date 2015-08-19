@@ -84,7 +84,7 @@ struct strings fr_FR = {
   L"Processus à ignorer:",
   L"Fenêtres à ignorer:",
   L"Fenêtres à aimanter:",
-  L"Lire <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">le wiki</a> sur le site web pour une explication complète sur le fonctionnement de la liste noire!",
+  L"Lire <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">le wiki</a> sur le site web pour une explication complète sur le fonctionnement de la liste noire!",
   L"Identifer une fenêtre",
   L"Utilisez cette fonction pour identifier la classe d'une fenêtre afin de l'ajouter dans la liste des fenêtres à ignorer ou des fenêtres à aimanter ci-dessus.",
   L"Paramètres avancés",

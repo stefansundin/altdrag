@@ -16,7 +16,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Обновить ${APP_NAME} до верс
 LangString L10N_UPGRADE_INI       0 "Существующие настройки будут скопированы в ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "Установить в другое &место."
 LangString L10N_UPGRADE_UNINSTALL 0 "У&далить ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "Доступна новая версия.$\nПрервать установку и перейти на сайт?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Горячая клавиша"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Сочетание Alt + Shift конфликтует с ${APP_NAME}."

@@ -103,7 +103,7 @@ struct strings en_US = {
  /* processblacklist   */ L"Process blacklist:",
  /* blacklist          */ L"Blacklist:",
  /* snaplist           */ L"Snaplist:",
- /* explanation        */ L"Read <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">the wiki</a> on the website for a thorough explanation of how the blacklist works!",
+ /* explanation        */ L"Read <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">the website</a> for a thorough explanation on how the blacklist works!",
  /* findwindow_box     */ L"Identify window",
  /* _explanation       */ L"Click the icon to identify the classname of a window so that you can add it to the Blacklist or Snaplist above.",
 
@@ -126,5 +126,5 @@ struct strings en_US = {
  /* translation_credit */ L"Translation credit",
 
  /* === misc === */
- /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website wiki how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' on the About page).",
+ /* unhook_error       */ L"There was an error disabling "APP_NAME". This was most likely caused by Windows having already disabled "APP_NAME"'s hooks.\n\nIf this is the first time this has happened, you can safely ignore it and continue using "APP_NAME".\n\nIf this is happening repeatedly, you can read on the website how to prevent this from happening again (look for '"APP_NAME" mysteriously stops working' in the documentation).",
 };

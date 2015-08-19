@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Actualizar ${APP_NAME} a ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "La configuración existente será copiada a ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Instalar en una nueva ubicación."
 LangString L10N_UPGRADE_UNINSTALL 0 "Desinstalar ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "Existe una nueva versión disponible.$\nAbortar la instalación e ir al sitio web?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Atajo de teclado"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "El atajo Alt + Mayúsculas entra en conflicto con ${APP_NAME}."

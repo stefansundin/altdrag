@@ -84,7 +84,7 @@ struct strings it_IT = {
   L"Processi in lista nera:",
   L"Lista nera:",
   L"Lista aggancio:",
-  L"Leggi la <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">wiki</a> sul sito web per una spiegazione approfondita di come funziona la lista nera!",
+  L"Leggi la <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">wiki</a> sul sito web per una spiegazione approfondita di come funziona la lista nera!",
   L"Indentifica finestra",
   L"Clicca l'icona per identificare la classname della finestra in modo da poterla aggiungere alla Lista nera o Lista aggancio sopra.",
   L"Impostazioni avanzate",

@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "(&U)把${APP_NAME}升级到${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "你的旧配置将被保存为${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "(&I)安装到新的位置."
 LangString L10N_UPGRADE_UNINSTALL 0 "(&U)卸载${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "有可用的新版本.$\n中断安装并浏览AltDrag网站吗?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "快捷键"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "快捷键Alt + Shift和${APP_NAME}冲突."

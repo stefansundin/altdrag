@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "升級 ${APP_NAME} 至 ${APP_VERSION} 版(&
 LangString L10N_UPGRADE_INI       0 "您原先使用的設定檔案將被複製為 ${APP_NAME}-old.ini。"
 LangString L10N_UPGRADE_INSTALL   0 "安裝至新位置(&I)"
 LangString L10N_UPGRADE_UNINSTALL 0 "移除 ${APP_NAME}(&T)。"
-LangString L10N_UPDATE_DIALOG     0 "有較新的版本可用。$\n終止安裝程式並前往官網下載嗎?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "鍵盤快捷鍵"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Alt 鍵 + Shift 鍵將會跟 ${APP_NAME} 衝突。"

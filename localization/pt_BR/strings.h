@@ -84,7 +84,7 @@ struct strings pt_BR = {
   L"Processos a ignorar:",
   L"Janelas a ignorar:",
   L"Janelas a alinhar:",
-  L"Leia <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">a wiki</a> (em inglês) na nossa página para uma explicação detalhada de como a lista negra funciona.",
+  L"Leia <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">a wiki</a> (em inglês) na nossa página para uma explicação detalhada de como a lista negra funciona.",
   L"Identificar janela",
   L"Utilize esta ferramenta para identificar a classe de uma janela, a fim de adicionar a uma das listas acima.",
   L"Configurações avançadas",

@@ -84,7 +84,7 @@ struct strings zh_CN = {
   L"按进程名称的排除列表:",
   L"排除列表:",
   L"自动吸附列表:",
-  L"排除列表具体如何工作，请参阅<a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">AltDrag网站维基</a>!",
+  L"排除列表具体如何工作，请参阅<a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">AltDrag网站维基</a>!",
   L"辩识窗口",
   L"全用此工具来辩识窗口的类名，以便于你在排除列表或自动吸附列表中进行添加.",
   L"增强设置",

@@ -18,7 +18,6 @@
 
 #define APP_NAME            "AltDrag"
 #define APP_VERSION         "1.0"
-#define HELP_URL            "https://code.google.com/p/altdrag/wiki/Translate"
 
 #include "../localization/strings.h"
 #include "../localization/en_US/strings.h"

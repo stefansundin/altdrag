@@ -18,7 +18,7 @@
 
 #define APP_NAME            L"AltDrag"
 #define APP_VERSION         "1.0"
-#define HELP_URL            "https://code.google.com/p/altdrag/wiki/Translate"
+#define HELP_URL            "https://stefansundin.github.io/altdrag/doc/translate.html"
 
 #include "../localization/strings.h"
 
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     fwprintf(f, L"; Translation file for "APP_NAME" "APP_VERSION"\n\
 ; %s localization by %s\n\
 ; Simply put this file in the same directory as "APP_NAME", then restart "APP_NAME".\n\
-; Please read the wiki for help: "HELP_URL"\n\
+; Please read the website for help: "HELP_URL"\n\
 ; Use encoding UTF-16LE with BOM to be able to use Unicode\n\
 \n\
 ", l10n->code, l10n->author);

@@ -236,7 +236,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
     else if (id == IDC_LANGUAGE && event == CBN_SELCHANGE) {
       int i = ComboBox_GetCurSel(control);
       if (i == ARRAY_SIZE(languages)) {
-        OpenUrl(L"http://code.google.com/p/altdrag/wiki/Translate");
+        OpenUrl(L"https://stefansundin.github.io/altdrag/doc/translate.html");
         for (i=0; l10n != languages[i]; i++) {}
         ComboBox_SetCurSel(control, i);
       }
@@ -685,7 +685,7 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 INT_PTR CALLBACK AboutPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   if (msg == WM_COMMAND) {
     if (wParam == IDC_DONATE) {
-      OpenUrl(L"https://code.google.com/p/altdrag/wiki/Donate");
+      OpenUrl(L"https://stefansundin.github.io/altdrag/");
     }
   }
   else if (msg == WM_NOTIFY) {

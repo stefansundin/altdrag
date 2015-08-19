@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Atualizar ${APP_NAME} para a versão ${APP
 LangString L10N_UPGRADE_INI       0 "Suas configurações já existentes serão copiadas para ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Instalar em outra pasta."
 LangString L10N_UPGRADE_UNINSTALL 0 "&Desinstalar ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "Uma nova versão está disponível.$\nCancelar instalação e ir à página de download?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Atalho de teclado"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "O atalho Alt + Shift entra em conflito com ${APP_NAME}."

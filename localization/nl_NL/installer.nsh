@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Upgrade ${APP_NAME} naar ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "Uw bestaande instellingen zullen gekopieerd worden naar ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Installeer op een nieuwe locatie."
 LangString L10N_UPGRADE_UNINSTALL 0 "${APP_NAME} &deinstalleren."
-LangString L10N_UPDATE_DIALOG     0 "Er is een nieuwere versie beschikbaar.$\nInstallatie afbreken en website bezoeken?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Sneltoets"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "De sneltoets Alt + Shift conflicteerd met ${APP_NAME}."

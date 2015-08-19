@@ -84,7 +84,7 @@ struct strings zh_TW = {
   L"處理程序排除清單：",
   L"排除清單：",
   L"貼齊清單：",
-  L"了解如何讓排除清單作用請閱讀官方網站的 <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">wiki 頁面</a>。",
+  L"了解如何讓排除清單作用請閱讀官方網站的 <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">wiki 頁面</a>。",
   L"識別視窗",
   L"按下圖示以識別視窗的類別名稱以讓您增加它至排除清單或貼齊清單。",
   L"進階設定",

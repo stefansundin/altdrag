@@ -62,7 +62,7 @@ FONT 8, "Ms Shell Dlg", 400, 0, 1
     LTEXT           "ProcessBlacklist:", IDC_PROCESSBLACKLIST_HEADER, 10, 15, 190, 8, SS_LEFT
     LTEXT           "Blacklist:", IDC_BLACKLIST_HEADER, 10, 42, 190, 8, SS_LEFT
     LTEXT           "Snaplist:", IDC_SNAPLIST_HEADER, 10, 69, 190, 8, SS_LEFT
-    CONTROL         "Read <a href=""http://code.google.com/p/altdrag/wiki/Blacklist"">the wiki</a> on the website for a thorough explanation of how the blacklist works!", IDC_BLACKLIST_EXPLANATION, "SysLink", 0x50020000, 10, 97, 195, 20
+    CONTROL         "Read <a href=""https://stefansundin.github.io/altdrag/doc/blacklist.html"">the website</a> for a thorough explanation on how the blacklist works!", IDC_BLACKLIST_EXPLANATION, "SysLink", 0x50020000, 10, 97, 195, 20
     GROUPBOX        "Identify window", IDC_FINDWINDOW_BOX, 3, 125, 212, 58
     LTEXT           "WindowFinder", IDC_FINDWINDOW_EXPLANATION, 10, 135, 195, 25, SS_LEFT
     ICON            IDI_FIND, IDC_FINDWINDOW, 12, 161, 21, 20, SS_ICON | SS_NOTIFY | SS_REALSIZEIMAGE

@@ -84,7 +84,7 @@ struct strings pl_PL = {
   L"Wyjątki procesów:",
   L"Wyjątki okien:",
   L"Lista przyciągania:",
-  L"Dokładny opis działania wyjątków dostępny na <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">wiki</a>!",
+  L"Dokładny opis działania wyjątków dostępny na <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">wiki</a>!",
   L"Identyfikuj okno",
   L"Użyj powyższej funkcji do identyfikacji nazwy klasy okna by można było je dodać do jednej z powyższych list.",
   L"Ustawienia zaawansowane",

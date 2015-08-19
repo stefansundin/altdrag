@@ -84,7 +84,7 @@ struct strings gl_ES = {
   L"Lista negra de procesos:",
   L"Lista negra:",
   L"Lista de pegado:",
-  L"Ler <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">a wiki</a> no sitio web para unha explicación en detalle acerca de cómo funciona a lista negra!",
+  L"Ler <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">a wiki</a> no sitio web para unha explicación en detalle acerca de cómo funciona a lista negra!",
   L"Identificar ventá",
   L"Facer clic no icono para identifica-la clase dunha ventá e engadila ás listas negra ou de pegado de enriba.",
   L"Configuración avanzada",

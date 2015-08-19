@@ -84,7 +84,7 @@ struct strings sk_SK = {
   L"Blacklist procesov:",
   L"Blacklist:",
   L"Snaplist:",
-  L"Princíp fungovania blacklistu je možné nájsť na <a href=\"http://code.google.com/p/altdrag/wiki/Blacklist\">wiki</a>",
+  L"Princíp fungovania blacklistu je možné nájsť na <a href=\"https://stefansundin.github.io/altdrag/doc/blacklist.html\">wiki</a>",
   L"Identifikácia okna",
   L"Túto funkciu je možné využiť pre určenie \"classname\" okna, použiteľného pre funkcionality blacklistu, či prichytávania okien v rámci snaplistu.",
   L"Pokročilé nastavenia",

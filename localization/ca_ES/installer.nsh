@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "Act&ualitza ${APP_NAME} a ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "Els teus paràmetres existents es copiaran a ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Instal·la en una nova ubicació."
 LangString L10N_UPGRADE_UNINSTALL 0 "Desins&tal·la ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "A nova versió està disponible.$\nAbortar instal·lació i anar a la web?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Drecera de teclat"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "La drecera Alt + Majúscules entra en conflicte amb ${APP_NAME}."

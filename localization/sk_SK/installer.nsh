@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Upgrade ${APP_NAME} na ${APP_VERSION}."
 LangString L10N_UPGRADE_INI       0 "Existujúce nastavenia sa skopírujú do ${APP_NAME}-old.ini."
 LangString L10N_UPGRADE_INSTALL   0 "&Inštalovať na novú lokalitu."
 LangString L10N_UPGRADE_UNINSTALL 0 "&Odinštalovať ${APP_NAME}."
-LangString L10N_UPDATE_DIALOG     0 "Je dostupná novšia verzia.$\nUkončiť inštaláciu a prejsť na web stránku?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Klávesová skratka"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Klávesová skratka Alt + Shift už je používaná aplikáciou ${APP_NAME}."

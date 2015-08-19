@@ -15,7 +15,6 @@ LangString L10N_UPGRADE_UPGRADE   0 "&Aktualisierung von ${APP_NAME} auf ${APP_V
 LangString L10N_UPGRADE_INI       0 "Ihre bisherigen Einstellungen werden nach ${APP_NAME}-old.ini kopiert."
 LangString L10N_UPGRADE_INSTALL   0 "An einem neuen Ort &installieren."
 LangString L10N_UPGRADE_UNINSTALL 0 "${APP_NAME} &deinstallieren."
-LangString L10N_UPDATE_DIALOG     0 "Eine neue Version ist verfügbar.$\nSoll die Installation abgebrochen und die Webseite aufgerufen werden?"
 
 LangString L10N_ALTSHIFT_TITLE    0 "Tastenkombination"
 LangString L10N_ALTSHIFT_SUBTITLE 0 "Die Tastenkombination Alt + Shift steht mit ${APP_NAME} im Konflikt."
