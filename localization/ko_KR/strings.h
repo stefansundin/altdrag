@@ -22,15 +22,15 @@ struct strings en_US = {
  /* enable             */ L"활성화",
  /* disable            */ L"비활성화",
  /* hide               */ L"트레이로 숨기기",
- /* update             */ L"새 버젼이 있습니다!",
+ /* update             */ L"새 버전이 있습니다!",
  /* config             */ L"설정",
  /* about              */ L"정보",
  /* exit               */ L"종료",
 
  /* update */
- /* balloon            */ L"새 버젼이 있습니다!",
- /* dialog             */ L"새 버젼을 사용하실 수 있습니다. 웹사이트로 가시겠습니까?",
- /* nonew              */ L"최신버젼입니다.",
+ /* balloon            */ L"새 버전이 있습니다!",
+ /* dialog             */ L"새 버전을 사용하실 수 있습니다. 웹사이트로 가시겠습니까?",
+ /* nonew              */ L"최신버전입니다.",
 
  /* === config === */
  /* title              */ APP_NAME L" 설정",
@@ -112,14 +112,14 @@ struct strings en_US = {
  /* hookwindows        */ L"(&E) 일반적으로 창을 움직일때 스냅기능을 활성화합니다.\n자동으로 스냅기능이 작동합니다.",
  /* hookwindows_warn   */ L"다른 프로세스를 후킹하여 사용하는 것이므로, 완전히 안전하지는 않다는걸 염두에 두십시오. 게임을 할때 게임가드와 충돌이 날 수 있습니다.\n\n정말 활성화 하시겠습니까?",
  /* checkonstartup     */ L"(&u) 자동 업데이트 체크",
- /* beta               */ L"(&b) 베타 버젼 체크",
+ /* beta               */ L"(&b) 베타 버전 체크",
  /* checknow           */ L"(&C) 지금 업데이트 체크",
  /* ini                */ APP_NAME L"의 설정은 "APP_NAME".ini 에 저장됩니다. 이 파일을 직접 수정해야만 사용가능한 몇가지의 기능들이 존재합니다.",
  /* openini            */ L"Open &ini file",
 
  /* about tab */
  /* box                */ L""APP_NAME" 에 대하여",
- /* version            */ L"버젼 "APP_VERSION,
+ /* version            */ L"버전 "APP_VERSION,
  /* author             */ L"제작: Stefan Sundin",
  /* license            */ APP_NAME L"는 무료이며 오픈소스 소프트웨어입니다!\n마음껏 재배포하세요!",
  /* donate             */ L"(&D) 기부",
