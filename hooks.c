@@ -1159,7 +1159,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
                 while (hwnd != NULL) {
                   HWND parent = GetParent(hwnd);
                   LONG_PTR exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-                  if (exstyle&WS_EX_MDICHILD) {
+                  if ((exstyle&WS_EX_MDICHILD)) {
                     mdiclient = parent;
                     break;
                   }
@@ -1382,7 +1382,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
 
         // If it's a groupbox, grab the real window
         LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
-        if (style&BS_GROUPBOX && !wcscmp(classname,L"Button")) {
+        if ((style&BS_GROUPBOX) && !wcscmp(classname,L"Button")) {
           HWND groupbox = hwnd;
           EnableWindow(groupbox, FALSE);
           hwnd = WindowFromPoint(pt);
@@ -1537,7 +1537,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
         while (state.hwnd != root) {
           HWND parent = GetParent(state.hwnd);
           LONG_PTR exstyle = GetWindowLongPtr(state.hwnd, GWL_EXSTYLE);
-          if (exstyle&WS_EX_MDICHILD) {
+          if ((exstyle&WS_EX_MDICHILD)) {
             // Found MDI child, parent is now MDIClient window
             state.mdiclient = parent;
             if (GetClientRect(state.mdiclient,&fmon) == 0
@@ -2104,7 +2104,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
       HWND mdiclient = NULL;
       if (msg->hwnd != root) {
         LONG_PTR exstyle = GetWindowLongPtr(msg->hwnd, GWL_EXSTYLE);
-        if (exstyle&WS_EX_MDICHILD) {
+        if ((exstyle&WS_EX_MDICHILD)) {
           mdiclient = GetParent(msg->hwnd);
         }
         else {
