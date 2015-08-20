@@ -2,66 +2,47 @@
 
 # note that when this script downloads a file, it also increases the download counter
 
-require 'net/http'
-require 'json'
-require 'date'
-require 'openssl'
+require "httparty"
+require "date"
 
-def download(url, dest=nil, limit=10)
-  # puts url
-  raise ArgumentError, 'HTTP redirect too deep' if limit == 0
+class GithubParty
+  include HTTParty
+  base_uri "https://api.github.com"
 
-  uri = URI.parse(url)
-  http = Net::HTTP.new(uri.host, uri.port)
-  if uri.port == 443
-    # http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    http.use_ssl = true
-  end
-  request = Net::HTTP::Get.new(uri.request_uri)
-  http.request(request) do |response|
-    case response
-    when Net::HTTPSuccess then
-      open(dest, 'wb') do |io|
-        response.read_body do |chunk|
-          io.write chunk
-        end
-      end
-    when Net::HTTPRedirection then
-      download(response['location'], dest, limit-1)
+  def self.get_all_pages(path)
+    entries = []
+    page = 1
+    while true
+      r = get "#{path}?page=#{page}"
+      return nil if r.code == 404
+      raise error(r) if not r.success?
+      break if r.parsed_response.count == 0
+      entries = entries + r.parsed_response
+      page += 1
     end
+    entries
   end
 end
 
 def humanize(number)
-  number.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
+  number.to_s.reverse.gsub(/(\d{3})(?=\d)/, "\\1,").reverse
 end
 
-page = 1
-releases = []
 filetype_downloads = {}
 total_downloads = 0
 
 repo = %x[git remote -v][/(?<=:)[^ ]+(?=\.git)/]
-puts repo
+puts "Repo: #{repo}"
 
-print "Getting page "
+print "Getting list of downloads..."
+releases = GithubParty.get_all_pages "https://api.github.com/repos/#{repo}/releases"
 
-while true
-  print "#{page}.. "
+open("releases.json", "wb") { |f| f.write releases.to_json }
 
-  path = "page%02d.json" % page
-  download("https://api.github.com/repos/#{repo}/releases?page=#{page}", path)
-  entries = JSON.load File.read(path)
-  break if entries.count == 0
-  releases = releases + entries
-
-  page += 1
-end
-
-print "\n"
+puts
 puts "Found #{releases.count} releases!"
 
-open("README.md", 'wb') do |readme|
+open("README.md", "wb") do |readme|
   readme.write <<-eos
 # #{repo}
 
@@ -77,11 +58,11 @@ eos
     puts r["tag_name"]
     %x[mkdir "#{r["tag_name"]}"] unless File.directory?(r["tag_name"])
 
-    open("#{r["tag_name"]}/README.md", 'wb') do |tag_readme|
+    open("#{r["tag_name"]}/README.md", "wb") do |tag_readme|
       tag_readme.write <<-eos
 # #{r["name"]}
 
-#{r["body"]}
+#{r["body"].gsub("\r","")}
 
 ## Downloads by filename
 
@@ -103,7 +84,7 @@ eos
         download(a["browser_download_url"], path) unless File.exists?(path) and File.size(path) == a["size"]
       end
       date = Date.parse r["created_at"]
-      readme.write "#{date.strftime('%Y-%m-%d')} | [#{r["tag_name"]}](#{r["tag_name"]}) | #{humanize(release_downloads)}\n"
+      readme.write "#{date.strftime("%Y-%m-%d")} | [#{r["tag_name"]}](#{r["tag_name"]}) | #{humanize(release_downloads)}\n"
     end
   end
 
