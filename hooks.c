@@ -695,12 +695,6 @@ void MouseMove() {
     return;
   }
 
-  // Double check if the shift key is being pressed
-  if (sharedstate.shift && !(GetAsyncKeyState(VK_SHIFT)&0x8000)) {
-    sharedstate.shift = 0;
-    sharedstate.snap = sharedsettings.AutoSnap;
-  }
-
   // Get window size
   RECT wnd, mon, fmon;
   if (GetWindowRect(state.hwnd,&wnd) == 0) {
