@@ -4,6 +4,8 @@
 
 require "httparty"
 require "date"
+require "net/http"
+require "openssl"
 
 class GithubParty
   include HTTParty
@@ -21,6 +23,22 @@ class GithubParty
       page += 1
     end
     entries
+  end
+end
+
+def http_get(url, limit=10, &block)
+  raise ArgumentError, "HTTP redirect too deep" if limit == 0
+  uri = URI.parse(url)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = (uri.port == 443)
+  request = Net::HTTP::Get.new(uri.request_uri)
+  http.request(request) do |response|
+    case response
+    when Net::HTTPRedirection then
+      http_get(response["location"], limit-1, &block)
+    else
+      yield(response)
+    end
   end
 end
 
@@ -79,9 +97,18 @@ eos
         filetype_downloads[ext] ||= 0
         filetype_downloads[ext] += a["download_count"]
 
-        puts "- #{a["name"]}"
+        puts "- #{a["name"]} (#{humanize(a["download_count"])})"
         path = "#{r["tag_name"]}/#{a["name"]}"
-        download(a["browser_download_url"], path) unless File.exists?(path) and File.size(path) == a["size"]
+
+        unless File.exists?(path) and File.size(path) == a["size"]
+          http_get(a["browser_download_url"]) do |response|
+            open(path, "wb") do |io|
+              response.read_body do |chunk|
+                io.write chunk
+              end
+            end
+          end
+        end
       end
       date = Date.parse r["created_at"]
       readme.write "#{date.strftime("%Y-%m-%d")} | [#{r["tag_name"]}](#{r["tag_name"]}) | #{humanize(release_downloads)}\n"

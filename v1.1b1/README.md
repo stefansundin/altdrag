@@ -15,5 +15,5 @@
 
 Filename | Download Count
 -------- | --------------
-AltDrag-1.1b1.exe | 26
-AltDrag-1.1b1.zip | 5
+AltDrag-1.1b1.exe | 117
+AltDrag-1.1b1.zip | 25

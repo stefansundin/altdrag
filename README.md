@@ -4,7 +4,7 @@
 
 Date       | Release | Downloads
 ---------- | ------- | ---------
-2015-08-20 | [v1.1b1](v1.1b1) | 31
+2015-08-20 | [v1.1b1](v1.1b1) | 142
 2013-09-13 | [v1.0](v1.0) | 10,485
 2013-09-06 | [v1.0rc](v1.0rc) | 8
 2013-06-20 | [v1.0b3](v1.0b3) | 6
@@ -28,8 +28,8 @@ Date       | Release | Downloads
 
 Filetype | Download Count
 -------- | --------------
-.zip | 5
-.exe | 8620
+.zip | 25
+.exe | 8711
 .7z | 1968
 
-Total downloads: 10593
+Total downloads: 10704
