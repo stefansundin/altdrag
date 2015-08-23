@@ -19,8 +19,8 @@
 
 
   <div class="topbar buttons btn-group-lg">
-    <a class="btn btn-primary" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1b1/AltDrag-1.1b1.exe" track="download"><span class="glyphicon glyphicon-download-alt"></span> Download v1.1b1</a>
-    <a class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1b1/AltDrag-1.1b1.zip" track="download"><span class="glyphicon glyphicon-send"></span> Portable</a>
+    <a class="btn btn-primary" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1/AltDrag-1.1.exe" track="download"><span class="glyphicon glyphicon-download-alt"></span> Download v1.1</a>
+    <a class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1/AltDrag-1.1.zip" track="download"><span class="glyphicon glyphicon-send"></span> Portable</a>
     <a target="_blank" class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases"><span class="glyphicon glyphicon-list"></span> Changelog</a>
     <a class="btn btn-default" href="doc/"><span class="glyphicon glyphicon-book"></span> Documentation</a>
   </div>
@@ -33,7 +33,7 @@
     <form method="post" action="https://www.paypal.com/cgi-bin/webscr" track="donate" target="_blank">
       <input type="hidden" name="cmd" value="_xclick">
       <input type="hidden" name="business" value="KYMVEK692RF5Q">
-      <input type="hidden" name="item_number" value="AltDrag v1.1b1">
+      <input type="hidden" name="item_number" value="AltDrag v1.1">
       <input type="hidden" name="return" value="https://stefansundin.github.io/thx">
       <input type="hidden" name="cbt" value="Learn why you just became awesome">
       <div class="input-group col-sm-5">
@@ -57,7 +57,7 @@
 
     <h2 id="news">News <a target="_blank" href="feed.xml"><img src="img/feed.png" alt="RSS feed"></a></h2>
 
-    {% for post in site.posts limit:2 %}
+    {% for post in site.posts limit:1 %}
     <p><strong>{{ post.date | date: "%Y-%m-%d" }} - {{ post.title }}</strong></p>
     <div class="post-body">{{ post.content }}</div>
     {% endfor %}
@@ -94,21 +94,17 @@
     <p>AltDrag has more tricks up its sleeve, read through <a href="doc/">the documentation</a> to learn more.</p>
 
 
+<!--
     <h2 id="languages">New languages since last release</h2>
 
     <p>Simply save the desired language file in AltDrag's directory. <strong>Right-click</strong> and <strong><em>Save link as...</em></strong></p>
 
     <ul>
       <li><a href="localization/nl_NL/Translation.ini" track="translation">Dutch</a></li>
-      <li><a href="localization/es_ES/Translation.ini" track="translation">Spanish</a></li>
-      <li><a href="localization/gl_ES/Translation.ini" track="translation">Galician</a></li>
-      <li><a href="localization/zh_CN/Translation.ini" track="translation">Chinese</a> (updated)</li>
-      <li><a href="localization/zh_TW/Translation.ini" track="translation">Taiwanese</a></li>
-      <li><a href="localization/ca_ES/Translation.ini" track="translation">Catalan</a></li>
-      <li><a href="localization/nb_NO/Translation.ini" track="translation">Norwegian (Bokmål)</a></li>
     </ul>
 
     <p>Read <a href="doc/translate.html">this page</a> to learn how to make your own translation.</p>
+-->
 
 
     <h2 id="support">Support</h2>

@@ -41,6 +41,8 @@ If you want to build the installer, you need to download [NSIS Unicode](http://w
 
 The configuration window was made with [ResEdit](http://www.resedit.net/), a compact resource editor. ResEdit is not needed to build AltDrag.
 
+To configure ResEdit to use cygwin's mingw-w64 header files, add `C:\cygwin64\usr\i686-w64-mingw32\sys-root\mingw\include\` to your include paths.
+
 ### Languages
 
 Run `./build.bat lang` to generate `strings.h` files from `Translate.ini` files. This is used to hard-code new translations before a release. New languages have to be added to `import_languages.c` to be generated.

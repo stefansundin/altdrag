@@ -1,1 +1,1 @@
-Version: 1.1b1
+Version: 1.1

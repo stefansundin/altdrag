@@ -25,9 +25,9 @@ The installer has to be compiled to be translated. Download [installer.nsh](http
 
 It is possible to build the installer without compiling AltDrag itself, so it is not that difficult to test by yourself. You still have to download the source code and [NSIS Unicode](http://code.google.com/p/unsis/downloads/list). Reading the [build page](build.html) is helpful for this step.
 
-Once you have the source code, create the directory `build` inside the directory you checked out, and copy the files `AltDrag.exe` and `hooks.dll` to it. If you have `HookWindows_x64.exe` and `hooks_x64.dll`, you can copy those as well.
+Once you have the source code, create the directory `bin` inside the directory you checked out, and copy the files `AltDrag.exe` and `hooks.dll` to it. If you have `HookWindows_x64.exe` and `hooks_x64.dll`, you can copy those as well.
 
-You then need to add a line in `localization/installer.nsh` to make your language appear. To make the installer update the ini file with your language after install, you need to add a line in the middle of [`installer.nsi`](https://github.com/stefansundin/altdrag/blob/bdd76dd0ac6d24e447d43c7d378d8c13f17a3099/installer.nsi#L229).
+You then need to add a line in `localization/installer.nsh` to make your language appear. To make the installer update the ini file with your language after install, you need to add a line in the middle of [installer.nsi](https://github.com/stefansundin/altdrag/blob/bdd76dd0ac6d24e447d43c7d378d8c13f17a3099/installer.nsi#L229).
 
 Then use the NSIS wizard to compile `installer.nsi`.
 
