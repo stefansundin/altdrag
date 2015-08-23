@@ -394,8 +394,11 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 
   if (msg == WM_INITDIALOG) {
     wchar_t txt[50];
-    int i;
+    // LowerWithMMB
+    GetPrivateProfileString(L"Input", L"LowerWithMMB", L"0", txt, ARRAY_SIZE(txt), inipath);
+    Button_SetCheck(GetDlgItem(hwnd,IDC_LOWERWITHMMB), _wtoi(txt)?BST_CHECKED:BST_UNCHECKED);
     // Hotkeys
+    int i;
     unsigned int temp;
     int numread;
     GetPrivateProfileString(L"Input", L"Hotkeys", L"A4 A5", txt, ARRAY_SIZE(txt), inipath);
