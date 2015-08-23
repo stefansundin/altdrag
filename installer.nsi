@@ -26,7 +26,7 @@
 
 Name "${APP_NAME} ${APP_VERSION}"
 OutFile "bin\${APP_NAME}-${APP_VERSION}.exe"
-InstallDir "$APPDATA\${APP_NAME}"
+InstallDir "$APPDATA\${APP_NAME}\"
 InstallDirRegKey HKCU "Software\${APP_NAME}" "Install_Dir"
 RequestExecutionLevel user
 ShowInstDetails hide
@@ -106,7 +106,7 @@ Function ${un}CloseApp
   ; Close app if running
   FindWindow $0 "${APP_NAME}" ""
   IntCmp $0 0 done
-    DetailPrint "Attempting to close running ${APP_NAME}."
+    DetailPrint "Attempting to close running ${APP_NAME}..."
     SendMessage $0 ${WM_CLOSE} 0 0 /TIMEOUT=500
     waitloop:
       Sleep 10
@@ -219,7 +219,7 @@ Section "" sec_app
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayVersion" "${APP_VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "HelpLink" "${APP_URL}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "Publisher" "Stefan Sundin"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "InstallLocation" "$INSTDIR\"
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
 
@@ -343,7 +343,7 @@ Function PageUpgrade
   ${NSD_CreateRadioButton} 0 130 100% 10u "$(L10N_UPGRADE_UNINSTALL)"
   Pop $Uninstallbox
 
-  ${NSD_CreateLabel} 0 160 100% 30u "Note: version 1.1 and later defaults to install to the user directory. If you are upgrading from a previous version, then I recommend that you first uninstall and then install from scratch. Otherwise you have to right click the installer and use 'Run as administrator'."
+  ${NSD_CreateLabel} 0 160 100% 30u "Note: version 1.1 and later defaults to install to the user directory. If you are upgrading from a previous version, then you are recommended to first uninstall and then install from scratch. Otherwise you have to right click the installer and use 'Run as administrator'."
 
   nsDialogs::Show
 FunctionEnd

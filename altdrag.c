@@ -32,15 +32,6 @@
 #define SWM_ABOUT              WM_APP+5
 #define SWM_EXIT               WM_APP+6
 
-// Stuff missing in MinGW
-#ifndef NIIF_USER
-#define NIIF_USER 4
-#define NIN_BALLOONSHOW        WM_USER+2
-#define NIN_BALLOONHIDE        WM_USER+3
-#define NIN_BALLOONTIMEOUT     WM_USER+4
-#define NIN_BALLOONUSERCLICK   WM_USER+5
-#endif
-
 // Boring stuff
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define ENABLED() (keyhook || msghook)
