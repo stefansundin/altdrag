@@ -375,7 +375,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     else if (lParam == WM_MBUTTONDOWN) {
       ShellExecute(NULL, L"open", inipath, NULL, NULL, SW_SHOWNORMAL);
     }
-    else if (lParam == WM_RBUTTONDOWN) {
+    else if (lParam == WM_RBUTTONUP) {
       ShowContextMenu(hwnd);
     }
     else if (lParam == NIN_BALLOONUSERCLICK) {
