@@ -19,7 +19,7 @@
 
 // App
 #define APP_NAME            L"AltDrag"
-#define APP_VERSION         "1.1b1"
+#define APP_VERSION         "1.1"
 #define APP_URL             L"https://stefansundin.github.io/altdrag/"
 
 // Messages

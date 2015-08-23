@@ -9,7 +9,7 @@
 
 
 !define APP_NAME      "AltDrag"
-!define APP_VERSION   "1.1b1"
+!define APP_VERSION   "1.1"
 !define APP_URL       "https://stefansundin.github.io/altdrag/"
 
 
