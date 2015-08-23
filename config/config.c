@@ -465,7 +465,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         if (*keys != '\0') {
           wcscat(keys, L" ");
         }
-        swprintf(txt, L"%s%02X", keys, vkey);
+        swprintf(txt, ARRAY_SIZE(txt), L"%s%02X", keys, vkey);
       }
       else {
         unsigned int temp;
@@ -621,7 +621,7 @@ LRESULT CALLBACK CursorProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
       GetClassName(window, classname, ARRAY_SIZE(classname));
 
       wchar_t txt[1000];
-      swprintf(txt, L"%s|%s", title, classname);
+      swprintf(txt, ARRAY_SIZE(txt), L"%s|%s", title, classname);
       SetDlgItemText(page, IDC_NEWRULE, txt);
     }
 

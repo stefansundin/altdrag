@@ -58,7 +58,7 @@ void _Error(wchar_t *func, wchar_t *info, int errorcode, wchar_t *file, int line
   if (length != 0) {
     errormsg[length-2] = '\0'; // Remove that damn newline at the end of the formatted error message
   }
-  swprintf(msg, L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, file, line, errormsg, errorcode, info);
+  swprintf(msg, ARRAY_SIZE(msg), L"%s failed in file %s, line %d.\nError: %s (%d)\n\n%s", func, file, line, errormsg, errorcode, info);
   LocalFree(errormsg);
   // Display message
   #ifdef ERROR_WRITETOFILE
