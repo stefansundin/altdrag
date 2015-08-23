@@ -1,7 +1,5 @@
 # AltDrag v1.0
 
-[Get RSS updates by monitoring the release feed.](https://github.com/stefansundin/altdrag/releases.atom)
-
 **final** - 2013-09-13:
 - Add `Lower` scroll wheel action. Scroll down to lower windows, scroll up to raise windows, shift+scroll down to minimize windows, shift+scroll up to toggle maximized state.
 - Other `Lower` actions will now also minimize the window if you hold shift.
@@ -48,4 +46,4 @@
 Filename | Download Count
 -------- | --------------
 AltDrag-1.0.7z | 1,925
-AltDrag-1.0.exe | 8,560
+AltDrag-1.0.exe | 8,562
