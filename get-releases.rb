@@ -100,11 +100,13 @@ eos
         puts "- #{a["name"]} (#{humanize(a["download_count"])})"
         path = "#{r["tag_name"]}/#{a["name"]}"
 
-        unless File.exists?(path) and File.size(path) == a["size"]
-          http_get(a["browser_download_url"]) do |response|
-            open(path, "wb") do |io|
-              response.read_body do |chunk|
-                io.write chunk
+        unless ARGV.any? { |a| a == "--no-binaries" }
+          unless File.exists?(path) and File.size(path) == a["size"]
+            http_get(a["browser_download_url"]) do |response|
+              open(path, "wb") do |io|
+                response.read_body do |chunk|
+                  io.write chunk
+                end
               end
             end
           end
