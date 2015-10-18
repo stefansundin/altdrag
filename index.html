@@ -6,10 +6,8 @@
 <body class="pad">
   <header>
     <img src="img/icon128.png" width="128" height="128" alt="{{ site.title }} Icon" itemprop="image">
-    <hgroup>
-      <h1 itemprop="name">{{ site.title }}</h1>
-      <h2 itemprop="description">Easily drag windows when pressing the alt key</h2>
-    </hgroup>
+    <h1 itemprop="name">{{ site.title }}</h1>
+    <h2 itemprop="description">Easily drag windows when pressing the alt key</h2>
   </header>
 
   <div class="text-center hidden" id="os-warning">
@@ -17,12 +15,14 @@
   </div>
   <script src="js/os-warning.js"></script>
 
-
-  <div class="topbar buttons btn-group-lg">
+  <div class="buttons btn-group-lg">
     <a class="btn btn-primary" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1/AltDrag-1.1.exe" track="download"><span class="glyphicon glyphicon-download-alt"></span> Download v1.1</a>
     <a class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1/AltDrag-1.1.zip" track="download"><span class="glyphicon glyphicon-send"></span> Portable</a>
     <a target="_blank" class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases"><span class="glyphicon glyphicon-list"></span> Changelog</a>
     <a class="btn btn-default" href="doc/"><span class="glyphicon glyphicon-book"></span> Documentation</a>
+  </div>
+  <div class="buttons btn-group-lg">
+    <p><strong>Note:</strong> AltDrag will not work properly if you use DPI scaling, <a target="_blank" href="https://github.com/stefansundin/altdrag/issues/7#issuecomment-50701359">read here for a workaround</a>.</p>
   </div>
 
   <div class="container">
@@ -44,14 +44,15 @@
       </div>
     </form>
 
-    <p><small><a class="expander" expand="donation-options">Show other donation options: Bitcoin, Square Cash.</a></small></p>
+    <p><small><a class="expander" expand="donation-options">Show other donation options: Bitcoin, Square Cash, ChangeTip.</a></small></p>
     <div id="donation-options">
       <p>Other donation options:</p>
       <ul>
         <li>Bitcoin: <tt>1EhDUbc5MjC6JavC6idKiTCxnqSxY2sbTX</tt> (<a target="_blank" href="img/btc-qr.png">QR code</a>)</li>
         <li>Square Cash: <a target="_blank" href="https://cash.me/$StefanSundin">$StefanSundin</a></li>
-        <li>Email me if you want to send money another way: <a target="_blank" fubar>stefaNStefansundinCom</a></li>
+        <li>ChangeTip: <a target="_blank" href="https://www.changetip.com/tipme/stefansundin">stefansundin</a></li>
       </ul>
+      <p>Contact me at <a target="_blank" fubar>stefaNStefansundinCom</a> if none of the above work.</p>
     </div>
 
 

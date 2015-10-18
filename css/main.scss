@@ -15,7 +15,7 @@ body.pad {
 
 @media (min-width: 768px) {
   .container {
-    max-width: 730px;
+    max-width: 768px;
   }
 }
 
@@ -24,13 +24,13 @@ header {
   text-align: center;
 }
 
-hgroup h1 {
+header h1 {
   font-size: 4em;
   font-weight: 700;
   margin-bottom: 0.5em;
 }
 
-hgroup h2 {
+header h2 {
   border: none;
   margin-top: 1em;
   font-size: 1.5em;
@@ -47,7 +47,7 @@ a {
   cursor: pointer;
 }
 
-.topbar {
+.buttons {
   margin: 2em auto 0;
   text-align: center;
 }
