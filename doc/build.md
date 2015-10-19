@@ -18,7 +18,7 @@ In the Cygwin installer, install the following packages:
 Once installed, open the Cygwin terminal and type:
 
 ```
-git clone https://github.com/stefansundin/altdrag.git
+git clone {{ site.github.clone_url }}
 cd altdrag
 ./build.bat x64
 explorer .

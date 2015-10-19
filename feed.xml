@@ -9,7 +9,7 @@
   <link href="{{ site.url }}{{ site.baseurl }}/" rel="alternate" />
   <link href="{{ site.url }}{{ site.baseurl }}/releases.atom" rel="related" />
   <link href="{{ site.url }}{{ site.baseurl }}/tags.atom" rel="related" />
-  <link href="https://github.com/{{ site.github_username }}/commits/master.atom" rel="related" />
+  <link href="{{ site.github.repository_url }}/commits/master.atom" rel="related" />
   <updated>{{ site.time | date_to_xmlschema }}</updated>
   <author>
     <name>Stefan Sundin</name>

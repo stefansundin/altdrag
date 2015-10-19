@@ -16,9 +16,9 @@
   <script src="js/os-warning.js"></script>
 
   <div class="buttons btn-group-lg">
-    <a class="btn btn-primary" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1/AltDrag-1.1.exe" track="download"><span class="glyphicon glyphicon-download-alt"></span> Download v1.1</a>
-    <a class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases/download/v1.1/AltDrag-1.1.zip" track="download"><span class="glyphicon glyphicon-send"></span> Portable</a>
-    <a target="_blank" class="btn btn-default" href="https://github.com/{{ site.github_repo }}/releases"><span class="glyphicon glyphicon-list"></span> Changelog</a>
+    <a class="btn btn-primary" href="{{ site.github.releases_url }}/download/v1.1/AltDrag-1.1.exe" track="download"><span class="glyphicon glyphicon-download-alt"></span> Download v1.1</a>
+    <a class="btn btn-default" href="{{ site.github.releases_url }}/download/v1.1/AltDrag-1.1.zip" track="download"><span class="glyphicon glyphicon-send"></span> Portable</a>
+    <a target="_blank" class="btn btn-default" href="{{ site.github.releases_url }}"><span class="glyphicon glyphicon-list"></span> Changelog</a>
     <a class="btn btn-default" href="doc/"><span class="glyphicon glyphicon-book"></span> Documentation</a>
   </div>
   <div class="buttons btn-group-lg">
@@ -64,7 +64,7 @@
     {% endfor %}
 
     <p><a href="news/">Read older news...</a></p>
-    <p>For an RSS feed with only new releases, use <a target="_blank" href="https://github.com/{{ site.github_repo }}/releases.atom">the GitHub release feed</a>.</p>
+    <p>For an RSS feed with only new releases, use <a target="_blank" href="{{ site.github.releases_url }}.atom">the GitHub release feed</a>.</p>
 
 
     <h2 id="intro">What is AltDrag?</h2>
@@ -112,14 +112,14 @@
 
     <p>See <a href="doc/known-issues.html">this page</a> for a list of known issues.</p>
 
-    <p>Before reporting a bug, look through the <a target="_blank" href="https://github.com/{{ site.github_repo }}/issues">list of issues</a> on GitHub.</p>
+    <p>Before reporting a bug, look through the <a target="_blank" href="{{ site.github.issues_url }}">list of issues</a> on GitHub.</p>
 
     <p>When reporting a bug, please specify what version of Windows you are using, and be sure to include any error message you might see.</p>
 
 
     <h2 id="license">License</h2>
 
-    <p>AltDrag is free software and licensed under <a target="_blank" href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a>. Get <a target="_blank" href="https://github.com/{{ site.github_repo }}">the source code</a> on GitHub.</p>
+    <p>AltDrag is free software and licensed under <a target="_blank" href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a>. Get <a target="_blank" href="{{ site.github.repository_url }}">the source code</a> on GitHub.</p>
 
     <p>You may redistribute AltDrag on your own website, but please provide a link to this website on the same page. Please do not bundle AltDrag together with toolbars or other annoying adware, or otherwise degrade the experience.</p>
 
