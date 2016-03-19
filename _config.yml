@@ -8,6 +8,7 @@ author: Stefan Sundin
 permalink: /news/:year-:month-:day-:title.html
 
 # build
+gems: [jekyll-coffeescript]
 markdown: kramdown
 kramdown:
   input: GFM
