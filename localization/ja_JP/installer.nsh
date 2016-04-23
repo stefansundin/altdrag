@@ -8,10 +8,10 @@
 !insertmacro MUI_LANGUAGE "Japanese" ; English name of this language
 LangString L10N_LANG ${LANG_JAPANESE} ""
 
-LangString L10N_UPGRADE_TITLE     0 "インストール済みです"
+LangString L10N_UPGRADE_TITLE     0 "インストール済み"
 LangString L10N_UPGRADE_SUBTITLE  0 "${APP_NAME}のインストール方法を選択してください。"
 LangString L10N_UPGRADE_HEADER    0 "${APP_NAME}は既にこのコンピュータにインストールされています。行いたい操作を選択してください。"
-LangString L10N_UPGRADE_UPGRADE   0 "(&U)${APP_NAME}を更新する(${APP_VERSION})."
+LangString L10N_UPGRADE_UPGRADE   0 "(&U)${APP_NAME}を更新する(${APP_VERSION})。"
 LangString L10N_UPGRADE_INI       0 "今までの設定は${APP_NAME}-old.iniにコピーされます。"
 LangString L10N_UPGRADE_INSTALL   0 "(&I)新しい場所にインストールする。"
 LangString L10N_UPGRADE_UNINSTALL 0 "(&n)${APP_NAME}をアンインストールする。"
