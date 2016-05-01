@@ -39,10 +39,11 @@ GUID my_IID_IAudioEndpointVolume = {0x5CDF2C82,0x841E,0x4546,{0x97,0x22,0x0C,0xF
 #define REHOOK_TIMER  WM_APP+3
 #define INIT_TIMER    WM_APP+4
 #define FOCUS_TIMER   WM_APP+5
+#define NO_STYLE_SAVED ((LONG_PTR)-1)
 HWND g_hwnd;
 
 // Enumerators
-enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME, ACTION_TRANSPARENCY};
+enum action {ACTION_NONE=0, ACTION_MOVE, ACTION_RESIZE, ACTION_MINIMIZE, ACTION_CENTER, ACTION_ALWAYSONTOP, ACTION_BORDERLESS, ACTION_CLOSE, ACTION_LOWER, ACTION_ALTTAB, ACTION_VOLUME, ACTION_TRANSPARENCY};
 enum button {BUTTON_NONE=0, BUTTON_LMB, BUTTON_MMB, BUTTON_RMB, BUTTON_MB4, BUTTON_MB5};
 enum resize {RESIZE_NONE=0, RESIZE_TOP, RESIZE_RIGHT, RESIZE_BOTTOM, RESIZE_LEFT, RESIZE_CENTER};
 enum cursor {HAND, SIZENWSE, SIZENESW, SIZENS, SIZEWE, SIZEALL};
@@ -61,6 +62,8 @@ struct wnddata {
     int width;
     int height;
   } last;
+  LONG_PTR style; // original GWL_STYLE for ACTION_BORDERLESS
+  RECT window_rect; // original window position fot ACTION_BORDERLESS
 };
 struct {
   struct wnddata items[NUMWNDDB];
@@ -1607,6 +1610,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
         state.wndentry = wnddb.pos;
         state.wndentry->hwnd = state.hwnd;
         state.wndentry->restore = 0;
+        state.wndentry->style = NO_STYLE_SAVED;
       }
 
       // AutoFocus
@@ -1823,6 +1827,31 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
       else if (action == ACTION_ALWAYSONTOP) {
         LONG_PTR topmost = GetWindowLongPtr(state.hwnd,GWL_EXSTYLE)&WS_EX_TOPMOST;
         SetWindowPos(state.hwnd, (topmost?HWND_NOTOPMOST:HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+      }
+      else if (action == ACTION_BORDERLESS) {
+        if (state.wndentry->style == NO_STYLE_SAVED) {
+          RECT rect = {};
+          POINT top_left = {};
+          // Save the original window position to window db
+          GetWindowRect(state.hwnd, &state.wndentry->window_rect);
+          // Get width and height of the client area
+          GetClientRect(state.hwnd, &rect);
+          // Get screen coordinates of the left top point of the client area
+          MapWindowPoints(state.hwnd, NULL, &top_left, 1);
+          SetWindowPos(state.hwnd, NULL, top_left.x, top_left.y, rect.right, rect.bottom, 0);
+          // Set borderless style and save the original style to window db
+          state.wndentry->style = SetWindowLongPtr(state.hwnd, GWL_STYLE, WS_POPUP|WS_VISIBLE);
+        }
+        else {
+          // Restore the original window style and position
+          SetWindowLongPtr(state.hwnd, GWL_STYLE, state.wndentry->style);
+          SetWindowPos(state.hwnd, NULL,
+            state.wndentry->window_rect.left,
+            state.wndentry->window_rect.top,
+            state.wndentry->window_rect.right - state.wndentry->window_rect.left,
+            state.wndentry->window_rect.bottom - state.wndentry->window_rect.top, 0);
+          state.wndentry->style = NO_STYLE_SAVED;
+        }
       }
       else if (action == ACTION_CLOSE) {
         SendMessage(state.hwnd, WM_CLOSE, 0, 0);
@@ -2309,6 +2338,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved) {
         else if (!wcsicmp(txt,L"Minimize"))     *buttons[i].ptr = ACTION_MINIMIZE;
         else if (!wcsicmp(txt,L"Center"))       *buttons[i].ptr = ACTION_CENTER;
         else if (!wcsicmp(txt,L"AlwaysOnTop"))  *buttons[i].ptr = ACTION_ALWAYSONTOP;
+        else if (!wcsicmp(txt,L"Borderless"))   *buttons[i].ptr = ACTION_BORDERLESS;
         else if (!wcsicmp(txt,L"Close"))        *buttons[i].ptr = ACTION_CLOSE;
         else if (!wcsicmp(txt,L"Lower"))        *buttons[i].ptr = ACTION_LOWER;
         else if (!wcsicmp(txt,L"AltTab"))       *buttons[i].ptr = ACTION_ALTTAB;

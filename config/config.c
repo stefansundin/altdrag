@@ -366,6 +366,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
     { L"Minimize",    l10n->input_actions_minimize },
     { L"Lower",       l10n->input_actions_lower },
     { L"AlwaysOnTop", l10n->input_actions_alwaysontop },
+    { L"Borderless",  l10n->input_actions_borderless },
     { L"Center",      l10n->input_actions_center },
     { L"Nothing",     l10n->input_actions_nothing },
   };
