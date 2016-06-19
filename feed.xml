@@ -12,7 +12,7 @@
   <link href="{{ site.github.repository_url }}/commits/master.atom" rel="related" />
   <updated>{{ site.time | date_to_xmlschema }}</updated>
   <author>
-    <name>Stefan Sundin</name>
+    <name>{{ site.author }}</name>
     <uri>https://stefansundin.com/</uri>
   </author>
 
@@ -22,7 +22,7 @@
     <title>{{ post.title | xml_escape }}</title>
     <link href="{{ site.url }}{{ site.baseurl }}/news/#{{ post.date | date: "%Y-%m-%d" }}" />
     <updated>{{ post.date | date_to_xmlschema }}</updated>
-    <author><name>Stefan Sundin</name></author>
+    <author><name>{{ site.author }}</name></author>
     <content type="html">{{ post.content | xml_escape }}</content>
   </entry>
   {% endfor %}

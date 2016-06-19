@@ -13,7 +13,6 @@
   <div class="text-center hidden" id="os-warning">
     <h3><strong>Note:</strong> {{ site.title }} is a Windows only application!</h3>
   </div>
-  <script src="js/os-warning.js"></script>
 
   <div class="buttons btn-group-lg">
     <a class="btn btn-primary" href="{{ site.github.releases_url }}/download/v1.1/AltDrag-1.1.exe" track="download"><span class="glyphicon glyphicon-download-alt"></span> Download v1.1</a>
@@ -124,12 +123,13 @@
 
     <h2 id="credits">Credits</h2>
 
-    <p>Made by Stefan Sundin.</p>
+    <p>Made by {{ site.author }}.</p>
 
     <p>You can <a target="_blank" href="https://stefansundin.github.io/">browse my other projects</a>, or <a target="_blank" href="https://stefansundin.com/">visit my personal website</a>.</p>
   </div>
 
 
+  <script src="js/os-warning.js"></script>
   <script src="js/analytics.js"></script>
   <script src="js/fubar.js"></script>
   <script src="js/expander.js"></script>
