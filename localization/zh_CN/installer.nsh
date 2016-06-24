@@ -1,11 +1,11 @@
- ; AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com) and alex310110
+﻿; AltDrag - zh-CN localization by Jack Jin (superjwl@gmail.com) and alex310110
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
 ; the Free Software Foundation, either version 3 of the License, or
 ; (at your option) any later version.
 
-!insertmacro MUI_LANGUAGE "SimpChinese"
+!insertmacro MUI_LANGUAGE "Simplified Chinese" ; English name of this language
 LangString L10N_LANG ${LANG_SIMPCHINESE} ""
 
 LangString L10N_UPGRADE_TITLE     0 "已经安装"
