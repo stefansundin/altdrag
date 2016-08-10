@@ -16,4 +16,4 @@
 
 Filename | Download Count
 -------- | --------------
-AltDrag-1.0b1.7z | 2
+AltDrag-1.0b1.7z | 3

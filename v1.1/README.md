@@ -16,6 +16,6 @@
 
 Filename | Download Count
 -------- | --------------
-AltDrag-1.1.exe | 5,012
-AltDrag-1.1.zip | 886
-sha256sum.txt | 10
+AltDrag-1.1.exe | 19,242
+AltDrag-1.1.zip | 3,958
+sha256sum.txt | 26
