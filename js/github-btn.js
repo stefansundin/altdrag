@@ -1,4 +1,5 @@
 ---
+---
 
 document.addEventListener("DOMContentLoaded", function() {
   function addCommas(n) {
@@ -8,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
   var btns = document.querySelectorAll("[data-github-btn]");
   for (var i=0; i < btns.length; i++) {
     var btn = btns[i];
-    var repo = btn.getAttribute("data-github-btn")  || "{{ site.github.repository_nwo }}";
+    var repo = btn.getAttribute("data-github-btn") || "{{ site.github.repository_nwo }}";
     var button = document.createElement("a");
     button.href = `https://github.com/${repo}`;
     button.target = "_blank";

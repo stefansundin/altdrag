@@ -24,7 +24,7 @@ function trackLink(e) {
     if (this.href.indexOf('mailto:') == 0) {
       category = 'mailto';
     }
-		else {
+    else {
       category = 'link';
     }
   }
