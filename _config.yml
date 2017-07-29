@@ -9,7 +9,6 @@ permalink: /news/:year-:month-:day-:title.html
 
 # build
 gems:
-- jekyll-coffeescript
 - jekyll-github-metadata
 markdown: kramdown
 kramdown:
