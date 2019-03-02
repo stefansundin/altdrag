@@ -1,4 +1,4 @@
-﻿; AltDrag - pt-BR localization by Jucá Costa (virgilino@gmail.com)
+; AltDrag - pt-BR localization by Jucá Costa (virgilino@gmail.com)
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by

@@ -1,4 +1,4 @@
-﻿; AltDrag - ko-KR localization by @jeyraof
+; AltDrag - ko-KR localization by @jeyraof
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -25,6 +25,6 @@ LangString L10N_HOOKTIMEOUT_TITLE          0 "레지스트리 수정"
 LangString L10N_HOOKTIMEOUT_SUBTITLE       0 "${APP_NAME}이 갑작스럽게 멈추는것을 방지합니다."
 LangString L10N_HOOKTIMEOUT_HEADER         0 "윈도우 7 에서는 반응하기에 너무 길면 키보드와 마우스의 훅을 멈추는 기능이 추가되었습니다. 불행히도 이 기능은 잘못되게 동작할 수 있습니다. 특히 절전모드 혹은 잠금화면으로 들어갈때 자주 발생합니다.$\n$\n만약 이런일이 발생한다면, 경고 없이 ${APP_NAME}이 작동을 멈추는것을 찾고 직접 ${APP_NAME}을 종료 후 재실행 하셔야 합니다.$\n$\n이 레지스트리 수정은 윈도우가 훅이 멈추기 전에 더 길게 기다리도록 만듭니다. 아래의 버튼으로 활성화 혹은 비활성화 하실 수 있습니다. 이 옵션은 선택이라는것을 인지해 주십시오."
 LangString L10N_HOOKTIMEOUT_APPLYBUTTON    0 "(&E) 레지스트리 수정 활성화"
-LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "(&D) 레지스트리 수정 비활성화" 
+LangString L10N_HOOKTIMEOUT_REVERTBUTTON   0 "(&D) 레지스트리 수정 비활성화"
 LangString L10N_HOOKTIMEOUT_ALREADYAPPLIED 0 "레지스트리 수정이 이미 적용되었습니다."
 LangString L10N_HOOKTIMEOUT_FOOTER         0 "이 변경은 컴퓨터를 재시작하면 반영됩니다."

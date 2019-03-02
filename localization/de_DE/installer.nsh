@@ -1,4 +1,4 @@
-﻿; AltDrag - de-DE localization by Markus Hentsch
+; AltDrag - de-DE localization by Markus Hentsch
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by

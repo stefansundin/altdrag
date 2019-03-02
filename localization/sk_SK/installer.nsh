@@ -1,4 +1,4 @@
-﻿; AltDrag - sk-SK localization by Miroslav Miklus (miroslav.miklus@gmail.com)
+; AltDrag - sk-SK localization by Miroslav Miklus (miroslav.miklus@gmail.com)
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by

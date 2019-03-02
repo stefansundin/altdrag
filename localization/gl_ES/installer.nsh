@@ -1,4 +1,4 @@
-﻿; AltDrag - gl-ES localization by Jorge Amigo (alpof@yahoo.com)
+; AltDrag - gl-ES localization by Jorge Amigo (alpof@yahoo.com)
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by

@@ -1,4 +1,4 @@
-﻿; AltDrag - zh-TW localization by Zkm (zkm@ilowkey.net)
+; AltDrag - zh-TW localization by Zkm (zkm@ilowkey.net)
 ;
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
