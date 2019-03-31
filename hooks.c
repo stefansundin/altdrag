@@ -22,6 +22,7 @@
 #include <psapi.h>
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
+#include <dwmapi.h>
 
 // Stuff missing in MinGW
 CLSID my_CLSID_MMDeviceEnumerator = {0xBCDE0395,0xE52F,0x467C,{0x8E,0x3D,0xC4,0x57,0x92,0x91,0x69,0x2E}};
@@ -837,7 +838,19 @@ void MouseMove() {
         state.wndentry->width = state.origin.width;
         state.wndentry->height = state.origin.height;
 
-        // Move
+        // Move and include the border (Windows 10)
+        RECT rect, frame;
+        GetWindowRect(state.hwnd, &rect);
+        DwmGetWindowAttribute(state.hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &frame, sizeof(RECT));
+        RECT border;
+        border.left = frame.left - rect.left;
+        border.top = frame.top - rect.top;
+        border.right = rect.right - frame.right;
+        border.bottom = rect.bottom - frame.bottom;
+        posx -= border.left;
+        posy -= border.top;
+        wndwidth += border.left + border.right;
+        wndheight += border.top + border.bottom;
         MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 
         // Get new size after move
