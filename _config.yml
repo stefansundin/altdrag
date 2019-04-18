@@ -8,8 +8,9 @@ author: Stefan Sundin
 permalink: /news/:year-:month-:day-:title.html
 
 # build
-gems:
+plugins:
 - jekyll-github-metadata
 markdown: kramdown
 kramdown:
   input: GFM
+future: true
