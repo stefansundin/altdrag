@@ -25,6 +25,7 @@
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hinst = NULL;
 HWND g_hwnd = NULL;
+int HookSystem();
 
 // Cool stuff
 HINSTANCE hinstDLL = NULL;

@@ -44,6 +44,8 @@ UINT WM_HIDETRAY = 0;
 UINT WM_OPENCONFIG = 0;
 UINT WM_CLOSECONFIG = 0;
 wchar_t inipath[MAX_PATH];
+int HookSystem();
+int HookMouse();
 
 // Cool stuff
 HINSTANCE hinstDLL = NULL;

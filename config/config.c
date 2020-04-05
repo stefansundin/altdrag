@@ -287,7 +287,7 @@ INT_PTR CALLBACK GeneralPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
       else {
         MessageBox(NULL, l10n->general_elevation_aborted, APP_NAME, MB_ICONINFORMATION|MB_OK);
       }
-      return;
+      return FALSE;
     }
     UpdateSettings();
   }
@@ -653,7 +653,7 @@ INT_PTR CALLBACK AdvancedPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
       if (wParam == IDC_HOOKWINDOWS) {
         if (val && MessageBox(NULL, l10n->advanced_hookwindows_warn, APP_NAME, MB_ICONINFORMATION|MB_YESNO|MB_TASKMODAL) == IDNO) {
           Button_SetCheck(GetDlgItem(hwnd,IDC_HOOKWINDOWS), BST_UNCHECKED);
-          return;
+          return FALSE;
         }
         WritePrivateProfileString(L"Advanced", L"HookWindows", _itow(val,txt,10), inipath);
         UpdateSettings();
