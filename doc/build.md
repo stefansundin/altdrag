@@ -5,7 +5,30 @@ title: Building AltDrag
 
 This page explains how to compile AltDrag. There are two distinct parts that you have to compile separately, the 32-bit part and the 64-bit part.
 
-I recommend that you build AltDrag using mingw-w64 inside [Cygwin](https://cygwin.com/).
+I recommend that you build AltDrag in WSL.
+
+## WSL
+
+The Windows Subsystem for Linux is a new feature in Windows 10. First open the Microsoft Store app and install Ubuntu.
+
+Once installed, launch the terminal and run the following commands:
+
+```
+sudo apt update
+sudo apt install gcc-mingw-w64 nsis
+
+# if you wish to put the source code on your desktop, then first navigate there:
+cd /mnt/c/Users/your_username/Desktop/
+
+git clone {{ site.github.clone_url }}
+cd {{ site.github.repository_name }}
+
+# developer build:
+./build.sh
+
+# release build:
+./build.sh release
+```
 
 ## Cygwin
 
@@ -19,7 +42,7 @@ Once installed, open the Cygwin terminal and type:
 
 ```
 git clone {{ site.github.clone_url }}
-cd altdrag
+cd {{ site.github.repository_name }}
 ./build.bat x64
 explorer .
 ```
@@ -52,11 +75,11 @@ Run `./build.bat lang` to generate `strings.h` files from `Translate.ini` files.
 
 If you do not want to use Cygwin, you can get mingw-w64 and Git standalone:
 
-- [https://msysgit.github.io/](https://msysgit.github.io/)
-- [https://tortoisegit.org/download/](https://tortoisegit.org/download/)
+- [https://gitforwindows.org/](https://gitforwindows.org/)
+- [https://tortoisegit.org/](https://tortoisegit.org/)
 - [http://mingw-w64.org/](http://mingw-w64.org/)
 
-If you have trouble downloading the code, you can try [downloading a zip](https://github.com/stefansundin/altdrag/zipball/master).
+If you have trouble downloading the AltDrag source code with git, then you can [download a zip file](https://github.com/stefansundin/altdrag/zipball/master) instead.
 
 
 ### Configure PATH
