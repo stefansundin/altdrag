@@ -32,8 +32,6 @@ This behavior already exists in Linux and other operating systems, and AltDrag w
 
 If you have troubles understanding how AltDrag works, you can watch [this short video](https://www.youtube.com/watch?v=8yw1i2FBAss) that a user has posted to YouTube.
 
-There's also a good article describing AltDrag on [howikis.com](http://howikis.com/Make_windows_snap_to_each_other_and_screen_borders_and_quickly_resize_windows_using_the_AltDrag_windows_utility).
-
 
 ### Tricks you should know about
 

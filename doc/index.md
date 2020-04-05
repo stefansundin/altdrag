@@ -23,4 +23,4 @@ The most important things that every user should read first is covered in the fi
 ## Talk
 
 - [Talk about AltDrag in my subreddit](https://www.reddit.com/r/stefansundin)
-- [Look through the list of issue reports]({{ site.github.issues_url }})
+- [Look through the list of issues on GitHub]({{ site.github.issues_url }})

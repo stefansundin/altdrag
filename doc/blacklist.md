@@ -27,8 +27,8 @@ Something worth mentioning is that when AltDrag conflicts with other application
 
 Since version 1.0, you can use AltDrag's configuration window to identify the title and classname of other windows. However, in some cases that little feature is not enough. If you need a better program for this task, try one of these:
 
-- [WinSpy++](http://www.catch22.net/software/winspy-17)
-- [AutoIt3 Window Spy](http://www.autohotkey.com/) (available in AutoHotkey)
+- [WinSpy++](https://www.catch22.net/software/winspy)
+- [AutoIt3 Window Spy](https://www.autohotkey.com/) (available in AutoHotkey)
 - Spy++, a program packaged with Visual Studio (not Express Edition)
 
 
