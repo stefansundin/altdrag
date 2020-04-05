@@ -61,7 +61,7 @@ If you have trouble downloading the code, you can try [downloading a zip](https:
 
 ### Configure PATH
 
-After downloading the compilers, you need to add them to the PATH variable so the build script can use the them. Do this by _right clicking_ on the _Computer_ desktop icon, go to the _Advanced_ tab, press the _Environment variables_ button, locate the PATH variable and add _<mingw-w32 path>\bin_ to the list, and press ok on all the dialogs. If you want to build the 64-bit part, add mingw-w64 to the PATH as well.
+After downloading the compilers, you need to add them to the PATH variable so the build script can use the them. Do this by _right clicking_ on the _Computer_ desktop icon, go to the _Advanced_ tab, press the _Environment variables_ button, locate the PATH variable and add `<mingw-w32 path>\bin` to the list, and press ok on all the dialogs. If you want to build the 64-bit part, add mingw-w64 to the PATH as well.
 
 Here is an example of my PATH variable: `C:\mingw-w32\bin;C:\mingw-w64\bin`
 
