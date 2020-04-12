@@ -79,6 +79,7 @@ struct strings {
   wchar_t *input_actions_minimize;
   wchar_t *input_actions_lower;
   wchar_t *input_actions_alwaysontop;
+  wchar_t *input_actions_borderless;
   wchar_t *input_actions_center;
   wchar_t *input_actions_nothing;
   wchar_t *input_actions_alttab;
@@ -193,6 +194,7 @@ struct {
   { &l10n_ini.input_actions_minimize,                  L"InputActionMinimize" },
   { &l10n_ini.input_actions_lower,                     L"InputActionLower" },
   { &l10n_ini.input_actions_alwaysontop,               L"InputActionAlwaysOnTop" },
+  { &l10n_ini.input_actions_borderless,                L"InputActionBorderless" },
   { &l10n_ini.input_actions_center,                    L"InputActionCenter" },
   { &l10n_ini.input_actions_nothing,                   L"InputActionNothing" },
   { &l10n_ini.input_actions_alttab,                    L"InputActionAltTab" },
