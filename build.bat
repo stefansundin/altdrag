@@ -34,7 +34,7 @@ if "%1" == "all" (
   echo Building release build
   %prefix32%gcc -o bin/AltDrag.exe altdrag.c bin/altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -O2 -s
   if not exist bin/AltDrag.exe. exit /b
-  %prefix32%gcc -o bin/hooks.dll hooks.c bin/hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -O2 -s
+  %prefix32%gcc -o bin/hooks.dll hooks.c bin/hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -ldwmapi -O2 -s
   if not exist bin/hooks.dll. exit /b
 
   if "%x64%" == "1" (
@@ -42,7 +42,7 @@ if "%1" == "all" (
     %prefix64%windres include/hooks.rc bin/hooks_x64.o
     %prefix64%gcc -o bin/HookWindows_x64.exe hookwindows_x64.c bin/hookwindows_x64.o -mwindows -lshlwapi -O2 -s
     if not exist bin/HookWindows_x64.exe. exit /b
-    %prefix64%gcc -o bin/hooks_x64.dll hooks.c bin/hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
+    %prefix64%gcc -o bin/hooks_x64.dll hooks.c bin/hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -ldwmapi -O2 -s
     if not exist bin/hooks_x64.dll. exit /b
   )
 
@@ -55,7 +55,7 @@ if "%1" == "all" (
   start localization/import_languages.exe
 ) else (
   %prefix32%gcc -o AltDrag.exe altdrag.c bin/altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -lole32 -g -DDEBUG
-  %prefix32%gcc -o hooks.dll hooks.c bin/hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -g -DDEBUG
+  %prefix32%gcc -o hooks.dll hooks.c bin/hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -ldwmapi -g -DDEBUG
 
   if "%x64%" == "0" (
     if exist hooks_x64.dll (
@@ -70,7 +70,7 @@ if "%1" == "all" (
     %prefix64%windres include/hookwindows_x64.rc bin/hookwindows_x64.o
     %prefix64%windres include/hooks.rc bin/hooks_x64.o
     %prefix64%gcc -o HookWindows_x64.exe hookwindows_x64.c bin/hookwindows_x64.o -mwindows -lshlwapi -g -DDEBUG
-    %prefix64%gcc -o hooks_x64.dll hooks.c bin/hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -g -DDEBUG
+    %prefix64%gcc -o hooks_x64.dll hooks.c bin/hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -ldwmapi -g -DDEBUG
   )
 
   if "%1" == "run" (
