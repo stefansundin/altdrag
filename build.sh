@@ -10,7 +10,7 @@ x86_64-w64-mingw32-windres -o bin/hookwindows_x64.o include/hookwindows_x64.rc
 x86_64-w64-mingw32-windres -o bin/hooks_x64.o include/hooks.rc
 
 if [[ "$1" == "release" ]]; then
-  i686-w64-mingw32-gcc -o bin/AltDrag.exe altdrag.c bin/altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -O2 -s
+  i686-w64-mingw32-gcc -Wl,-dynamicbase,-nxcompat -o bin/AltDrag.exe altdrag.c bin/altdrag.o -mwindows -lshlwapi -lwininet -lcomctl32 -O3 -s -fstack-protector-all -Wstack-protector --param ssp-buffer-size=4 -fstack-clash-protection -mthreads
   i686-w64-mingw32-gcc -o bin/hooks.dll hooks.c bin/hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -O2 -s
 
   x86_64-w64-mingw32-gcc -o bin/HookWindows_x64.exe hookwindows_x64.c bin/hookwindows_x64.o -mwindows -lshlwapi -O2 -s
