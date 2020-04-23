@@ -14,7 +14,7 @@ if [[ "$1" == "release" ]]; then
   i686-w64-mingw32-gcc -Wl,-dynamicbase,-nxcompat -Wp,-D_FORTIFY_SOURCE=2 -o bin/hooks.dll hooks.c bin/hooks.o -mdll -lshlwapi -lcomctl32 -lpsapi -lole32 -O2 -s -fstack-protector-strong -fstack-clash-protection -mthreads
 
   x86_64-w64-mingw32-gcc -Wl,-dynamicbase,-nxcompat,--high-entropy-va -o bin/HookWindows_x64.exe hookwindows_x64.c bin/hookwindows_x64.o -mwindows -lshlwapi -O2 -s -fstack-clash-protection -mthreads
-  x86_64-w64-mingw32-gcc -o bin/hooks_x64.dll hooks.c bin/hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s
+  x86_64-w64-mingw32-gcc -Wl,-dynamicbase,-nxcompat,--high-entropy-va -o bin/hooks_x64.dll hooks.c bin/hooks_x64.o -mdll -lshlwapi -lcomctl32 -lpsapi -O2 -s -fstack-clash-protection -mthread
 
   makensis -V2 installer.nsi
 
