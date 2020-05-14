@@ -6,3 +6,7 @@ bin
 *.dll
 *.exe
 /Translation.ini
+
+# Automatically generated files can be safely ignored
+localization/*/strings.h
+localization/languages.h
