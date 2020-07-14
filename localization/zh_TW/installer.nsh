@@ -5,8 +5,8 @@
 ; the Free Software Foundation, either version 3 of the License, or
 ; (at your option) any later version.
 
-!insertmacro MUI_LANGUAGE "繁體中文(台灣)" ; English name of this language
-LangString L10N_LANG ${LANG_ENGLISH} ""
+!insertmacro MUI_LANGUAGE "Traditional Chinese" ; English name of this language
+LangString L10N_LANG ${LANG_TRADCHINESE} ""
 
 LangString L10N_UPGRADE_TITLE     0 "早已安裝"
 LangString L10N_UPGRADE_SUBTITLE  0 "請選擇您要安裝 ${APP_NAME} 的方式。"
