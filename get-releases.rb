@@ -1,45 +1,23 @@
 #!/usr/bin/env ruby
+# note that when this script downloads a file, it also increments the download counter for those files.
 
-# note that when this script downloads a file, it also increases the download counter
-
-require "httparty"
 require "date"
-require "net/http"
-require "openssl"
+require "json"
+require "fileutils"
+require "http"
 
-class GithubParty
-  include HTTParty
-  base_uri "https://api.github.com"
-
-  def self.get_all_pages(path)
-    entries = []
-    page = 1
-    while true
-      r = get "#{path}?page=#{page}"
-      return nil if r.code == 404
-      raise error(r) if not r.success?
-      break if r.parsed_response.count == 0
-      entries = entries + r.parsed_response
-      page += 1
-    end
-    entries
+def github_get_all_pages(url)
+  entries = []
+  page = 1
+  while true
+    resp = HTTP.get("#{url}?page=#{page}")
+    raise(resp) if resp.code != 200
+    data = JSON.parse(resp.to_s)
+    break if data.length == 0
+    entries = entries + data
+    page += 1
   end
-end
-
-def http_get(url, limit=10, &block)
-  raise ArgumentError, "HTTP redirect too deep" if limit == 0
-  uri = URI.parse(url)
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = (uri.port == 443)
-  request = Net::HTTP::Get.new(uri.request_uri)
-  http.request(request) do |response|
-    case response
-    when Net::HTTPRedirection then
-      http_get(response["location"], limit-1, &block)
-    else
-      yield(response)
-    end
-  end
+  entries
 end
 
 def humanize(number)
@@ -48,84 +26,96 @@ end
 
 filetype_downloads = {}
 total_downloads = 0
+no_binaries = ARGV.include?("--no-binaries")
 
 repo = %x[git remote -v][/(?<=:)[^ ]+(?=\.git)/]
 puts "Repo: #{repo}"
 
-print "Getting list of downloads..."
-releases = GithubParty.get_all_pages "https://api.github.com/repos/#{repo}/releases"
+puts "Getting releases..."
+releases = github_get_all_pages("https://api.github.com/repos/#{repo}/releases")
 
-open("releases.json", "wb") { |f| f.write releases.to_json }
+File.open("releases.json", "wb") { |f| f.write(releases.to_json) }
 
-puts
-puts "Found #{releases.count} releases!"
+puts "Found #{releases.length} releases!"
 
-open("README.md", "wb") do |readme|
-  readme.write <<-eos
-# #{repo}
+File.open("README.md", "wb") do |readme|
+  tbl1_col2_width = releases.map { |rel| rel["tag_name"].length }.max * 2 + 4
+  tbl1_col3_width = [humanize(releases.map { |rel| rel["assets"].map { |asset| asset["download_count"] }.sum }.max).length, 9].max
 
-## Downloads by release
+  readme.write <<~eos
+    # #{repo}
 
-Date       | Release | Downloads
----------- | ------- | ---------
-eos
+    ## Downloads by release
 
-  releases.sort_by { |r| r["created_at"] }.reverse!.each do |r|
+    Date       | Release#{" "*(tbl1_col2_width-7)} | #{" "*(tbl1_col3_width-9)}Downloads
+    ---------- | #{"-"*tbl1_col2_width} | #{"-"*tbl1_col3_width}
+  eos
+
+  releases.sort_by { |rel| rel["created_at"] }.reverse!.each do |rel|
     release_downloads = 0
     puts
-    puts r["tag_name"]
-    %x[mkdir "#{r["tag_name"]}"] unless File.directory?(r["tag_name"])
+    puts rel["tag_name"]
+    FileUtils.mkdir_p(rel["tag_name"])
 
-    open("#{r["tag_name"]}/README.md", "wb") do |tag_readme|
-      tag_readme.write <<-eos
-# #{r["name"]}
+    File.open("#{rel["tag_name"]}/README.md", "wb") do |tag_readme|
+      tag_readme.write("# #{rel["name"]}\n\n")
 
-#{r["body"].gsub("\r","")}
+      body = rel["body"].chomp
+      if body != ""
+        tag_readme.write("#{body}\n")
+      end
 
-## Downloads by filename
+      tbl2_col1_width = [rel["assets"].map { |asset| asset["name"].length }.max, 8].max
+      tbl2_col2_width = [humanize(rel["assets"].map { |asset| asset["download_count"] }.max).length, 14].max
 
-Filename | Download Count
--------- | --------------
-eos
+      tag_readme.write <<~eos
 
-      r["assets"].sort_by { |a| a["name"] }.each do |a|
-        tag_readme.write "#{a["name"]} | #{humanize(a["download_count"])}\n"
-        total_downloads += a["download_count"]
-        release_downloads += a["download_count"]
+        ## Downloads by filename
 
-        ext = File.extname(a["name"])
+        Filename#{" "*(tbl2_col1_width-8)} | #{" "*(tbl2_col2_width-14)}Download Count
+        #{"-"*tbl2_col1_width} | #{"-"*tbl2_col2_width}
+      eos
+
+      rel["assets"].sort_by { |asset| asset["name"] }.each do |asset|
+        tag_readme.printf("%-#{tbl2_col1_width}s | %#{tbl2_col2_width}s\n", asset["name"], humanize(asset["download_count"]))
+        total_downloads += asset["download_count"]
+        release_downloads += asset["download_count"]
+
+        ext = File.extname(asset["name"])
         filetype_downloads[ext] ||= 0
-        filetype_downloads[ext] += a["download_count"]
+        filetype_downloads[ext] += asset["download_count"]
 
-        puts "- #{a["name"]} (#{humanize(a["download_count"])})"
-        path = "#{r["tag_name"]}/#{a["name"]}"
+        puts "- #{asset["name"]} (#{humanize(asset["download_count"])})"
+        path = "#{rel["tag_name"]}/#{asset["name"]}"
 
-        unless ARGV.any? { |a| a == "--no-binaries" }
-          unless File.exists?(path) and File.size(path) == a["size"]
-            http_get(a["browser_download_url"]) do |response|
-              open(path, "wb") do |io|
-                response.read_body do |chunk|
-                  io.write chunk
-                end
-              end
-            end
+        next if no_binaries
+        next if File.exists?(path) && File.size(path) == asset["size"]
+
+        resp = HTTP.follow.get(asset["browser_download_url"])
+        raise(resp) if resp.code != 200
+        open(path, "wb") do |io|
+          resp.body.each do |chunk|
+            io.write(chunk)
           end
         end
       end
-      date = Date.parse r["created_at"]
-      readme.write "#{date.strftime("%Y-%m-%d")} | [#{r["tag_name"]}](#{r["tag_name"]}) | #{humanize(release_downloads)}\n"
+      date = Date.parse(rel["created_at"])
+      readme.printf("%s | %-#{tbl1_col2_width}s | %#{tbl1_col3_width}s\n", date.strftime("%Y-%m-%d"), "[#{rel["tag_name"]}](#{rel["tag_name"]})", humanize(release_downloads))
     end
   end
 
-  readme.write <<-eos
+  tbl3_col1_width = [filetype_downloads.keys.map { |ext| ext.length }.max, 8].max
+  tbl3_col2_width = [humanize(filetype_downloads.values.max).length, 14].max
 
-## Downloads by filetype
+  readme.write <<~eos
 
-Filetype | Download Count
--------- | --------------
-eos
-  filetype_downloads.sort.reverse!.each do |filetype, downloads|
-    readme.write "#{filetype} | #{downloads}\n"
+    ## Downloads by filetype
+
+    Filetype#{" "*(tbl3_col1_width-8)} | #{" "*(tbl3_col2_width-14)}Download Count
+    #{"-"*tbl3_col1_width} | #{"-"*tbl3_col2_width}
+  eos
+  filetype_downloads.sort_by { |_,v| v }.reverse.each do |filetype, downloads|
+    readme.printf("%-#{tbl3_col1_width}s | %#{tbl3_col2_width}s\n", filetype, humanize(downloads))
   end
-  readme.write "\nTotal downloads: #{total_downloads}\n"
+  readme.write("\nTotal downloads: #{humanize(total_downloads)}\n")
 end
