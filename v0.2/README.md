@@ -4,9 +4,8 @@
 - You can no longer drag fullscreen windows.
 - The window is better placed when it's restored from its maximized state.
 
-
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-AltDrag-0.2.7z | 3
+Filename       | Download Count
+-------------- | --------------
+AltDrag-0.2.7z |             12

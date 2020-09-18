@@ -9,6 +9,6 @@
 
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-AltDrag-0.9rc1.7z | 2
+Filename          | Download Count
+----------------- | --------------
+AltDrag-0.9rc1.7z |             12

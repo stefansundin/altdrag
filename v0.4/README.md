@@ -5,6 +5,6 @@
 
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-AltDrag-0.4.7z | 3
+Filename       | Download Count
+-------------- | --------------
+AltDrag-0.4.7z |             12

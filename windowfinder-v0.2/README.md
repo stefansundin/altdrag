@@ -4,6 +4,6 @@
 
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-WindowFinder-0.2.exe | 2
+Filename             | Download Count
+-------------------- | --------------
+WindowFinder-0.2.exe |             11

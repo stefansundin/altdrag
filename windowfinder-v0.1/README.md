@@ -4,6 +4,6 @@
 
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-WindowFinder-0.1.7z | 1
+Filename            | Download Count
+------------------- | --------------
+WindowFinder-0.1.7z |             12

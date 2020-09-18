@@ -13,7 +13,7 @@
 
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-AltDrag-0.9.7z | 6
-AltDrag-0.9.exe | 4
+Filename        | Download Count
+--------------- | --------------
+AltDrag-0.9.7z  |             20
+AltDrag-0.9.exe |             34

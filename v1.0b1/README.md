@@ -14,6 +14,6 @@
 
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-AltDrag-1.0b1.7z | 3
+Filename         | Download Count
+---------------- | --------------
+AltDrag-1.0b1.7z |             15

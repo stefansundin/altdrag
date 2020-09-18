@@ -11,11 +11,10 @@
 - Fixed the shift key not being usable after dragging started (Windows 10).
 - Fixed various minor bugs.
 
-
 ## Downloads by filename
 
-Filename | Download Count
--------- | --------------
-AltDrag-1.1.exe | 19,242
-AltDrag-1.1.zip | 3,958
-sha256sum.txt | 26
+Filename        | Download Count
+--------------- | --------------
+AltDrag-1.1.exe |         90,311
+AltDrag-1.1.zip |         17,398
+sha256sum.txt   |            122
