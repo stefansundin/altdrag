@@ -18,9 +18,12 @@ The most important things that every user should read first is covered in the fi
 
 - [Learn how to compile AltDrag](build.html)
 - [Learn how to translate AltDrag](translate.html)
-- [Learn what other programs you can use](other-programs.html)
 
-## Talk
+## Discussions
 
-- [Talk about AltDrag in my subreddit](https://www.reddit.com/r/stefansundin)
-- [Look through the list of issues on GitHub]({{ site.github.issues_url }})
+Visit the [GitHub discussion forum](https://github.com/stefansundin/altdrag/discussions) to discuss AltDrag and related topics.
+
+- [Discuss programs that are similar to AltDrag](https://github.com/stefansundin/altdrag/discussions/127)
+- [Discuss forks of AltDrag](https://github.com/stefansundin/altdrag/discussions/128)
+
+You can also look through [the list of issues]({{ site.github.issues_url }}).

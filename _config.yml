@@ -10,6 +10,7 @@ permalink: /news/:year-:month-:day-:title.html
 # build
 plugins:
 - jekyll-github-metadata
+- jekyll-redirect-from
 markdown: kramdown
 kramdown:
   input: GFM
