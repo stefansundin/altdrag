@@ -11,7 +11,7 @@ Here is a list of programs that are similar to AltDrag.
 - [Win-X-Move](http://winxmove.sourceforge.net/)
 - ComfortResize in [ac'tivAid](https://activaid.telgkamp.de/)
 - [wmove](http://code.google.com/p/wmove/)
-- [KDE Mover-Sizer]https://corz.org/windows/software/accessories/KDE-resizing-moving-for-Windows.php), an AutoHotkey script.
+- [KDE Mover-Sizer](https://corz.org/windows/software/accessories/KDE-resizing-moving-for-Windows.php), an AutoHotkey script.
 - [AltWindowDrag](https://www.howtogeek.com/howto/windows-vista/get-the-linux-altwindow-drag-functionality-in-windows/), another AutoHotkey script.
 - [EasyWindowDrag](https://www.autohotkey.com/docs/scripts/EasyWindowDrag.htm), another AutoHotkey script.
 - [NiftyWindows](http://www.enovatic.org/products/niftywindows/introduction/), another AutoHotkey script.
