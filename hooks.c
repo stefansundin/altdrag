@@ -1096,6 +1096,30 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
   return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
+// This is used to detect is the window was snapped normally outside of
+// AltDrag, in this case the window appears as normal
+// ie: wndpl.showCmd=SW_SHOWNORMAL, but  its actual rect does not match with
+// its rcNormalPosition and if the WM_RESTORE command is sent, The window
+// will be restored. This is a non documented behaviour.
+// Works under Windows 10 20H2 at least...
+static int IsWindowSnapped(HWND hwnd)
+{
+  RECT rect;
+  if(!GetWindowRect(hwnd, &rect)) {
+    return 0;
+  }
+  int W = rect.right  - rect.left;
+  int H = rect.bottom - rect.top;
+
+  WINDOWPLACEMENT wndpl = { sizeof(WINDOWPLACEMENT) };
+  GetWindowPlacement(hwnd, &wndpl);
+  wndpl.showCmd = SW_RESTORE;
+  int nW = wndpl.rcNormalPosition.right - wndpl.rcNormalPosition.left;
+  int nH = wndpl.rcNormalPosition.bottom - wndpl.rcNormalPosition.top;
+
+  return (W != nW || H != nH);
+}
+
 __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
   if (nCode == HC_ACTION) {
     // Set up some variables
@@ -1659,7 +1683,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
         state.wndentry->restore = 0;
 
         // Set offset
-        if (state.origin.maximized) {
+        if (state.origin.maximized || IsWindowSnapped(state.hwnd)) {
           state.offset.x = (float)(pt.x-wnd.left)/(wnd.right-wnd.left)*state.origin.width;
           state.offset.y = (float)(pt.y-wnd.top)/(wnd.bottom-wnd.top)*state.origin.height;
 
