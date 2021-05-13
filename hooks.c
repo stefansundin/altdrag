@@ -230,8 +230,11 @@ BOOL CALLBACK EnumMonitorsProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
     monitors_alloc++;
     monitors = realloc(monitors, monitors_alloc*sizeof(RECT));
   }
-  // Add monitor
-  monitors[nummonitors++] = *lprcMonitor;
+  // Add monitor using the rcWork rect
+  // that takes taskbars into account unlike the lprcMonitor...
+  MONITORINFO mi = { sizeof(MONITORINFO) };
+  GetMonitorInfo(hMonitor, &mi);
+  monitors[nummonitors++] =  mi.rcWork;
   return TRUE;
 }
 
@@ -357,12 +360,6 @@ void Enum() {
   // Enumerate monitors
   EnumDisplayMonitors(NULL, NULL, EnumMonitorsProc, 0);
 
-  // Enumerate windows
-  HWND taskbar = FindWindow(L"Shell_TrayWnd", NULL);
-  RECT wnd;
-  if (taskbar != NULL && GetWindowRect(taskbar,&wnd) != 0) {
-    wnds[numwnds++] = wnd;
-  }
   if (sharedstate.snap >= 2) {
     EnumWindows(EnumWindowsProc, 0);
   }
