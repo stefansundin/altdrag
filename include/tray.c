@@ -45,8 +45,9 @@ int UpdateTray() {
 
   // Only add or modify if not hidden or if balloon will be displayed
   if (!hide || tray.uFlags&NIF_INFO) {
-    // Try until it succeeds, sleep 100 ms between each attempt
-    while (Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&tray) == FALSE) {
+    // Try a few times, sleep 100 ms between each attempt
+    int i=0;
+    while (i++ < 3 && Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&tray) == FALSE) {
       Sleep(100);
     }
     // Success
