@@ -1095,6 +1095,18 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 
   return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
+static int HitTestTimeout(HWND hwnd, LPARAM lParam){
+  DWORD area=0;
+  while(hwnd && SendMessageTimeout(hwnd, WM_NCHITTEST, 0, lParam, SMTO_NORMAL, 255, &area)){
+    if ((int)area == HTTRANSPARENT) {
+      hwnd = GetParent(hwnd);
+    } 
+    else {
+      break;
+    }
+  }
+  return (int)area;
+}
 
 __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
   if (nCode == HC_ACTION) {
@@ -1424,13 +1436,14 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
     // Lower window if middle mouse button is used on the title bar
     // A twist from other programs is that this applies to the top border and corners and the buttons as well, which may be useful if the window has a small title bar (or none), e.g. web browsers with a lot of tabs open
     if (sharedsettings.LowerWithMMB && !state.alt && !sharedstate.action && buttonstate == STATE_DOWN && button == BUTTON_MMB) {
-      HWND hwnd = WindowFromPoint(pt);
-      if (hwnd == NULL) {
+      HWND NChwnd = WindowFromPoint(pt);
+      if (NChwnd == NULL) {
         return CallNextHookEx(NULL, nCode, wParam, lParam);
       }
-      hwnd = GetAncestor(hwnd, GA_ROOT);
-      int area = SendMessage(hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x,pt.y));
-      if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE) {
+      HWND hwnd = GetAncestor(NChwnd, GA_ROOT);
+      int area = HitTestTimeout(NChwnd, MAKELPARAM(pt.x, pt.y));
+      if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU 
+       || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE || area == HTHELP) {
         if (sharedstate.shift) {
           SendMessage(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
         }
