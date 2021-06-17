@@ -1095,6 +1095,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
 
   return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
+
 static int HitTestTimeout(HWND hwnd, LPARAM lParam){
   DWORD area=0;
   while(hwnd && SendMessageTimeout(hwnd, WM_NCHITTEST, 0, lParam, SMTO_NORMAL, 255, &area)){
@@ -1436,12 +1437,13 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
     // Lower window if middle mouse button is used on the title bar
     // A twist from other programs is that this applies to the top border and corners and the buttons as well, which may be useful if the window has a small title bar (or none), e.g. web browsers with a lot of tabs open
     if (sharedsettings.LowerWithMMB && !state.alt && !sharedstate.action && buttonstate == STATE_DOWN && button == BUTTON_MMB) {
-      HWND NChwnd = WindowFromPoint(pt);
-      if (NChwnd == NULL) {
+      HWND hwnd = WindowFromPoint(pt);
+      if (hwnd == NULL) {
         return CallNextHookEx(NULL, nCode, wParam, lParam);
       }
-      HWND hwnd = GetAncestor(NChwnd, GA_ROOT);
-      int area = HitTestTimeout(NChwnd, MAKELPARAM(pt.x, pt.y));
+      int area = HitTestTimeout(hwnd, MAKELPARAM(pt.x, pt.y));
+      hwnd = GetAncestor(hwnd, GA_ROOT);
+
       if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU 
        || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE || area == HTHELP) {
         if (sharedstate.shift) {
