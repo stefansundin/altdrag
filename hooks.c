@@ -1096,6 +1096,19 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
   return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
+static int HitTestTimeout(HWND hwnd, LPARAM lParam){
+  DWORD area=0;
+  while(hwnd && SendMessageTimeout(hwnd, WM_NCHITTEST, 0, lParam, SMTO_NORMAL, 255, &area)){
+    if ((int)area == HTTRANSPARENT) {
+      hwnd = GetParent(hwnd);
+    } 
+    else {
+      break;
+    }
+  }
+  return (int)area;
+}
+
 __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
   if (nCode == HC_ACTION) {
     // Set up some variables
@@ -1428,9 +1441,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
       if (hwnd == NULL) {
         return CallNextHookEx(NULL, nCode, wParam, lParam);
       }
+      int area = HitTestTimeout(hwnd, MAKELPARAM(pt.x, pt.y));
       hwnd = GetAncestor(hwnd, GA_ROOT);
-      int area = SendMessage(hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x,pt.y));
-      if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE) {
+
+      if (area == HTCAPTION || area == HTTOP || area == HTTOPLEFT || area == HTTOPRIGHT || area == HTSYSMENU 
+       || area == HTMINBUTTON || area == HTMAXBUTTON || area == HTCLOSE || area == HTHELP) {
         if (sharedstate.shift) {
           SendMessage(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
         }
