@@ -628,6 +628,10 @@ int IsHotkey(int key) {
   }
   return 0;
 }
+// Helper function to call SetWindowPos with the SWP_ASYNCWINDOWPOS flag
+static void MoveWindowAsync(HWND hwnd, int posx, int posy, int width, int height) {
+  SetWindowPos(hwnd, NULL, posx, posy, width, height, SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_ASYNCWINDOWPOS);
+}
 
 void MouseMove() {
   int posx, posy, wndwidth, wndheight;
@@ -924,7 +928,7 @@ void MouseMove() {
     }
   }
 
-  MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
+  MoveWindowAsync(state.hwnd, posx, posy, wndwidth, wndheight);
 }
 
 __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
