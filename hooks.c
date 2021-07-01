@@ -1120,7 +1120,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
         state.updaterate = (state.updaterate+1)%(sharedstate.action==ACTION_MOVE?sharedsettings.Performance.MoveRate:sharedsettings.Performance.ResizeRate);
         if (state.updaterate == 0) {
           if (sharedsettings.Performance.Cursor) {
-            MoveWindow(cursorwnd, pt.x-20, pt.y-20, 41, 41, TRUE);
+            MoveWindow(cursorwnd, pt.x-128, pt.y-128, 256, 256, FALSE);
             //MoveWindow(cursorwnd,(prevpt.x<pt.x?prevpt.x:pt.x)-3,(prevpt.y<pt.y?prevpt.y:pt.y)-3,(pt.x>prevpt.x?pt.x-prevpt.x:prevpt.x-pt.x)+7,(pt.y>prevpt.y?pt.y-prevpt.y:prevpt.y-pt.y)+7,FALSE);
           }
           MouseMove();
