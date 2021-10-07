@@ -232,7 +232,7 @@ static HRESULT DwmGetWindowAttribute_dyn(HWND hwnd, DWORD a, PVOID b, DWORD c)
 
     switch(have_func){
     case -1: /* First time */
-      
+
       hdll = LoadLibraryA("DWMAPI.DLL");
       if(!hdll) {
         have_func = 0;
@@ -247,10 +247,10 @@ static HRESULT DwmGetWindowAttribute_dyn(HWND hwnd, DWORD a, PVOID b, DWORD c)
           break;
         }
       } /* Fall through */
-    
+
     case 1: /* We know we have the function */
       return myDwmGetWindowAttribute(hwnd, a, b, c);
-    
+
     }
     return 666; /* FAIL with 666 error */
 }
@@ -263,6 +263,19 @@ static BOOL GetVisibleWindowRect(HWND hwnd, RECT *rect)
     HRESULT ret = DwmGetWindowAttribute_dyn(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, rect, sizeof(RECT));
     if( ret == S_OK) return 1;
     else return GetWindowRect(hwnd, rect); /* Fallback to normal */
+}
+// Under Win8 and later a window can be cloaked
+// This falg can be obtained with this function
+// 1 The window was cloaked by its owner application.
+// 2 The window was cloaked by the Shell.
+// 4 The cloak value was inherited from its owner window.
+// For windows that are supposed to be logically "visible",
+// in addition to WS_VISIBLE.
+static int IsWindowCloaked(HWND hwnd)
+{
+    int cloaked=0;
+    DwmGetWindowAttribute_dyn(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked));
+    return cloaked;
 }
 
 // Returns a rect containing the invisible borders of the window.
@@ -307,7 +320,7 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
   RECT wnd;
   LONG_PTR style;
   if (window != state.hwnd && window != progman
-   && IsWindowVisible(window) && !IsIconic(window)
+   && IsWindowVisible(window) && !IsIconic(window) && !IsWindowCloaked(window)
    && (((style=GetWindowLongPtr(window,GWL_STYLE))&WS_CAPTION) == WS_CAPTION || blacklisted(window,&settings.Snaplist))
    && GetVisibleWindowRect(window,&wnd) != 0
   ) {
@@ -358,7 +371,7 @@ BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
   }
 
   // Only store window if it's visible, not minimized to taskbar and on the same monitor as the cursor
-  if (IsWindowVisible(window) && !IsIconic(window)
+  if (IsWindowVisible(window) && !IsIconic(window) && !IsWindowCloaked(window)
    && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION) == WS_CAPTION
    && state.origin.monitor == MonitorFromWindow(window,MONITOR_DEFAULTTONULL)
   ) {
@@ -2168,7 +2181,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 
     if (msg->message == WM_ENTERSIZEMOVE
      && (!subclassed || state.hwnd != msg->hwnd)
-     && IsWindowVisible(msg->hwnd)
+     && IsWindowVisible(msg->hwnd) && !IsWindowCloaked(msg->hwnd)
      && ((GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION) == WS_CAPTION || blacklisted(msg->hwnd,&settings.Snaplist))
      && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
     ) {
