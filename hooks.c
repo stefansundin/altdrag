@@ -22,6 +22,7 @@
 #include <psapi.h>
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
+#include <dwmapi.h>
 
 // Stuff missing in MinGW
 CLSID my_CLSID_MMDeviceEnumerator = {0xBCDE0395,0xE52F,0x467C,{0x8E,0x3D,0xC4,0x57,0x92,0x91,0x69,0x2E}};
@@ -221,6 +222,78 @@ int blacklisted(HWND hwnd, struct blacklist *list) {
   }
   return 0;
 }
+// FIX INVISIBLE BORDERS FUNCTIONS
+// Dynamically load DwmGetWindowAttribute in DWMAPI.DLL
+static HRESULT (WINAPI *myDwmGetWindowAttribute)(HWND hwnd, DWORD a, PVOID b, DWORD c);
+static HRESULT DwmGetWindowAttribute_dyn(HWND hwnd, DWORD a, PVOID b, DWORD c)
+{
+    HINSTANCE hdll=NULL;
+    static int have_func=-1;
+
+    switch(have_func){
+    case -1: /* First time */
+
+      hdll = LoadLibraryA("DWMAPI.DLL");
+      if(!hdll) {
+        have_func = 0;
+        break;
+      } else {
+        myDwmGetWindowAttribute=(void *)GetProcAddress(hdll, "DwmGetWindowAttribute");
+        if(myDwmGetWindowAttribute){
+          have_func = 1;
+        } else {
+          FreeLibrary(hdll);
+          have_func = 0;
+          break;
+        }
+      } /* Fall through */
+
+    case 1: /* We know we have the function */
+      return myDwmGetWindowAttribute(hwnd, a, b, c);
+
+    }
+    return 666; /* FAIL with 666 error */
+}
+
+
+// Version of GetWindowRect that gives the visible rect
+// i.e. not including the invisible borders
+static BOOL GetVisibleWindowRect(HWND hwnd, RECT *rect)
+{
+    HRESULT ret = DwmGetWindowAttribute_dyn(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, rect, sizeof(RECT));
+    if( ret == S_OK) return 1;
+    else return GetWindowRect(hwnd, rect); /* Fallback to normal */
+}
+// Under Win8 and later a window can be cloaked
+// This falg can be obtained with this function
+// 1 The window was cloaked by its owner application.
+// 2 The window was cloaked by the Shell.
+// 4 The cloak value was inherited from its owner window.
+// For windows that are supposed to be logically "visible",
+// in addition to WS_VISIBLE.
+static int IsWindowCloaked(HWND hwnd)
+{
+    int cloaked=0;
+    DwmGetWindowAttribute_dyn(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked));
+    return cloaked;
+}
+
+// Returns a rect containing the invisible borders of the window.
+// This is needed for Windows 10 invisible borders.
+static RECT GetInvisibleBorders(HWND hwnd)
+{
+  RECT rect, frame;
+  RECT border = { 0, 0, 0, 0 };
+
+  if(S_OK == DwmGetWindowAttribute_dyn(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &frame, sizeof(RECT))
+     && GetWindowRect(hwnd, &rect)) {
+    border.left = frame.left - rect.left;
+    border.top = frame.top - rect.top;
+    border.right = rect.right - frame.right;
+    border.bottom = rect.bottom - frame.bottom;
+  }
+  return border;
+}
 
 // Enumerate
 int monitors_alloc = 0;
@@ -247,9 +320,9 @@ BOOL CALLBACK EnumWindowsProc(HWND window, LPARAM lParam) {
   RECT wnd;
   LONG_PTR style;
   if (window != state.hwnd && window != progman
-   && IsWindowVisible(window) && !IsIconic(window)
+   && IsWindowVisible(window) && !IsIconic(window) && !IsWindowCloaked(window)
    && (((style=GetWindowLongPtr(window,GWL_STYLE))&WS_CAPTION) == WS_CAPTION || blacklisted(window,&settings.Snaplist))
-   && GetWindowRect(window,&wnd) != 0
+   && GetVisibleWindowRect(window,&wnd) != 0
   ) {
     // Maximized?
     if (IsZoomed(window)) {
@@ -298,7 +371,7 @@ BOOL CALLBACK EnumAltTabWindows(HWND window, LPARAM lParam) {
   }
 
   // Only store window if it's visible, not minimized to taskbar and on the same monitor as the cursor
-  if (IsWindowVisible(window) && !IsIconic(window)
+  if (IsWindowVisible(window) && !IsIconic(window) && !IsWindowCloaked(window)
    && (GetWindowLongPtr(window,GWL_STYLE)&WS_CAPTION) == WS_CAPTION
    && state.origin.monitor == MonitorFromWindow(window,MONITOR_DEFAULTTONULL)
   ) {
@@ -332,7 +405,7 @@ void EnumMdi() {
       wnds_alloc += 20;
       wnds = realloc(wnds, wnds_alloc*sizeof(RECT));
     }
-    if (GetWindowRect(window,&wnd) != 0) {
+    if (GetVisibleWindowRect(window,&wnd) != 0) {
       wnds[numwnds++] = (RECT) { wnd.left-mdiclientpt.x, wnd.top-mdiclientpt.y, wnd.right-mdiclientpt.x, wnd.bottom-mdiclientpt.y };
     }
     window = GetWindow(window, GW_HWNDNEXT);
@@ -387,6 +460,7 @@ void Enum() {
 void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
   // Enumerate monitors and windows
   Enum();
+  RECT border = GetInvisibleBorders(state.hwnd);
 
   // thresholdx and thresholdy will shrink to make sure the dragged window will snap to the closest windows
   int i, j, thresholdx, thresholdy, stuckx=0, stucky=0, stickx=0, sticky=0;
@@ -415,25 +489,25 @@ void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
       if (*posx-thresholdx < snapwnd.right && snapwnd.right < *posx+thresholdx) {
         // The left edge of the dragged window will snap to this window's right edge
         stuckx = 1;
-        stickx = snapwnd.right;
+        stickx = snapwnd.right - border.left;
         thresholdx = snapwnd.right-*posx;
       }
       else if (snapinside_cond && *posx+wndwidth-thresholdx < snapwnd.right && snapwnd.right < *posx+wndwidth+thresholdx) {
         // The right edge of the dragged window will snap to this window's right edge
         stuckx = 1;
-        stickx = snapwnd.right-wndwidth;
+        stickx = snapwnd.right + border.right - wndwidth;
         thresholdx = snapwnd.right-(*posx+wndwidth);
       }
       else if (snapinside_cond && *posx-thresholdx < snapwnd.left && snapwnd.left < *posx+thresholdx) {
         // The left edge of the dragged window will snap to this window's left edge
         stuckx = 1;
-        stickx = snapwnd.left;
+        stickx = snapwnd.left - border.left;
         thresholdx = snapwnd.left-*posx;
       }
       else if (*posx+wndwidth-thresholdx < snapwnd.left && snapwnd.left < *posx+wndwidth+thresholdx) {
         // The right edge of the dragged window will snap to this window's left edge
         stuckx = 1;
-        stickx = snapwnd.left-wndwidth;
+        stickx = snapwnd.left - border.right - wndwidth;
         thresholdx = snapwnd.left-(*posx+wndwidth);
       }
     }
@@ -445,25 +519,25 @@ void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
       if (*posy-thresholdy < snapwnd.bottom && snapwnd.bottom < *posy+thresholdy) {
         // The top edge of the dragged window will snap to this window's bottom edge
         stucky = 1;
-        sticky = snapwnd.bottom;
+        sticky = snapwnd.bottom - border.top;
         thresholdy = snapwnd.bottom-*posy;
       }
       else if (snapinside_cond && *posy+wndheight-thresholdy < snapwnd.bottom && snapwnd.bottom < *posy+wndheight+thresholdy) {
         // The bottom edge of the dragged window will snap to this window's bottom edge
         stucky = 1;
-        sticky = snapwnd.bottom-wndheight;
+        sticky = snapwnd.bottom + border.bottom - wndheight;
         thresholdy = snapwnd.bottom-(*posy+wndheight);
       }
       else if (snapinside_cond && *posy-thresholdy < snapwnd.top && snapwnd.top < *posy+thresholdy) {
         // The top edge of the dragged window will snap to this window's top edge
         stucky = 1;
-        sticky = snapwnd.top;
+        sticky = snapwnd.top - border.top;
         thresholdy = snapwnd.top-*posy;
       }
       else if (*posy+wndheight-thresholdy < snapwnd.top && snapwnd.top < *posy+wndheight+thresholdy) {
         // The bottom edge of the dragged window will snap to this window's top edge
         stucky = 1;
-        sticky = snapwnd.top-wndheight;
+        sticky = snapwnd.top + border.bottom - wndheight;
         thresholdy = snapwnd.top-(*posy+wndheight);
       }
     }
@@ -480,6 +554,7 @@ void MoveSnap(int *posx, int *posy, int wndwidth, int wndheight) {
 
 void ResizeSnap(int *posx, int *posy, int *wndwidth, int *wndheight) {
   Enum(); // Enumerate monitors and windows
+  RECT border = GetInvisibleBorders(state.hwnd);
 
   // thresholdx and thresholdy will shrink to make sure the dragged window will snap to the closest windows
   int i, j, thresholdx, thresholdy, stuckleft=0, stucktop=0, stuckright=0, stuckbottom=0, stickleft=0, sticktop=0, stickright=0, stickbottom=0;
@@ -564,18 +639,18 @@ void ResizeSnap(int *posx, int *posy, int *wndwidth, int *wndheight) {
 
   // Update posx, posy, wndwidth and wndheight
   if (stuckleft) {
-    *wndwidth = *wndwidth+*posx-stickleft;
-    *posx = stickleft;
+    *wndwidth = *wndwidth+*posx-stickleft + border.left;
+    *posx = stickleft - border.left;
   }
   if (stucktop) {
-    *wndheight = *wndheight+*posy-sticktop;
-    *posy = sticktop;
+    *wndheight = *wndheight+*posy-sticktop + border.top;
+    *posy = sticktop - border.top;
   }
   if (stuckright) {
-    *wndwidth = stickright-*posx;
+    *wndwidth = stickright-*posx + border.right;
   }
   if (stuckbottom) {
-    *wndheight = stickbottom-*posy;
+    *wndheight = stickbottom-*posy + border.bottom;
   }
 }
 
@@ -840,6 +915,11 @@ void MouseMove() {
         state.wndentry->height = state.origin.height;
 
         // Move
+        RECT border = GetInvisibleBorders(state.hwnd);
+        posx -= border.left;
+        posy -= border.top;
+        wndwidth += border.left + border.right;
+        wndheight += border.top + border.bottom;
         MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 
         // Get new size after move
@@ -1775,6 +1855,11 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
           else if (state.resize.x == RESIZE_RIGHT) {
             posx = mon.right-wndwidth;
           }
+          RECT border = GetInvisibleBorders(state.hwnd);
+          posx -= border.left;
+          posy -= border.top;
+          wndwidth += border.left + border.right;
+          wndheight += border.top + border.bottom;
           MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 
           // Get new size after move
@@ -2096,7 +2181,7 @@ __declspec(dllexport) LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPA
 
     if (msg->message == WM_ENTERSIZEMOVE
      && (!subclassed || state.hwnd != msg->hwnd)
-     && IsWindowVisible(msg->hwnd)
+     && IsWindowVisible(msg->hwnd) && !IsWindowCloaked(msg->hwnd)
      && ((GetWindowLongPtr(msg->hwnd,GWL_STYLE)&WS_CAPTION) == WS_CAPTION || blacklisted(msg->hwnd,&settings.Snaplist))
      && !IsIconic(msg->hwnd) && !IsZoomed(msg->hwnd)
     ) {
