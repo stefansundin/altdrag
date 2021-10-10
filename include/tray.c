@@ -45,9 +45,21 @@ int UpdateTray() {
 
   // Only add or modify if not hidden or if balloon will be displayed
   if (!hide || tray.uFlags&NIF_INFO) {
-    // Try a few times, sleep 100 ms between each attempt
-    int i=0;
-    while (i++ < 3 && Shell_NotifyIcon((tray_added?NIM_MODIFY:NIM_ADD),&tray) == FALSE) {
+    // Try 3 times, sleep 100 ms between each attempt
+    int i=1;
+    while (Shell_NotifyIcon(tray_added? NIM_MODIFY: NIM_ADD, &tray) == FALSE) {
+      // Maybe we tried to re-add an already existing tray?
+      // Win10 DPI change cause a WM_TASKBARCREATED message!
+      // In this case we can try to just update the tray.
+      if (!tray_added && Shell_NotifyIcon(NIM_MODIFY, &tray)) {
+          // Sucess
+          tray_added = 1;
+          return 0;
+      }
+      if (i > 2) {
+        return 1; // Failde all attempts
+      }
+      i++;
       Sleep(100);
     }
     // Success
