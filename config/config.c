@@ -432,15 +432,7 @@ INT_PTR CALLBACK InputPageDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
       // Scroll
       if (id == IDC_SCROLL) {
         int j = ComboBox_GetCurSel(control);
-        if (!vista && !wcscmp(scroll_actions[j].action,L"Volume")) {
-          MessageBox(NULL, L"The Volume action only works on Vista and later. Sorry!", APP_NAME, MB_ICONINFORMATION|MB_OK|MB_TASKMODAL);
-          GetPrivateProfileString(L"Input", L"Scroll", L"Nothing", txt, ARRAY_SIZE(txt), inipath);
-          for (i=0; wcscmp(txt,scroll_actions[i].action) && i < ARRAY_SIZE(scroll_actions)-1; i++) {}
-          ComboBox_SetCurSel(control, i);
-        }
-        else {
-          WritePrivateProfileString(L"Input", L"Scroll", scroll_actions[j].action, inipath);
-        }
+        WritePrivateProfileString(L"Input", L"Scroll", scroll_actions[j].action, inipath);
       }
     }
     else if (LOWORD(wParam) == IDC_LOWERWITHMMB) {

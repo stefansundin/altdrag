@@ -23,11 +23,6 @@
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
 
-// Stuff missing in MinGW
-CLSID my_CLSID_MMDeviceEnumerator = {0xBCDE0395,0xE52F,0x467C,{0x8E,0x3D,0xC4,0x57,0x92,0x91,0x69,0x2E}};
-GUID my_IID_IMMDeviceEnumerator = {0xA95664D2,0x9614,0x4F35,{0xA7,0x46,0xDE,0x8D,0xB6,0x36,0x17,0xE6}};
-GUID my_IID_IAudioEndpointVolume = {0x5CDF2C82,0x841E,0x4546,{0x97,0x22,0x0C,0xF7,0x40,0x78,0x22,0x9A}};
-
 // App
 #define APP_NAME L"AltDrag"
 #define AERO_THRESHOLD 5
@@ -88,6 +83,7 @@ struct {
   short blockaltup;
   short blockmouseup;
   short ignorectrl;
+  short ignorekey;
   short locked;
   struct wnddata *wndentry;
   struct {
@@ -927,8 +923,18 @@ void MouseMove() {
   MoveWindow(state.hwnd, posx, posy, wndwidth, wndheight, TRUE);
 }
 
+// Send the key down/up event to the system
+static void Send_Key(unsigned vkey) {
+  state.ignorekey = 1;
+  KEYBDINPUT ctrl[2] = {{vkey,0,0,0}, {vkey,0,KEYEVENTF_KEYUP,0}};
+  ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
+  INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
+  SendInput(2, input, sizeof(INPUT));
+  state.ignorekey = 0;
+}
+
 __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-  if (nCode == HC_ACTION) {
+  if (nCode == HC_ACTION && !state.ignorekey) {
     int vkey = ((PKBDLLHOOKSTRUCT)lParam)->vkCode;
 
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
@@ -1069,11 +1075,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wP
         // Prevent the alt keyup from triggering the window menu to be selected
         // The way this works is that the alt key is "disguised" by sending ctrl keydown/keyup events
         if (state.blockaltup || sharedstate.action) {
-          state.ignorectrl = 1;
-          KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
-          ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
-          INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
-          SendInput(2, input, sizeof(INPUT));
+          Send_Key(VK_CONTROL);
         }
         state.ignorectrl = 0;
 
@@ -1227,46 +1229,12 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
           */
         }
         else if (sharedsettings.Mouse.Scroll == ACTION_VOLUME) {
-          IMMDeviceEnumerator *pDevEnumerator = NULL;
-          IMMDevice *pDev = NULL;
-          IAudioEndpointVolume *pAudioEndpoint = NULL;
-
-          // Get audio endpoint
-          HRESULT hr = CoCreateInstance(&my_CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &my_IID_IMMDeviceEnumerator, (void**)&pDevEnumerator);
-          if (hr != S_OK) {
-            Error(L"CoCreateInstance(MMDeviceEnumerator)", L"LowLevelMouseProc()", hr);
-            return CallNextHookEx(NULL, nCode, wParam, lParam);
-          }
-          hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(pDevEnumerator, eRender, eMultimedia, &pDev);
-          IMMDeviceEnumerator_Release(pDevEnumerator);
-          if (hr != S_OK) {
-            Error(L"IMMDeviceEnumerator_GetDefaultAudioEndpoint(eRender, eMultimedia)", L"LowLevelMouseProc()", hr);
-            return CallNextHookEx(NULL, nCode, wParam, lParam);
-          }
-          hr = IMMDevice_Activate(pDev, &my_IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, (void**)&pAudioEndpoint);
-          IMMDevice_Release(pDev);
-          if (hr != S_OK) {
-            Error(L"IMMDevice_Activate(IID_IAudioEndpointVolume)", L"LowLevelMouseProc()", hr);
-            return CallNextHookEx(NULL, nCode, wParam, lParam);
-          }
-
-          // Function pointer so we only need one for-loop
-          typedef HRESULT WINAPI (*_VolumeStep)(IAudioEndpointVolume*, LPCGUID pguidEventContext);
-          _VolumeStep VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepDown);
-          if (delta > 0) {
-            VolumeStep = (_VolumeStep)(pAudioEndpoint->lpVtbl->VolumeStepUp);
-          }
-
           // Hold shift to make 5 steps
           int i;
           int num = (sharedstate.shift)?5:1;
           for (i=0; i < num; i++) {
-            hr = VolumeStep(pAudioEndpoint, NULL);
-          }
-          IAudioEndpointVolume_Release(pAudioEndpoint);
-          if (hr != S_OK) {
-            Error(L"IAudioEndpointVolume_VolumeStepUp/Down()", L"LowLevelMouseProc()", hr);
-            return CallNextHookEx(NULL, nCode, wParam, lParam);
+            // Send volume up/down keys
+            Send_Key(delta>0? VK_VOLUME_UP: VK_VOLUME_DOWN);
           }
         }
         else if (sharedsettings.Mouse.Scroll == ACTION_TRANSPARENCY) {
@@ -1855,12 +1823,7 @@ __declspec(dllexport) LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wPara
       }
 
       // We have to send the ctrl keys here too because of IE (and maybe some other program?)
-      state.ignorectrl = 1;
-      KEYBDINPUT ctrl[2] = {{VK_CONTROL,0,0,0}, {VK_CONTROL,0,KEYEVENTF_KEYUP,0}};
-      ctrl[0].dwExtraInfo = ctrl[1].dwExtraInfo = GetMessageExtraInfo();
-      INPUT input[2] = {{INPUT_KEYBOARD,{.ki=ctrl[0]}}, {INPUT_KEYBOARD,{.ki=ctrl[1]}}};
-      SendInput(2, input, sizeof(INPUT));
-      state.ignorectrl = 0;
+      Send_Key(VK_CONTROL);
 
       // Remember time of this click so we can check for double-click
       state.clicktime = GetTickCount();
@@ -1961,10 +1924,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     if (wParam == INIT_TIMER) {
       KillTimer(g_hwnd, wParam);
       // Needed for IAudioEndpointVolume, and maybe some future stuff
-      HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-      if (hr != S_OK && hr != S_FALSE) {
-        Error(L"CoInitializeEx()", L"INIT_TIMER", hr);
-      }
+      //HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+      //if (hr != S_OK && hr != S_FALSE) {
+      //  Error(L"CoInitializeEx()", L"INIT_TIMER", hr);
+      //}
       // Hook mouse if a permanent hook is needed
       if (sharedsettings.InactiveScroll || sharedsettings.LowerWithMMB) {
         HookMouse();
