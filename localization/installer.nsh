@@ -9,3 +9,4 @@
 !include "localization\de_DE\installer.nsh"
 !include "localization\ca_ES\installer.nsh"
 !include "localization\ko_KR\installer.nsh"
+!include "localization\tr_TR\installer.nsh"
