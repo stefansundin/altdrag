@@ -66,8 +66,26 @@ int elevated = 0;
 #include "config/config.c"
 
 // Entry point
+// Declare ourselves DPI-aware so window/cursor coordinates match the physical
+// pixels reported by the low-level mouse hook (WH_MOUSE_LL always reports
+// physical coordinates regardless of the caller's DPI awareness). Without
+// this, GetWindowRect/WindowFromPoint are silently scaled by Windows on any
+// display that isn't at 100% scaling, causing AltDrag to miscalculate drag
+// offsets and sometimes grab the wrong window entirely.
+void SetDpiAwareness() {
+  HMODULE user32 = GetModuleHandle(L"user32.dll");
+  typedef BOOL (WINAPI *SetProcessDpiAwarenessContext_t)(DPI_AWARENESS_CONTEXT);
+  SetProcessDpiAwarenessContext_t pSetProcessDpiAwarenessContext = (SetProcessDpiAwarenessContext_t) GetProcAddress(user32, "SetProcessDpiAwarenessContext");
+  if (pSetProcessDpiAwarenessContext != NULL && pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
+    return;
+  }
+  // Fall back to older, system-DPI-only awareness (Vista+) if per-monitor-v2 isn't available (pre-Windows 10 1703)
+  SetProcessDPIAware();
+}
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, char *szCmdLine, int iCmdShow) {
   g_hinst = hInst;
+  SetDpiAwareness();
   IsWow64Process(GetCurrentProcess(), &x64);
 
   // Get ini path
